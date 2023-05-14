@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using OsmSharp;
 using OsmSharp.Streams;
+using OsmSharp.Tags;
 
 namespace Osmalyzer
 {
@@ -271,6 +272,23 @@ namespace Osmalyzer
 
         /// <summary> Element counts for each unique value </summary>
         public List<int> ElementCounts { get; } = new List<int>();
+
+        
+        public List<string> GetUniqueKeyValues(string key, bool sort = false)
+        {
+            List<string> used = new List<string>();
+
+            foreach (OsmMultiValueElement element in Elements)
+                foreach (Tag tag in element.Element.Element.Tags)
+                    if (tag.Key == key)
+                        if (!used.Contains(tag.Value))
+                            used.Add(tag.Value);
+
+            if (sort)
+                used.Sort();
+            
+            return used;
+        }
     }
 
     public class OsmMultiValueElement

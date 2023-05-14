@@ -55,6 +55,7 @@ namespace Osmalyzer
             }).ToList();
             // todo: retrieve automatically from NSI repo or wherever they keep these
             // todo: would need to manually specify exception/grouping if parsing
+            // todo: this can only group different values for the same key, not different keys
 
             List<(int count, string line)> reportEntries = new List<(int, string)>();
             
@@ -106,7 +107,7 @@ namespace Osmalyzer
                             "\t" +
                             nsiTag +
                             "\t" +
-                            string.Join("; ", nsiValues);
+                            string.Join("; ", group.GetUniqueKeyValues(nsiTag, true)); // just because we grouped NSI POII types, doesn't mean data has instances for each
                         
                         reportEntries.Add((group.Elements.Count, reportLine));
                     }

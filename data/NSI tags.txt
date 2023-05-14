@@ -143,7 +143,7 @@ shop	curtain
 shop	dairy
 shop	deli
 shop	department_store
-shop	doityourself
+shop	doityourself;hardware
 shop	doors
 shop	dry_cleaning
 shop	e-cigarette
@@ -168,7 +168,6 @@ shop	gold_buyer
 shop	greengrocer
 shop	hairdresser
 shop	hairdresser_supply
-shop	hardware
 shop	health_food
 shop	hearing_aids
 shop	herbalist

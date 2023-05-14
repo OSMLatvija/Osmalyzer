@@ -50,13 +50,32 @@ namespace Osmalyzer
             return new OsmBlob(filteredElements);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="tag"></param>
         /// <param name="split">Split semicolon-delimited OSM values, e.g. "gravel;asphalt". This is only useful for tags that are actually allowed top have multiple values.</param>
-        /// <returns></returns>
         public OsmGroups GroupByValues(string tag, bool split)
+        {
+            return GroupByValues(
+                e => e.Element.Tags.ContainsKey(tag) ? e.Element.Tags.GetValue(tag) : null, 
+                split
+            );
+        }
+
+        /// <param name="split">Split semicolon-delimited OSM values, e.g. "gravel;asphalt". This is only useful for tags that are actually allowed top have multiple values.</param>
+        public OsmGroups GroupByValues(List<string> tags, bool split)
+        {
+            return GroupByValues(
+                e =>
+                {
+                    foreach (string tag in tags)
+                        if (e.Element.Tags.ContainsKey(tag))
+                            return e.Element.Tags.GetValue(tag);
+
+                    return null;
+                }, 
+                split
+            );
+        }
+
+        private OsmGroups GroupByValues(Func<OsmElement, string?> keySelector, bool split)
         {
             List<OsmGroup> groups = new List<OsmGroup>();
 
@@ -66,33 +85,37 @@ namespace Osmalyzer
 
             foreach (OsmElement element in _elements)
             {
-                if (element.Element.Tags != null &&
-                    element.Element.Tags.ContainsKey(tag))
+                if (element.Element.Tags != null)
                 {
-                    values.Clear();
+                    string? selectedValue = keySelector(element);
 
-                    string rawValue = element.Element.Tags.GetValue(tag);
-
-                    if (split)
-                        values.AddRange(TagUtils.SplitValue(rawValue));
-                    else
-                        values.Add(rawValue);
-
-                    foreach (string value in values)
+                    if (selectedValue != null)
                     {
-                        if (indices.TryGetValue(value, out int index))
-                        {
-                            groups[index].Elements.Add(element);
-                        }
+                        values.Clear();
+
+                        if (split)
+                            values.AddRange(TagUtils.SplitValue(selectedValue));
                         else
+                            values.Add(selectedValue);
+
+                        // Make a new group for a new value or add the element to existing group
+                        
+                        foreach (string value in values)
                         {
-                            OsmGroup newGroup = new OsmGroup(value);
+                            if (indices.TryGetValue(value, out int index))
+                            {
+                                groups[index].Elements.Add(element);
+                            }
+                            else
+                            {
+                                OsmGroup newGroup = new OsmGroup(value);
 
-                            newGroup.Elements.Add(element);
+                                newGroup.Elements.Add(element);
 
-                            groups.Add(newGroup);
+                                groups.Add(newGroup);
 
-                            indices.Add(value, groups.Count - 1);
+                                indices.Add(value, groups.Count - 1);
+                            }
                         }
                     }
                 }
@@ -374,6 +397,25 @@ namespace Osmalyzer
             return
                 element.Tags != null &&
                 element.Tags.ContainsKey(_tag);
+        }
+    }
+
+    public class HasAnyTag : OsmFilter
+    {
+        private readonly List<string> _tags;
+
+
+        public HasAnyTag(List<string> tags)
+        {
+            _tags = tags;
+        }
+
+
+        internal override bool Matches(OsmGeo element)
+        {
+            return
+                element.Tags != null &&
+                element.Tags.Any(t => _tags.Contains(t.Key));
         }
     }
 

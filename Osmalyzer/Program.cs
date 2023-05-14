@@ -23,22 +23,25 @@ namespace Osmalyzer
         
         private static void ParseCommonNames()
         {
-            const int nameCountThreshold = 10;
+            const int titleCountThreshold = 10;
+
+            List<string> titleTags = new List<string>() { "brand", "name", "operator" };
+            // Note that the first found is picked, so if there's no brand but is a "name", then "operator" will be ignored and "name" picked
 
             const string reportFileName = @"Common name report.txt";
             
             using StreamWriter reportFile = File.CreateText(reportFileName);
 
-            reportFile.WriteLine("These are the most POI names with at least " + nameCountThreshold + " occurences grouped by type (recognized by NSI):");
+            reportFile.WriteLine("These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI):");
             
-            reportFile.WriteLine("name" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value");
+            reportFile.WriteLine("title(s)" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value(s)");
 
             // Load OSM data
 
-            OsmBlob namedElements = new OsmBlob(
+            OsmBlob titledElements = new OsmBlob(
                 osmDataFileName,
                 new IsNodeOrWay(),
-                new HasTag("name")
+                new HasAnyTag(titleTags)
             );
 
             string nsiTagsFileName = @"NSI tags.txt"; // from https://nsi.guide/?t=brands
@@ -54,20 +57,20 @@ namespace Osmalyzer
                 return (t.Substring(0, i), t.Substring(i + 1).Split(';').ToList());
             }).ToList();
             // todo: retrieve automatically from NSI repo or wherever they keep these
-            // todo: would need to manually specify exception/grouping if parsing
+            // todo: would need to manually specify exceptions/grouping if parsing
             // todo: this can only group different values for the same key, not different keys
 
             List<(int count, string line)> reportEntries = new List<(int, string)>();
             
             foreach ((string nsiTag, List<string> nsiValues) in nsiTags)
             {
-                OsmBlob matchingElements = namedElements.Filter(
+                OsmBlob matchingElements = titledElements.Filter(
                     new HasAnyValue(nsiTag, nsiValues)
                 );
 
-                OsmGroups nameGroupsSeparate = matchingElements.GroupByValues("name", false);
+                OsmGroups titleGroupsSeparate = matchingElements.GroupByValues(titleTags, false);
 
-                OsmMultiValueGroups nameGroupsSimilar = nameGroupsSeparate.CombineBySimilarValues(
+                OsmMultiValueGroups titleGroupsSimilar = titleGroupsSeparate.CombineBySimilarValues(
                     (s1, s2) => string.Equals(
                         CleanName(s1), 
                         CleanName(s2), 
@@ -94,9 +97,9 @@ namespace Osmalyzer
                            .Replace("ž", "z");
                 }
 
-                foreach (OsmMultiValueGroup group in nameGroupsSimilar.groups)
+                foreach (OsmMultiValueGroup group in titleGroupsSimilar.groups)
                 {
-                    if (group.Elements.Count >= nameCountThreshold)
+                    if (group.Elements.Count >= titleCountThreshold)
                     {
                         string reportLine =
                             string.Join(", ", group.Values.Select(v => "\"" + v + "\"")) +
@@ -107,8 +110,9 @@ namespace Osmalyzer
                             "\t" +
                             nsiTag +
                             "\t" +
-                            string.Join("; ", group.GetUniqueKeyValues(nsiTag, true)); // just because we grouped NSI POII types, doesn't mean data has instances for each
-                        
+                            string.Join("; ", group.GetUniqueKeyValues(nsiTag, true)) + // just because we grouped NSI POII types, doesn't mean data has instances for each
+                            "\t";
+
                         reportEntries.Add((group.Elements.Count, reportLine));
                     }
                 }
@@ -120,10 +124,10 @@ namespace Osmalyzer
             foreach ((int _, string line) in reportEntries)
                 reportFile.WriteLine(line);
 
-            reportFile.WriteLine("Name values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored.");
-            
-            reportFile.WriteLine("Name counts will repeat if the same element is tagged with multiple NSI POI types.");
-            // todo: thsi may produce duplicates if the same elements has multiple NSI-compatible tag-value pairs - we might want to filter those out? or report them?
+            reportFile.WriteLine(
+                "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "\"" + t + "\"")) + ". " +
+                "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored. " +
+                "Title counts will repeat if the same element is tagged with multiple NSI POI types.");
 
             reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
 

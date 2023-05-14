@@ -399,6 +399,27 @@ namespace Osmalyzer
         }
     }
 
+    public class HasAnyValue : OsmFilter
+    {
+        private readonly string _tag;
+        private readonly List<string> _values;
+
+
+        public HasAnyValue(string tag, List<string> values)
+        {
+            _tag = tag;
+            _values = values;
+        }
+
+
+        internal override bool Matches(OsmGeo element)
+        {
+            return
+                element.Tags != null &&
+                element.Tags.Any(t => t.Key == _tag && _values.Contains(t.Value));
+        }
+    }
+
     public class SplitValuesMatchRegex : OsmFilter
     {
         private readonly string _tag;

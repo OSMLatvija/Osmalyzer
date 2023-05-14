@@ -45,19 +45,19 @@ namespace Osmalyzer
 
             string[] nsiRawTags = File.ReadAllLines(nsiTagsFileName);
 
-            List<(string, string)> nsiTags = nsiRawTags.Select(t =>
+            List<(string, List<string>)> nsiTags = nsiRawTags.Select(t =>
             {
                 int i = t.IndexOf('\t'); 
-                return (t.Substring(0, i), t.Substring(i + 1));
+                return (t.Substring(0, i), t.Substring(i + 1).Split(';').ToList());
             }).ToList();
             // todo: retrieve automatically from NSI repo or wherever they keep these
 
             List<(int count, string line)> reportEntries = new List<(int, string)>();
             
-            foreach ((string nsiTag, string nsiValue) in nsiTags)
+            foreach ((string nsiTag, List<string> nsiValues) in nsiTags)
             {
                 OsmBlob matchingElements = namedElements.Filter(
-                    new HasValue(nsiTag, nsiValue)
+                    new HasAnyValue(nsiTag, nsiValues)
                 );
 
                 OsmGroups nameGroupsSeparate = matchingElements.GroupByValues("name", false);
@@ -102,7 +102,7 @@ namespace Osmalyzer
                             "\t" +
                             nsiTag +
                             "\t" +
-                            nsiValue;
+                            string.Join("; ", nsiValues);
                         
                         reportEntries.Add((group.Elements.Count, reportLine));
                     }
@@ -115,11 +115,11 @@ namespace Osmalyzer
             foreach ((int _, string line) in reportEntries)
                 reportFile.WriteLine(line);
 
-            reportFile.WriteLine("Name values are case-insensitive, leading/trailing whitespae ignored, Latvian diacritics ignored, character '!' ignored.");
+            reportFile.WriteLine("Name values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored.");
             
             reportFile.WriteLine("Name counts will repeat if the same element is tagged with multiple NSI POI types.");
             // todo: thsi may produce duplicates if the same elements has multiple NSI-compatible tag-value pairs - we might want to filter those out? or report them?
-            
+
             reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
 
             reportFile.Close();

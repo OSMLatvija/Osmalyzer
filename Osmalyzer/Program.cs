@@ -23,13 +23,15 @@ namespace Osmalyzer
         
         private static void ParseCommonNames()
         {
+            const int nameCountThreshold = 10;
+
             const string reportFileName = @"Common name report.txt";
             
             using StreamWriter reportFile = File.CreateText(reportFileName);
+
+            reportFile.WriteLine("These are the most POI names with at least " + nameCountThreshold + " occurences grouped by type (recognized by NSI):");
             
-            reportFile.WriteLine("These are the most POI names (case-insensitive) grouped by type (recognized by NSI):");
-            
-            reportFile.WriteLine("name" + "\t" + "count" + "\t" + "tag" + "\t" + "value");
+            reportFile.WriteLine("name" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value");
 
             // Load OSM data
 
@@ -39,7 +41,7 @@ namespace Osmalyzer
                 new HasTag("name")
             );
 
-            const string nsiTagsFileName = @"NSI tags.txt";
+            const string nsiTagsFileName = @"NSI tags.txt"; // from https://nsi.guide/?t=brands
 
             string[] nsiRawTags = File.ReadAllLines(nsiTagsFileName);
 
@@ -48,35 +50,76 @@ namespace Osmalyzer
                 int i = t.IndexOf('\t'); 
                 return (t.Substring(0, i), t.Substring(i + 1));
             }).ToList();
+            // todo: retrieve automatically from NSI repo or wherever they keep these
 
-            const int nameCountThreshold = 20;
-
+            List<(int count, string line)> reportEntries = new List<(int, string)>();
+            
             foreach ((string nsiTag, string nsiValue) in nsiTags)
             {
                 OsmBlob matchingElements = namedElements.Filter(
                     new HasValue(nsiTag, nsiValue)
                 );
 
-                OsmGroups nameGroups = matchingElements.GroupByValues("name", false);
+                OsmGroups nameGroupsSeparate = matchingElements.GroupByValues("name", false);
 
-                if (nameGroups.groups.Count > 0)
+                OsmMultiValueGroups nameGroupsSimilar = nameGroupsSeparate.CombineBySimilarValues(
+                    (s1, s2) => string.Equals(
+                        CleanName(s1), 
+                        CleanName(s2), 
+                        StringComparison.InvariantCulture)
+                );
+
+                string CleanName(string s)
                 {
-                    nameGroups.SortGroupsByElementCountDesc();
+                    return s
+                           .Trim()
+                           .ToLower()
+                           .Replace("!", "") // e.g. Top! -> Top
+                           .Replace("ā", "a")
+                           .Replace("č", "c")
+                           .Replace("ē", "e")
+                           .Replace("ģ", "g")
+                           .Replace("ī", "i")
+                           .Replace("ķ", "k")
+                           .Replace("ļ", "l")
+                           .Replace("ņ", "n")
+                           .Replace("ō", "o")
+                           .Replace("š", "s")
+                           .Replace("ū", "u")
+                           .Replace("ž", "z");
+                }
 
-                    int reportCount = Math.Min(30, nameGroups.groups.Count);
-
-                    for (int i = 0; i < reportCount; i++)
+                foreach (OsmMultiValueGroup group in nameGroupsSimilar.groups)
+                {
+                    if (group.Elements.Count >= nameCountThreshold)
                     {
-                        OsmGroup group = nameGroups.groups[i];
-
-                        if (group.Elements.Count < nameCountThreshold)
-                            break; // we are sorted, so this skips all the remaining
-
-                        reportFile.WriteLine(group.Value + "\t" + group.Elements.Count + "\t" + nsiTag + "\t" + nsiValue);
+                        string reportLine =
+                            string.Join(", ", group.Values.Select(v => "\"" + v + "\"")) +
+                            "\t" +
+                            group.Elements.Count +
+                            "\t" +
+                            (group.Values.Count > 1 ? string.Join("+", group.ElementCounts.Select(c => c.ToString())) : "") +
+                            "\t" +
+                            nsiTag +
+                            "\t" +
+                            nsiValue;
+                        
+                        reportEntries.Add((group.Elements.Count, reportLine));
                     }
                 }
             }
 
+            // Each NSI tag pair has a separate name multi-value group, so we need to re-sort if we want to order by count indepenedent of POI type
+            reportEntries.Sort((e1, e2) => e2.count.CompareTo(e1.count));
+
+            foreach ((int _, string line) in reportEntries)
+                reportFile.WriteLine(line);
+
+            reportFile.WriteLine("Name values are case-insensitive, leading/trailing whitespae ignored, Latvian diacritics ignored, character '!' ignored.");
+            
+            reportFile.WriteLine("Name counts will repeat if the same element is tagged with multiple NSI POI types.");
+            // todo: thsi may produce duplicates if the same elements has multiple NSI-compatible tag-value pairs - we might want to filter those out? or report them?
+            
             reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
 
             reportFile.Close();

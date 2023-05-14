@@ -173,6 +173,58 @@ namespace Osmalyzer
         {
             groups.Sort((g1, g2) => g2.Elements.Count.CompareTo(g1.Elements.Count));
         }
+
+        public OsmMultiValueGroups CombineBySimilarValues(Func<string, string, bool> valueMatcher)
+        {
+            List<OsmMultiValueGroup> multiGroups = new List<OsmMultiValueGroup>();
+
+            bool[] processed = new bool[groups.Count];
+
+            for (int g1 = 0; g1 < groups.Count; g1++)
+            {
+                if (!processed[g1]) // otherwise, already added to another earlier group
+                {
+                    OsmGroup group1 = groups[g1];
+
+                    OsmMultiValueGroup multiGroup = new OsmMultiValueGroup();
+                    
+                    // Add elements from group 1 - these always go in 
+                    
+                    multiGroup.Values.Add(group1.Value);
+                    multiGroup.ElementCounts.Add(group1.Elements.Count);
+                    foreach (OsmElement element in group1.Elements)
+                        multiGroup.Elements.Add(new OsmMultiValueElement(group1.Value, element));
+
+                    // Find any similar groups
+                    
+                    for (int g2 = g1 + 1; g2 < groups.Count; g2++)
+                    {
+                        if (!processed[g2]) // otherwise, already added to another earlier group
+                        {
+                            OsmGroup group2 = groups[g2];
+
+                            if (valueMatcher(group1.Value, group2.Value))
+                            {
+                                // Add elements from group 2 since they matched
+                    
+                                multiGroup.Values.Add(group2.Value);
+                                multiGroup.ElementCounts.Add(group2.Elements.Count);
+                                foreach (OsmElement element in group2.Elements)
+                                    multiGroup.Elements.Add(new OsmMultiValueElement(group2.Value, element));
+
+                                processed[g2] = true;
+                            }
+                        }
+                    }
+
+                    processed[g1] = true; // although this is pointless since we never "go back"
+
+                    multiGroups.Add(multiGroup);
+                }
+            }
+
+            return new OsmMultiValueGroups(multiGroups);
+        }
     }
 
     public class OsmGroup
@@ -185,6 +237,54 @@ namespace Osmalyzer
         public OsmGroup(string value)
         {
             Value = value;
+        }
+    }
+
+    public class OsmMultiValueGroups
+    {
+        public readonly List<OsmMultiValueGroup> groups;
+
+
+        public OsmMultiValueGroups(List<OsmMultiValueGroup> groups)
+        {
+            this.groups = groups;
+        }
+
+        
+        public void SortGroupsByElementCountAsc()
+        {
+            groups.Sort((g1, g2) => g1.Elements.Count.CompareTo(g2.Elements.Count));
+        }
+
+        public void SortGroupsByElementCountDesc()
+        {
+            groups.Sort((g1, g2) => g2.Elements.Count.CompareTo(g1.Elements.Count));
+        }
+    }
+
+    public class OsmMultiValueGroup
+    {
+        /// <summary> All the unique values </summary>
+        public List<string> Values { get; } = new List<string>();
+
+        public List<OsmMultiValueElement> Elements { get; } = new List<OsmMultiValueElement>();
+
+        /// <summary> Element counts for each unique value </summary>
+        public List<int> ElementCounts { get; } = new List<int>();
+    }
+
+    public class OsmMultiValueElement
+    {
+        /// <summary> The group's value that had this element </summary>
+        public string Value { get; }
+
+        public OsmElement Element { get; }
+
+
+        public OsmMultiValueElement(string value, OsmElement element)
+        {
+            Value = value;
+            Element = element;
         }
     }
 

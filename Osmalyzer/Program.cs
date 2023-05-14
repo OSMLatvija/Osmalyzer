@@ -41,8 +41,11 @@ namespace Osmalyzer
                 new HasTag("name")
             );
 
-            const string nsiTagsFileName = @"NSI tags.txt"; // from https://nsi.guide/?t=brands
+            string nsiTagsFileName = @"NSI tags.txt"; // from https://nsi.guide/?t=brands
 
+            if (!File.Exists(nsiTagsFileName))
+                nsiTagsFileName = @"..\..\..\data\" + nsiTagsFileName; // "exit" Osmalyzer\bin\Debug folder and grab it from root data\
+            
             string[] nsiRawTags = File.ReadAllLines(nsiTagsFileName);
 
             List<(string, List<string>)> nsiTags = nsiRawTags.Select(t =>
@@ -51,6 +54,7 @@ namespace Osmalyzer
                 return (t.Substring(0, i), t.Substring(i + 1).Split(';').ToList());
             }).ToList();
             // todo: retrieve automatically from NSI repo or wherever they keep these
+            // todo: would need to manually specify exception/grouping if parsing
 
             List<(int count, string line)> reportEntries = new List<(int, string)>();
             

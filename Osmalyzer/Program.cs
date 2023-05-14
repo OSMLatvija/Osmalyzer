@@ -9,12 +9,81 @@ namespace Osmalyzer
 {
     public static class Program
     {
+        private const string osmDataFileName = @"latvia-latest.osm.pbf"; // from https://download.geofabrik.de/europe/latvia.html
+        private const string osmDate = @"2023-05-13T20:22:00Z"; // todo: read this from the file
+        
+        
         public static void Main(string[] args)
         {
-            ParseLVCRoads();
+            //ParseLVCRoads();
+
+            ParseCommonNames();
         }
 
         
+        private static void ParseCommonNames()
+        {
+            const string reportFileName = @"Common name report.txt";
+            
+            using StreamWriter reportFile = File.CreateText(reportFileName);
+            
+            reportFile.WriteLine("These are the most POI names (case-insensitive) grouped by type (recognized by NSI):");
+            
+            reportFile.WriteLine("name" + "\t" + "count" + "\t" + "tag" + "\t" + "value");
+
+            // Load OSM data
+
+            OsmBlob namedElements = new OsmBlob(
+                osmDataFileName,
+                new IsNodeOrWay(),
+                new HasTag("name")
+            );
+
+            const string nsiTagsFileName = @"NSI tags.txt";
+
+            string[] nsiRawTags = File.ReadAllLines(nsiTagsFileName);
+
+            List<(string, string)> nsiTags = nsiRawTags.Select(t =>
+            {
+                int i = t.IndexOf('\t'); 
+                return (t.Substring(0, i), t.Substring(i + 1));
+            }).ToList();
+
+            const int nameCountThreshold = 20;
+
+            foreach ((string nsiTag, string nsiValue) in nsiTags)
+            {
+                OsmBlob matchingElements = namedElements.Filter(
+                    new HasValue(nsiTag, nsiValue)
+                );
+
+                OsmGroups nameGroups = matchingElements.GroupByValues("name", false);
+
+                if (nameGroups.groups.Count > 0)
+                {
+                    nameGroups.SortGroupsByElementCountDesc();
+
+                    int reportCount = Math.Min(30, nameGroups.groups.Count);
+
+                    for (int i = 0; i < reportCount; i++)
+                    {
+                        OsmGroup group = nameGroups.groups[i];
+
+                        if (group.Elements.Count < nameCountThreshold)
+                            break; // we are sorted, so this skips all the remaining
+
+                        reportFile.WriteLine(group.Value + "\t" + group.Elements.Count + "\t" + nsiTag + "\t" + nsiValue);
+                    }
+                }
+            }
+
+            reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
+
+            reportFile.Close();
+
+            Process.Start(reportFileName);
+        }
+
         private static void ParseLVCRoads()
         {
             const string reportFileName = @"LVC road report.txt";
@@ -32,10 +101,9 @@ namespace Osmalyzer
 
             // Load OSM data
 
-            const string osmDataFileName = @"latvia-latest.osm.pbf";
-            const string osmDate = @"2023-04-27T20:21:36Z"; // todo: read this from the file
-
             OsmBlob blob = new OsmBlob(osmDataFileName);
+            // todo: filter earlier
+            // todo: but we also need routes -- need "multi-filter" and multiple blobs result
 
             OsmBlob reffedRoads = blob.Filter(
                 new IsWay(),

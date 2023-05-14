@@ -17,7 +17,7 @@ namespace Osmalyzer
         private readonly List<OsmElement> _elements;
 
 
-        public OsmBlob(string dataFileName)
+        public OsmBlob(string dataFileName, params OsmFilter[] filters)
         {
             _elements = new List<OsmElement>();
 
@@ -25,12 +25,9 @@ namespace Osmalyzer
 
             using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
 
-            // // TODO:
-            // OsmStreamSource? filtered = source.FilterSpatial(, true);
-
-
             foreach (OsmGeo element in source)
-                _elements.Add(new OsmElement(element));
+                if (OsmElementMatchesFilters(element, filters))
+                    _elements.Add(new OsmElement(element));
         }
 
 
@@ -46,25 +43,18 @@ namespace Osmalyzer
             List<OsmElement> filteredElements = new List<OsmElement>();
 
             foreach (OsmElement element in _elements)
-            {
-                bool matched = true;
-
-                foreach (OsmFilter filter in filters)
-                {
-                    if (!filter.Matches(element.Element))
-                    {
-                        matched = false;
-                        break;
-                    }
-                }
-
-                if (matched)
+                if (OsmElementMatchesFilters(element.Element, filters))
                     filteredElements.Add(element);
-            }
 
             return new OsmBlob(filteredElements);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="split">Split semicolon-delimited OSM values, e.g. "gravel;asphalt". This is only useful for tags that are actually allowed top have multiple values.</param>
+        /// <returns></returns>
         public OsmGroups GroupByValues(string tag, bool split)
         {
             List<OsmGroup> groups = new List<OsmGroup>();
@@ -143,6 +133,24 @@ namespace Osmalyzer
 
             return new OsmBlob(elements);
         }
+
+        
+        [Pure]
+        private static bool OsmElementMatchesFilters(OsmGeo element, params OsmFilter[] filters)
+        {
+            bool matched = true;
+
+            foreach (OsmFilter filter in filters)
+            {
+                if (!filter.Matches(element))
+                {
+                    matched = false;
+                    break;
+                }
+            }
+
+            return matched;
+        }
     }
 
     public class OsmGroups
@@ -153,6 +161,17 @@ namespace Osmalyzer
         public OsmGroups(List<OsmGroup> groups)
         {
             this.groups = groups;
+        }
+
+
+        public void SortGroupsByElementCountAsc()
+        {
+            groups.Sort((g1, g2) => g1.Elements.Count.CompareTo(g2.Elements.Count));
+        }
+
+        public void SortGroupsByElementCountDesc()
+        {
+            groups.Sort((g1, g2) => g2.Elements.Count.CompareTo(g1.Elements.Count));
         }
     }
 
@@ -208,6 +227,16 @@ namespace Osmalyzer
         internal override bool Matches(OsmGeo element)
         {
             return element.Type == OsmGeoType.Relation;
+        }
+    }
+
+    public class IsNodeOrWay : OsmFilter
+    {
+        internal override bool Matches(OsmGeo element)
+        {
+            return 
+                element.Type == OsmGeoType.Node ||
+                element.Type == OsmGeoType.Way;
         }
     }
 

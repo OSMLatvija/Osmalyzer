@@ -44,7 +44,7 @@ namespace Osmalyzer
                 new HasAnyTag(titleTags)
             );
 
-            string nsiTagsFileName = @"NSI tags.txt"; // from https://nsi.guide/?t=brands
+            string nsiTagsFileName = @"NSI tags.tsv"; // from https://nsi.guide/?t=brands
 
             if (!File.Exists(nsiTagsFileName))
                 nsiTagsFileName = @"..\..\..\data\" + nsiTagsFileName; // "exit" Osmalyzer\bin\Debug folder and grab it from root data\

@@ -17,16 +17,95 @@ namespace Osmalyzer
         {
             //ParseLVCRoads();
 
-            ParseCommonNames();
+            //ParseCommonNames();
+            
+            ParseHighwaySpeedConditionals();
         }
 
         
+        private static void ParseHighwaySpeedConditionals()
+        {
+            // Load OSM data
+
+            OsmBlob speedLimitedRoads = new OsmBlob(
+                osmDataFileName,
+                new IsWay(),
+                new HasAnyValue("highway", new List<string>() { "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service" }),
+                new HasTag("maxspeed"),
+                new HasTag("maxspeed:conditional")
+            );
+            
+            // Start report file
+            
+            const string reportFileName = @"Max speed conditional report.txt";
+            
+            using StreamWriter reportFile = File.CreateText(reportFileName);
+
+            reportFile.WriteLine("Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
+
+            List<(int regular, int conditional)> limits = new List<(int regular, int conditional)>(); 
+                
+            foreach (OsmElement way in speedLimitedRoads.Elements)
+            {
+                string maxspeedStr = way.Element.Tags.GetValue("maxspeed");
+
+                if (int.TryParse(maxspeedStr, out int maxspeed))
+                {
+                    string maxspeedConditionalStr = way.Element.Tags.GetValue("maxspeed:conditional");
+
+                    Match match = Regex.Match(maxspeedConditionalStr, @"([0-9]+)\s*@\s*\(May 1\s*-\s*Oct 1\)");
+
+                    if (match.Success)
+                    {
+                        int maxspeedConditional = int.Parse(match.Groups[1].ToString());
+                        
+                        if (!limits.Any(l => l.regular == maxspeed && l.conditional == maxspeedConditional))
+                            limits.Add((maxspeed, maxspeedConditional));
+                        
+                        if (maxspeed == maxspeedConditional)
+                            reportFile.WriteLine("Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Element.Id);
+                    }
+                    else
+                    {
+                        if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
+                        {
+                            reportFile.WriteLine("Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Element.Id);
+                        }
+                    }
+                }
+                else
+                {
+                    reportFile.WriteLine("Max speed not recognized as seasonal: " + maxspeedStr);
+                }
+            }
+
+            limits.Sort();
+            
+            reportFile.WriteLine("Combos found:");
+
+            foreach ((int regular, int conditional) in limits)
+            {
+                reportFile.WriteLine("Conditional limit " + conditional + " for regular limit " + regular);
+            }
+                
+            
+            // Finish report file
+                
+            reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
+
+            reportFile.Close();
+
+            Process.Start(reportFileName);
+        }
+
         private static void ParseCommonNames()
         {
             const int titleCountThreshold = 10;
 
             List<string> titleTags = new List<string>() { "brand", "name", "operator" };
             // Note that the first found is picked, so if there's no brand but is a "name", then "operator" will be ignored and "name" picked
+
+            // Start report file
 
             const string reportFileName = @"Common name report.txt";
             
@@ -129,6 +208,8 @@ namespace Osmalyzer
                 "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored. " +
                 "Title counts will repeat if the same element is tagged with multiple NSI POI types.");
 
+            // Finish report file
+            
             reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
 
             reportFile.Close();

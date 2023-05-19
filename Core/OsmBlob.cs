@@ -32,6 +32,30 @@ namespace Osmalyzer
         }
 
 
+        public static List<OsmBlob> CreateMultiple(string dataFileName, List<OsmFilter[]> filters)
+        {
+            List<List<OsmElement>> elements = new List<List<OsmElement>>();
+            for (int i = 0; i < filters.Count; i++)
+                elements.Add(new List<OsmElement>());
+
+            using FileStream fileStream = new FileInfo(dataFileName).OpenRead();
+
+            using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
+
+            foreach (OsmGeo element in source)
+                for (int i = 0; i < filters.Count; i++)
+                    if (OsmElementMatchesFilters(element, filters[i]))
+                        elements[i].Add(new OsmElement(element));
+
+            List<OsmBlob> blobs = new List<OsmBlob>();
+
+            for (int i = 0; i < filters.Count; i++)
+                blobs.Add(new OsmBlob(elements[i]));
+
+            return blobs;
+        }
+
+
         private OsmBlob(List<OsmElement> elements)
         {
             _elements = elements;

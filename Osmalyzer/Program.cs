@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using OsmSharp;
+using Relation = OsmSharp.Relation;
 
 namespace Osmalyzer
 {
@@ -19,10 +21,102 @@ namespace Osmalyzer
 
             //ParseCommonNames();
             
-            ParseHighwaySpeedConditionals();
+            //ParseHighwaySpeedConditionals();
+            
+            ParseTrolleyWires();
         }
 
         
+        private static void ParseTrolleyWires()
+        {
+            // Start report file
+            
+            const string reportFileName = @"Trolley wire problem report.txt";
+            
+            using StreamWriter reportFile = File.CreateText(reportFileName);
+
+            // Load OSM data
+
+            List<OsmBlob> blobs = OsmBlob.CreateMultiple(
+                osmDataFileName,
+                new List<OsmFilter[]>()
+                {
+                    new OsmFilter[]
+                    {
+                        new IsRelation(),
+                        new HasValue("type", "route"),
+                        new HasValue("route", "trolleybus")
+                    },
+                    new OsmFilter[]  
+                    {
+                        new IsWay(),
+                        new HasAnyValue("highway", new List<string>() { "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service" })
+                    }
+                }
+            );
+
+            OsmBlob routes = blobs[0];
+            OsmBlob roads = blobs[1];
+            
+            // Process
+
+            foreach (OsmElement route in routes.Elements)
+            {
+                Relation relation = (Relation)route.Element;
+
+                string routeName = relation.Tags.GetValue("name");
+
+                bool foundIssue = false;
+                
+                foreach (RelationMember member in relation.Members)
+                {
+                    if (member.Type == OsmGeoType.Way)
+                    {
+                        OsmElement? roadSegment = roads.Elements.FirstOrDefault(r => r.Element.Id == member.Id);
+
+                        if (roadSegment != null)
+                        {
+                            string? trolley_wire = roadSegment.Element.Tags.ContainsKey("trolley_wire") ? roadSegment.Element.Tags.GetValue("trolley_wire") : null;
+
+                            if (trolley_wire != null)
+                            {
+                                if (trolley_wire != "yes" && trolley_wire != "no")
+                                {
+                                    if (!foundIssue)
+                                    {
+                                        foundIssue = true;
+                                        reportFile.WriteLine("Route " + route.Element.Id + " \"" + routeName + "\"");
+                                    }
+
+                                    reportFile.WriteLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Element.Id);
+                                }
+                            }
+                            else
+                            {
+                                if (!foundIssue)
+                                {
+                                    foundIssue = true;
+                                    reportFile.WriteLine("Route " + route.Element.Id + " \"" + routeName + "\"");
+                                }
+
+                                reportFile.WriteLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Element.Id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Finish report file
+                
+            reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
+
+            reportFile.Close();
+
+            Process.Start(reportFileName);
+            
+            // TODO: trolley_wire=no, but no route - pointless? not that it hurts anything
+        }
+
         private static void ParseHighwaySpeedConditionals()
         {
             // Load OSM data
@@ -43,6 +137,8 @@ namespace Osmalyzer
 
             reportFile.WriteLine("Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
 
+            // Process
+            
             List<(int regular, int conditional)> limits = new List<(int regular, int conditional)>(); 
                 
             foreach (OsmElement way in speedLimitedRoads.Elements)

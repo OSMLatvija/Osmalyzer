@@ -4,15 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using OsmSharp;
-using Relation = OsmSharp.Relation;
 
 namespace Osmalyzer
 {
     public static class Program
     {
         private const string osmDataFileName = @"latvia-latest.osm.pbf"; // from https://download.geofabrik.de/europe/latvia.html
-        private const string osmDate = @"2023-05-13T20:22:00Z"; // todo: read this from the file
+        private const string osmDate = @"2023-05-22T20:21:23Z"; // todo: read this from the file
         
         
         public static void Main(string[] args)
@@ -57,49 +55,67 @@ namespace Osmalyzer
 
             OsmBlob routes = blobs[0];
             OsmBlob roads = blobs[1];
-            
+
             // Process
 
             foreach (OsmElement route in routes.Elements)
             {
-                Relation relation = (Relation)route.Element;
+                OsmRelation relation = (OsmRelation)route;
 
-                string routeName = relation.Tags.GetValue("name");
+                string routeName = relation.GetValue("name")!;
 
                 bool foundIssue = false;
                 
-                foreach (RelationMember member in relation.Members)
+                foreach (OsmRelationMember member in relation.Members)
                 {
-                    if (member.Type == OsmGeoType.Way)
+                    OsmElement? roadSegment = roads.Elements.FirstOrDefault(r => r.Id == member.Id);
+
+                    if (roadSegment != null)
                     {
-                        OsmElement? roadSegment = roads.Elements.FirstOrDefault(r => r.Element.Id == member.Id);
+                        string? trolley_wire = roadSegment.GetValue("trolley_wire");
+                        string? trolley_wire_forward = roadSegment.GetValue("trolley_wire:forward");
+                        string? trolley_wire_backward = roadSegment.GetValue("trolley_wire:backward");
 
-                        if (roadSegment != null)
+                        if (trolley_wire != null && (trolley_wire_forward != null || trolley_wire_backward != null))
                         {
-                            string? trolley_wire = roadSegment.Element.Tags.ContainsKey("trolley_wire") ? roadSegment.Element.Tags.GetValue("trolley_wire") : null;
-
-                            if (trolley_wire != null)
+                            CheckFirstMentionOfRouteIssue();
+                            reportFile.WriteLine("Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                        }
+                        else if (trolley_wire != null)
+                        {
+                            if (trolley_wire != "yes" && trolley_wire != "no")
                             {
-                                if (trolley_wire != "yes" && trolley_wire != "no")
-                                {
-                                    if (!foundIssue)
-                                    {
-                                        foundIssue = true;
-                                        reportFile.WriteLine("Route " + route.Element.Id + " \"" + routeName + "\"");
-                                    }
-
-                                    reportFile.WriteLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Element.Id);
-                                }
+                                CheckFirstMentionOfRouteIssue();
+                                reportFile.WriteLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
                             }
-                            else
+                        }
+                        else if (trolley_wire_forward != null || trolley_wire_backward != null)
+                        {
+                            if (trolley_wire_forward != null && trolley_wire_forward != "yes" && trolley_wire_forward != "no")
                             {
-                                if (!foundIssue)
-                                {
-                                    foundIssue = true;
-                                    reportFile.WriteLine("Route " + route.Element.Id + " \"" + routeName + "\"");
-                                }
+                                CheckFirstMentionOfRouteIssue();
+                                reportFile.WriteLine("`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            }
 
-                                reportFile.WriteLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Element.Id);
+                            if (trolley_wire_backward != null && trolley_wire_backward != "yes" && trolley_wire_backward != "no")
+                            {
+                                CheckFirstMentionOfRouteIssue();
+                                reportFile.WriteLine("`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            }
+                        }
+                        else
+                        {
+                            CheckFirstMentionOfRouteIssue();
+                            reportFile.WriteLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                        }
+
+
+                        void CheckFirstMentionOfRouteIssue()
+                        {
+                            if (!foundIssue)
+                            {
+                                foundIssue = true;
+                                reportFile.WriteLine("Route " + route.Id + " \"" + routeName + "\"");
                             }
                         }
                     }
@@ -143,11 +159,11 @@ namespace Osmalyzer
                 
             foreach (OsmElement way in speedLimitedRoads.Elements)
             {
-                string maxspeedStr = way.Element.Tags.GetValue("maxspeed");
+                string maxspeedStr = way.GetValue("maxspeed")!;
 
                 if (int.TryParse(maxspeedStr, out int maxspeed))
                 {
-                    string maxspeedConditionalStr = way.Element.Tags.GetValue("maxspeed:conditional");
+                    string maxspeedConditionalStr = way.GetValue("maxspeed:conditional")!;
 
                     Match match = Regex.Match(maxspeedConditionalStr, @"([0-9]+)\s*@\s*\(May 1\s*-\s*Oct 1\)");
 
@@ -159,13 +175,13 @@ namespace Osmalyzer
                             limits.Add((maxspeed, maxspeedConditional));
                         
                         if (maxspeed == maxspeedConditional)
-                            reportFile.WriteLine("Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Element.Id);
+                            reportFile.WriteLine("Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
                     }
                     else
                     {
                         if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
                         {
-                            reportFile.WriteLine("Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Element.Id);
+                            reportFile.WriteLine("Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
                         }
                     }
                 }
@@ -435,7 +451,7 @@ namespace Osmalyzer
 
             foreach (KeyValuePair<string, List<string>> entry in roadLaw.SharedSegments)
             {
-                List<OsmElement> matchingRoads = recognizedReffedRoads.Elements.Where(e => TagUtils.SplitValue(e.Element.Tags.GetValue("ref")).Contains(entry.Key)).ToList();
+                List<OsmElement> matchingRoads = recognizedReffedRoads.Elements.Where(e => TagUtils.SplitValue(e.GetValue("ref")!).Contains(entry.Key)).ToList();
 
                 if (matchingRoads.Count > 0)
                 {
@@ -447,7 +463,7 @@ namespace Osmalyzer
 
                         foreach (OsmElement matchingRoad in matchingRoads)
                         {
-                            List<string> refs = TagUtils.SplitValue(matchingRoad.Element.Tags.GetValue("ref"));
+                            List<string> refs = TagUtils.SplitValue(matchingRoad.GetValue("ref")!);
 
                             if (refs.Contains(shared))
                             {
@@ -488,7 +504,7 @@ namespace Osmalyzer
 
             foreach (OsmElement reffedRoad in reffedRoads.Elements)
             {
-                List<string> refs = TagUtils.SplitValue(reffedRoad.Element.Tags.GetValue("ref"));
+                List<string> refs = TagUtils.SplitValue(reffedRoad.GetValue("ref")!);
 
                 if (refs.Count > 1)
                 {
@@ -566,7 +582,7 @@ namespace Osmalyzer
             {
                 string code = refGroup.Value;
 
-                List<OsmElement> elements = routeRelations.Elements.Where(e => e.Element.Tags.GetValue("ref") == code).ToList();
+                List<OsmElement> elements = routeRelations.Elements.Where(e => e.GetValue("ref")! == code).ToList();
 
                 if (elements.Count == 0)
                 {
@@ -586,7 +602,7 @@ namespace Osmalyzer
 
             foreach (OsmElement routeElement in routeRelations.Elements)
             {
-                string code = routeElement.Element.Tags.GetValue("ref");
+                string code = routeElement.GetValue("ref")!;
 
                 bool haveRoad = roadsByRef.groups.Any(g => g.Value == code);
 

@@ -39,9 +39,6 @@
           <HintPath>..\packages\HtmlAgilityPack.1.11.46\lib\Net45\HtmlAgilityPack.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.CSharp" />
-        <Reference Include="OsmSharp">
-          <HintPath>..\packages\OsmSharp.6.2.0\lib\net45\OsmSharp.dll</HintPath>
-        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Configuration" />
         <Reference Include="System.Core" />

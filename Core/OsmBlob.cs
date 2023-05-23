@@ -17,6 +17,8 @@ namespace Osmalyzer
 
         private readonly List<OsmElement> _elements;
 
+        public readonly Dictionary<long, OsmElement> _elementsById = new Dictionary<long, OsmElement>();
+        
 
         public OsmBlob(string dataFileName, params OsmFilter[] filters)
         {
@@ -27,11 +29,26 @@ namespace Osmalyzer
             using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
 
             foreach (OsmGeo element in source)
+            {
                 if (OsmElementMatchesFilters(element, filters))
-                    _elements.Add(new OsmElement(element));
+                {
+                    OsmElement osmElement = OsmElement.Create(element);
+                    _elements.Add(osmElement);
+                    _elementsById.Add(osmElement.Id, osmElement);
+                }
+            }
         }
 
 
+        private OsmBlob(List<OsmElement> elements)
+        {
+            _elements = elements;
+
+            foreach (OsmElement element in _elements)
+                _elementsById.Add(element.Id, element);
+        }
+
+        
         public static List<OsmBlob> CreateMultiple(string dataFileName, List<OsmFilter[]> filters)
         {
             List<List<OsmElement>> elements = new List<List<OsmElement>>();
@@ -45,7 +62,10 @@ namespace Osmalyzer
             foreach (OsmGeo element in source)
                 for (int i = 0; i < filters.Count; i++)
                     if (OsmElementMatchesFilters(element, filters[i]))
-                        elements[i].Add(new OsmElement(element));
+                    {
+                        OsmElement osmElement = OsmElement.Create(element);
+                        elements[i].Add(osmElement);
+                    }
 
             List<OsmBlob> blobs = new List<OsmBlob>();
 
@@ -53,12 +73,6 @@ namespace Osmalyzer
                 blobs.Add(new OsmBlob(elements[i]));
 
             return blobs;
-        }
-
-
-        private OsmBlob(List<OsmElement> elements)
-        {
-            _elements = elements;
         }
 
 
@@ -353,16 +367,78 @@ namespace Osmalyzer
         }
     }
 
-    public class OsmElement
+    public abstract class OsmElement
     {
-        public OsmGeo Element { get; }
-        // todo: as "raw"
-        // todo: encapsulate
+        public long Id => Element.Id.Value; 
+        
+        
+        internal OsmGeo Element { get; }
 
 
-        public OsmElement(OsmGeo element)
+        protected OsmElement(OsmGeo element)
         {
             Element = element;
+        }
+
+
+        internal static OsmElement Create(OsmGeo element)
+        {
+            switch (element.Type)
+            {
+                case OsmGeoType.Node:     return new OsmNode(element);
+                case OsmGeoType.Way:      return new OsmWay(element);
+                case OsmGeoType.Relation: return new OsmRelation(element);
+                
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        
+        
+        public string? GetValue(string key)
+        {
+            return Element.Tags.ContainsKey(key) ? Element.Tags.GetValue(key) : null;
+        }
+    }
+
+    public class OsmWay : OsmElement
+    {
+        internal OsmWay(OsmGeo element)
+            : base(element)
+        {
+        }
+    }
+
+    public class OsmNode : OsmElement
+    {
+        internal OsmNode(OsmGeo element)
+            : base(element)
+        {
+        }
+    }
+
+    public class OsmRelation : OsmElement
+    {
+        public IEnumerable<OsmRelationMember> Members => ((Relation)Element).Members.Select(m => new OsmRelationMember(m.Id, m.Role));
+
+
+        internal OsmRelation(OsmGeo element)
+            : base(element)
+        {
+        }
+    }
+
+    public class OsmRelationMember
+    {
+        public long Id { get; }
+        
+        public string Role { get; }
+        
+
+        internal OsmRelationMember(long id, string role)
+        {
+            Id = id;
+            Role = role;
         }
     }
 

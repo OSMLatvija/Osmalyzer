@@ -82,18 +82,34 @@ namespace Osmalyzer
                 if (matchingStop != null)
                 {
                     string? stopName = matchingStop.GetValue("name");
-
+                    
                     if (stopName != null)
                     {
                         if (!IsStopNameMatchGoodEnough(rsStop.Name, stopName))
                         {
                             nameConflictIssues.Add("OSM \"" + stopName + "\" vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
+                            
+                            // If a matching stop is not found, try to find a nearby that DOES match as suggestion
+                            List<OsmNode> alternateStops = osmStops.GetClosestNodesTo(rsStop.Lat, rsStop.Lon, maxMatchDistance * 10);
+                            foreach (OsmNode alternateStop in alternateStops)
+                            {
+                                string? alternateStopName = matchingStop.GetValue("name");
+                                if (alternateStopName != null)
+                                {
+                                    if (IsStopNameMatchGoodEnough(rsStop.Name, alternateStopName))
+                                    {
+                                        nameConflictIssues[nameConflictIssues.Count - 1] += " Nearby further OSM stop \"" + alternateStopName + "\" with matching name found - https://www.openstreetmap.org/node/" + alternateStop.Id;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                     else
                     {
                         nameLackIssues.Add("OSM no name vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
                     }
+
 
                     if (!matchedOsmStops.Contains(matchingStop))
                         matchedOsmStops.Add(matchingStop);

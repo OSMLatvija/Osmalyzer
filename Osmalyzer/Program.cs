@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -81,7 +82,7 @@ namespace Osmalyzer
 
                     if (stopName != null)
                     {
-                        if (rsStop.Name != stopName)
+                        if (!IsStopNameMatchGoodEnough(rsStop.Name, stopName))
                         {
                             nameConflictIssues.Add("OSM \"" + stopName + "\" vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
                         }
@@ -135,6 +136,47 @@ namespace Osmalyzer
             reportFile.Close();
 
             Process.Start(reportFileName);
+        }
+
+        [Pure]
+        private static bool IsStopNameMatchGoodEnough(string rsStopName, string osmStopName)
+        {
+            // Quick check first, may be we don't need to do anything
+            if (rsStopName == osmStopName)
+                return true;
+            
+            // Both OSM and RS stops are inconsistent about spacing around characters
+            // "2.trolejbusu parks" or "Jaunciema 2.šķērslīnija" (also all the abbreviated "P.Lejiņa iela" although this won't match)
+            // "Upesgrīvas iela/ Spice"
+            // OSM "TEC-2 pārvalde" vs RS "TEC- 2 pārvalde" or OSM "Preču-2" vs RS "Preču - 2"
+            if (Regex.Replace(Regex.Replace(osmStopName, @"([\./-])(?! )", @"$1 "), @"(?<! )([\./-])", @" $1") == 
+                Regex.Replace( Regex.Replace(rsStopName, @"([\./-])(?! )", @"$1 "), @"(?<! )([\./-])", @" $1"))
+                return true;
+            
+            // Sometimes proper quotes are inconsistent between thw two
+            // OSM "Arēna "Rīga"" vs RS "Arēna Rīga" or OSM ""Bērnu pasaule"" vs RS "Bērnu pasaule"
+            // or opposite OSM "Dzintars" vs RS ""Dzintars""
+            if (osmStopName.Replace("\"", "") == rsStopName.Replace("\"", ""))
+                return true;
+            
+            // RS likes to abbbreviate names for stops while OSM spells them out
+            // OSM "Eduarda Smiļģa iela" vs RS "E.Smiļģa iela"
+            // Because there are so many like this, I will consider them correct for now, even if they aren't technically accurate 
+            if (rsStopName.Contains('.') && !osmStopName.Contains('.'))
+            {
+                string[] rsSplit = rsStopName.Split('.');
+                if (rsSplit.Length == 2)
+                {
+                    string rsPrefix = rsSplit[0].TrimEnd(); // "E"
+                    string rsSuffiix = rsSplit[1].TrimStart(); // "Smiļģa iela"
+
+                    if (osmStopName.StartsWith(rsPrefix) && osmStopName.EndsWith(rsSuffiix)) // not a perfect check, but good enough
+                        return true;
+                }
+            }
+            
+            // Couldn't match anything
+            return false;
         }
 
         private static void ParseTrolleyWires()

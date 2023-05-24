@@ -505,6 +505,40 @@ namespace Osmalyzer
         internal abstract bool Matches(OsmGeo element);
     }
 
+    public class OrMatch : OsmFilter
+    {
+        private readonly OsmFilter[] _filters;
+
+        
+        public OrMatch(params OsmFilter[] filters)
+        {
+            _filters = filters;
+        }
+        
+        
+        internal override bool Matches(OsmGeo element)
+        {
+            return _filters.Any(f => f.Matches(element));
+        }
+    }
+
+    public class AndMatch : OsmFilter
+    {
+        private readonly OsmFilter[] _filters;
+
+        
+        public AndMatch(params OsmFilter[] filters)
+        {
+            _filters = filters;
+        }
+        
+        
+        internal override bool Matches(OsmGeo element)
+        {
+            return _filters.All(f => f.Matches(element));
+        }
+    }
+
     public class IsNode : OsmFilter
     {
         internal override bool Matches(OsmGeo element)

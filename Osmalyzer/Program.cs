@@ -42,10 +42,14 @@ namespace Osmalyzer
                 osmDataFileName,
                 new List<OsmFilter[]>()
                 {
-                    new OsmFilter[]  
+                    new OsmFilter[]
                     {
                         new IsNode(),
-                        new HasAnyValue("highway", new List<string>() { "bus_stop" })
+                        new OrMatch(
+                            new HasValue("highway", "bus_stop"),
+                            new HasValue("railway", "tram_stop"),
+                            new HasValue("disused:railway", "tram_stop") // still valid, if not in active use - RS data seems to have these too
+                        )
                     }
                 }
             );

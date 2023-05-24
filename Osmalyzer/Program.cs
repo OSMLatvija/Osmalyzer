@@ -64,12 +64,14 @@ namespace Osmalyzer
 
             const double maxMatchDistance = 20.0;
 
-            List<string> distanceIssues = new List<string>();
+            List<(double, string)> distanceIssues = new List<(double, string)>();
             List<string> nameConflictIssues = new List<string>();
             List<string> nameLackIssues = new List<string>();
             
             foreach (RigasSatiksmeStop rsStop in rsData.Stops.Stops)
             {
+                // todo: is the stop actually in use? probably don't care about reporting stops that no route uses
+                
                 OsmNode? matchingStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon, maxMatchDistance, out double? closestMatchDistance);
                 // todo: I'm probably finding duplicates if no distance match or only one missing or something like that?
 
@@ -91,7 +93,7 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    distanceIssues.Add("No OSM stop in range of \"" + rsStop.Name + "\" (closest " + closestMatchDistance!.Value.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + "");
+                    distanceIssues.Add((closestMatchDistance!.Value, "No OSM stop in range of \"" + rsStop.Name + "\" (closest " + closestMatchDistance!.Value.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + ""));
                 }
             }
             
@@ -120,8 +122,8 @@ namespace Osmalyzer
             if (distanceIssues.Count > 0)
             {
                 reportFile.WriteLine("OSM stops not found within " + maxMatchDistance + " m:");
-                foreach (string distanceIssue in distanceIssues)
-                    reportFile.WriteLine("* " + distanceIssue);
+                foreach ((double, string) distanceIssue in distanceIssues.OrderByDescending(v => v.Item1))
+                    reportFile.WriteLine("* " + distanceIssue.Item2);
             }
             else
             {

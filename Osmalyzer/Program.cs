@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Osmalyzer
@@ -63,9 +64,11 @@ namespace Osmalyzer
 
             // Parse
 
-            const double maxMatchDistance = 20.0;
+            const double maxSearchDistance = 100.0; // we search this far for potential stops
+            const double matchDistance = 30.0; // but only this far counts as a good match
 
-            List<(double, string)> distanceIssues = new List<(double, string)>();
+            List<(double, string)> notFoundIssues = new List<(double, string)>();
+            List<(double, string)> tooFarIssues = new List<(double, string)>();
             List<string> nameConflictIssues = new List<string>();
             List<string> nameLackIssues = new List<string>();
 
@@ -76,52 +79,63 @@ namespace Osmalyzer
             {
                 // todo: is the stop actually in use? probably don't care about reporting stops that no route uses
                 
-                OsmNode? matchingStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon, maxMatchDistance, out double? closestMatchDistance);
+                OsmNode? closestStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon, maxSearchDistance, out double? closestMatchDistance);
                 // todo: I'm probably finding duplicates if no distance match or only one missing or something like that?
 
-                if (matchingStop != null)
+                if (closestStop != null)
                 {
-                    string? stopName = matchingStop.GetValue("name");
+                    double stopDistance = OsmGeoTools.DistanceBetween(closestStop.Lat, closestStop.Lon, rsStop.Lat, rsStop.Lon);
+                    bool stopInMatchRange = stopDistance <= matchDistance;
                     
-                    if (stopName != null)
+                    StopNameMatching stopHasMatchingName = StopNamesMatch(closestStop, rsStop, out string? osmStopName);
+
+                    if (stopInMatchRange && stopHasMatchingName == StopNameMatching.Mismatch)
                     {
-                        if (!IsStopNameMatchGoodEnough(rsStop.Name, stopName))
-                        {
-                            nameConflictIssues.Add("OSM \"" + stopName + "\" vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
-                            
-                            // If a matching stop is not found, try to find a nearby that DOES match as suggestion
-                            List<OsmNode> alternateStops = osmStops.GetClosestNodesTo(rsStop.Lat, rsStop.Lon, maxMatchDistance * 10);
-                            foreach (OsmNode alternateStop in alternateStops)
-                            {
-                                string? alternateStopName = matchingStop.GetValue("name");
-                                if (alternateStopName != null)
-                                {
-                                    if (IsStopNameMatchGoodEnough(rsStop.Name, alternateStopName))
-                                    {
-                                        nameConflictIssues[nameConflictIssues.Count - 1] += " Nearby further OSM stop \"" + alternateStopName + "\" with matching name found - https://www.openstreetmap.org/node/" + alternateStop.Id;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
+                        nameConflictIssues.Add("OSM \"" + osmStopName + "\" vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + closestStop.Id);
                     }
-                    else
+                    else if (stopInMatchRange && stopHasMatchingName == StopNameMatching.NoName)
                     {
-                        nameLackIssues.Add("OSM no name vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
+                        nameLackIssues.Add("OSM no name vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + closestStop.Id);
+                    }
+                    else if (!stopInMatchRange && stopHasMatchingName == StopNameMatching.Match)
+                    {
+                        tooFarIssues.Add((stopDistance, "OSM \"" + osmStopName + "\" matches RS \"" + rsStop.Name + "\" but is far away " + stopDistance.ToString("F0") + " m - https://www.openstreetmap.org/node/" + closestStop.Id));
+                    }
+                    else if (!stopInMatchRange && stopHasMatchingName != StopNameMatching.Match)
+                    {
+                        notFoundIssues.Add((closestMatchDistance!.Value, "No matching OSM stop in range of \"" + rsStop.Name + "\" (closest " + stopDistance.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5")));
+                        // not really helpful to list closest stop notFoundIssues.Add((closestMatchDistance!.Value, "No matching OSM stop in range of \"" + rsStop.Name + "\" -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + " -- closest at " + stopDistance.ToString("F0") + " m is \"" + osmStopName + "\" https://www.openstreetmap.org/node/" + closestStop.Id));
                     }
 
-
-                    if (!matchedOsmStops.Contains(matchingStop))
-                        matchedOsmStops.Add(matchingStop);
-                    else if (!multipleMatchedOsmStops.Contains(matchingStop))
-                        multipleMatchedOsmStops.Add(matchingStop);
+                    if (stopInMatchRange)
+                    {
+                        if (!matchedOsmStops.Contains(closestStop))
+                            matchedOsmStops.Add(closestStop);
+                        else if (!multipleMatchedOsmStops.Contains(closestStop))
+                            multipleMatchedOsmStops.Add(closestStop);
+                    }
                 }
                 else
                 {
-                    distanceIssues.Add((closestMatchDistance!.Value, "No OSM stop in range of \"" + rsStop.Name + "\" (closest " + closestMatchDistance!.Value.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + ""));
+                    notFoundIssues.Add((closestMatchDistance!.Value, "No OSM stop in range of \"" + rsStop.Name + "\" (closest " + closestMatchDistance!.Value.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + ""));
                 }
             }
-            
+
+
+            [Pure]
+            static StopNameMatching StopNamesMatch(OsmNode osmStop, RigasSatiksmeStop rsStop, out string? stopName)
+            {
+                stopName = osmStop.GetValue("name");
+
+                if (stopName == null)
+                    return StopNameMatching.NoName;
+
+                if (IsStopNameMatchGoodEnough(rsStop.Name, stopName))
+                    return StopNameMatching.Match;
+                else
+                    return StopNameMatching.Mismatch;
+            }
+
             // todo: other way - OSM stop but no RS stop
             
             // Finish report file
@@ -143,10 +157,17 @@ namespace Osmalyzer
             if (nameConflictIssues.Count == 0 && nameLackIssues.Count == 0) // otherwise one or both above report
                 reportFile.WriteLine("All RS stops matched to OSM stops also have matching names.");
 
-            if (distanceIssues.Count > 0)
+            if (tooFarIssues.Count > 0)
             {
-                reportFile.WriteLine("OSM stops not found within " + maxMatchDistance + " m:");
-                foreach ((double, string) distanceIssue in distanceIssues.OrderByDescending(v => v.Item1))
+                reportFile.WriteLine("Matching OSM stops found far from expected location - within " + maxSearchDistance + " m, but not within " + matchDistance + " m:");
+                foreach ((double, string) distanceIssue in tooFarIssues.OrderByDescending(v => v.Item1))
+                    reportFile.WriteLine("* " + distanceIssue.Item2);
+            }
+
+            if (notFoundIssues.Count > 0)
+            {
+                reportFile.WriteLine("OSM stops not found within " + matchDistance + " m:");
+                foreach ((double, string) distanceIssue in notFoundIssues.OrderByDescending(v => v.Item1))
                     reportFile.WriteLine("* " + distanceIssue.Item2);
             }
             else
@@ -216,6 +237,13 @@ namespace Osmalyzer
             
             // Couldn't match anything
             return false;
+        }
+
+        private enum StopNameMatching
+        {
+            Match,
+            Mismatch,
+            NoName
         }
 
         private static void ParseTrolleyWires()

@@ -196,6 +196,59 @@ namespace Osmalyzer
             return new OsmBlob(elements);
         }
 
+        [Pure]
+        public OsmNode? GetClosestNodeTo(double lat, double lon)
+        {
+            return GetClosestNodeToRaw(lat, lon, null, out _);
+        }
+
+        [Pure]
+        public OsmNode? GetClosestNodeTo(double lat, double lon, double maxDistance)
+        {
+            return GetClosestNodeToRaw(lat, lon, maxDistance, out _);
+        }
+
+        [Pure]
+        public OsmNode? GetClosestNodeTo(double lat, double lon, double maxDistance, out double? closestDistance)
+        {
+            return GetClosestNodeToRaw(lat, lon, maxDistance, out closestDistance);
+        }
+
+        [Pure]
+        private OsmNode? GetClosestNodeToRaw(double lat, double lon, double? maxDistance, out double? closestDistance)
+        {
+            OsmNode? bestNode = null;
+            double bestDistance = 0.0;
+            closestDistance = null;
+
+            foreach (OsmElement element in _elements)
+            {
+                if (element is not OsmNode node)
+                    continue; // only care about nodes
+                
+                double distance = OsmGeoTools.DistanceBetween(
+                    lat, lon,
+                    node.Lat, node.Lon 
+                );
+
+                if (maxDistance == null || distance <= maxDistance) // within max distance
+                {
+                    if (bestNode == null || bestDistance > distance)
+                    {
+                        bestNode = node;
+                        bestDistance = distance;
+                        closestDistance = distance;
+                    }
+                }
+                else if (closestDistance == null || distance <= closestDistance)
+                {
+                    closestDistance = distance;
+                }
+            }
+
+            return bestNode;
+        }
+
         
         [Pure]
         private static bool OsmElementMatchesFilters(OsmGeo element, params OsmFilter[] filters)
@@ -411,6 +464,11 @@ namespace Osmalyzer
 
     public class OsmNode : OsmElement
     {
+        public double Lat => ((Node)Element).Latitude!.Value;
+        
+        public double Lon => ((Node)Element).Longitude!.Value;
+        
+        
         internal OsmNode(OsmGeo element)
             : base(element)
         {

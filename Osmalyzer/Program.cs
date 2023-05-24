@@ -21,10 +21,81 @@ namespace Osmalyzer
             
             //ParseHighwaySpeedConditionals();
             
-            ParseTrolleyWires();
+            //ParseTrolleyWires();
+
+            ParseRigasSatiksme();
         }
 
         
+        private static void ParseRigasSatiksme()
+        {
+            // Start report file
+            
+            const string reportFileName = @"Rigas Satiksme report.txt";
+            const string rsDataDate = "2023-04-25"; // TODO: is it specified somewhere? 
+
+            using StreamWriter reportFile = File.CreateText(reportFileName);
+            
+            // Load OSM data
+
+            List<OsmBlob> blobs = OsmBlob.CreateMultiple(
+                osmDataFileName,
+                new List<OsmFilter[]>()
+                {
+                    new OsmFilter[]  
+                    {
+                        new IsNode(),
+                        new HasAnyValue("highway", new List<string>() { "bus_stop" })
+                    }
+                }
+            );
+            
+            OsmBlob osmStops = blobs[0];
+            
+            // Load RS stop data
+
+            RigasSatiksmeData rsData = new RigasSatiksmeData("RS");
+
+            // Parse
+            
+            foreach (RigasSatiksmeStop rsStop in rsData.Stops.Stops)
+            {
+                const double maxMatchDistance = 20.0;
+                
+                OsmNode? matchingStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon, maxMatchDistance, out double? closestMatchDistance);
+                // todo: I'm probably finding duplicates if no distance match or only one missing or something like that?
+
+                if (matchingStop != null)
+                {
+                    string? stopName = matchingStop.GetValue("name");
+
+                    if (stopName != null)
+                    {
+                        if (rsStop.Name != stopName)
+                        {
+                            reportFile.WriteLine("OSM stop name \"" + stopName + "\" doesn't match RS stop name \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
+                        }
+                    }
+                    else
+                    {
+                        reportFile.WriteLine("OSM stop doesn't have a name, expecting to match RS stop name \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
+                    }
+                }
+                else
+                {
+                    reportFile.WriteLine("OSM stop not found for RS stop \"" + rsStop.Name + "\" within " + maxMatchDistance + " m; closest " + closestMatchDistance!.Value.ToString("F0") + " m -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + "");
+                }
+            }
+            
+            // Finish report file
+
+            reportFile.WriteLine("OSM data as of " + osmDate + ". RS data as of " + rsDataDate + ". Provided as is; mistakes possible.");
+
+            reportFile.Close();
+
+            Process.Start(reportFileName);
+        }
+
         private static void ParseTrolleyWires()
         {
             // Start report file

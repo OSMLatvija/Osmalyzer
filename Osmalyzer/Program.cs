@@ -68,6 +68,9 @@ namespace Osmalyzer
             List<(double, string)> distanceIssues = new List<(double, string)>();
             List<string> nameConflictIssues = new List<string>();
             List<string> nameLackIssues = new List<string>();
+
+            List<OsmNode> matchedOsmStops = new List<OsmNode>();
+            List<OsmNode> multipleMatchedOsmStops = new List<OsmNode>();
             
             foreach (RigasSatiksmeStop rsStop in rsData.Stops.Stops)
             {
@@ -91,6 +94,11 @@ namespace Osmalyzer
                     {
                         nameLackIssues.Add("OSM no name vs RS \"" + rsStop.Name + "\" - https://www.openstreetmap.org/node/" + matchingStop.Id);
                     }
+
+                    if (!matchedOsmStops.Contains(matchingStop))
+                        matchedOsmStops.Add(matchingStop);
+                    else if (!multipleMatchedOsmStops.Contains(matchingStop))
+                        multipleMatchedOsmStops.Add(matchingStop);
                 }
                 else
                 {
@@ -102,15 +110,11 @@ namespace Osmalyzer
             
             // Finish report file
 
-            if (nameConflictIssues.Count > 0)
+            if (nameConflictIssues.Count > 1)
             {
                 reportFile.WriteLine("OSM stops with different name to RS name:");
                 foreach (string nameConflictIssue in nameConflictIssues)
                     reportFile.WriteLine("* " + nameConflictIssue);
-            }
-            else
-            {
-                reportFile.WriteLine("All RS stops matched to OSM stops have matching names.");
             }
 
             if (nameLackIssues.Count > 0)
@@ -119,6 +123,9 @@ namespace Osmalyzer
                 foreach (string nameLackIssue in nameLackIssues)
                     reportFile.WriteLine("* " + nameLackIssue);
             }
+            
+            if (nameConflictIssues.Count == 0 && nameLackIssues.Count == 0) // otherwise one or both above report
+                reportFile.WriteLine("All RS stops matched to OSM stops also have matching names.");
 
             if (distanceIssues.Count > 0)
             {
@@ -129,6 +136,22 @@ namespace Osmalyzer
             else
             {
                 reportFile.WriteLine("All RS stops are matched to OSM stops.");
+            }
+
+            if (multipleMatchedOsmStops.Count > 0)
+            {
+                reportFile.WriteLine("These OSM stops were matched as closest to RS stops multiple times:");
+
+                foreach (OsmNode multipleMatchedOsmStop in multipleMatchedOsmStops)
+                {
+                    string? name = multipleMatchedOsmStop.GetValue("name");
+
+                    nameConflictIssues.Add("" + (name != null ? "\"" + name + "\"" : "Unnamed") + " - https://www.openstreetmap.org/node/" + multipleMatchedOsmStop.Id);
+                }
+            }
+            else
+            {
+                reportFile.WriteLine("No OSM stop was matched more than once to RS stops.");
             }
 
             reportFile.WriteLine("OSM data as of " + osmDate + ". RS data as of " + rsDataDate + ". Provided as is; mistakes possible.");

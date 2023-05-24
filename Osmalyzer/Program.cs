@@ -80,7 +80,9 @@ namespace Osmalyzer
                 // todo: is the stop actually in use? probably don't care about reporting stops that no route uses
                 
                 OsmNode? closestStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon, maxSearchDistance, out double? closestMatchDistance);
-                // todo: I'm probably finding duplicates if no distance match or only one missing or something like that?
+                
+                // TODO: Find all stops, find matching name, then record as used and not reuse - there are a lot of close but not perfect pairs
+                // but name match is still priority over distance match -- I just want to report closer ones may be?
 
                 if (closestStop != null)
                 {
@@ -183,7 +185,7 @@ namespace Osmalyzer
                 {
                     string? name = multipleMatchedOsmStop.GetValue("name");
 
-                    nameConflictIssues.Add("" + (name != null ? "\"" + name + "\"" : "Unnamed") + " - https://www.openstreetmap.org/node/" + multipleMatchedOsmStop.Id);
+                    reportFile.WriteLine("" + (name != null ? "\"" + name + "\"" : "Unnamed") + " - https://www.openstreetmap.org/node/" + multipleMatchedOsmStop.Id);
                 }
             }
             else

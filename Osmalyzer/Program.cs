@@ -217,6 +217,21 @@ namespace Osmalyzer
                 }
             }
             
+            // RS also has some double names for some reason when OSM and real-life has just one "part"
+            // RS "Botāniskais dārzs/Rīgas Stradiņa universitāte" vs OSM "Botāniskais dārzs
+            if (rsStopName.Contains('/'))
+            {
+                string[] rsSplit = rsStopName.Split('/');
+                if (rsSplit.Length == 2)
+                {
+                    string rsFirst = rsSplit[0].TrimEnd(); // "Botāniskais dārzs"
+                    string rsSecond = rsSplit[1].TrimStart(); // "Rīgas Stradiņa universitāte"
+
+                    if (osmStopName == rsFirst || osmStopName == rsSecond)
+                        return true;
+                }
+            }
+            
             // Couldn't match anything
             return false;
         }

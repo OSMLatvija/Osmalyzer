@@ -12,7 +12,7 @@ namespace Osmalyzer
     public static class Program
     {
         private const string osmDataFileName = @"latvia-latest.osm.pbf"; // from https://download.geofabrik.de/europe/latvia.html
-        private const string osmDate = @"2023-05-22T20:21:23Z"; // todo: read this from the file
+        private const string osmDate = @"2023-05-27T20:21:39Z"; // todo: read this from the file
         
         
         public static void Main(string[] args)
@@ -84,7 +84,7 @@ namespace Osmalyzer
                 closestStops = closestStops.Except(matchedOsmStops).ToList();
 
                 // See if any OSM stops definitely match the RS stops (may even be multiple for some locations)
-                List<OsmNode> matchedStops = closestStops.Where(s => StopNamesMatch(s, rsStop, out _) == StopNameMatching.Match).ToList();
+                List<OsmNode> matchedStops = closestStops.Where(s => StopNamesMatch(s, rsStop) == StopNameMatching.Match).ToList();
 
                 // Closest matched (they are pre-sorted) is best match
                 OsmNode? matchedStop = matchedStops.FirstOrDefault();
@@ -167,17 +167,27 @@ namespace Osmalyzer
         }
         
         [Pure]
-        private static StopNameMatching StopNamesMatch(OsmNode osmStop, RigasSatiksmeStop rsStop, out string? stopName)
+        private static StopNameMatching StopNamesMatch(OsmNode osmStop, RigasSatiksmeStop rsStop)
         {
-            stopName = osmStop.GetValue("name");
+            string? stopName = osmStop.GetValue("name");
 
             if (stopName == null)
                 return StopNameMatching.NoName;
 
             if (IsStopNameMatchGoodEnough(rsStop.Name, stopName))
                 return StopNameMatching.Match;
-            else
-                return StopNameMatching.Mismatch;
+            
+            // Stops in real-life can have a different name to RS
+            // For example OSM "Ulbrokas ciems" is signed so in real-life vs RS "Ulbroka"
+            // After verifying these, one can keep `name=Ulbrokas ciems` but `alt_name=Ulbroka`, so we can match these
+            
+            string? stopAltName = osmStop.GetValue("alt_name");
+
+            if (stopAltName != null)
+                if (IsStopNameMatchGoodEnough(rsStop.Name, stopAltName))
+                    return StopNameMatching.Match;
+            
+            return StopNameMatching.Mismatch;
         }
 
         [Pure]

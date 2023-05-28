@@ -64,8 +64,8 @@ namespace Osmalyzer
 
             // Parse
 
-            const double maxSearchDistance = 100.0; // we search this far for potential stops
-            const double acceptDistance = 30.0; // but only this far counts as a good match
+            const double maxSearchDistance = 150.0; // we search this far for potential stops
+            const double acceptDistance = 50.0; // but only this far counts as a good match
 
             List<OsmNode> matchedOsmStops = new List<OsmNode>();
             // so that we don't match the same stop multiple times
@@ -102,7 +102,7 @@ namespace Osmalyzer
                     {
                         string osmStopName = matchedStop.GetValue("name")!; // already matched, can't not have name
 
-                        matchedOsmIsTooFar.Add("RS stop \"" + rsStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - https://www.openstreetmap.org/node/" + matchedStop.Id);
+                        matchedOsmIsTooFar.Add("RS stop \"" + rsStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - https://www.openstreetmap.org/node/" + matchedStop.Id + " , expecting around https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5"));
                     }
 
                     if (!matchedOsmStops.Contains(matchedStop))

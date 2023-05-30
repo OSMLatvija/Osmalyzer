@@ -12,7 +12,7 @@ namespace Osmalyzer
     public static class Program
     {
         private const string osmDataFileName = @"latvia-latest.osm.pbf"; // from https://download.geofabrik.de/europe/latvia.html
-        private const string osmDate = @"2023-05-27T20:21:39Z"; // todo: read this from the file
+        private const string osmDate = @"2023-05-29T20:21:24Z"; // todo: read this from the file
         
         
         public static void Main(string[] args)

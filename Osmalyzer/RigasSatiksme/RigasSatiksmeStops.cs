@@ -7,17 +7,17 @@ namespace Osmalyzer
 {
     public class RigasSatiksmeStops
     {
-        public IEnumerable<RigasSatiksmeStop> Stops => _stops.AsReadOnly();
+        public IEnumerable<RigasSatiksmeStop> Stops => _stops.Values.AsEnumerable();
 
         
-        private readonly List<RigasSatiksmeStop> _stops;
+        private readonly Dictionary<string, RigasSatiksmeStop> _stops;
 
         
         public RigasSatiksmeStops(string dataFileName)
         {
             string[] lines = File.ReadAllLines(dataFileName);
 
-            _stops = new List<RigasSatiksmeStop>();
+            _stops = new Dictionary<string, RigasSatiksmeStop>();
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -47,7 +47,7 @@ namespace Osmalyzer
 
                 RigasSatiksmeStop stop = new RigasSatiksmeStop(id, name, lat, lon);
 
-                _stops.Add(stop);
+                _stops.Add(stop.Id, stop);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Osmalyzer
         [Pure]
         public RigasSatiksmeStop GetStop(string id)
         {
-            return _stops.First(s => s.Id == id);
+            return _stops[id];
         }
     }
 }

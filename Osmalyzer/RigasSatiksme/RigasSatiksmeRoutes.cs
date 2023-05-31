@@ -7,17 +7,17 @@ namespace Osmalyzer
 {
     public class RigasSatiksmeRoutes
     {
-        public IEnumerable<RigasSatiksmeRoute> Routes => _routes.AsReadOnly();
+        public IEnumerable<RigasSatiksmeRoute> Routes => _routes.Values.AsEnumerable();
 
         
-        private readonly List<RigasSatiksmeRoute> _routes;
+        private readonly Dictionary<string, RigasSatiksmeRoute> _routes;
 
         
         public RigasSatiksmeRoutes(string dataFileName)
         {
             string[] lines = File.ReadAllLines(dataFileName);
 
-            _routes = new List<RigasSatiksmeRoute>();
+            _routes = new Dictionary<string, RigasSatiksmeRoute>();
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -45,7 +45,7 @@ namespace Osmalyzer
 
                 RigasSatiksmeRoute route = new RigasSatiksmeRoute(id, name);
 
-                _routes.Add(route);
+                _routes.Add(route.Id, route);
             }
         }
 
@@ -53,7 +53,7 @@ namespace Osmalyzer
         [Pure]
         public RigasSatiksmeRoute GetRoute(string id)
         {
-            return _routes.First(r => r.Id == id);
+            return _routes[id];
         }
     }
 }

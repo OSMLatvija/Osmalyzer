@@ -7,15 +7,15 @@ namespace Osmalyzer
 {
     public class RigasSatiksmeTrips
     {
-        public IEnumerable<RigasSatiksmeTrip> Trips => _trips.AsReadOnly();
+        public IEnumerable<RigasSatiksmeTrip> Trips => _trips.Values.AsEnumerable();
 
         
-        private readonly List<RigasSatiksmeTrip> _trips;
+        private readonly Dictionary<string, RigasSatiksmeTrip> _trips;
 
         
         public RigasSatiksmeTrips(string dataFileName, RigasSatiksmeRoutes routes, RigasSatiksmeServices services)
         {
-            _trips = new List<RigasSatiksmeTrip>();
+            _trips = new Dictionary<string, RigasSatiksmeTrip>();
 
             string[] lines = File.ReadAllLines(dataFileName);
 
@@ -45,7 +45,7 @@ namespace Osmalyzer
                 RigasSatiksmeService service = services.GetService(serviceId);
 
                 RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, service);
-                _trips.Add(trip);
+                _trips.Add(trip.Id, trip);
 
                 service.AddTrip(trip);
                 
@@ -67,7 +67,7 @@ namespace Osmalyzer
         [Pure]
         public RigasSatiksmeTrip GetTrip(string id)
         {
-            return _trips.First(t => t.Id == id);
+            return _trips[id];
         }
     }
 }

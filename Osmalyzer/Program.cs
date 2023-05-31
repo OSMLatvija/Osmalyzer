@@ -192,6 +192,12 @@ namespace Osmalyzer
 
                     noRouteMatch.Add(rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop" + ")"))) + ".");
                 }
+                else
+                {
+                    // TODO: same number of services?
+                    // TODO: match services
+                    // TODO: for each service - same number of stops, same order
+                }
             }
 
             WriteListToReport(noRouteMatch, "These RS routes were not matched to any OSM route:");
@@ -259,18 +265,6 @@ namespace Osmalyzer
                 // TODO: This will probably need matching RS<->OSM name matching
             }
 
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            if (count == 1)
-                Console.WriteLine("Partial - " + route.Name + " -- " + osmName);
-            
             if (count < 2)
                 return false;
             

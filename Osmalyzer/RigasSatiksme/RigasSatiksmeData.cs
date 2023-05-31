@@ -5,7 +5,8 @@ namespace Osmalyzer
 {
     /// <summary>
     ///
-    /// https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam
+    /// RS Data https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam
+    /// Spec https://developers.google.com/transit/gtfs/reference/
     /// </summary>
     public class RigasSatiksmeData
     {
@@ -26,7 +27,7 @@ namespace Osmalyzer
             
             Routes = new RigasSatiksmeRoutes(Path.Combine(dataFolder, "routes.txt"));
             
-            Services = new RigasSatiksmeServices(Path.Combine(dataFolder, "trips.txt"), Routes);
+            Services = new RigasSatiksmeServices(Path.Combine(dataFolder, "calendar.txt"));
             
             Trips = new RigasSatiksmeTrips(Path.Combine(dataFolder, "trips.txt"), Routes, Services);
             

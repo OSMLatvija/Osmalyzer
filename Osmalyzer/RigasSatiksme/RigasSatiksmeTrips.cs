@@ -40,14 +40,22 @@ namespace Osmalyzer
                 // wheelchair_accessible -
 
                 string tripId = segments[2];
+                
                 string serviceId = segments[1];
                 RigasSatiksmeService service = services.GetService(serviceId);
 
                 RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, service);
-
                 _trips.Add(trip);
 
                 service.AddTrip(trip);
+                
+                // Add the service to the route (if it doesn't already know about it)
+                // Service may be used for several routes, i.e. different bus numbers do the same service on different days/times or something
+                
+                string routeId = segments[0];
+                RigasSatiksmeRoute route = routes.GetRoute(routeId);
+                if (route.Services.All(s => s != service))
+                    route.AddService(service);
             }
         }
 

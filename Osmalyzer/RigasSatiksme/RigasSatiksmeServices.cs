@@ -13,7 +13,7 @@ namespace Osmalyzer
         private readonly List<RigasSatiksmeService> _services;
 
         
-        public RigasSatiksmeServices(string dataFileName, RigasSatiksmeRoutes routes)
+        public RigasSatiksmeServices(string dataFileName)
         {
             _services = new List<RigasSatiksmeService>();
 
@@ -25,31 +25,26 @@ namespace Osmalyzer
                     continue;
             
                 string line = lines[i];
-                // route_id,service_id,trip_id,service_headsign,direction_id,block_id,shape_id,wheelchair_accessible
-                // riga_bus_9,23274,1279,"Abrenes iela",1,169766,riga_bus_9_b-a,
+                // service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+                // 24837,0,0,0,0,0,1,1,20230415,20240401
 
                 string[] segments = line.Split(',');
 
-                // route_id - riga_bus_9
-                // service_id - 23274
-                // trip_id - 1279
-                // service_headsign - "Abrenes iela"
-                // direction_id - 1
-                // block_id - 169766
-                // shape_id - riga_bus_9_b-a
-                // wheelchair_accessible -
+                // service_id - 24837
+                // monday - 0
+                // tuesday - 0
+                // wednesday - 0
+                // thursday - 0
+                // friday - 0
+                // saturday - 1
+                // sunday - 1
+                // start_date - 20230415
+                // end_date - 20240401
 
-                string serviceId = segments[1];
+                string serviceId = segments[0];
 
-                if (_services.All(s => s.Id != serviceId)) // this list has trips, not services, so it's repeats
-                {
-                    RigasSatiksmeService service = new RigasSatiksmeService(serviceId);
-                    _services.Add(service);
-
-                    string routeId = segments[0];
-                    RigasSatiksmeRoute route = routes.GetRoute(routeId);
-                    route.AddService(service);
-                }
+                RigasSatiksmeService service = new RigasSatiksmeService(serviceId);
+                _services.Add(service);
             }
         }
 

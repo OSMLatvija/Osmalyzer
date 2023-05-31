@@ -51,7 +51,17 @@
     <ItemGroup>
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="RigasSatiksmeData.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeData.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmePoint.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmePoints.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeRoute.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeRoutes.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeService.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeServices.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeStop.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeStops.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeTrip.cs" />
+        <Compile Include="RigasSatiksme\RigasSatiksmeTrips.cs" />
         <Compile Include="RoadLaw.cs" />
     </ItemGroup>
     <ItemGroup>

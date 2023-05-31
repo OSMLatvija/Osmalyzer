@@ -22,7 +22,9 @@ namespace Osmalyzer
         public RigasSatiksmeData(string dataFolder)
         {
             Stops = new RigasSatiksmeStops(Path.Combine(dataFolder, "stops.txt"));
+            
             Routes = new RigasSatiksmeRoutes(Path.Combine(dataFolder, "routes.txt"));
+            
             Trips = new RigasSatiksmeTrips(Path.Combine(dataFolder, "trips.txt"), Path.Combine(dataFolder, "stop_times.txt"), Stops, Routes);
         }
     }
@@ -159,11 +161,22 @@ namespace Osmalyzer
         
         public string Name { get; }
 
+        public IEnumerable<RigasSatiksmeTrip> Trips => _trips.AsReadOnly();
 
+        
+        private readonly List<RigasSatiksmeTrip> _trips = new List<RigasSatiksmeTrip>();
+
+        
         public RigasSatiksmeRoute(string id, string name)
         {
             Id = id;
             Name = name;
+        }
+
+        
+        public void AddTrip(RigasSatiksmeTrip trip)
+        {
+            _trips.Add(trip);
         }
     }
     
@@ -215,6 +228,8 @@ namespace Osmalyzer
                     RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, route);
 
                     trips.Add(trip);
+
+                    route.AddTrip(trip);
                 }
 
                 return trips;

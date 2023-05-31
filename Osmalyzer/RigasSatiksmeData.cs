@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
@@ -74,9 +75,9 @@ namespace Osmalyzer
 
         
         [Pure]
-        public RigasSatiksmeStop GetStop(string stopId)
+        public RigasSatiksmeStop GetStop(string id)
         {
-            return _stops.First(s => s.Id == stopId);
+            return _stops.First(s => s.Id == id);
         }
     }
     
@@ -143,6 +144,13 @@ namespace Osmalyzer
                 _routes.Add(route);
             }
         }
+
+        
+        [Pure]
+        public RigasSatiksmeRoute GetRoute(string id)
+        {
+            return _routes.First(r => r.Id == id);
+        }
     }
     
     public class RigasSatiksmeRoute
@@ -169,53 +177,98 @@ namespace Osmalyzer
         
         public RigasSatiksmeTrips(string tripDataFileName, string stopDataFileName, RigasSatiksmeStops stops, RigasSatiksmeRoutes routes)
         {
-            // TODO: tripDataFileName
+            _trips = ParseMainTripData(tripDataFileName, routes);
             
-            string[] lines = File.ReadAllLines(stopDataFileName);
+            ParseTripPointData(stopDataFileName, _trips, stops);
 
-            _trips = new List<RigasSatiksmeTrip>();
 
-            List<RigasSatiksmeTripPoint> currentPoints = new List<RigasSatiksmeTripPoint>();
-            string? currentTripId = null;
-            
-            for (int i = 0; i < lines.Length; i++)
+            static List<RigasSatiksmeTrip> ParseMainTripData(string dataFileName, RigasSatiksmeRoutes routes)
             {
-                if (i == 0) // header row
-                    continue;
+                List<RigasSatiksmeTrip> trips = new List<RigasSatiksmeTrip>();
+
+                string[] lines = File.ReadAllLines(dataFileName);
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (i == 0) // header row
+                        continue;
                 
-                string line = lines[i];
-                // trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
-                // 2961,21:53:00,21:53:00,5003,13,0,0
+                    string line = lines[i];
+                    // route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id,wheelchair_accessible
+                    // riga_bus_9,23274,1279,"Abrenes iela",1,169766,riga_bus_9_b-a,
 
-                string[] segments = line.Split(',');
+                    string[] segments = line.Split(',');
 
-                // trip_id - 2961
-                // arrival_time - 21:53:00
-                // departure_time - 21:53:00
-                // stop_id - 5003
-                // stop_sequence - 13
-                // pickup_type - 0
-                // drop_off_type - 0
+                    // route_id - riga_bus_9
+                    // service_id - 23274
+                    // trip_id - 1279
+                    // trip_headsign - "Abrenes iela"
+                    // direction_id - 1
+                    // block_id - 169766
+                    // shape_id - riga_bus_9_b-a
+                    // wheelchair_accessible -
 
-                string tripId = segments[0];
-                string stopId = segments[3];
+                    string tripId = segments[2];
+                    string routeId = segments[0];
+                    RigasSatiksmeRoute route = routes.GetRoute(routeId);
 
-                RigasSatiksmeStop stop = stops.GetStop(stopId);
+                    RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, route);
 
-                RigasSatiksmeTripPoint newPoint = new RigasSatiksmeTripPoint(stop);
-
-                if (currentTripId != tripId || // a new sequence
-                    i == lines.Length) // last entry, final sequence
-                {
-                    RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, currentPoints);
-                    _trips.Add(trip);
-
-                    currentPoints = new List<RigasSatiksmeTripPoint>() { newPoint };
-                    currentTripId = tripId;
+                    trips.Add(trip);
                 }
-                else // continuing current sequence
+
+                return trips;
+            }
+            
+            static void ParseTripPointData(string dataFileName, List<RigasSatiksmeTrip> trips, RigasSatiksmeStops stops)
+            {
+                string[] lines = File.ReadAllLines(dataFileName);
+
+                List<RigasSatiksmeTripPoint> currentPoints = new List<RigasSatiksmeTripPoint>();
+                string? currentTripId = null;
+
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    currentPoints.Add(newPoint);
+                    if (i == 0) // header row
+                        continue;
+
+                    string line = lines[i];
+                    // trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
+                    // 2961,21:53:00,21:53:00,5003,13,0,0
+
+                    string[] segments = line.Split(',');
+
+                    // trip_id - 2961
+                    // arrival_time - 21:53:00
+                    // departure_time - 21:53:00
+                    // stop_id - 5003
+                    // stop_sequence - 13
+                    // pickup_type - 0
+                    // drop_off_type - 0
+
+                    string tripId = segments[0];
+                    string stopId = segments[3];
+                    RigasSatiksmeStop stop = stops.GetStop(stopId);
+
+                    RigasSatiksmeTripPoint newPoint = new RigasSatiksmeTripPoint(stop);
+
+                    if (currentTripId != tripId || // a new sequence
+                        i == lines.Length) // last entry, final sequence
+                    {
+                        RigasSatiksmeTrip trip = trips.First(t => t.Id == tripId);
+
+                        trip.AssignPoints(currentPoints);
+
+                        if (i != lines.Length) // no further data, so no need to bother
+                        {
+                            currentPoints = new List<RigasSatiksmeTripPoint>() { newPoint };
+                            currentTripId = tripId;
+                        }
+                    }
+                    else // continuing current sequence
+                    {
+                        currentPoints.Add(newPoint);
+                    }
                 }
             }
         }
@@ -224,16 +277,26 @@ namespace Osmalyzer
     public class RigasSatiksmeTrip
     {
         public string Id { get; }
+        
+        public RigasSatiksmeRoute Route { get; }
 
         public IEnumerable<RigasSatiksmeTripPoint> Points => _points.AsReadOnly();
 
 
-        private List<RigasSatiksmeTripPoint> _points;
+        private List<RigasSatiksmeTripPoint> _points = null!;
 
 
-        public RigasSatiksmeTrip(string id, List<RigasSatiksmeTripPoint> points)
+        public RigasSatiksmeTrip(string id, RigasSatiksmeRoute route)
         {
             Id = id;
+            Route = route;
+        }
+
+
+        public void AssignPoints(List<RigasSatiksmeTripPoint> points)
+        {
+            if (_points != null) throw new InvalidOperationException();
+            
             _points = points;
         }
     }

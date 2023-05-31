@@ -40,7 +40,7 @@ namespace Osmalyzer
             //     Console.WriteLine(route.Id + " - " + route.Name);
 
             foreach (RigasSatiksmeTrip trip in rsData.Trips.Trips)
-                Console.WriteLine(trip.Id + " - x" + trip.Points.Count());
+                Console.WriteLine(trip.Id + " for " + trip.Route.Name + " - x" + trip.Points.Count());
 
             return;
             

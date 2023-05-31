@@ -16,6 +16,8 @@ namespace Osmalyzer
         
         public RigasSatiksmeRoutes Routes { get; }
         
+        public RigasSatiksmeServices Services { get; }
+        
         public RigasSatiksmeTrips Trips { get; }
         
         public RigasSatiksmePoints Points { get; }
@@ -27,7 +29,9 @@ namespace Osmalyzer
             
             Routes = new RigasSatiksmeRoutes(Path.Combine(dataFolder, "routes.txt"));
             
-            Trips = new RigasSatiksmeTrips(Path.Combine(dataFolder, "trips.txt"), Routes);
+            Services = new RigasSatiksmeServices(Path.Combine(dataFolder, "trips.txt"), Routes);
+            
+            Trips = new RigasSatiksmeTrips(Path.Combine(dataFolder, "trips.txt"), Routes, Services);
             
             Points = new RigasSatiksmePoints(Path.Combine(dataFolder, "stop_times.txt"), Stops, Trips);
         }
@@ -165,10 +169,10 @@ namespace Osmalyzer
         
         public string Name { get; }
 
-        public IEnumerable<RigasSatiksmeTrip> Trips => _trips.AsReadOnly();
+        public IEnumerable<RigasSatiksmeService> Services => _services.AsReadOnly();
 
         
-        private readonly List<RigasSatiksmeTrip> _trips = new List<RigasSatiksmeTrip>();
+        private readonly List<RigasSatiksmeService> _services = new List<RigasSatiksmeService>();
 
         
         public RigasSatiksmeRoute(string id, string name)
@@ -177,13 +181,91 @@ namespace Osmalyzer
             Name = name;
         }
 
+
+        public void AddService(RigasSatiksmeService service)
+        {
+            _services.Add(service);
+        }
+    }
+
+    public class RigasSatiksmeServices
+    {
+        public IEnumerable<RigasSatiksmeService> Services => _services.AsReadOnly();
+
+        
+        private readonly List<RigasSatiksmeService> _services;
+
+        
+        public RigasSatiksmeServices(string dataFileName, RigasSatiksmeRoutes routes)
+        {
+            _services = new List<RigasSatiksmeService>();
+
+            string[] lines = File.ReadAllLines(dataFileName);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (i == 0) // header row
+                    continue;
+            
+                string line = lines[i];
+                // route_id,service_id,trip_id,service_headsign,direction_id,block_id,shape_id,wheelchair_accessible
+                // riga_bus_9,23274,1279,"Abrenes iela",1,169766,riga_bus_9_b-a,
+
+                string[] segments = line.Split(',');
+
+                // route_id - riga_bus_9
+                // service_id - 23274
+                // trip_id - 1279
+                // service_headsign - "Abrenes iela"
+                // direction_id - 1
+                // block_id - 169766
+                // shape_id - riga_bus_9_b-a
+                // wheelchair_accessible -
+
+                string serviceId = segments[1];
+
+                if (_services.All(s => s.Id != serviceId)) // this list has trips, not services, so it's repeats
+                {
+                    RigasSatiksmeService service = new RigasSatiksmeService(serviceId);
+                    _services.Add(service);
+
+                    string routeId = segments[0];
+                    RigasSatiksmeRoute route = routes.GetRoute(routeId);
+                    route.AddService(service);
+                }
+            }
+        }
+
+        
+        [Pure]
+        public RigasSatiksmeService GetService(string id)
+        {
+            return _services.First(t => t.Id == id);
+        }
+    }
+
+    public class RigasSatiksmeService
+    {
+        public string Id { get; }
+
+        public IEnumerable<RigasSatiksmeTrip> Trips => _trips.AsReadOnly();
+
+
+        private readonly List<RigasSatiksmeTrip> _trips = new List<RigasSatiksmeTrip>();
+
+
+        public RigasSatiksmeService(string id)
+        {
+            Id = id;
+        }
+
         
         public void AddTrip(RigasSatiksmeTrip trip)
         {
             _trips.Add(trip);
         }
     }
-    
+
     public class RigasSatiksmeTrips
     {
         public IEnumerable<RigasSatiksmeTrip> Trips => _trips.AsReadOnly();
@@ -192,7 +274,7 @@ namespace Osmalyzer
         private readonly List<RigasSatiksmeTrip> _trips;
 
         
-        public RigasSatiksmeTrips(string dataFileName, RigasSatiksmeRoutes routes)
+        public RigasSatiksmeTrips(string dataFileName, RigasSatiksmeRoutes routes, RigasSatiksmeServices services)
         {
             _trips = new List<RigasSatiksmeTrip>();
 
@@ -219,14 +301,14 @@ namespace Osmalyzer
                 // wheelchair_accessible -
 
                 string tripId = segments[2];
-                string routeId = segments[0];
-                RigasSatiksmeRoute route = routes.GetRoute(routeId);
+                string serviceId = segments[1];
+                RigasSatiksmeService service = services.GetService(serviceId);
 
-                RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, route);
+                RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, service);
 
                 _trips.Add(trip);
 
-                route.AddTrip(trip);
+                service.AddTrip(trip);
             }
         }
 
@@ -242,7 +324,7 @@ namespace Osmalyzer
     {
         public string Id { get; }
         
-        public RigasSatiksmeRoute Route { get; }
+        public RigasSatiksmeService Service { get; }
 
         public IEnumerable<RigasSatiksmePoint> Points => _points.AsReadOnly();
 
@@ -250,10 +332,10 @@ namespace Osmalyzer
         private readonly List<RigasSatiksmePoint> _points = new List<RigasSatiksmePoint>();
 
 
-        public RigasSatiksmeTrip(string id, RigasSatiksmeRoute route)
+        public RigasSatiksmeTrip(string id, RigasSatiksmeService service)
         {
             Id = id;
-            Route = route;
+            Service = service;
         }
 
         

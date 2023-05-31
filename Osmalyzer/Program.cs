@@ -37,11 +37,15 @@ namespace Osmalyzer
 
             Console.OutputEncoding = Encoding.Unicode;
             Console.WindowWidth = 300;
-            foreach (RigasSatiksmeRoute route in rsData.Routes.Routes)
-                Console.WriteLine(route.Id + " - " + route.Name + " x" + route.Services.Count() + " services (" + string.Join(",", route.Services.Select(s => "x" + s.Trips.Count())) + ")");
+            
+            // foreach (RigasSatiksmeRoute route in rsData.Routes.Routes)
+            //     Console.WriteLine(route.Id + " - " + route.Name + " x" + route.Services.Count() + " services (" + string.Join(",", route.Services.Select(s => "x" + s.Trips.Count())) + ")");
 
             //foreach (RigasSatiksmeTrip trip in rsData.Trips.Trips)
             //    Console.WriteLine(trip.Id + " for " + trip.Route.Name + " - x" + trip.Points.Count());
+
+            foreach (RigasSatiksmeService service in rsData.Services.Services)
+                Console.WriteLine(service.Id + " for " + string.Join(", ", service.Routes.Select(r => r.Id)));
 
             return;
             

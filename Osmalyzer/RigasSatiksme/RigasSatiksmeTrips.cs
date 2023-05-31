@@ -51,11 +51,15 @@ namespace Osmalyzer
                 
                 // Add the service to the route (if it doesn't already know about it)
                 // Service may be used for several routes, i.e. different bus numbers do the same service on different days/times or something
+                // And vice-verse - add route to service (if not known)
                 
                 string routeId = segments[0];
                 RigasSatiksmeRoute route = routes.GetRoute(routeId);
                 if (route.Services.All(s => s != service))
                     route.AddService(service);
+                
+                if (service.Routes.All(r => r != route))
+                    service.AddRoute(route);
             }
         }
 

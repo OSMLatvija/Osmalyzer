@@ -31,6 +31,18 @@ namespace Osmalyzer
         
         private static void ParseRigasSatiksme()
         {
+            // Load RS stop data
+
+            RigasSatiksmeData rsData = new RigasSatiksmeData("RS");
+
+            Console.OutputEncoding = Encoding.Unicode;
+            foreach (RigasSatiksmeRoute route in rsData.Routes.Routes)
+            {
+                Console.WriteLine(route.Id + " - " + route.Name);
+            }
+
+            return;
+            
             // Start report file
             
             const string reportFileName = @"Rigas Satiksme report.txt";
@@ -57,10 +69,6 @@ namespace Osmalyzer
             );
             
             OsmBlob osmStops = blobs[0];
-            
-            // Load RS stop data
-
-            RigasSatiksmeData rsData = new RigasSatiksmeData("RS");
 
             // Parse
 

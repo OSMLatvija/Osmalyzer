@@ -1,5 +1,5 @@
 This is a C# .NET solution. The main project is a console project. Download the whole solution and open it in Visual Studio or any compatible IDE (like Visual Code, Rider, MonoDevelop, etc.) Compile and run as per your IDE (e.g. F5 in Visual Studio). You will need to download and install Nuget packages (i.e. external libraries), depending on how your IDE does this - this should be automatic or prompted the first time you try to compile/run the project.
 
-The project is currently set to parse common brand names.
+The project is currently set to parse whatever the last thing that was implemented/run. ;)
 
 For LVC road parsing, the app will crash because you don't have the data files. Download `latvia-latest.osm.pbf` from https://download.geofabrik.de/europe/latvia.html (it's the 100 MB of OSM data in Latvia region) and place the full HTML source text from https://likumi.lv/ta/id/198589-noteikumi-par-valsts-autocelu-un-valsts-autocelu-marsruta-ietverto-pasvaldibam-piederoso-autocelu-posmu-sarakstiem into `noteikumi.txt` (this contains the list of roads in the law). Put both files in the runtime folder (probably "Osmalyzer\bin\Debug" or wherever your IDE compiles it). Now it will run in a console window (print a bunch of stuff as it goes) and produce a `report.txt` file (after a while). May need a lot of memory (6+ GB).

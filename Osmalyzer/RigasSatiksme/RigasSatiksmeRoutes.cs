@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
@@ -42,18 +43,37 @@ namespace Osmalyzer
 
                 string id = segments[0];
                 string name = segments[2].Substring(1, segments[2].Length - 2).Replace("\"\"", "\"");
+                string number = segments[1].Substring(1, segments[1].Length - 2);
 
-                RigasSatiksmeRoute route = new RigasSatiksmeRoute(id, name);
+                string type = TypeFromId(id);
+                
+                RigasSatiksmeRoute route = new RigasSatiksmeRoute(id, name, number, type);
 
                 _routes.Add(route.Id, route);
             }
         }
 
-        
         [Pure]
         public RigasSatiksmeRoute GetRoute(string id)
         {
             return _routes[id];
+        }
+
+        
+        [Pure]
+        private static string TypeFromId(string id)
+        {
+            string rawType = id.Split('_')[1];
+            // riga_bus_60
+            // riga_tram_5
+            // riga_trol_16
+
+            return rawType switch
+            {
+                "bus"  => "bus",
+                "trol" => "trolleybus",
+                "tram" => "tram"
+            };
         }
     }
 }

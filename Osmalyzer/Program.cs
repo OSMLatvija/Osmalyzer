@@ -12,7 +12,7 @@ namespace Osmalyzer
     public static class Program
     {
         private const string osmDataFileName = @"latvia-latest.osm.pbf"; // from https://download.geofabrik.de/europe/latvia.html
-        private const string osmDate = @"2023-05-29T20:21:24Z"; // todo: read this from the file
+        private const string osmDate = @"2023-05-30T20:21:24Z"; // todo: read this from the file
         
         
         public static void Main(string[] args)
@@ -34,25 +34,11 @@ namespace Osmalyzer
             // Load RS stop data
 
             RigasSatiksmeData rsData = new RigasSatiksmeData("RS");
-
-            Console.OutputEncoding = Encoding.Unicode;
-            //Console.WindowWidth = 300;
-            
-            // foreach (RigasSatiksmeRoute route in rsData.Routes.Routes)
-            //     Console.WriteLine(route.Id + " - " + route.Name + " x" + route.Services.Count() + " services (" + string.Join(",", route.Services.Select(s => "x" + s.Trips.Count())) + ")");
-
-            //foreach (RigasSatiksmeTrip trip in rsData.Trips.Trips)
-            //    Console.WriteLine(trip.Id + " for " + trip.Route.Name + " - x" + trip.Points.Count());
-
-            foreach (RigasSatiksmeService service in rsData.Services.Services)
-                Console.WriteLine(service.Id + " for " + string.Join(", ", service.Routes.Select(r => r.Id)));
-
-            return;
             
             // Start report file
             
             const string reportFileName = @"Rigas Satiksme report.txt";
-            const string rsDataDate = "2023-04-25"; // TODO: is it specified somewhere? 
+            const string rsDataDate = "2023-05-03"; // TODO: is it specified somewhere? 
 
             using StreamWriter reportFile = File.CreateText(reportFileName);
             
@@ -70,13 +56,23 @@ namespace Osmalyzer
                             new HasValue("railway", "tram_stop"),
                             new HasValue("disused:railway", "tram_stop") // still valid, if not in active use - RS data seems to have these too
                         )
+                    },
+                    new OsmFilter[]
+                    {
+                        new IsRelation(),
+                        new HasValue("type", "route"),
+                        new OrMatch(
+                            new HasAnyValue("route", new List<string> { "tram", "bus", "trolleybus" }),
+                            new HasAnyValue("disused:route", new List<string> { "tram", "bus", "trolleybus" })
+                        )
                     }
                 }
             );
             
             OsmBlob osmStops = blobs[0];
+            OsmBlob osmRoutes = blobs[1];
 
-            // Parse
+            // Parse stops
 
             const double maxSearchDistance = 150.0; // we search this far for potential stops
             const double acceptDistance = 50.0; // but only this far counts as a good match
@@ -88,7 +84,9 @@ namespace Osmalyzer
             List<string> noMatchButHaveClose = new List<string>();
             List<string> noMatchAndAllFar = new List<string>();
             List<string> noMatchInRange = new List<string>();
-            
+
+            Dictionary<RigasSatiksmeStop, OsmNode> fullyMatchedStops = new Dictionary<RigasSatiksmeStop, OsmNode>();
+
             foreach (RigasSatiksmeStop rsStop in rsData.Stops.Stops)
             {
                 // Find all potential OSM stops in range
@@ -111,6 +109,7 @@ namespace Osmalyzer
                     if (stopInAcceptRange)
                     {
                         // Everything seems to be in order
+                        fullyMatchedStops.Add(rsStop, matchedStop);
                     }
                     else
                     {
@@ -160,17 +159,43 @@ namespace Osmalyzer
             WriteListToReport(matchedOsmIsTooFar, "These RS stops have a matching OSM stop in range (" + maxSearchDistance + " m), but it is far away (>" + acceptDistance + " m)");
             WriteListToReport(noMatchInRange, "These RS stops don't have any already-unmatched OSM stops in range (" + maxSearchDistance + " m)");
             WriteListToReport(noMatchAndAllFar, "These RS stops have no matching OSM stop in range (" + maxSearchDistance + " m), and even all unmatched stops are far away (>" + acceptDistance + " m)");
-            
-            void WriteListToReport(List<string> list, string header)
-            {
-                reportFile.WriteLine(header);
-                foreach (string line in list)
-                    reportFile.WriteLine("* " + line);
-                reportFile.WriteLine();
-            }
 
             // todo: other way - OSM stop but no RS stop
             
+            // Parse routes
+
+            List<string> noRouteMatch = new List<string>();
+
+            foreach (RigasSatiksmeRoute rsRoute in rsData.Routes.Routes)
+            {
+                List<OsmElement> matchingOsmRoutes = osmRoutes.Elements.Where(e => MatchesRoute((OsmRelation)e, rsRoute)).ToList();
+
+                //reportFile.WriteLine(rsRoute.Name + " - x" + matchingOsmRoutes.Count + ": " + string.Join(", ", matchingOsmRoutes.Select(s => s.Id)));
+
+                if (matchingOsmRoutes.Count == 0)
+                {
+                    List<RigasSatiksmeStop> endStops = new List<RigasSatiksmeStop>();
+                    
+                    foreach (RigasSatiksmeService service in rsRoute.Services)
+                    {
+                        foreach (RigasSatiksmeTrip trip in service.Trips)
+                        {
+                            RigasSatiksmeStop firstStop = trip.Points.First().Stop;
+                            if (!endStops.Contains(firstStop))
+                                endStops.Add(firstStop);
+                            
+                            RigasSatiksmeStop lastStop = trip.Points.First().Stop;
+                            if (!endStops.Contains(lastStop))
+                                endStops.Add(lastStop);
+                        }
+                    }
+
+                    noRouteMatch.Add(rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop" + ")"))) + ".");
+                }
+            }
+
+            WriteListToReport(noRouteMatch, "These RS routes were not matched to any OSM route:");
+
             // Finish report file
 
             reportFile.WriteLine("OSM data as of " + osmDate + ". RS data as of " + rsDataDate + ". Provided as is; mistakes possible.");
@@ -178,8 +203,98 @@ namespace Osmalyzer
             reportFile.Close();
 
             Process.Start(reportFileName);
+            
+                        
+            void WriteListToReport(List<string> list, string header)
+            {
+                if (list.Count > 0)
+                {
+                    reportFile.WriteLine(header);
+                    foreach (string line in list)
+                        reportFile.WriteLine("* " + line);
+                    reportFile.WriteLine();
+                }
+            }
         }
-        
+
+        [Pure]
+        private static bool MatchesRoute(OsmRelation osmRoute, RigasSatiksmeRoute route)
+        {
+            // OSM
+            // from	Preču 2
+            // name	Bus 13: Preču 2 => Kleisti => Babītes stacija
+            // public_transport:version	2
+            // ref	13
+            // roundtrip	no
+            // route	bus
+            // to	Babītes stacija
+            // type	route
+            // via	Kleisti
+            
+            // RS
+            // riga_bus_13,"13","Babītes stacija - Kleisti - Preču 2",,3,https://saraksti.rigassatiksme.lv/index.html#riga/bus/13,F4B427,FFFFFF,2001300
+
+            if (route.Type != osmRoute.GetValue("route"))
+                return false;
+            
+            if (route.Number != osmRoute.GetValue("ref"))
+                return false;
+
+            string? osmName = osmRoute.GetValue("name");
+
+            if (osmName == null)
+                return false;
+
+            string[] split = route.Name.Split('-');
+
+            int count = 0;
+            
+            foreach (string s in split)
+            {
+                string rsName = s.Trim();
+
+                if (OsmNameHasRSNamePart(osmName, rsName))
+                    count++;
+
+                // TODO: This will probably need matching RS<->OSM name matching
+            }
+
+            // TODO: TEMP
+            // TODO: TEMP
+            // TODO: TEMP
+            // TODO: TEMP
+            // TODO: TEMP
+            // TODO: TEMP
+            // TODO: TEMP
+            // TODO: TEMP
+            // TODO: TEMP
+            if (count == 1)
+                Console.WriteLine("Partial - " + route.Name + " -- " + osmName);
+            
+            if (count < 2)
+                return false;
+            
+            // Some are Abrenes iela - Jaunciems - Suži
+            // Some are Abrenes iela - Jaunmārupe
+
+            return true; // Guess it's "good enough" without more complex checks
+            
+            
+            [Pure]
+            static bool OsmNameHasRSNamePart(string osmName, string rsName)
+            {
+                // Straight match
+                if (osmName.Contains(rsName))
+                    return true;
+                
+                // TEC 2 vs TEC-2
+                if (osmName.Replace('-', ' ').Contains(rsName))
+                    return true;
+
+                return false;
+            }
+        }
+
         [Pure]
         private static StopNameMatching StopNamesMatch(OsmNode osmStop, RigasSatiksmeStop rsStop)
         {

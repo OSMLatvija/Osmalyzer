@@ -479,9 +479,16 @@ namespace Osmalyzer
         }
         
         
+        [Pure]
         public string? GetValue(string key)
         {
             return Element.Tags.ContainsKey(key) ? Element.Tags.GetValue(key) : null;
+        }
+        
+        [Pure]
+        public bool HasValue(string key)
+        {
+            return Element.Tags.ContainsKey(key);
         }
     }
 

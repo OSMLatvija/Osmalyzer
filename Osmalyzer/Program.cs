@@ -36,10 +36,11 @@ namespace Osmalyzer
             RigasSatiksmeData rsData = new RigasSatiksmeData("RS");
 
             Console.OutputEncoding = Encoding.Unicode;
-            foreach (RigasSatiksmeRoute route in rsData.Routes.Routes)
-            {
-                Console.WriteLine(route.Id + " - " + route.Name);
-            }
+            // foreach (RigasSatiksmeRoute route in rsData.Routes.Routes)
+            //     Console.WriteLine(route.Id + " - " + route.Name);
+
+            foreach (RigasSatiksmeTrip trip in rsData.Trips.Trips)
+                Console.WriteLine(trip.Id + " - x" + trip.Points.Count());
 
             return;
             

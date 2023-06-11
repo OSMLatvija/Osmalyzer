@@ -1,9 +1,7 @@
 on:
-  push: &branches
+  push:
     branches:
     - main
-  pull_request:
-    *branches
   schedule:
   - cron: '0 */6 * * *'
 

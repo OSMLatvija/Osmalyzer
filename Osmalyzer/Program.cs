@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
@@ -223,7 +223,7 @@ namespace Osmalyzer
             }
         }
 
-        [Pure]
+        [JetBrains.Annotations.Pure]
         private static bool MatchesRoute(OsmRelation osmRoute, RigasSatiksmeRoute route)
         {
             // OSM

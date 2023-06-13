@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/schmiddim-wget-unzip@v1
+    - uses: schmiddim/action-wget-unzip@v2
       with:
         url: https://saraksti.rigassatiksme.lv/riga/gtfs.zip
         destination: Osmalyzer/RS/

@@ -22,3 +22,15 @@ jobs:
     - run: dotnet restore
     - run: dotnet build --configuration Release --no-restore /p:DefineConstants=REMOTE_EXECUTION
     - run: dotnet run --project Osmalyzer
+    - run: |-
+        mkdir _site &&
+        cp "Rigas Satiksme report.txt" _site
+    - uses: actions/upload-pages-artifact@main
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/deploy-pages@v1

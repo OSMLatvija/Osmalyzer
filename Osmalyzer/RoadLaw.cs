@@ -260,13 +260,13 @@ namespace Osmalyzer
                         }
                         else if (EndWithStreetSuffix(trimmedEntry))
                         {
-                            string streetName = trimmedEntry;
+                            //string streetName = trimmedEntry;
                         }
                         else if (Regex.IsMatch(trimmedEntry, doubleNameMatchPattern))
                         {
-                            Match match = Regex.Match(trimmedEntry, doubleNameMatchPattern);
-                            string streetName = match.Groups[1].ToString();
-                            string altStreetName = match.Groups[2].ToString();
+                            //Match match = Regex.Match(trimmedEntry, doubleNameMatchPattern);
+                            //string streetName = match.Groups[1].ToString();
+                            //string altStreetName = match.Groups[2].ToString();
                         }
                         else if (trimmedEntry.Contains("īpašnieks"))
                         {

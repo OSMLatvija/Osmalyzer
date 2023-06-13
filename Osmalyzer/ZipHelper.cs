@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 
@@ -24,7 +23,7 @@ namespace Osmalyzer
                 string entryFileName = zipEntry.Name;
 
                 string fullZipToPath = Path.Combine(outFolder, entryFileName);
-                string? directoryName = Path.GetDirectoryName(fullZipToPath)!;
+                string directoryName = Path.GetDirectoryName(fullZipToPath)!;
                 if (directoryName.Length > 0)
                     Directory.CreateDirectory(directoryName);
 

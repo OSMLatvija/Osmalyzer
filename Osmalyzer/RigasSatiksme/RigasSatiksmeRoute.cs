@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace Osmalyzer
@@ -42,9 +43,10 @@ namespace Osmalyzer
         {
             return type switch
             {
-                "bus"  => "Bus",
+                "bus"        => "Bus",
                 "trolleybus" => "Trolleybus",
-                "tram" => "Tram"
+                "tram"       => "Tram",
+                _            => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
     }

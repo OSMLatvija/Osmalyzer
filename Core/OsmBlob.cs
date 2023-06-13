@@ -453,7 +453,7 @@ namespace Osmalyzer
 
     public abstract class OsmElement
     {
-        public long Id => Element.Id.Value; 
+        public long Id => Element.Id!.Value; 
         
         
         internal OsmGeo Element { get; }

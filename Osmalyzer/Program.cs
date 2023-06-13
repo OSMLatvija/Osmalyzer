@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -416,7 +415,7 @@ namespace Osmalyzer
             }
         }
 
-        [JetBrains.Annotations.Pure]
+        [Pure]
         private static bool MatchesRoute(OsmRelation osmRoute, RigasSatiksmeRoute route)
         {
             // OSM
@@ -938,7 +937,7 @@ namespace Osmalyzer
 
             // Road on map but not in law
 
-            List<string> mappedRoadsNotFoundInLaw = new List<string>();
+            //TODO:List<string> mappedRoadsNotFoundInLaw = new List<string>();
             List<string> mappedRoadsNotFoundInLawFormatted = new List<string>();
             bool anyStricken = false;
             bool anyHistoric = false;
@@ -951,7 +950,7 @@ namespace Osmalyzer
 
                 if (!foundInLaw)
                 {
-                    mappedRoadsNotFoundInLaw.Add(osmGroup.Value);
+                    //TODO:mappedRoadsNotFoundInLaw.Add(osmGroup.Value);
 
                     mappedRoadsNotFoundInLawFormatted.Add(osmGroup.Value);
 

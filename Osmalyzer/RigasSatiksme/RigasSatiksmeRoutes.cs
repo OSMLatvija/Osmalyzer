@@ -72,7 +72,8 @@ namespace Osmalyzer
             {
                 "bus"  => "bus",
                 "trol" => "trolleybus",
-                "tram" => "tram"
+                "tram" => "tram",
+                _      => throw new ArgumentOutOfRangeException()
             };
         }
     }

@@ -17,18 +17,35 @@ namespace Osmalyzer
         
         public static void Main(string[] args)
         {
+            TestCache();
+
             //ParseLVCRoads();
 
             //ParseCommonNames();
-            
+
             //ParseHighwaySpeedConditionals();
-            
+
             //ParseTrolleyWires();
 
-            ParseRigasSatiksme();
+            //ParseRigasSatiksme();
         }
 
         
+        private static void TestCache()
+        {
+            if (!Directory.Exists("cache/"))
+                Directory.CreateDirectory("cache/");
+
+            if (File.Exists("cache/test.txt"))
+                Debug.WriteLine("CACHE FOUND!");
+            else
+                Debug.WriteLine("CACHE NOT FOUND!");
+            
+            File.WriteAllText("cache/test.txt", "testing testing 123");
+            Debug.WriteLine("WROTE NEW TO CACHE");
+        }
+
+
         private static void ParseRigasSatiksme()
         {
             // Load RS stop data

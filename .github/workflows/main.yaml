@@ -10,22 +10,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: schmiddim/action-wget-unzip@v2
+    
+    - name: Cache external data
+      uses: actions/cache@v3
+      env:
+        cache-name: osmalyzer-external-data
       with:
-        url: https://saraksti.rigassatiksme.lv/riga/gtfs.zip
-        destination: RS/
-    - run: wget https://download.geofabrik.de/europe/latvia-latest.osm.pbf
-    - run: wget -O noteikumi.txt https://likumi.lv/ta/id/198589
+        path: cache/
+        # just a random string as key
+        key: txLyWHOIazMqZvNZixBh
+    
     - uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - run: dotnet restore
     - run: dotnet build --configuration Release --no-restore -p:ExtraDefineConstants=REMOTE_EXECUTION
     - run: dotnet run --project Osmalyzer
-    - run: |-
-        mkdir _site &&
-        cp "Rigas Satiksme report.txt" _site
-    - uses: actions/upload-pages-artifact@main
+    #- run: |-
+    #    mkdir _site &&
+    #    cp "Rigas Satiksme report.txt" _site
+    #- uses: actions/upload-pages-artifact@main
   deploy:
     needs: build
     permissions:
@@ -33,4 +37,4 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/deploy-pages@v1
+      - uses: actions/deploy-pages@v1

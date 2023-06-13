@@ -3,21 +3,33 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
     public static class Program
     {
-        private const string osmDataFileName = @"latvia-latest.osm.pbf"; // from https://download.geofabrik.de/europe/latvia.html
-        private const string osmDate = @"2023-05-30T20:21:24Z"; // todo: read this from the file
+        private const string osmDataFileName = @"cache/latvia-latest.osm.pbf";
+        private const string osmDataDateFileName = @"cache/latvia-latest.osm.pbf-date.txt";
+        
+        private const string rsDataFileName = @"cache/rigas-satiksme.zip";
+        private const string rsDataDateFileName = @"cache/rigas-satiksme.zip-date.txt";
         
         
         public static void Main(string[] args)
         {
-            TestCache();
+            PrepareExternalData();
+
+            Parse();
+        }
+
+        private static void Parse()
+        {
+            Console.WriteLine("Parsing...");
 
             //ParseLVCRoads();
 
@@ -27,24 +39,182 @@ namespace Osmalyzer
 
             //ParseTrolleyWires();
 
-            //ParseRigasSatiksme();
+            ParseRigasSatiksme();
+            
+            Console.WriteLine("Done.");
         }
 
-        
-        private static void TestCache()
+
+        private static void PrepareExternalData()
         {
+            Console.WriteLine("Preparing data...");
+
             if (!Directory.Exists("cache/"))
                 Directory.CreateDirectory("cache/");
 
-            if (File.Exists("cache/test.txt"))
-                Debug.WriteLine("CACHE FOUND!");
-            else
-                Debug.WriteLine("CACHE NOT FOUND!");
+            RetrieveOsmData();
             
-            File.WriteAllText("cache/test.txt", "testing testing 123");
-            Debug.WriteLine("WROTE NEW TO CACHE");
+            RetrieveRSData();
+
+            // We expect both the data file and date metadata file for all "data sets" to exist after this - otherwise, all parsing will fail anyway 
+
+            PrepareRSData();
         }
 
+        private static void RetrieveOsmData()
+        {
+            Console.WriteLine("Preparing OSM data...");
+
+            // Check if we have a data file cached
+            bool cachedFileOk = File.Exists(osmDataFileName);
+
+            DateTime? newestDate = null;
+            
+            if (cachedFileOk)
+            {
+                // Check that we actually know the date it was cached
+
+                if (!File.Exists(osmDataFileName))
+                {
+                    Console.WriteLine("Missing data date metafile!");
+                    cachedFileOk = false;
+                }
+            }
+
+            if (cachedFileOk)
+            {
+                // Check that we have the latest date
+
+                DateTime dataDate = GetOsmDataDate();
+
+                newestDate = GetNewestOsmDataDate();
+
+                if (dataDate < newestDate)
+                {
+                    Console.WriteLine("Cached data out of date!");
+                    cachedFileOk = false;
+                }
+            }
+            
+            if (!cachedFileOk)
+            {
+                // Download latest (if anything is wrong)
+                
+                Console.WriteLine("Downloading OSM data...");
+                
+                if (newestDate == null) // we haven't checked the live site yet
+                    newestDate = GetNewestOsmDataDate();
+                
+                using HttpClient client = new HttpClient();
+                using Task<Stream> stream = client.GetStreamAsync("https://download.geofabrik.de/europe/latvia-latest.osm.pbf");
+                using FileStream fileStream = new FileStream(osmDataFileName, FileMode.Create);
+                stream.Result.CopyTo(fileStream);
+
+                File.WriteAllText(osmDataDateFileName, newestDate.Value.Ticks.ToString());
+            }
+            
+            
+            static DateTime GetNewestOsmDataDate()
+            {
+                Console.WriteLine("Retrieving OSM data date...");
+
+                string url = "https://download.geofabrik.de/europe/latvia.html";
+                using HttpClient client = new HttpClient();
+                using HttpResponseMessage response = client.GetAsync(url).Result;
+                using HttpContent content = response.Content;
+                string result = content.ReadAsStringAsync().Result;
+                
+                Match match = Regex.Match(result, @"contains all OSM data up to ([^\.]+)\.");
+                string newestDateString = match.Groups[1].ToString(); // will be something like "2023-06-12T20:21:53Z"
+                return DateTime.Parse(newestDateString);
+            }
+        }
+
+        private static void RetrieveRSData()
+        {
+            Console.WriteLine("Preparing RS data...");
+
+            // Check if we have a data file cached
+            bool cachedFileOk = File.Exists(rsDataFileName);
+
+            DateTime? newestDate = null;
+            string newestDataUrl = null!;
+            
+            if (cachedFileOk)
+            {
+                // Check that we actually know the date it was cached
+
+                if (!File.Exists(rsDataDateFileName))
+                {
+                    Console.WriteLine("Missing data date metafile!");
+                    cachedFileOk = false;
+                }
+            }
+
+            if (cachedFileOk)
+            {
+                // Check that we have the latest date
+
+                DateTime dataDate = GetRsDataDate();
+
+                newestDate = GetNewestRSDataDate(out newestDataUrl);
+
+                if (dataDate < newestDate)
+                {
+                    Console.WriteLine("Cached data out of date!");
+                    cachedFileOk = false;
+                }
+            }
+            
+            if (!cachedFileOk)
+            {
+                // Download latest (if anything is wrong)
+             
+                Console.WriteLine("Downloading RS data...");
+
+                if (newestDate == null) // we haven't checked the live site yet
+                    newestDate = GetNewestRSDataDate(out newestDataUrl);
+                
+                using HttpClient client = new HttpClient();
+                using Task<Stream> stream = client.GetStreamAsync(newestDataUrl);
+                using FileStream fileStream = new FileStream(rsDataFileName, FileMode.Create);
+                stream.Result.CopyTo(fileStream);
+
+                File.WriteAllText(rsDataDateFileName, newestDate.Value.Ticks.ToString());
+            }
+            
+            
+            static DateTime GetNewestRSDataDate(out string dataUrl)
+            {
+                Console.WriteLine("Retrieving RS data date...");
+                
+                string url = "https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam";
+                using HttpClient client = new HttpClient();
+                using HttpResponseMessage response = client.GetAsync(url).Result;
+                using HttpContent content = response.Content;
+                string result = content.ReadAsStringAsync().Result;
+                
+                MatchCollection matches = Regex.Matches(result, @"<a href=""(https://data.gov.lv/dati/dataset/[a-f0-9\-]+/resource/[a-f0-9\-]+/download/marsrutusaraksti(\d{2})_(\d{4}).zip)""");
+                Match urlMatch = matches.Last(); // last is latest... hopefully
+                dataUrl = urlMatch.Groups[1].ToString();
+                // todo: check if url date matches publish date? does it matter?
+
+                Match dateMatch = Regex.Match(result, @"Datu pēdējo izmaiņu datums</th>\s*<td class=""dataset-details"">\s*(\d{4})-(\d{2})-(\d{2})");
+                int newestYear = int.Parse(dateMatch.Groups[1].ToString());
+                int newestMonth = int.Parse(dateMatch.Groups[2].ToString());
+                int newestDay = int.Parse(dateMatch.Groups[3].ToString());
+                return new DateTime(newestYear, newestMonth, newestDay);
+            }
+        }
+
+        private static void PrepareRSData()
+        {
+            // RS data comes in a zip file, so unzip
+            
+            Console.WriteLine("Extracting RS data...");
+
+            ZipHelper.ExtractZipFile(rsDataFileName, "RS/");
+        }
 
         private static void ParseRigasSatiksme()
         {
@@ -55,7 +225,6 @@ namespace Osmalyzer
             // Start report file
             
             const string reportFileName = @"Rigas Satiksme report.txt";
-            const string rsDataDate = "2023-05-03"; // TODO: is it specified somewhere? 
 
             using StreamWriter reportFile = File.CreateText(reportFileName);
             
@@ -221,7 +390,7 @@ namespace Osmalyzer
 
             // Finish report file
 
-            reportFile.WriteLine("OSM data as of " + osmDate + ". RS data as of " + rsDataDate + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine("OSM data as of " + GetOsmDataDate() + ". RS data as of " + GetRsDataDate().ToString("yyyy-MM-dd") + ". Provided as is; mistakes possible.");
 
             reportFile.Close();
 
@@ -499,7 +668,7 @@ namespace Osmalyzer
 
             // Finish report file
                 
-            reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine("Data as of " + GetOsmDataDate() + ". Provided as is; mistakes possible.");
 
             reportFile.Close();
 
@@ -585,7 +754,7 @@ namespace Osmalyzer
             
             // Finish report file
                 
-            reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine("Data as of " + GetOsmDataDate() + ". Provided as is; mistakes possible.");
 
             reportFile.Close();
 
@@ -711,7 +880,7 @@ namespace Osmalyzer
 
             // Finish report file
             
-            reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine("Data as of " + GetOsmDataDate() + ". Provided as is; mistakes possible.");
 
             reportFile.Close();
 
@@ -1080,7 +1249,7 @@ namespace Osmalyzer
 
             // Done
 
-            reportFile.WriteLine("Data as of " + osmDate + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine("Data as of " + GetOsmDataDate() + ". Provided as is; mistakes possible.");
 
             reportFile.Close();
 
@@ -1150,6 +1319,18 @@ namespace Osmalyzer
                 return true;
 
             return false;
+        }
+
+        private static DateTime GetOsmDataDate()
+        {
+            string dataDateString = File.ReadAllText(osmDataDateFileName);
+            return new DateTime(long.Parse(dataDateString));
+        }
+
+        private static DateTime GetRsDataDate()
+        {
+            string dataDateString = File.ReadAllText(rsDataDateFileName);
+            return new DateTime(long.Parse(dataDateString));
         }
     }
 }

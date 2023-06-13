@@ -208,7 +208,12 @@ namespace Osmalyzer
 
             reportFile.Close();
 
-            Process.Start(reportFileName);
+            // Launch the text file in default reader (Notepad or smt)
+            Process.Start(new ProcessStartInfo(reportFileName)
+            {
+                Verb = "open",
+                UseShellExecute = true
+            });
             
                         
             void WriteListToReport(List<string> list, string header)
@@ -479,7 +484,12 @@ namespace Osmalyzer
 
             reportFile.Close();
 
-            Process.Start(reportFileName);
+            // Launch the text file in default reader (Notepad or smt)
+            Process.Start(new ProcessStartInfo(reportFileName)
+            {
+                Verb = "open",
+                UseShellExecute = true
+            });
             
             // TODO: trolley_wire=no, but no route - pointless? not that it hurts anything
         }
@@ -558,7 +568,12 @@ namespace Osmalyzer
 
             reportFile.Close();
 
-            Process.Start(reportFileName);
+            // Launch the text file in default reader (Notepad or smt)
+            Process.Start(new ProcessStartInfo(reportFileName)
+            {
+                Verb = "open",
+                UseShellExecute = true
+            });
         }
 
         private static void ParseCommonNames()
@@ -677,7 +692,12 @@ namespace Osmalyzer
 
             reportFile.Close();
 
-            Process.Start(reportFileName);
+            // Launch the text file in default reader (Notepad or smt)
+            Process.Start(new ProcessStartInfo(reportFileName)
+            {
+                Verb = "open",
+                UseShellExecute = true
+            });
         }
 
         private static void ParseLVCRoads()
@@ -1039,7 +1059,12 @@ namespace Osmalyzer
 
             reportFile.Close();
 
-            Process.Start(reportFileName);
+            // Launch the text file in default reader (Notepad or smt)
+            Process.Start(new ProcessStartInfo(reportFileName)
+            {
+                Verb = "open",
+                UseShellExecute = true
+            });
         }
 
 

@@ -14,6 +14,8 @@ jobs:
       with:
         url: https://saraksti.rigassatiksme.lv/riga/gtfs.zip
         destination: RS/
+    - run: wget https://download.geofabrik.de/europe/latvia-latest.osm.pbf
+    - run: wget -O noteikumi.txt https://likumi.lv/ta/id/198589
     - uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x

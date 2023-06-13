@@ -13,12 +13,10 @@ jobs:
     - uses: schmiddim/action-wget-unzip@v2
       with:
         url: https://saraksti.rigassatiksme.lv/riga/gtfs.zip
-        destination: Osmalyzer/RS/
+        destination: RS/
     - uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - run: dotnet restore
     - run: dotnet build --configuration Release --no-restore
-    - run: ls -lR
-    - run: pwd
     - run: dotnet run --project Osmalyzer

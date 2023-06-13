@@ -11,10 +11,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache@v3
       with:
         path: cache/
-        key: osmalyzer-cache
+        key: osmalyzer-cache-${{ github.run_id }}
+        # restore nearest cache - i.e. previous cache
+        restore-keys: |
+          osmalyzer-cache
     
     - uses: actions/setup-dotnet@v3
       with:
@@ -23,12 +26,6 @@ jobs:
     - run: dotnet build --configuration Release --no-restore -p:ExtraDefineConstants=REMOTE_EXECUTION
     - run: dotnet run --project Osmalyzer
     
-    - uses: actions/cache/save@v3
-      if: always()
-      with:
-        path: cache/
-        key: osmalyzer-cache
-      
     - run: |-
         mkdir _site &&
         cp "Rigas Satiksme report.txt" _site

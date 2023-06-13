@@ -58,20 +58,6 @@ namespace Osmalyzer
             // We expect both the data file and date metadata file for all "data sets" to exist after this - otherwise, all parsing will fail anyway 
 
             PrepareRSData();
-
-            
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            // TODO: TEMP
-            
-            if (File.Exists("cache/random.txt"))
-                Console.WriteLine("Last random: " + File.ReadAllText("cache/random.txt"));
-            else
-                Console.WriteLine("No last random");
-            int r = new Random().Next();
-            Console.WriteLine("Wrote random with " + r);
-            File.WriteAllText("cache/random.txt", r.ToString());
         }
 
         private static void RetrieveOsmData()

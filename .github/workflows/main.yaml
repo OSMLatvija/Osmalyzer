@@ -20,7 +20,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - run: dotnet restore
-    - run: dotnet build --configuration Release --no-restore /p:DefineConstants=REMOTE_EXECUTION
+    - run: dotnet build --configuration Release --no-restore -p:ExtraDefineConstants=REMOTE_EXECUTION
     - run: dotnet run --project Osmalyzer
     - run: |-
         mkdir _site &&

@@ -7,7 +7,7 @@ namespace Osmalyzer
     /// RS Data https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam
     /// Spec https://developers.google.com/transit/gtfs/reference/
     /// </summary>
-    public class RigasSatiksmeData
+    public class RigasSatiksmeNetwork
     {
         public RigasSatiksmeStops Stops { get; }
         
@@ -20,7 +20,7 @@ namespace Osmalyzer
         public RigasSatiksmePoints Points { get; }
 
 
-        public RigasSatiksmeData(string dataFolder)
+        public RigasSatiksmeNetwork(string dataFolder)
         {
             Stops = new RigasSatiksmeStops(Path.Combine(dataFolder, "stops.txt"));
             

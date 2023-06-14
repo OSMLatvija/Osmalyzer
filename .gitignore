@@ -3,3 +3,6 @@ obj/
 packages/
 .idea/
 /*.user
+cache/
+output/
+RS/

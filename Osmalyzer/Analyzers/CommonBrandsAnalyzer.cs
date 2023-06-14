@@ -44,7 +44,11 @@ namespace Osmalyzer
             string nsiTagsFileName = @"NSI tags.tsv"; // from https://nsi.guide/?t=brands
 
             if (!File.Exists(nsiTagsFileName))
+#if REMOTE_EXECUTION
+                nsiTagsFileName = @"data/" + nsiTagsFileName;
+#else
                 nsiTagsFileName = @"../../../../data/" + nsiTagsFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
+#endif
             
             string[] nsiRawTags = File.ReadAllLines(nsiTagsFileName);
 

@@ -26,7 +26,7 @@ namespace Osmalyzer
             
             // Start report file
             
-            const string reportFileName = @"Rigas Satiksme report.txt";
+            const string reportFileName = @"output/Rigas Satiksme report.txt";
 
             using StreamWriter reportFile = File.CreateText(reportFileName);
             
@@ -196,16 +196,7 @@ namespace Osmalyzer
 
             reportFile.WriteLine("OSM data as of " + osmData.DataDate + ". RS data as of " + rsData.DataDate!.Value.ToString("yyyy-MM-dd") + ". Provided as is; mistakes possible.");
 
-            reportFile.Close();
-
-#if !REMOTE_EXECUTION
-            // Launch the text file in default reader (Notepad or smt)
-            Process.Start(new ProcessStartInfo(reportFileName)
-            {
-                Verb = "open",
-                UseShellExecute = true
-            });
-#endif            
+            reportFile.Close();         
             
                         
             void WriteListToReport(List<string> list, string header)

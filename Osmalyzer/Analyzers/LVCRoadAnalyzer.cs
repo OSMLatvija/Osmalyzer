@@ -17,7 +17,7 @@ namespace Osmalyzer
 
         public override void Run(IEnumerable<AnalysisData> datas)
         {
-            const string reportFileName = @"LVC road report.txt";
+            const string reportFileName = @"output/LVC road report.txt";
 
             using StreamWriter reportFile = File.CreateText(reportFileName);
 
@@ -375,16 +375,7 @@ namespace Osmalyzer
             // todo: put this in report
             // todo: read this from the source
             
-            reportFile.Close();
-
-#if !REMOTE_EXECUTION
-            // Launch the text file in default reader (Notepad or smt)
-            Process.Start(new ProcessStartInfo(reportFileName)
-            {
-                Verb = "open",
-                UseShellExecute = true
-            });
-#endif    
+            reportFile.Close(); 
         }
         
         

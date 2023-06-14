@@ -18,7 +18,7 @@ namespace Osmalyzer
         {
             // Start report file
             
-            const string reportFileName = @"Trolley wire problem report.txt";
+            const string reportFileName = @"output/Trolley wire problem report.txt";
             
             using StreamWriter reportFile = File.CreateText(reportFileName);
 
@@ -117,16 +117,7 @@ namespace Osmalyzer
                 
             reportFile.WriteLine("Data as of " + osmData.DataDate + ". Provided as is; mistakes possible.");
 
-            reportFile.Close();
-
-#if !REMOTE_EXECUTION
-            // Launch the text file in default reader (Notepad or smt)
-            Process.Start(new ProcessStartInfo(reportFileName)
-            {
-                Verb = "open",
-                UseShellExecute = true
-            });
-#endif    
+            reportFile.Close(); 
             
             // TODO: trolley_wire=no, but no route - pointless? not that it hurts anything
         }

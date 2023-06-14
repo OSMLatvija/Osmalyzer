@@ -28,7 +28,7 @@ jobs:
     
     - run: |-
         mkdir _site &&
-        cp "Rigas Satiksme report.txt" _site
+        cp -r output/* _site
     - uses: actions/upload-pages-artifact@main
   deploy:
     needs: build

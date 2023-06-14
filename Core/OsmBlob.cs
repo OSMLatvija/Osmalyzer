@@ -17,7 +17,7 @@ namespace Osmalyzer
 
         private readonly List<OsmElement> _elements;
 
-        public readonly Dictionary<long, OsmElement> _elementsById = new Dictionary<long, OsmElement>();
+        // TODO: per type -- public readonly Dictionary<long, OsmElement> _elementsById = new Dictionary<long, OsmElement>();
         
 
         public OsmBlob(string dataFileName, params OsmFilter[] filters)
@@ -34,7 +34,7 @@ namespace Osmalyzer
                 {
                     OsmElement osmElement = OsmElement.Create(element);
                     _elements.Add(osmElement);
-                    _elementsById.Add(osmElement.Id, osmElement);
+                    // TODO: per type -- _elementsById.Add(osmElement.Id, osmElement);
                 }
             }
         }
@@ -44,8 +44,8 @@ namespace Osmalyzer
         {
             _elements = elements;
 
-            foreach (OsmElement element in _elements)
-                _elementsById.Add(element.Id, element);
+            // TODO: per type -- foreach (OsmElement element in _elements)
+            // TODO: per type --     _elementsById.Add(element.Id, element);
         }
 
         

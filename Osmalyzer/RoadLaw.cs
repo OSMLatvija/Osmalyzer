@@ -101,10 +101,8 @@ namespace Osmalyzer
 
             SharedSegments = sharedSegments;
 
-            foreach (KeyValuePair<string,List<string>> segment in sharedSegments)
-            {
-                Console.WriteLine(segment.Key + " shared with " + string.Join(", ", segment.Value));
-            }
+            // foreach (KeyValuePair<string,List<string>> segment in sharedSegments)
+            //     Console.WriteLine(segment.Key + " shared with " + string.Join(", ", segment.Value));
 
             // Since old laws no longer change, we can just hard-code all the road numbers that were removed across the years and revisions
             // And, yes, it's only "V" roads that have changed

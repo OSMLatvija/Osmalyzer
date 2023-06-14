@@ -18,6 +18,8 @@ namespace Osmalyzer
         private const string rsDataFileName = @"cache/rigas-satiksme.zip";
         private const string rsDataDateFileName = @"cache/rigas-satiksme.zip-date.txt";
         
+        private const string roadLawDataFileName = @"cache/road-law.html";
+        
         
         public static void Main(string[] args)
         {
@@ -30,7 +32,7 @@ namespace Osmalyzer
         {
             Console.WriteLine("Parsing...");
 
-            //ParseLVCRoads();
+            ParseLVCRoads();
 
             //ParseCommonNames();
 
@@ -38,7 +40,7 @@ namespace Osmalyzer
 
             //ParseTrolleyWires();
 
-            ParseRigasSatiksme();
+            //ParseRigasSatiksme();
             
             Console.WriteLine("Done.");
         }
@@ -54,6 +56,8 @@ namespace Osmalyzer
             RetrieveOsmData();
             
             RetrieveRSData();
+            
+            RetrieveRoadLawData();
 
             // We expect both the data file and date metadata file for all "data sets" to exist after this - otherwise, all parsing will fail anyway 
 
@@ -213,6 +217,20 @@ namespace Osmalyzer
             Console.WriteLine("Extracting RS data...");
 
             ZipHelper.ExtractZipFile(rsDataFileName, "RS/");
+        }
+
+        
+
+        private static void RetrieveRoadLawData()
+        {
+            // Download latest (if anything is wrong)
+         
+            Console.WriteLine("Downloading Road Law data...");
+
+            using HttpClient client = new HttpClient();
+            using Task<Stream> stream = client.GetStreamAsync("https://likumi.lv/ta/id/198589-noteikumi-par-valsts-autocelu-un-valsts-autocelu-maroadLawruta-ietverto-pasvaldibam-piederoso-autocelu-posmu-sarakstiem");
+            using FileStream fileStream = new FileStream(roadLawDataFileName, FileMode.Create);
+            stream.Result.CopyTo(fileStream);
         }
 
         private static void ParseRigasSatiksme()
@@ -570,6 +588,8 @@ namespace Osmalyzer
 
         private static void ParseTrolleyWires()
         {
+            Console.WriteLine("Parsing trolley wires...");
+
             // Start report file
             
             const string reportFileName = @"Trolley wire problem report.txt";
@@ -685,6 +705,8 @@ namespace Osmalyzer
 
         private static void ParseHighwaySpeedConditionals()
         {
+            Console.WriteLine("Parsing highway speed conditional...");
+
             // Load OSM data
 
             OsmBlob speedLimitedRoads = new OsmBlob(
@@ -769,6 +791,9 @@ namespace Osmalyzer
 
         private static void ParseCommonNames()
         {
+            Console.WriteLine("Parsing common brands...");
+
+            
             const int titleCountThreshold = 10;
 
             List<string> titleTags = new List<string>() { "brand", "name", "operator" };
@@ -895,18 +920,15 @@ namespace Osmalyzer
 
         private static void ParseLVCRoads()
         {
+            Console.WriteLine("Parsing LVC roads...");
+
             const string reportFileName = @"LVC road report.txt";
 
             using StreamWriter reportFile = File.CreateText(reportFileName);
 
             // Load law road data
 
-            const string roadLawTextFileName = @"noteikumi.txt";
-            // Pielikums MK 25.10.2022. noteikumu Nr. 671 redakcijā
-            // todo: put this in report
-            // todo: read this from the source
-
-            RoadLaw roadLaw = new RoadLaw(roadLawTextFileName);
+            RoadLaw roadLaw = new RoadLaw(roadLawDataFileName);
 
             // Load OSM data
 
@@ -1250,6 +1272,10 @@ namespace Osmalyzer
 
             reportFile.WriteLine("Data as of " + GetOsmDataDate() + ". Provided as is; mistakes possible.");
 
+            // Pielikums MK 25.10.2022. noteikumu Nr. 671 redakcijā
+            // todo: put this in report
+            // todo: read this from the source
+            
             reportFile.Close();
 
 #if !REMOTE_EXECUTION

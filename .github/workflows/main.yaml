@@ -22,7 +22,13 @@ jobs:
     - uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
-    - run: dotnet run --project Osmalyzer --configuration Release --property:ExtraDefineConstants=REMOTE_EXECUTION
+    
+    # One-step - run: dotnet run --project Osmalyzer --configuration Release --property:ExtraDefineConstants=REMOTE_EXECUTION
+    
+    # Multiple steps
+    - run: dotnet restore
+    - run: dotnet build --configuration Release --no-restore --property:ExtraDefineConstants=REMOTE_EXECUTION
+    - run: dotnet run --project Osmalyzer --configuration Release --no-build
     
     - run: |-
         mkdir _site &&

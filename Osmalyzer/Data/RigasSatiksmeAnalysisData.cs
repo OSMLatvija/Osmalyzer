@@ -14,6 +14,8 @@ namespace Osmalyzer
         public override string DataFileName => @"cache/rigas-satiksme.zip";
 
         public override string DataDateFileName => @"cache/rigas-satiksme.zip-date.txt";
+
+        public override bool? DataDateHasDayGranularity => false; // only day given on data page (file itself is month only)
         
 
         public override void Retrieve()

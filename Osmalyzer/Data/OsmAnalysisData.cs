@@ -14,6 +14,8 @@ namespace Osmalyzer
 
         public override string DataDateFileName => @"cache/latvia-latest.osm.pbf-date.txt";
 
+        public override bool? DataDateHasDayGranularity => true;
+        
 
         public override void Retrieve()
         {

@@ -13,6 +13,8 @@ namespace Osmalyzer
 
         public DateTime? DataDate => DataDateFileName != null ? _dataDate ??= GetDataDateFromMetadataFile() : null;
 
+        public abstract bool? DataDateHasDayGranularity { get; }
+
 
         private DateTime? _dataDate;
 

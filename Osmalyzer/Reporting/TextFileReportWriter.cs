@@ -20,7 +20,7 @@ namespace Osmalyzer
                 reportFile.WriteLine(line);
             
             reportFile.WriteLine();
-            reportFile.WriteLine("Data as of " + report.AnalyzedDataDates + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine((report.AnalyzedDataDates != null ? "Data as of " + report.AnalyzedDataDates + ". " : "") + "Provided as is; mistakes possible.");
             
             reportFile.Close();
         }

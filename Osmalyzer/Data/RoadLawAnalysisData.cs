@@ -13,6 +13,8 @@ namespace Osmalyzer
 
         public override string? DataDateFileName => null;
 
+        public override bool? DataDateHasDayGranularity => null;
+
 
         public override void Retrieve()
         {

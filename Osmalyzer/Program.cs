@@ -10,7 +10,7 @@ namespace Osmalyzer
     {
         public static void Main(string[] args)
         {
-#if !REMOTE_EXECUTION
+#if REMOTE_EXECUTION
             string executionPoint = "Remote";
 #else
             string executionPoint = "Local";

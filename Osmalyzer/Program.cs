@@ -72,7 +72,8 @@ namespace Osmalyzer
 
             Console.WriteLine("Parsing...");
 
-            Reporter reporter = new TextFileReporter();
+            //Reporter reporter = new TextFileReporter();
+            Reporter reporter = new HtmlFileReporter();
             
             for (int i = 0; i < analyzers.Count; i++)
             {

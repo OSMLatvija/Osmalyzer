@@ -10,6 +10,8 @@ namespace Osmalyzer
     {
         public override string Name => "Common Brands";
 
+        public override string? Description => null;
+
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
         

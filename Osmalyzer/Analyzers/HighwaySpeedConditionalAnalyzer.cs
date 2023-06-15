@@ -11,6 +11,8 @@ namespace Osmalyzer
     {
         public override string Name => "Highway Speed Conditional";
 
+        public override string? Description => null;
+
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 

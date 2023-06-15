@@ -11,6 +11,8 @@ namespace Osmalyzer
     {
         public override string Name => "LVC Roads";
 
+        public override string? Description => null;
+
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
         

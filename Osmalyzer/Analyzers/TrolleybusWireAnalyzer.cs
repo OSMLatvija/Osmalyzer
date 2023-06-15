@@ -10,6 +10,8 @@ namespace Osmalyzer
     {
         public override string Name => "Trolleybus Wires";
 
+        public override string? Description => null;
+
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 

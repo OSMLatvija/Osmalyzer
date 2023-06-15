@@ -6,13 +6,13 @@ namespace Osmalyzer
     {
         public override void Save()
         {
-            ReportWriter reportWriter = new TextFileReportWriter();
-            
             if (Directory.Exists(ReportWriter.outputFolder))
                 Directory.Delete(ReportWriter.outputFolder, true);  
                 
             Directory.CreateDirectory(ReportWriter.outputFolder);
-            
+
+            ReportWriter reportWriter = new TextFileReportWriter();
+
             foreach (Report report in reports)
                 reportWriter.Save(report);
         }

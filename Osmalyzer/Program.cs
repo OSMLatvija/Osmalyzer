@@ -72,6 +72,8 @@ namespace Osmalyzer
 
             Console.WriteLine("Parsing...");
 
+            Reporter reporter = new TextFileReporter();
+            
             for (int i = 0; i < analyzers.Count; i++)
             {
                 Console.WriteLine("Parsing " + analyzers[i].Name + " analyzer [" + (i + 1) + "/" + analyzers.Count + "]...");
@@ -81,14 +83,17 @@ namespace Osmalyzer
                 foreach (Type dataType in perAnalayzerRequestedDataTypes[i])
                     datas.Add(requestedDatas.First(rd => rd.GetType() == dataType));
 
-                Report report = new Report();
+                Report report = new Report(analyzers[i], datas);
                 
                 analyzers[i].Run(datas, report);
 
-                ReportWriter reportWriter = new TextFileReportWriter();
-
-                reportWriter.Save(report, analyzers[i].Name, datas);
+                reporter.AddReport(report);
             }
+
+            
+            Console.WriteLine("Writing reports...");
+            
+            reporter.Save();
 
             
             Console.WriteLine("Done.");

@@ -7,27 +7,20 @@ namespace Osmalyzer
 {
     public class TextFileReportWriter : ReportWriter
     {
-        private const string outputFolder = @"output";
-
-        
-        public override void Save(Report report, string name, List<AnalysisData> datas)
+        public override void Save(Report report)
         {
-            if (!Directory.Exists(outputFolder))
-                Directory.CreateDirectory(outputFolder);
-            
-            string reportFileName = outputFolder + "/" + name + @" report.txt";
+            string reportFileName = outputFolder + "/" + report.AnalyzerName + @" report.txt";
             
             using StreamWriter reportFile = File.CreateText(reportFileName);
 
-            reportFile.WriteLine("Report for " + name);
+            reportFile.WriteLine("Report for " + report.AnalyzerName);
             reportFile.WriteLine();
 
-            foreach (string line in report.lines)
+            foreach (string line in report.Lines)
                 reportFile.WriteLine(line);
             
             reportFile.WriteLine();
-            string dataDates = string.Join(", ", datas.Where(d => d.DataDate != null).Select(d => d.DataDate!.Value.ToString(CultureInfo.InvariantCulture)));
-            reportFile.WriteLine("Data as of " + dataDates + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine("Data as of " + report.AnalyzedDataDates + ". Provided as is; mistakes possible.");
             
             reportFile.Close();
         }

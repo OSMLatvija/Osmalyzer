@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Osmalyzer
 {
@@ -9,11 +10,13 @@ namespace Osmalyzer
     {
         public static void Main(string[] args)
         {
-#if REMOTE_EXECUTION
-            Console.WriteLine("Remote execution");
+#if !REMOTE_EXECUTION
+            string executionPoint = "Remote";
 #else
-            Console.WriteLine("Local execution");
+            string executionPoint = "Local";
 #endif
+            Console.WriteLine(executionPoint + " execution (running from \"" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\", current path at \"" + Directory.GetCurrentDirectory() + "\")");
+            
             
             List<Analyzer> analyzers = new List<Analyzer>()
             {

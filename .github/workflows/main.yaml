@@ -30,10 +30,9 @@ jobs:
     - run: dotnet build --configuration Release --no-restore --property:ExtraDefineConstants=REMOTE_EXECUTION
     - run: dotnet run --project Osmalyzer --configuration Release --no-build
     
-    - run: |-
-        mkdir _site &&
-        cp -r output/* _site
     - uses: actions/upload-pages-artifact@main
+      with:
+        path: output/
   deploy:
     needs: build
     permissions:

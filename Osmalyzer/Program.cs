@@ -9,6 +9,12 @@ namespace Osmalyzer
     {
         public static void Main(string[] args)
         {
+#if REMOTE_EXECUTION
+            Console.WriteLine("Remote execution");
+#else
+            Console.WriteLine("Local execution");
+#endif
+            
             List<Analyzer> analyzers = new List<Analyzer>()
             {
                 new RigasSatiksmeAnalyzer(),

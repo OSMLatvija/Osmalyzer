@@ -14,7 +14,7 @@ namespace Osmalyzer
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
         
 
-        public override void Run(IEnumerable<AnalysisData> datas)
+        public override void Run(IEnumerable<AnalysisData> datas, Report report)
         {
             const int titleCountThreshold = 10;
 
@@ -23,13 +23,9 @@ namespace Osmalyzer
 
             // Start report file
 
-            const string reportFileName = @"output/Common name report.txt";
+            report.WriteLine("These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI):");
             
-            using StreamWriter reportFile = File.CreateText(reportFileName);
-
-            reportFile.WriteLine("These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI):");
-            
-            reportFile.WriteLine("title(s)" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value(s)");
+            report.WriteLine("title(s)" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value(s)");
 
             // Load OSM data
 
@@ -119,18 +115,12 @@ namespace Osmalyzer
             reportEntries.Sort((e1, e2) => e2.count.CompareTo(e1.count));
 
             foreach ((int _, string line) in reportEntries)
-                reportFile.WriteLine(line);
+                report.WriteLine(line);
 
-            reportFile.WriteLine(
+            report.WriteLine(
                 "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "\"" + t + "\"")) + ". " +
                 "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored. " +
                 "Title counts will repeat if the same element is tagged with multiple NSI POI types.");
-
-            // Finish report file
-            
-            reportFile.WriteLine("Data as of " + osmData.DataDate + ". Provided as is; mistakes possible.");
-
-            reportFile.Close(); 
         }
     }
 }

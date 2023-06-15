@@ -14,14 +14,8 @@ namespace Osmalyzer
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 
         
-        public override void Run(IEnumerable<AnalysisData> datas)
+        public override void Run(IEnumerable<AnalysisData> datas, Report report)
         {
-            // Start report file
-            
-            const string reportFileName = @"output/Trolley wire problem report.txt";
-            
-            using StreamWriter reportFile = File.CreateText(reportFileName);
-
             // Load OSM data
 
             OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
@@ -70,14 +64,14 @@ namespace Osmalyzer
                         if (trolley_wire != null && (trolley_wire_forward != null || trolley_wire_backward != null))
                         {
                             CheckFirstMentionOfRouteIssue();
-                            reportFile.WriteLine("Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            report.WriteLine("Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id);
                         }
                         else if (trolley_wire != null)
                         {
                             if (trolley_wire != "yes" && trolley_wire != "no")
                             {
                                 CheckFirstMentionOfRouteIssue();
-                                reportFile.WriteLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                                report.WriteLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
                             }
                         }
                         else if (trolley_wire_forward != null || trolley_wire_backward != null)
@@ -85,19 +79,19 @@ namespace Osmalyzer
                             if (trolley_wire_forward != null && trolley_wire_forward != "yes" && trolley_wire_forward != "no")
                             {
                                 CheckFirstMentionOfRouteIssue();
-                                reportFile.WriteLine("`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                                report.WriteLine("`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
                             }
 
                             if (trolley_wire_backward != null && trolley_wire_backward != "yes" && trolley_wire_backward != "no")
                             {
                                 CheckFirstMentionOfRouteIssue();
-                                reportFile.WriteLine("`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                                report.WriteLine("`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
                             }
                         }
                         else
                         {
                             CheckFirstMentionOfRouteIssue();
-                            reportFile.WriteLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            report.WriteLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id);
                         }
 
 
@@ -106,18 +100,12 @@ namespace Osmalyzer
                             if (!foundIssue)
                             {
                                 foundIssue = true;
-                                reportFile.WriteLine("Route " + route.Id + " \"" + routeName + "\"");
+                                report.WriteLine("Route " + route.Id + " \"" + routeName + "\"");
                             }
                         }
                     }
                 }
             }
-
-            // Finish report file
-                
-            reportFile.WriteLine("Data as of " + osmData.DataDate + ". Provided as is; mistakes possible.");
-
-            reportFile.Close(); 
             
             // TODO: trolley_wire=no, but no route - pointless? not that it hurts anything
         }

@@ -10,6 +10,6 @@ namespace Osmalyzer
 
         public abstract List<Type> GetRequiredDataTypes();
 
-        public abstract void Run(IEnumerable<AnalysisData> datas);
+        public abstract void Run(IEnumerable<AnalysisData> datas, Report report);
     }
 }

@@ -16,19 +16,13 @@ namespace Osmalyzer
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RigasSatiksmeAnalysisData) };
         
 
-        public override void Run(IEnumerable<AnalysisData> datas)
+        public override void Run(IEnumerable<AnalysisData> datas, Report report)
         {
             // Load RS stop data
 
             RigasSatiksmeAnalysisData rsData = datas.OfType<RigasSatiksmeAnalysisData>().First();
 
             RigasSatiksmeNetwork rsNetwork = new RigasSatiksmeNetwork("RS");
-            
-            // Start report file
-            
-            const string reportFileName = @"output/Rigas Satiksme report.txt";
-
-            using StreamWriter reportFile = File.CreateText(reportFileName);
             
             // Load OSM data
 
@@ -160,7 +154,7 @@ namespace Osmalyzer
             {
                 List<OsmElement> matchingOsmRoutes = osmRoutes.Elements.Where(e => MatchesRoute((OsmRelation)e, rsRoute)).ToList();
 
-                //reportFile.WriteLine(rsRoute.Name + " - x" + matchingOsmRoutes.Count + ": " + string.Join(", ", matchingOsmRoutes.Select(s => s.Id)));
+                //report.WriteLine(rsRoute.Name + " - x" + matchingOsmRoutes.Count + ": " + string.Join(", ", matchingOsmRoutes.Select(s => s.Id)));
 
                 if (matchingOsmRoutes.Count == 0)
                 {
@@ -190,23 +184,16 @@ namespace Osmalyzer
                 }
             }
 
-            WriteListToReport(noRouteMatch, "These RS routes were not matched to any OSM route:");
-
-            // Finish report file
-
-            reportFile.WriteLine("OSM data as of " + osmData.DataDate + ". RS data as of " + rsData.DataDate!.Value.ToString("yyyy-MM-dd") + ". Provided as is; mistakes possible.");
-
-            reportFile.Close();         
+            WriteListToReport(noRouteMatch, "These RS routes were not matched to any OSM route:");      
             
                         
             void WriteListToReport(List<string> list, string header)
             {
                 if (list.Count > 0)
                 {
-                    reportFile.WriteLine(header);
+                    report.WriteLine(header);
                     foreach (string line in list)
-                        reportFile.WriteLine("* " + line);
-                    reportFile.WriteLine();
+                        report.WriteLine("* " + line);
                 }
             }
         }

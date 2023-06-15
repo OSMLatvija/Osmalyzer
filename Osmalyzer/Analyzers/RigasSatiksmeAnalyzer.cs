@@ -176,7 +176,7 @@ namespace Osmalyzer
                         }
                     }
 
-                    noRouteMatch.Add(rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop" + ")"))) + ".");
+                    noRouteMatch.Add(rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop") + ")")) + ".");
                 }
                 else
                 {

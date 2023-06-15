@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace Osmalyzer
@@ -19,11 +20,23 @@ namespace Osmalyzer
             reportFile.WriteLine("Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "<br><br>");
 
             foreach (string line in report.Lines)
-                reportFile.WriteLine(line + "<br>");
+                reportFile.WriteLine(PolishLine(line) + "<br>");
             
             reportFile.WriteLine("<br>Data as of " + HttpUtility.HtmlEncode(report.AnalyzedDataDates) + ". Provided as is; mistakes possible.");
             
             reportFile.Close();
+        }
+
+        
+        private string PolishLine(string line)
+        {
+            line = Regex.Replace(line, @"(https://www.openstreetmap.org/node/(\d+))", @"<a href=""$1"">Node #$2</a>");
+            line = Regex.Replace(line, @"(https://www.openstreetmap.org/way/(\d+))", @"<a href=""$1"">Way #$2</a>");
+            line = Regex.Replace(line, @"(https://www.openstreetmap.org/relation/(\d+))", @"<a href=""$1"">Relation #$2</a>");
+            line = Regex.Replace(line, @"(https://www.openstreetmap.org/changeset/(\d+))", @"<a href=""$1"">Changeset #$2</a>");
+            line = Regex.Replace(line, @"(https://www.openstreetmap.org/#map=\d{1,2}/(-?\d{1,2}\.\d+)/(-?\d{1,2}\.\d+))", @"<a href=""$1"">Location $2, $3</a>");
+
+            return line;
         }
     }
 }

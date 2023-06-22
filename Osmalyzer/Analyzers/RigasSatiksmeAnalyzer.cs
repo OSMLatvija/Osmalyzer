@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -19,7 +18,7 @@ namespace Osmalyzer
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RigasSatiksmeAnalysisData) };
         
 
-        public override void Run(IEnumerable<AnalysisData> datas, Report report)
+        public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
         {
             // Load RS stop data
 
@@ -29,10 +28,11 @@ namespace Osmalyzer
             
             // Load OSM data
 
-            OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+            OsmAnalysisData osmRawData = datas.OfType<OsmAnalysisData>().First();
 
-            List<OsmBlob> blobs = OsmBlob.CreateMultiple(
-                osmData.DataFileName,
+            OsmMasterData osmMasterData = new OsmMasterData(osmRawData.DataFileName);
+
+            List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
                 new List<OsmFilter[]>()
                 {
                     new OsmFilter[]
@@ -56,8 +56,8 @@ namespace Osmalyzer
                 }
             );
             
-            OsmBlob osmStops = blobs[0];
-            OsmBlob osmRoutes = blobs[1];
+            OsmDataExtract osmStops = osmDataExtracts[0];
+            OsmDataExtract osmRoutes = osmDataExtracts[1];
             
             // Params
 
@@ -193,7 +193,7 @@ namespace Osmalyzer
 
                     foreach (OsmRelation osmRoute in matchingOsmRoutes)
                     {
-                        List<OsmElement> routeStops = osmRoute.Members.Select(m => osmStops.Elements.FirstOrDefault(e => e.Id == m.Id)).Where(e => e != null).ToList()!;
+                        List<OsmElement> routeStops = osmRoute.Elements.ToList();
 
                         (RigasSatiksmeTrip trip, float match) = FindBestTripMatch(rsRoute, routeStops);
 
@@ -290,7 +290,7 @@ namespace Osmalyzer
                     // TODO: match services to routes - this may be nigh impossible unless I can distinguish expected regular and optional non-regular trips/services - it's a mess - OSM only has regular for most
                     
                     
-                    (RigasSatiksmeTrip service, float bestMatch) FindBestTripMatch(RigasSatiksmeRoute rsRoute, List<OsmElement> osmStops)
+                    (RigasSatiksmeTrip service, float bestMatch) FindBestTripMatch(RigasSatiksmeRoute route, List<OsmElement> stops)
                     {
                         // I have to do fuzyz matching, because I don't actually know which service and which trip OSM is representing
                         // That is, I don't know which RS trip is the regular normal trip and which are random depo and alternate trips
@@ -300,7 +300,7 @@ namespace Osmalyzer
                         RigasSatiksmeTrip? bestTrip = null;
                         float bestMatch = 0f;
                         
-                        foreach (RigasSatiksmeService rsService in rsRoute.Services)
+                        foreach (RigasSatiksmeService rsService in route.Services)
                         {
                             foreach (RigasSatiksmeTrip rsTrip in rsService.Trips)
                             {
@@ -310,12 +310,12 @@ namespace Osmalyzer
                                 {
                                     if (fullyMatchedStops.TryGetValue(rsStop, out OsmNode? expectedOsmStop))
                                     {
-                                        if (osmStops.Contains(expectedOsmStop))
+                                        if (stops.Contains(expectedOsmStop))
                                             matchedStops++;
                                     }
                                 }
 
-                                float match = Math.Max(0f, (float)matchedStops / Math.Max(rsTrip.Points.Count(), osmStops.Count));
+                                float match = Math.Max(0f, (float)matchedStops / Math.Max(rsTrip.Points.Count(), stops.Count));
 
                                 if (bestTrip == null ||
                                     match > bestMatch)

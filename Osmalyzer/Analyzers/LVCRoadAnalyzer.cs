@@ -17,7 +17,7 @@ namespace Osmalyzer
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(OsmPolyAnalysisData), typeof(RoadLawAnalysisData) };
 
 
-        public override void Run(IEnumerable<AnalysisData> datas, Report report)
+        public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
         {
             // Load law road data
 
@@ -27,12 +27,13 @@ namespace Osmalyzer
 
             // Load OSM data
 
-            OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+            OsmAnalysisData osmRawData = datas.OfType<OsmAnalysisData>().First();
+
+            OsmMasterData osmMasterData = new OsmMasterData(osmRawData.DataFileName);
 
             OsmPolyAnalysisData osmPoly = datas.OfType<OsmPolyAnalysisData>().First();
 
-            List<OsmBlob> blobs = OsmBlob.CreateMultiple(
-                osmData.DataFileName,
+            List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
                 new List<OsmFilter[]>()
                 {
                     new OsmFilter[]
@@ -65,9 +66,9 @@ namespace Osmalyzer
             
             // TODO: geofilter to be in Latvia boundary somehow
 
-            OsmBlob reffedRoads = blobs[0];
-            OsmBlob recognizedReffedRoads = blobs[1];
-            OsmBlob routeRelations = blobs[2];
+            OsmDataExtract reffedRoads = osmDataExtracts[0];
+            OsmDataExtract recognizedReffedRoads = osmDataExtracts[1];
+            OsmDataExtract routeRelations = osmDataExtracts[2];
             
             OsmGroups roadsByRef = recognizedReffedRoads.GroupByValues("ref", true);
 
@@ -368,7 +369,7 @@ namespace Osmalyzer
 
             // Uncrecognized ref
 
-            OsmBlob unrecognizedReffedRoads = reffedRoads.Filter(
+            OsmDataExtract unrecognizedReffedRoads = reffedRoads.Filter(
                 new SplitValuesCheck("ref", s => !IsValidRef(s))
             );
 

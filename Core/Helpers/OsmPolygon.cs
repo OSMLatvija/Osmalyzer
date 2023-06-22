@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using OsmSharp;
 
 namespace Osmalyzer
 {
@@ -37,28 +36,27 @@ namespace Osmalyzer
             }
         }
 
-        public bool ContainsElement(OsmGeo element)
+        public bool ContainsElement(OsmElement element)
         {
             switch (element)
             {
-                case Node node: return ContainsElement(node);
+                case OsmNode node: return ContainsNode(node);
                 
-                case Relation:
-                    throw new NotImplementedException();
-                
-                case Way way: return ContainsElement(way);
+                case OsmRelation: return true;
+                    
+                case OsmWay way: return ContainsWayMidpoint(way);
                 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(element));
             }
         }
 
-        public bool ContainsNode(Node node)
+        public bool ContainsNode(OsmNode node)
         {
-            return ContainsCoord(node.Latitude!.Value, node.Longitude!.Value);
+            return ContainsCoord(node.Lat, node.Lon);
         }
 
-        public bool ContainsMidpoint(Way way, bool midpoint)
+        public bool ContainsWayMidpoint(OsmWay way)
         {
             // TODO: I have no refs
             // TODO: I have no refs

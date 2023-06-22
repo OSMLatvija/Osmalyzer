@@ -41,17 +41,17 @@ namespace Osmalyzer
             _rawLines.Add(line);
         }
 
-        public void AddGroup(string name, string description)
+        public void AddGroup(object id, string description)
         {
-            _groups.Add(new ReportGroup(name, description));
+            _groups.Add(new ReportGroup(id, description));
         }
 
-        public void WriteEntry(string groupName, string text)
+        public void WriteEntry(object groupId, string text)
         {
-            if (_groups.All(g => g.Name != groupName)) throw new InvalidOperationException("Group \"" + groupName + "\" has not been created!");
+            if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
             
             
-            ReportGroup group = _groups.First(g => g.Name == groupName);
+            ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
             group.AddEntry(new ReportEntry(text));
         }
@@ -66,7 +66,7 @@ namespace Osmalyzer
 
         public class ReportGroup
         {
-            public string Name { get; }
+            public object ID { get; }
             
             public string Description { get; }
 
@@ -77,9 +77,9 @@ namespace Osmalyzer
             private readonly List<ReportEntry> _entries = new List<ReportEntry>();
 
 
-            public ReportGroup(string name, string description)
+            public ReportGroup(object id, string description)
             {
-                Name = name;
+                ID = id;
                 Description = description;
             }
 

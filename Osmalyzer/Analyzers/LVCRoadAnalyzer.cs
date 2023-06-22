@@ -43,11 +43,13 @@ namespace Osmalyzer
                         new DoesntHaveTag("aeroway"), // some old aeroways are also tagged as highways
                         new DoesntHaveTag("abandoned:aeroway"), // some old aeroways are also tagged as highways
                         new DoesntHaveTag("disused:aeroway"), // some old aeroways are also tagged as highways
-                        new DoesntHaveTag("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
+                        new DoesntHaveTag("railway"), // there's a few "railway=platform" and "railway=rail" with "highway=footway"
+                        new InsidePolygon(osmPoly.DataFileName)
                     },
                     new OsmFilter[]
                     {
-                        new SplitValuesCheck("ref", IsValidRef)
+                        new SplitValuesCheck("ref", IsValidRef),
+                        new InsidePolygon(osmPoly.DataFileName)
                     },
                     new OsmFilter[]
                     {
@@ -55,7 +57,8 @@ namespace Osmalyzer
                         new HasValue("type", "route"),
                         new HasValue("route", "road"),
                         new HasTag("ref"),
-                        new SplitValuesCheck("ref", IsValidRef)
+                        new SplitValuesCheck("ref", IsValidRef),
+                        //new InsidePolygon(osmPoly.DataFileName)
                     }
                 }
             );

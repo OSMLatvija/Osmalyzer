@@ -783,4 +783,21 @@ namespace Osmalyzer
             return true;
         }
     }
+
+    public class InsidePolygon : OsmFilter
+    {
+        private readonly OsmPolygon _polygon;
+
+
+        public InsidePolygon(string polyFileName)
+        {
+            _polygon = new OsmPolygon(polyFileName);
+        }
+
+
+        internal override bool Matches(OsmGeo element)
+        {
+            return _polygon.ContainsElement(element);
+        }
+    }
 }

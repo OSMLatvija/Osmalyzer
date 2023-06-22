@@ -271,7 +271,7 @@ namespace Osmalyzer
 
             List<string> missingRelations = new List<string>();
 
-            List<(string, int)> relationsWithSameRef = new List<(string, int)>();
+            List<List<OsmElement>> relationsWithSameRef = new List<List<OsmElement>>();
 
             foreach (OsmGroup refGroup in roadsByRef.groups)
             {
@@ -285,7 +285,7 @@ namespace Osmalyzer
                 }
                 else if (elements.Count > 1)
                 {
-                    relationsWithSameRef.Add((code, elements.Count));
+                    relationsWithSameRef.Add(elements);
                 }
                 else
                 {
@@ -341,12 +341,18 @@ namespace Osmalyzer
 
             if (relationsWithSameRef.Count > 0)
             {
-                report.AddEntry(
-                    ReportGroup.RelationsWithSameRef, 
-                    "These route relations have the same code: " +
-                    string.Join(", ", relationsWithSameRef.OrderBy(c => c.Item1).Select(c => c.Item1 + " x " + c.Item2)) +
-                    "."
-                );
+                foreach (List<OsmElement> sameRefRoutes in relationsWithSameRef)
+                {
+                    string routeRef = sameRefRoutes.First().GetValue("ref")!;
+
+                    report.AddEntry(
+                        ReportGroup.RelationsWithSameRef,
+                        "These " + sameRefRoutes.Count + " route relations have the same code " + routeRef + ": " +
+                        string.Join("; ", sameRefRoutes.Select(
+                                        r => (r.HasKey("name") ? "\"" + r.GetValue("name") + "\"" : "unnamed") + " https://www.openstreetmap.org/relation/" + r.Id + "")
+                        ) + "."
+                    );
+                }
             }
 
             // Uncrecognized ref

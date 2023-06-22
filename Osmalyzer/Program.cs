@@ -18,6 +18,16 @@ namespace Osmalyzer
             Console.WriteLine(executionPoint + " execution (running from \"" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\", current path at \"" + Directory.GetCurrentDirectory() + "\")");
             
             
+#if REMOTE_EXECUTION
+            // Find all analyzer types and make an instance of each
+            List<Analyzer> analyzers = 
+                    typeof(Analyzer)
+                        .Assembly.GetTypes()
+                        .Where(type => type.IsSubclassOf(typeof(Analyzer)) && !type.IsAbstract)
+                        .Select(Activator.CreateInstance)
+                        .Cast<Analyzer>()
+                        .ToList();
+#else
             List<Analyzer> analyzers = new List<Analyzer>()
             {
                 new RigasSatiksmeAnalyzer(),
@@ -26,6 +36,7 @@ namespace Osmalyzer
                 //new TrolleybusWireAnalyzer(),
                 //new CommonBrandsAnalyzer(),
             };
+#endif
 
             Console.WriteLine("Running with " + analyzers.Count + " analyzers...");
 

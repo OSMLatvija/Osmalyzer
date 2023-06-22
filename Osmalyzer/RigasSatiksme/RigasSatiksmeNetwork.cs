@@ -31,6 +31,35 @@ namespace Osmalyzer
             Trips = new RigasSatiksmeTrips(Path.Combine(dataFolder, "trips.txt"), Routes, Services);
             
             Points = new RigasSatiksmePoints(Path.Combine(dataFolder, "stop_times.txt"), Stops, Trips);
+
+            // Post-process
+
+            foreach (RigasSatiksmeRoute route in Routes.Routes)
+            {
+                foreach (RigasSatiksmeService service in route.Services)
+                {
+                    foreach (RigasSatiksmeTrip trip in service.Trips)
+                    {
+                        foreach (RigasSatiksmeStop stop in trip.Stops)
+                        {
+                            switch (route.Type)
+                            {
+                                case "bus":
+                                    stop.Bus = true;
+                                    break;
+                                
+                                case "trolleybus":
+                                    stop.Trolleybus = true;
+                                    break;
+                                
+                                case "tram":
+                                    stop.Tram = true;
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

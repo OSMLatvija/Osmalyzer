@@ -46,14 +46,14 @@ namespace Osmalyzer
             _groups.Add(new ReportGroup(id, description));
         }
 
-        public void WriteEntry(object groupId, string text)
+        public void WriteEntry(object groupId, string text, object? context = null)
         {
             if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
             
             
             ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
-            group.AddEntry(new ReportEntry(text));
+            group.AddEntry(new ReportEntry(text, context));
         }
 
         public List<ReportGroup> CollectEntries()
@@ -61,6 +61,18 @@ namespace Osmalyzer
             // TODO: organize
             
             return _groups.ToList();
+        }
+
+        public void CancelEntry(object groupId, object context)
+        {
+            if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
+
+            
+            ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
+
+            ReportEntry entry = group.Entries.First(e => e.Context == context);
+
+            group.RemoveEntry(entry);
         }
 
 
@@ -83,9 +95,15 @@ namespace Osmalyzer
                 Description = description;
             }
 
+            
             public void AddEntry(ReportEntry newEntry)
             {
                 _entries.Add(newEntry);
+            }
+
+            public void RemoveEntry(ReportEntry entry)
+            {
+                _entries.Remove(entry);
             }
         }
 
@@ -93,10 +111,13 @@ namespace Osmalyzer
         {
             public string Text { get; }
             
+            public object? Context { get; }
 
-            public ReportEntry(string text)
+
+            public ReportEntry(string text, object? context)
             {
                 Text = text;
+                Context = context;
             }
         }
     }

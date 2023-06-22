@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
@@ -12,6 +13,6 @@ namespace Osmalyzer
 
         public abstract List<Type> GetRequiredDataTypes();
 
-        public abstract void Run(IReadOnlyList<AnalysisData> datas, Report report);
+        public abstract void Run(IEnumerable<AnalysisData> datas, Report report);
     }
 }

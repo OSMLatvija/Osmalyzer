@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -17,15 +19,14 @@ namespace Osmalyzer
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 
         
-        public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
+        public override void Run(IEnumerable<AnalysisData> datas, Report report)
         {
             // Load OSM data
 
-            OsmAnalysisData osmRawData = datas.OfType<OsmAnalysisData>().First();
-
-            OsmMasterData osmMasterData = new OsmMasterData(osmRawData.DataFileName);
+            OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
             
-            OsmDataExtract speedLimitedRoads = osmMasterData.Filter(
+            OsmBlob speedLimitedRoads = new OsmBlob(
+                osmData.DataFileName,
                 new IsWay(),
                 new HasAnyValue("highway", new List<string>() { "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service" }),
                 new HasTag("maxspeed"),

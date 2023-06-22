@@ -252,7 +252,7 @@ namespace Osmalyzer
 
                             foreach (RigasSatiksmeStop rsStop in missingRsStops)
                             {
-                                OsmElement? possibleRematch = missingOsmStops.FirstOrDefault(s => IsStopNameMatchGoodEnough(rsStop.Name, s.GetValue("name")!));
+                                OsmElement? possibleRematch = missingOsmStops.FirstOrDefault(s => s.HasKey("name") && IsStopNameMatchGoodEnough(rsStop.Name, s.GetValue("name")!));
 
                                 if (possibleRematch != null)
                                 {

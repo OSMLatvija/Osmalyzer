@@ -40,6 +40,8 @@ namespace Osmalyzer
                 new DoesntHaveTag("disused:aeroway"), // some old aeroways are also tagged as highways
                 new DoesntHaveTag("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
             );
+            
+            // TODO: geofilter to be in Latvia boundary somehow
 
             OsmBlob recognizedReffedRoads = reffedRoads.Filter(
                 new SplitValuesCheck("ref", IsValidRef)
@@ -375,13 +377,27 @@ namespace Osmalyzer
 
             if (unrecognizedRoadsByRef.groups.Count > 0)
             {
-                report.AddEntry(
-                    ReportGroup.UnrecognizedRoadsByRef, 
-                    (unrecognizedRoadsByRef.groups.Count > 1 ? "These road refs" : "This road ref") + " " +
-                    string.Join(", ", unrecognizedRoadsByRef.groups.Select(g => g.Value).OrderBy(v => v)) +
-                    " " + (unrecognizedRoadsByRef.groups.Count > 1 ? "are" : "is") + " not recognized." +
-                    (excludedCount > 0 ? " " + excludedCount + " are ignored/excluded." : "")
-                );
+                foreach (OsmGroup osmGroup in unrecognizedRoadsByRef.groups)
+                {
+                    report.AddEntry(
+                        ReportGroup.UnrecognizedRoadsByRef,
+                        "Road ref " +
+                        "\"" + osmGroup.Value + "\" " +
+                        "not recognized " +
+                        (osmGroup.Elements.Count > 5 ?
+                            " on " + osmGroup.Elements.Count + " road (segments)" :
+                            "on these road (segments): " + string.Join(", ", osmGroup.Elements.Select(e => "https://www.openstreetmap.org/way/" + e.Id))
+                        )
+                    );
+                }
+
+                if (excludedCount > 0)
+                {
+                    report.AddEntry(
+                        ReportGroup.UnrecognizedRoadsByRef,
+                        excludedCount + " refs are ignored/excluded."
+                    );
+                }
             }
             else
             {

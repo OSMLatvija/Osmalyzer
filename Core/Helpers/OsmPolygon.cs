@@ -40,39 +40,35 @@ namespace Osmalyzer
         {
             switch (element)
             {
-                case OsmNode node: return ContainsNode(node);
+                case OsmNode node: return ContainsCoord(node.Lat, node.Lon);
                 
-                case OsmRelation: return true;
+                case OsmRelation: return true; // todo: do I care?
                     
-                case OsmWay way: return ContainsWayMidpoint(way);
+                case OsmWay way:
+                    (double lat, double lon) averageCoord = way.GetAverageNodeCoord();
+                    return ContainsCoord(averageCoord.lat, averageCoord.lon);
                 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(element));
             }
         }
 
-        public bool ContainsNode(OsmNode node)
-        {
-            return ContainsCoord(node.Lat, node.Lon);
-        }
-
-        public bool ContainsWayMidpoint(OsmWay way)
-        {
-            // TODO: I have no refs
-            // TODO: I have no refs
-            // TODO: I have no refs
-            // way.Nodes.Select(n => n.Lat).Average();
-
-            return true;
-        }
-
         public bool ContainsCoord(double lat, double lon)
         {
-            // TODO: ACTUAL
-            // TODO: ACTUAL
-            // TODO: ACTUAL
+            bool result = false;
 
-            return true;
+            int b = _coords.Count - 1;
+
+            for (int a = 0; a < _coords.Count; a++)
+            {
+                if (_coords[a].lon < lon && _coords[b].lon >= lon || _coords[b].lon < lon && _coords[a].lon >= lon)
+                    if (_coords[a].lat + (lon - _coords[a].lon) / (_coords[b].lon - _coords[a].lon) * (_coords[b].lat - _coords[a].lat) < lat)
+                        result = !result;
+
+                b = a;
+            }
+
+            return result;
         }
     }
 }

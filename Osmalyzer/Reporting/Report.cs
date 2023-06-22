@@ -46,7 +46,7 @@ namespace Osmalyzer
             _groups.Add(new ReportGroup(id, description));
         }
 
-        public void WriteEntry(object groupId, string text, object? context = null)
+        public void AddEntry(object groupId, string text, object? context = null)
         {
             if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
             

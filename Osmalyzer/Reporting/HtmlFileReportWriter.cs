@@ -22,12 +22,21 @@ namespace Osmalyzer
 
             foreach (Report.ReportGroup group in report.CollectEntries())
             {
-                reportFile.WriteLine("<h3>" + group.Description + "</h3>");
-
-                reportFile.WriteLine("<ul>");
-                foreach (Report.ReportEntry entry in group.Entries)
-                    reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
-                reportFile.WriteLine("</ul>");
+                if (group.Entries.Count > 0)
+                {
+                    reportFile.WriteLine("<h3>" + group.Description + "</h3>");
+                    if (group.Entries.Count > 1)
+                    {
+                        reportFile.WriteLine("<ul>");
+                        foreach (Report.ReportEntry entry in group.Entries)
+                            reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
+                        reportFile.WriteLine("</ul>");
+                    }
+                    else
+                    {
+                        reportFile.WriteLine("<p>" + PolishLine(group.Entries.First().Text) + "</p>");
+                    }
+                }
             }
 
             if (report.RawLines.Any())

@@ -58,10 +58,10 @@ namespace Osmalyzer
              
                 Console.WriteLine("Downloading...");
                 
-                using HttpClient client = new HttpClient();
-                using Task<Stream> stream = client.GetStreamAsync(newestDataUrl);
-                using FileStream fileStream = new FileStream(DataFileName, FileMode.Create);
-                stream.Result.CopyTo(fileStream);
+                WebsiteDownloadHelper.Download(
+                    newestDataUrl, 
+                    DataFileName
+                );
 
                 StoreDataDate(newestDataDate.Value);
             }
@@ -69,11 +69,7 @@ namespace Osmalyzer
             
             static DateTime GetNewestRSDataDate(out string dataUrl)
             {
-                string url = "https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam";
-                using HttpClient client = new HttpClient();
-                using HttpResponseMessage response = client.GetAsync(url).Result;
-                using HttpContent content = response.Content;
-                string result = content.ReadAsStringAsync().Result;
+                string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam");
                 
                 MatchCollection matches = Regex.Matches(result, @"<a href=""(https://data.gov.lv/dati/dataset/[a-f0-9\-]+/resource/[a-f0-9\-]+/download/marsrutusaraksti(\d{2})_(\d{4}).zip)""");
                 Match urlMatch = matches.Last(); // last is latest... hopefully

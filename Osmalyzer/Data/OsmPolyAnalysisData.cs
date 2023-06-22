@@ -54,10 +54,10 @@ namespace Osmalyzer
                 
                 Console.WriteLine("Downloading...");
                 
-                using HttpClient client = new HttpClient();
-                using Task<Stream> stream = client.GetStreamAsync("https://download.geofabrik.de/europe/latvia.poly");
-                using FileStream fileStream = new FileStream(DataFileName, FileMode.Create);
-                stream.Result.CopyTo(fileStream);
+                WebsiteDownloadHelper.Download(
+                    "https://download.geofabrik.de/europe/latvia.poly", 
+                    DataFileName
+                );
 
                 StoreDataDate(newestDataDate.Value);
             }
@@ -65,11 +65,7 @@ namespace Osmalyzer
             
             static DateTime GetNewestOsmDataDate()
             {
-                string url = "https://download.geofabrik.de/europe/latvia.html";
-                using HttpClient client = new HttpClient();
-                using HttpResponseMessage response = client.GetAsync(url).Result;
-                using HttpContent content = response.Content;
-                string result = content.ReadAsStringAsync().Result;
+                string result = WebsiteDownloadHelper.Read("https://download.geofabrik.de/europe/latvia.html");
                 
                 Match match = Regex.Match(result, @"contains all OSM data up to ([^\.]+)\.");
                 string newestDateString = match.Groups[1].ToString(); // will be something like "2023-06-12T20:21:53Z"

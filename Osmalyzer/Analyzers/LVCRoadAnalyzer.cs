@@ -346,7 +346,7 @@ namespace Osmalyzer
             }
             else
             {
-                report.AddEntry(ReportGroup.MissingRelations, "There are no route relations with codes that no road uses.");
+                report.AddEntry(ReportGroup.ExtraRelations, "There are no route relations with codes that no road uses.");
             }
 
             report.AddGroup(ReportGroup.RelationsWithSameRef, "These route relations have the same code:");

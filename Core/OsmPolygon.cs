@@ -39,41 +39,6 @@ namespace Osmalyzer
 
         public bool ContainsElement(OsmGeo element)
         {
-            switch (element)
-            {
-                case Node node: return ContainsElement(node);
-                
-                case Relation:
-                    throw new NotImplementedException();
-                
-                case Way way: return ContainsElement(way);
-                
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(element));
-            }
-        }
-
-        public bool ContainsNode(Node node)
-        {
-            return ContainsCoord(node.Latitude!.Value, node.Longitude!.Value);
-        }
-
-        public bool ContainsMidpoint(Way way, bool midpoint)
-        {
-            // TODO: I have no refs
-            // TODO: I have no refs
-            // TODO: I have no refs
-            // way.Nodes.Select(n => n.Lat).Average();
-
-            return true;
-        }
-
-        public bool ContainsCoord(double lat, double lon)
-        {
-            // TODO: ACTUAL
-            // TODO: ACTUAL
-            // TODO: ACTUAL
-
             return true;
         }
     }

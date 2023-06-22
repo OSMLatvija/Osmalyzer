@@ -17,10 +17,10 @@ namespace Osmalyzer
         {
             if (canUseCache)
             {
-                (string _, string content)? cached = _cachedWebsites.FirstOrDefault(cw => cw.url == url);
+                (string _, string cachedContent) = _cachedWebsites.FirstOrDefault(cw => cw.url == url);
 
-                if (cached != null)
-                    return cached.Value.content;
+                if (cachedContent != null)
+                    return cachedContent;
             }
             
             using HttpClient client = new HttpClient();

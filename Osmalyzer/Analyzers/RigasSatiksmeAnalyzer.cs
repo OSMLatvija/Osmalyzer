@@ -69,7 +69,7 @@ namespace Osmalyzer
             report.AddGroup(ReportGroup.MatchedOsmStopIsTooFar, "These RS stops have a matching OSM stop in range (" + maxSearchDistance + " m), but it is far away (>" + acceptDistance + " m)");
             report.AddGroup(ReportGroup.NoStopMatchInRange, "These RS stops don't have any already-unmatched OSM stops in range (" + maxSearchDistance + " m)");
             report.AddGroup(ReportGroup.NoStopMatchAndAllFar, "These RS stops have no matching OSM stop in range (" + maxSearchDistance + " m), and even all unmatched stops are far away (>" + acceptDistance + " m)");
-            report.AddGroup(ReportGroup.NoRouteMatch, "These RS routes were not matched to any OSM route:");
+            report.AddGroup(ReportGroup.NoOsmRouteMatch, "These RS routes were not matched to any OSM route:");
 
             // Parse stops
 
@@ -152,9 +152,9 @@ namespace Osmalyzer
 
             foreach (RigasSatiksmeRoute rsRoute in rsNetwork.Routes.Routes)
             {
-                List<OsmElement> matchingOsmRoutes = osmRoutes.Elements.Where(e => MatchesRoute((OsmRelation)e, rsRoute)).ToList();
+                List<OsmRelation> matchingOsmRoutes = osmRoutes.Elements.Cast<OsmRelation>().Where(e => MatchesRoute(e, rsRoute)).ToList();
 
-                //report.WriteLine(rsRoute.Name + " - x" + matchingOsmRoutes.Count + ": " + string.Join(", ", matchingOsmRoutes.Select(s => s.Id)));
+                Debug.WriteLine(rsRoute.Name + " - x" + matchingOsmRoutes.Count + ": " + string.Join(", ", matchingOsmRoutes.Select(s => s.Id)));
 
                 if (matchingOsmRoutes.Count == 0)
                 {
@@ -174,30 +174,70 @@ namespace Osmalyzer
                         }
                     }
 
-                    report.WriteEntry(ReportGroup.NoRouteMatch, rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop") + ")")) + ".");
+                    report.WriteEntry(ReportGroup.NoOsmRouteMatch, rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop") + ")")) + ".");
                 }
                 else
                 {
                     // TODO: same number of services?
-                    // TODO: match services
-                    // TODO: for each service - same number of stops, same order
-                }
-            }
-            
+
+                    foreach (OsmRelation osmRoute in matchingOsmRoutes)
+                    {
+                        List<OsmElement> routeStops = osmRoute.Members.Select(m => osmStops.Elements.FirstOrDefault(e => e.Id == m.Id)).Where(e => e != null).ToList()!;
+
+                        (RigasSatiksmeTrip trip, float match) = FindBestTripMatch(rsRoute, routeStops);
+
+                        Debug.WriteLine("* \"" + osmRoute.GetValue("name") + "\" best match at " + (match * 100f).ToString("F1") + "% for " + trip);
                         
-            void WriteListToReport(List<string> list, string header)
-            {
-                if (list.Count > 0)
-                {
-                    report.WriteRawLine(header);
-                    foreach (string line in list)
-                        report.WriteRawLine("* " + line);
+                        // todo: report platform role not set for platforms
+                        // todo: report platform node that we did not find/detect as a platform
+                    }
+
+                    // TODO: match services to routes - this may be nigh impossible unless I can distinguish expected regular and optional non-regular trips/services - it's a mess - OSM only has regular for most
+                    
+                    
+                    (RigasSatiksmeTrip service, float bestMatch) FindBestTripMatch(RigasSatiksmeRoute rsRoute, List<OsmElement> osmStops)
+                    {
+                        // I have to do fuzyz matching, because I don't actually know which service and which trip OSM is representing
+                        // That is, I don't know which RS trip is the regular normal trip and which are random depo and alternate trips
+                        // OSM may even have alternate trips, so I need to match them in that case
+                        // So this matches the route with the best stop match - more stop matches, better match
+                        
+                        RigasSatiksmeTrip? bestTrip = null;
+                        float bestMatch = 0f;
+                        
+                        foreach (RigasSatiksmeService rsService in rsRoute.Services)
+                        {
+                            foreach (RigasSatiksmeTrip rsTrip in rsService.Trips)
+                            {
+                                int matchedStops = 0;
+                                
+                                foreach (RigasSatiksmePoint rsStop in rsTrip.Points)
+                                {
+                                    if (fullyMatchedStops.TryGetValue(rsStop.Stop, out OsmNode? expectedOsmStop))
+                                    {
+                                        if (osmStops.Contains(expectedOsmStop))
+                                            matchedStops++;
+                                    }
+                                }
+
+                                float match = Math.Max(0f, (float)matchedStops / Math.Max(rsTrip.Points.Count(), osmStops.Count));
+
+                                if (bestTrip == null ||
+                                    match > bestMatch)
+                                {
+                                    bestMatch = match;
+                                    bestTrip = rsTrip;
+                                }
+                            }
+                        }
+
+                        return (bestTrip!, bestMatch); // will always match at least something, even if 0%
+                    }
                 }
             }
         }
-        
-        
-        
+
+
         [Pure]
         private static bool MatchesRoute(OsmRelation osmRoute, RigasSatiksmeRoute route)
         {
@@ -357,7 +397,7 @@ namespace Osmalyzer
             MatchedOsmStopIsTooFar,
             NoStopMatchInRange,
             NoStopMatchAndAllFar,
-            NoRouteMatch
+            NoOsmRouteMatch
         }
     }
 }

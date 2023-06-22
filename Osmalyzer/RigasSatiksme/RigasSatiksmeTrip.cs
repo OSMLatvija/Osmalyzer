@@ -25,5 +25,11 @@ namespace Osmalyzer
         {
             _points.Add(point);
         }
+
+
+        public override string ToString()
+        {
+            return "Trip #" + Id + " for service #" + Service.Id;
+        }
     }
 }

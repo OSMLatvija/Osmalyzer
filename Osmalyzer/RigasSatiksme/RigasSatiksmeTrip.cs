@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Osmalyzer
 {
@@ -9,6 +10,8 @@ namespace Osmalyzer
         public RigasSatiksmeService Service { get; }
 
         public IEnumerable<RigasSatiksmePoint> Points => _points.AsReadOnly();
+        
+        public IEnumerable<RigasSatiksmeStop> Stops => _points.Select(p => p.Stop);
 
 
         private readonly List<RigasSatiksmePoint> _points = new List<RigasSatiksmePoint>();

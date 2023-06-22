@@ -16,6 +16,9 @@ namespace Osmalyzer
         public override string DataDateFileName => @"cache/rigas-satiksme.zip-date.txt";
 
         public override bool? DataDateHasDayGranularity => false; // only day given on data page (file itself is month only)
+
+        
+        public string ExtractionFolder => "RS";
         
 
         public override void Retrieve()
@@ -87,7 +90,7 @@ namespace Osmalyzer
         {
             // RS data comes in a zip file, so unzip
             
-            ZipHelper.ExtractZipFile(DataFileName, "RS/");
+            ZipHelper.ExtractZipFile(DataFileName, ExtractionFolder + "/");
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Osmalyzer
 
             RigasSatiksmeAnalysisData rsData = datas.OfType<RigasSatiksmeAnalysisData>().First();
 
-            RigasSatiksmeNetwork rsNetwork = new RigasSatiksmeNetwork("RS");
+            RigasSatiksmeNetwork rsNetwork = new RigasSatiksmeNetwork(rsData.ExtractionFolder);
             
             // Load OSM data
 

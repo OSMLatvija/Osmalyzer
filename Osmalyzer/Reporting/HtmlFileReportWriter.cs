@@ -19,7 +19,10 @@ namespace Osmalyzer
 
             reportFile.WriteLine("Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "<br><br>");
 
-            foreach (string line in report.Lines)
+            foreach (Report.ReportEntry entry in report.CollectEntries())
+                reportFile.WriteLine(PolishLine(entry.Text) + "<br>");
+
+            foreach (string line in report.RawLines)
                 reportFile.WriteLine(PolishLine(line) + "<br>");
             
             reportFile.WriteLine("<br>Data as of " + HttpUtility.HtmlEncode(report.AnalyzedDataDates) + ". Provided as is; mistakes possible.");

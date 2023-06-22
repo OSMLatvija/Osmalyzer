@@ -66,14 +66,14 @@ namespace Osmalyzer
                         if (trolley_wire != null && (trolley_wire_forward != null || trolley_wire_backward != null))
                         {
                             CheckFirstMentionOfRouteIssue();
-                            report.WriteLine("Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            report.WriteRawLine("Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id);
                         }
                         else if (trolley_wire != null)
                         {
                             if (trolley_wire != "yes" && trolley_wire != "no")
                             {
                                 CheckFirstMentionOfRouteIssue();
-                                report.WriteLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                                report.WriteRawLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
                             }
                         }
                         else if (trolley_wire_forward != null || trolley_wire_backward != null)
@@ -81,19 +81,19 @@ namespace Osmalyzer
                             if (trolley_wire_forward != null && trolley_wire_forward != "yes" && trolley_wire_forward != "no")
                             {
                                 CheckFirstMentionOfRouteIssue();
-                                report.WriteLine("`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                                report.WriteRawLine("`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
                             }
 
                             if (trolley_wire_backward != null && trolley_wire_backward != "yes" && trolley_wire_backward != "no")
                             {
                                 CheckFirstMentionOfRouteIssue();
-                                report.WriteLine("`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                                report.WriteRawLine("`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
                             }
                         }
                         else
                         {
                             CheckFirstMentionOfRouteIssue();
-                            report.WriteLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            report.WriteRawLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id);
                         }
 
 
@@ -102,7 +102,7 @@ namespace Osmalyzer
                             if (!foundIssue)
                             {
                                 foundIssue = true;
-                                report.WriteLine("Route " + route.Id + " \"" + routeName + "\"");
+                                report.WriteRawLine("Route " + route.Id + " \"" + routeName + "\"");
                             }
                         }
                     }

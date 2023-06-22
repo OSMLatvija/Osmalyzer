@@ -33,7 +33,7 @@ namespace Osmalyzer
             
             // Start report file
             
-            report.WriteLine("Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
+            report.WriteRawLine("Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
 
             // Process
             
@@ -57,29 +57,29 @@ namespace Osmalyzer
                             limits.Add((maxspeed, maxspeedConditional));
                         
                         if (maxspeed == maxspeedConditional)
-                            report.WriteLine("Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
+                            report.WriteRawLine("Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
                     }
                     else
                     {
                         if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
                         {
-                            report.WriteLine("Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
+                            report.WriteRawLine("Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
                         }
                     }
                 }
                 else
                 {
-                    report.WriteLine("Max speed not recognized as seasonal: " + maxspeedStr);
+                    report.WriteRawLine("Max speed not recognized as seasonal: " + maxspeedStr);
                 }
             }
 
             limits.Sort();
             
-            report.WriteLine("Combos found:");
+            report.WriteRawLine("Combos found:");
 
             foreach ((int regular, int conditional) in limits)
             {
-                report.WriteLine("Conditional limit " + conditional + " for regular limit " + regular);
+                report.WriteRawLine("Conditional limit " + conditional + " for regular limit " + regular);
             }
         }
     }

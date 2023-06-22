@@ -66,11 +66,6 @@ namespace Osmalyzer
             List<OsmNode> matchedOsmStops = new List<OsmNode>();
             // so that we don't match the same stop multiple times
 
-            List<string> matchedOsmIsTooFar = new List<string>();
-            List<string> noMatchButHaveClose = new List<string>();
-            List<string> noMatchAndAllFar = new List<string>();
-            List<string> noMatchInRange = new List<string>();
-
             Dictionary<RigasSatiksmeStop, OsmNode> fullyMatchedStops = new Dictionary<RigasSatiksmeStop, OsmNode>();
 
             foreach (RigasSatiksmeStop rsStop in rsNetwork.Stops.Stops)
@@ -101,7 +96,7 @@ namespace Osmalyzer
                     {
                         string osmStopName = matchedStop.GetValue("name")!; // already matched, can't not have name
 
-                        matchedOsmIsTooFar.Add("RS stop \"" + rsStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - https://www.openstreetmap.org/node/" + matchedStop.Id + " , expecting around https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5"));
+                        report.WriteEntry("matchedOsmIsTooFar", "RS stop \"" + rsStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - https://www.openstreetmap.org/node/" + matchedStop.Id + " , expecting around https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5"));
                     }
 
                     if (!matchedOsmStops.Contains(matchedStop))
@@ -120,15 +115,15 @@ namespace Osmalyzer
                         
                         if (stopInAcceptRange && osmStopName != null) // already knwo it's not a match
                         {
-                            noMatchButHaveClose.Add("RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to OSM stop \"" + osmStopName + "\" - https://www.openstreetmap.org/node/" + closestStop.Id);
+                            report.WriteEntry("noMatchButHaveClose", "RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to OSM stop \"" + osmStopName + "\" - https://www.openstreetmap.org/node/" + closestStop.Id);
                         }
                         else if (stopInAcceptRange && osmStopName == null)
                         {
-                            noMatchButHaveClose.Add("RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to unnamed OSM stop - https://www.openstreetmap.org/node/" + closestStop.Id);
+                            report.WriteEntry("noMatchButHaveClose", "RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to unnamed OSM stop - https://www.openstreetmap.org/node/" + closestStop.Id);
                         }
                         else if (!stopInAcceptRange)
                         {
-                            noMatchAndAllFar.Add("RS stop \"" + rsStop.Name + "\" has no matching OSM stop in range and all other stops are far away (closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + " at " + stopDistance.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5"));
+                            report.WriteEntry("noMatchAndAllFar", "RS stop \"" + rsStop.Name + "\" has no matching OSM stop in range and all other stops are far away (closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + " at " + stopDistance.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5"));
                         }
                     }
                     else // no stop at all within distance
@@ -136,21 +131,19 @@ namespace Osmalyzer
                         OsmNode farawayStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon)!;
                         double farawayDistance = OsmGeoTools.DistanceBetween(farawayStop.Lat, farawayStop.Lon, rsStop.Lat, rsStop.Lon);
 
-                        noMatchInRange.Add("No OSM stops at all in range of RS stop \"" + rsStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + "");
+                        report.WriteEntry("noMatchInRange.", "No OSM stops at all in range of RS stop \"" + rsStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + "");
                     }
                 }
             }
 
-            WriteListToReport(noMatchButHaveClose, "These RS stops don't have a matching OSM stop in range (" + maxSearchDistance + " m), but have a stop nearby (<" + acceptDistance + " m):");
-            WriteListToReport(matchedOsmIsTooFar, "These RS stops have a matching OSM stop in range (" + maxSearchDistance + " m), but it is far away (>" + acceptDistance + " m)");
-            WriteListToReport(noMatchInRange, "These RS stops don't have any already-unmatched OSM stops in range (" + maxSearchDistance + " m)");
-            WriteListToReport(noMatchAndAllFar, "These RS stops have no matching OSM stop in range (" + maxSearchDistance + " m), and even all unmatched stops are far away (>" + acceptDistance + " m)");
+            // TODO: WriteListToReport(noMatchButHaveClose, "These RS stops don't have a matching OSM stop in range (" + maxSearchDistance + " m), but have a stop nearby (<" + acceptDistance + " m):");
+            // TODO: WriteListToReport(matchedOsmIsTooFar, "These RS stops have a matching OSM stop in range (" + maxSearchDistance + " m), but it is far away (>" + acceptDistance + " m)");
+            // TODO: WriteListToReport(noMatchInRange, "These RS stops don't have any already-unmatched OSM stops in range (" + maxSearchDistance + " m)");
+            // TODO: WriteListToReport(noMatchAndAllFar, "These RS stops have no matching OSM stop in range (" + maxSearchDistance + " m), and even all unmatched stops are far away (>" + acceptDistance + " m)");
 
             // todo: other way - OSM stop but no RS stop
             
             // Parse routes
-
-            List<string> noRouteMatch = new List<string>();
 
             foreach (RigasSatiksmeRoute rsRoute in rsNetwork.Routes.Routes)
             {
@@ -176,7 +169,7 @@ namespace Osmalyzer
                         }
                     }
 
-                    noRouteMatch.Add(rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop") + ")")) + ".");
+                    report.WriteEntry("noRouteMatch", rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop") + ")")) + ".");
                 }
                 else
                 {
@@ -186,16 +179,16 @@ namespace Osmalyzer
                 }
             }
 
-            WriteListToReport(noRouteMatch, "These RS routes were not matched to any OSM route:");      
+            // TODO: WriteListToReport(noRouteMatch, "These RS routes were not matched to any OSM route:");      
             
                         
             void WriteListToReport(List<string> list, string header)
             {
                 if (list.Count > 0)
                 {
-                    report.WriteLine(header);
+                    report.WriteRawLine(header);
                     foreach (string line in list)
-                        report.WriteLine("* " + line);
+                        report.WriteRawLine("* " + line);
                 }
             }
         }

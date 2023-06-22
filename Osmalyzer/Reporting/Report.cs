@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 
 namespace Osmalyzer
@@ -14,10 +13,12 @@ namespace Osmalyzer
         public string? AnalyzedDataDates { get; }
 
         
-        public ReadOnlyCollection<string> Lines => _lines.AsReadOnly();
+        public ReadOnlyCollection<string> RawLines => _rawLines.AsReadOnly();
 
 
-        private readonly List<string> _lines = new List<string>();
+        private readonly List<string> _rawLines = new List<string>();
+        
+        private readonly List<ReportEntry> _entries = new List<ReportEntry>();
 
 
         public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
@@ -33,9 +34,34 @@ namespace Osmalyzer
         }
 
 
-        public void WriteLine(string line)
+        public void WriteRawLine(string line)
         {
-            _lines.Add(line);
+            _rawLines.Add(line);
+        }
+
+        public void WriteEntry(string group, string text)
+        {
+            _entries.Add(new ReportEntry(group, text));
+        }
+
+        public List<ReportEntry> CollectEntries()
+        {
+            return _entries.ToList();
+        }
+
+
+        public class ReportEntry
+        {
+            public string Group { get; }
+            
+            public string Text { get; }
+            
+
+            public ReportEntry(string group, string text)
+            {
+                Group = group;
+                Text = text;
+            }
         }
     }
 }

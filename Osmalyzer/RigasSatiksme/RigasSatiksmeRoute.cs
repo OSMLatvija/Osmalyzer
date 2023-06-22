@@ -39,7 +39,7 @@ namespace Osmalyzer
 
         
         [Pure]
-        private string TypeToCleanType(string type)
+        private static string TypeToCleanType(string type)
         {
             return type switch
             {

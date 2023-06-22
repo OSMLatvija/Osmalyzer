@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 
 namespace Osmalyzer
 {
@@ -16,7 +13,10 @@ namespace Osmalyzer
             reportFile.WriteLine("Report for " + report.AnalyzerName);
             reportFile.WriteLine();
 
-            foreach (string line in report.Lines)
+            foreach (Report.ReportEntry entry in report.CollectEntries())
+                reportFile.WriteLine(entry.Text);
+
+            foreach (string line in report.RawLines)
                 reportFile.WriteLine(line);
             
             reportFile.WriteLine();

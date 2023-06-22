@@ -21,10 +21,10 @@ namespace Osmalyzer
             List<Analyzer> analyzers = new List<Analyzer>()
             {
                 new RigasSatiksmeAnalyzer(),
-                new LVCRoadAnalyzer(),
-                new HighwaySpeedConditionalAnalyzer(),
-                new TrolleybusWireAnalyzer(),
-                new CommonBrandsAnalyzer(),
+                //new LVCRoadAnalyzer(),
+                //new HighwaySpeedConditionalAnalyzer(),
+                //new TrolleybusWireAnalyzer(),
+                //new CommonBrandsAnalyzer(),
             };
 
             Console.WriteLine("Running with " + analyzers.Count + " analyzers...");

@@ -480,18 +480,6 @@ namespace Osmalyzer
             if (Regex.IsMatch(value, @"^[ABC]1-[0-9]{2}$"))
                 return true;
 
-            // Non-Latvia
-            // 58К-150
-            // К is cyrillic
-            if (Regex.IsMatch(value, @"^58К-[0-9]{3}$"))
-                return true;
-
-            // Non-Latvia
-            // Н2100 Р20 М-9
-            // H, Р, М are cyrillic
-            if (Regex.IsMatch(value, @"^[РНМ]-?[0-9]+$"))
-                return true;
-
             return false;
         }
 

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
+    [UsedImplicitly]
     public class TrolleybusWireAnalyzer : Analyzer
     {
         public override string Name => "Trolleybus Wires";

@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
+    [UsedImplicitly]
     public class RigasSatiksmeAnalyzer : Analyzer
     {
         public override string Name => "Rigas Satiksme";

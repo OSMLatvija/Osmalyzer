@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
+    [UsedImplicitly]
     public class LVCRoadAnalyzer : Analyzer
     {
         public override string Name => "LVC Roads";

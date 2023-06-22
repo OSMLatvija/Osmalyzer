@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -14,11 +15,12 @@ namespace Osmalyzer
 
         
         public ReadOnlyCollection<string> RawLines => _rawLines.AsReadOnly();
+        // TODO: remove this
 
 
         private readonly List<string> _rawLines = new List<string>();
         
-        private readonly List<ReportEntry> _entries = new List<ReportEntry>();
+        private readonly List<ReportGroup> _groups = new List<ReportGroup>();
 
 
         public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
@@ -39,27 +41,61 @@ namespace Osmalyzer
             _rawLines.Add(line);
         }
 
-        public void WriteEntry(string group, string text)
+        public void AddGroup(string name, string description)
         {
-            _entries.Add(new ReportEntry(group, text));
+            _groups.Add(new ReportGroup(name, description));
         }
 
-        public List<ReportEntry> CollectEntries()
+        public void WriteEntry(string groupName, string text)
         {
-            return _entries.ToList();
+            if (_groups.All(g => g.Name != groupName)) throw new InvalidOperationException("Group \"" + groupName + "\" has not been created!");
+            
+            
+            ReportGroup group = _groups.First(g => g.Name == groupName);
+
+            group.AddEntry(new ReportEntry(text));
         }
 
+        public List<ReportGroup> CollectEntries()
+        {
+            // TODO: organize
+            
+            return _groups.ToList();
+        }
+
+
+        public class ReportGroup
+        {
+            public string Name { get; }
+            
+            public string Description { get; }
+
+
+            public ReadOnlyCollection<ReportEntry> Entries => _entries.AsReadOnly();
+
+
+            private readonly List<ReportEntry> _entries = new List<ReportEntry>();
+
+
+            public ReportGroup(string name, string description)
+            {
+                Name = name;
+                Description = description;
+            }
+
+            public void AddEntry(ReportEntry newEntry)
+            {
+                _entries.Add(newEntry);
+            }
+        }
 
         public class ReportEntry
         {
-            public string Group { get; }
-            
             public string Text { get; }
             
 
-            public ReportEntry(string group, string text)
+            public ReportEntry(string text)
             {
-                Group = group;
                 Text = text;
             }
         }

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -19,12 +20,26 @@ namespace Osmalyzer
 
             reportFile.WriteLine("Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "<br><br>");
 
-            foreach (Report.ReportEntry entry in report.CollectEntries())
-                reportFile.WriteLine(PolishLine(entry.Text) + "<br>");
+            foreach (Report.ReportGroup group in report.CollectEntries())
+            {
+                reportFile.WriteLine("<h3>" + group.Description + "</h3>");
 
-            foreach (string line in report.RawLines)
-                reportFile.WriteLine(PolishLine(line) + "<br>");
-            
+                reportFile.WriteLine("<ul>");
+                foreach (Report.ReportEntry entry in group.Entries)
+                    reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
+                reportFile.WriteLine("</ul>");
+            }
+
+            if (report.RawLines.Any())
+            {
+                reportFile.WriteLine("<h3>Other issues and/or notes</h3>");
+                
+                reportFile.WriteLine("<ul>");
+                foreach (string line in report.RawLines)
+                    reportFile.WriteLine("<li>" + PolishLine(line) + "</li>");
+                reportFile.WriteLine("</ul>");
+            }
+
             reportFile.WriteLine("<br>Data as of " + HttpUtility.HtmlEncode(report.AnalyzedDataDates) + ". Provided as is; mistakes possible.");
             
             reportFile.Close();
@@ -33,6 +48,8 @@ namespace Osmalyzer
         
         private string PolishLine(string line)
         {
+            line = HttpUtility.HtmlEncode(line);
+            
             line = Regex.Replace(line, @"(https://www.openstreetmap.org/node/(\d+))", @"<a href=""$1"">Node #$2</a>");
             line = Regex.Replace(line, @"(https://www.openstreetmap.org/way/(\d+))", @"<a href=""$1"">Way #$2</a>");
             line = Regex.Replace(line, @"(https://www.openstreetmap.org/relation/(\d+))", @"<a href=""$1"">Relation #$2</a>");

@@ -13,8 +13,13 @@ namespace Osmalyzer
             reportFile.WriteLine("Report for " + report.AnalyzerName);
             reportFile.WriteLine();
 
-            foreach (Report.ReportEntry entry in report.CollectEntries())
-                reportFile.WriteLine(entry.Text);
+            foreach (Report.ReportGroup group in report.CollectEntries())
+            {
+                reportFile.WriteLine(group.Description);
+                foreach (Report.ReportEntry entry in group.Entries)
+                    reportFile.WriteLine(entry.Text);
+                reportFile.WriteLine();
+            }
 
             foreach (string line in report.RawLines)
                 reportFile.WriteLine(line);

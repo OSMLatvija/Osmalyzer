@@ -57,11 +57,21 @@ namespace Osmalyzer
             
             OsmBlob osmStops = blobs[0];
             OsmBlob osmRoutes = blobs[1];
-
-            // Parse stops
+            
+            // Params
 
             const double maxSearchDistance = 150.0; // we search this far for potential stops
             const double acceptDistance = 50.0; // but only this far counts as a good match
+            
+            // Prepare report stuff
+
+            report.AddGroup("noMatchButHaveClose", "These RS stops don't have a matching OSM stop in range (" + maxSearchDistance + " m), but have a stop nearby (<" + acceptDistance + " m):");
+            report.AddGroup("matchedOsmIsTooFar", "These RS stops have a matching OSM stop in range (" + maxSearchDistance + " m), but it is far away (>" + acceptDistance + " m)");
+            report.AddGroup("noMatchInRange", "These RS stops don't have any already-unmatched OSM stops in range (" + maxSearchDistance + " m)");
+            report.AddGroup("noMatchAndAllFar", "These RS stops have no matching OSM stop in range (" + maxSearchDistance + " m), and even all unmatched stops are far away (>" + acceptDistance + " m)");
+            report.AddGroup("noRouteMatch", "These RS routes were not matched to any OSM route:");
+
+            // Parse stops
 
             List<OsmNode> matchedOsmStops = new List<OsmNode>();
             // so that we don't match the same stop multiple times
@@ -131,15 +141,10 @@ namespace Osmalyzer
                         OsmNode farawayStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon)!;
                         double farawayDistance = OsmGeoTools.DistanceBetween(farawayStop.Lat, farawayStop.Lon, rsStop.Lat, rsStop.Lon);
 
-                        report.WriteEntry("noMatchInRange.", "No OSM stops at all in range of RS stop \"" + rsStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + "");
+                        report.WriteEntry("noMatchInRange", "No OSM stops at all in range of RS stop \"" + rsStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + "");
                     }
                 }
             }
-
-            // TODO: WriteListToReport(noMatchButHaveClose, "These RS stops don't have a matching OSM stop in range (" + maxSearchDistance + " m), but have a stop nearby (<" + acceptDistance + " m):");
-            // TODO: WriteListToReport(matchedOsmIsTooFar, "These RS stops have a matching OSM stop in range (" + maxSearchDistance + " m), but it is far away (>" + acceptDistance + " m)");
-            // TODO: WriteListToReport(noMatchInRange, "These RS stops don't have any already-unmatched OSM stops in range (" + maxSearchDistance + " m)");
-            // TODO: WriteListToReport(noMatchAndAllFar, "These RS stops have no matching OSM stop in range (" + maxSearchDistance + " m), and even all unmatched stops are far away (>" + acceptDistance + " m)");
 
             // todo: other way - OSM stop but no RS stop
             
@@ -178,8 +183,6 @@ namespace Osmalyzer
                     // TODO: for each service - same number of stops, same order
                 }
             }
-
-            // TODO: WriteListToReport(noRouteMatch, "These RS routes were not matched to any OSM route:");      
             
                         
             void WriteListToReport(List<string> list, string header)

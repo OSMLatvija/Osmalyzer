@@ -96,6 +96,10 @@ namespace Osmalyzer
             
             reporter.Save();
 
+#if !REMOTE_EXECUTION
+            // todo: if only one analyzer enabled, then auto-launch the report
+#endif
+
             
             Console.WriteLine("Done.");
         }

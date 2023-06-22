@@ -69,7 +69,7 @@ namespace Osmalyzer
             
             static DateTime GetNewestRSDataDate(out string dataUrl)
             {
-                string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam");
+                string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam", true);
                 
                 MatchCollection matches = Regex.Matches(result, @"<a href=""(https://data.gov.lv/dati/dataset/[a-f0-9\-]+/resource/[a-f0-9\-]+/download/marsrutusaraksti(\d{2})_(\d{4}).zip)""");
                 Match urlMatch = matches.Last(); // last is latest... hopefully

@@ -14,7 +14,7 @@ namespace Osmalyzer
         public override string? Description => null;
 
 
-        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
+        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(OsmPolyAnalysisData), typeof(RoadLawAnalysisData) };
 
 
         public override void Run(IEnumerable<AnalysisData> datas, Report report)
@@ -28,6 +28,8 @@ namespace Osmalyzer
             // Load OSM data
 
             OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+
+            OsmPolyAnalysisData osmPoly = datas.OfType<OsmPolyAnalysisData>().First();
 
             List<OsmBlob> blobs = OsmBlob.CreateMultiple(
                 osmData.DataFileName,

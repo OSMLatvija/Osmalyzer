@@ -45,6 +45,15 @@ namespace Osmalyzer
 
             return extracts;
         }
+        
+        public OsmElement? Find(params OsmFilter[] filters)
+        {
+            foreach (OsmElement element in Elements)
+                if (OsmElementMatchesFilters(element, filters))
+                    return element;
+
+            return null;
+        }
 
         /// <summary>
         ///

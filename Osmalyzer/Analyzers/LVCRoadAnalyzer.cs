@@ -14,7 +14,7 @@ namespace Osmalyzer
         public override string? Description => null;
 
 
-        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(OsmPolyAnalysisData), typeof(RoadLawAnalysisData) };
+        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
 
 
         public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -31,8 +31,6 @@ namespace Osmalyzer
 
             OsmMasterData osmMasterData = new OsmMasterData(osmRawData.DataFileName);
 
-            OsmPolyAnalysisData osmPoly = datas.OfType<OsmPolyAnalysisData>().First();
-
             List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
                 new List<OsmFilter[]>()
                 {
@@ -44,13 +42,11 @@ namespace Osmalyzer
                         new DoesntHaveTag("aeroway"), // some old aeroways are also tagged as highways
                         new DoesntHaveTag("abandoned:aeroway"), // some old aeroways are also tagged as highways
                         new DoesntHaveTag("disused:aeroway"), // some old aeroways are also tagged as highways
-                        new DoesntHaveTag("railway"), // there's a few "railway=platform" and "railway=rail" with "highway=footway"
-                        new InsidePolygon(osmPoly.DataFileName)
+                        new DoesntHaveTag("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
                     },
                     new OsmFilter[]
                     {
-                        new SplitValuesCheck("ref", IsValidRef),
-                        new InsidePolygon(osmPoly.DataFileName)
+                        new SplitValuesCheck("ref", IsValidRef)
                     },
                     new OsmFilter[]
                     {
@@ -58,17 +54,35 @@ namespace Osmalyzer
                         new HasValue("type", "route"),
                         new HasValue("route", "road"),
                         new HasTag("ref"),
-                        new SplitValuesCheck("ref", IsValidRef),
-                        //new InsidePolygon(osmPoly.DataFileName)
+                        new SplitValuesCheck("ref", IsValidRef)
                     }
                 }
             );
-            
-            // TODO: geofilter to be in Latvia boundary somehow
 
             OsmDataExtract reffedRoads = osmDataExtracts[0];
             OsmDataExtract recognizedReffedRoads = osmDataExtracts[1];
             OsmDataExtract routeRelations = osmDataExtracts[2];
+
+            // Filter strictly to inside Latvia
+            
+            OsmRelation latviaRelation = (OsmRelation)osmMasterData.Find(
+                new IsRelation(),
+                new HasValue("type", "boundary"),
+                new HasValue("admin_level", "2"),
+                new HasValue("name", "Latvija")
+            )!; // never expecting to not have this
+
+            OsmPolygon latviaPolygon = latviaRelation.GetOuterWayPolygon();
+
+            latviaPolygon.SaveToFile("latvia-real.poly");
+            
+            InsidePolygon insidePolygonFilter = new InsidePolygon(latviaPolygon); // somewhat expensive, so keep outside
+            
+            reffedRoads = reffedRoads.Filter(insidePolygonFilter);
+            recognizedReffedRoads = recognizedReffedRoads.Filter(insidePolygonFilter);
+            routeRelations = routeRelations.Filter(insidePolygonFilter);
+
+            // Parse
             
             OsmGroups roadsByRef = recognizedReffedRoads.GroupByValues("ref", true);
 

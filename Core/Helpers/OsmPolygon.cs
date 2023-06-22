@@ -7,8 +7,13 @@ namespace Osmalyzer
     public class OsmPolygon
     {
         private readonly List<(double lat, double lon)> _coords = new List<(double lat, double lon)>();
-        
-        
+
+
+        public OsmPolygon(List<(double lat, double lon)> coords)
+        {
+            _coords = coords;
+        }
+
         public OsmPolygon(string polyFileName)
         {
             // Note: complete assumption about the file structure
@@ -69,6 +74,22 @@ namespace Osmalyzer
             }
 
             return result;
+        }
+
+        public void SaveToFile(string fileName)
+        {
+            using StreamWriter streamWriter = File.CreateText(fileName);
+
+            streamWriter.WriteLine("none");
+            streamWriter.WriteLine("1");
+
+            foreach ((double lat, double lon) in _coords)
+                streamWriter.WriteLine(lon.ToString("E") + " " + lat.ToString("E"));
+            
+            streamWriter.WriteLine("END");
+            streamWriter.WriteLine("END");
+            
+            streamWriter.Close();
         }
     }
 }

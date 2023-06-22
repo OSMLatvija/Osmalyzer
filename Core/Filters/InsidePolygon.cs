@@ -5,9 +5,9 @@
         private readonly OsmPolygon _polygon;
 
 
-        public InsidePolygon(string polyFileName)
+        public InsidePolygon(OsmPolygon polygon)
         {
-            _polygon = new OsmPolygon(polyFileName);
+            _polygon = polygon;
         }
 
 

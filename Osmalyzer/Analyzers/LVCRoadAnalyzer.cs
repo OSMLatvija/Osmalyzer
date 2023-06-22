@@ -13,7 +13,7 @@ namespace Osmalyzer
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
-        
+
 
         public override void Run(IEnumerable<AnalysisData> datas, Report report)
         {
@@ -27,31 +27,41 @@ namespace Osmalyzer
 
             OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
 
-            OsmBlob blob = new OsmBlob(osmData.DataFileName);
-            // todo: filter earlier
-            // todo: but we also need routes -- need "multi-filter" and multiple blobs result
-
-            OsmBlob reffedRoads = blob.Filter(
-                new IsWay(),
-                new HasTag("highway"),
-                new HasTag("ref"),
-                new DoesntHaveTag("aeroway"), // some old aeroways are also tagged as highways
-                new DoesntHaveTag("abandoned:aeroway"), // some old aeroways are also tagged as highways
-                new DoesntHaveTag("disused:aeroway"), // some old aeroways are also tagged as highways
-                new DoesntHaveTag("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
+            List<OsmBlob> blobs = OsmBlob.CreateMultiple(
+                osmData.DataFileName,
+                new List<OsmFilter[]>()
+                {
+                    new OsmFilter[]
+                    {
+                        new IsWay(),
+                        new HasTag("highway"),
+                        new HasTag("ref"),
+                        new DoesntHaveTag("aeroway"), // some old aeroways are also tagged as highways
+                        new DoesntHaveTag("abandoned:aeroway"), // some old aeroways are also tagged as highways
+                        new DoesntHaveTag("disused:aeroway"), // some old aeroways are also tagged as highways
+                        new DoesntHaveTag("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
+                    },
+                    new OsmFilter[]
+                    {
+                        new SplitValuesCheck("ref", IsValidRef)
+                    },
+                    new OsmFilter[]
+                    {
+                        new IsRelation(),
+                        new HasValue("type", "route"),
+                        new HasValue("route", "road"),
+                        new HasTag("ref"),
+                        new SplitValuesCheck("ref", IsValidRef)
+                    }
+                }
             );
             
             // TODO: geofilter to be in Latvia boundary somehow
 
-            OsmBlob recognizedReffedRoads = reffedRoads.Filter(
-                new SplitValuesCheck("ref", IsValidRef)
-            );
-
-            // using StreamWriter rawOutFile = File.CreateText(@"raw road refs.txt");
-            // foreach (OsmElement element in recognizedReffedRoads.Elements.OrderBy(e => e.Element.Tags.GetValue("ref")))
-            //     rawOutFile.WriteLine(element.Element.Tags.GetValue("ref"));
-            // rawOutFile.Close();
-
+            OsmBlob reffedRoads = blobs[0];
+            OsmBlob recognizedReffedRoads = blobs[1];
+            OsmBlob routeRelations = blobs[2];
+            
             OsmGroups roadsByRef = recognizedReffedRoads.GroupByValues("ref", true);
 
             // Road on map but not in law
@@ -263,14 +273,6 @@ namespace Osmalyzer
 
             //
 
-            OsmBlob routeRelations = blob.Filter(
-                new IsRelation(),
-                new HasValue("type", "route"),
-                new HasValue("route", "road"),
-                new HasTag("ref"),
-                new SplitValuesCheck("ref", IsValidRef)
-            );
-
             List<string> missingRelations = new List<string>();
 
             List<List<OsmElement>> relationsWithSameRef = new List<List<OsmElement>>();
@@ -359,8 +361,8 @@ namespace Osmalyzer
 
             // Uncrecognized ref
 
-            OsmBlob unrecognizedReffedRoads = reffedRoads.Subtract(
-                recognizedReffedRoads
+            OsmBlob unrecognizedReffedRoads = reffedRoads.Filter(
+                new SplitValuesCheck("ref", s => !IsValidRef(s))
             );
 
             int excludedCount = unrecognizedReffedRoads.GroupByValues("ref", true).groups.Count; // real value below

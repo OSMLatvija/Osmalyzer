@@ -28,9 +28,9 @@ namespace Osmalyzer
             
             // Load OSM data
 
-            OsmAnalysisData osmRawData = datas.OfType<OsmAnalysisData>().First();
+            OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
 
-            OsmMasterData osmMasterData = new OsmMasterData(osmRawData.DataFileName);
+            OsmMasterData osmMasterData = osmData.MasterData;
 
             List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
                 new List<OsmFilter[]>()

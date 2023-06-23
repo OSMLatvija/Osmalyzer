@@ -27,11 +27,9 @@ namespace Osmalyzer
 
             // Load OSM data
 
-            OsmAnalysisData osmRawData = datas.OfType<OsmAnalysisData>().First();
+            OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
 
-            OsmMasterData osmMasterData = new OsmMasterData(osmRawData.DataFileName);
-
-            List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
+            List<OsmDataExtract> osmDataExtracts = osmData.MasterData.Filter(
                 new List<OsmFilter[]>()
                 {
                     new OsmFilter[]
@@ -65,7 +63,7 @@ namespace Osmalyzer
 
             // Filter strictly to inside Latvia
             
-            OsmRelation latviaRelation = (OsmRelation)osmMasterData.Find(
+            OsmRelation latviaRelation = (OsmRelation)osmData.MasterData.Find(
                 new IsRelation(),
                 new HasValue("type", "boundary"),
                 new HasValue("admin_level", "2"),

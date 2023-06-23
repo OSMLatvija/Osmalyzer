@@ -30,7 +30,7 @@ namespace Osmalyzer
 #else
             List<Analyzer> analyzers = new List<Analyzer>()
             {
-                //new RigasSatiksmeAnalyzer(),
+                new RigasSatiksmeAnalyzer(),
                 new LVCRoadAnalyzer(),
                 //new HighwaySpeedConditionalAnalyzer(),
                 //new TrolleybusWireAnalyzer(),
@@ -77,8 +77,12 @@ namespace Osmalyzer
 
             Console.WriteLine("Preparing data...");
 
-            foreach (AnalysisData data in requestedDatas)
-                data.Prepare();
+            for (int i = 0; i < requestedDatas.Count; i++)
+            {
+                Console.WriteLine("Preparing " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
+
+                requestedDatas[i].Prepare();
+            }
 
 
             Console.WriteLine("Parsing...");

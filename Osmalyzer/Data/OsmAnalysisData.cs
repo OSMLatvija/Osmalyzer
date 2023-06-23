@@ -15,7 +15,10 @@ namespace Osmalyzer
         public override string DataDateFileName => @"cache/latvia-latest.osm.pbf-date.txt";
 
         public override bool? DataDateHasDayGranularity => true;
-        
+
+
+        public OsmMasterData MasterData { get; private set; } = null!; // only null during initialization
+
 
         public override void Retrieve()
         {
@@ -74,7 +77,7 @@ namespace Osmalyzer
 
         public override void Prepare()
         {
-            // Don't need to prepare anything
+            MasterData = new OsmMasterData(DataFileName);
         }
     }
 }

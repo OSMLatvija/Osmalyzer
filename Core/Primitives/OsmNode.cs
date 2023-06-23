@@ -6,6 +6,8 @@ namespace Osmalyzer
 {
     public class OsmNode : OsmElement
     {
+        public override OsmElementType ElementType => OsmElementType.Node;
+
         [PublicAPI]
         public double Lat => ((Node)RawElement).Latitude!.Value;
         [PublicAPI]

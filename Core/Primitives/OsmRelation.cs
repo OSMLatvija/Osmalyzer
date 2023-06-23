@@ -8,6 +8,8 @@ namespace Osmalyzer
 {
     public class OsmRelation : OsmElement
     {
+        public override OsmElementType ElementType => OsmElementType.Relation;
+
         [PublicAPI]
         public IReadOnlyList<OsmRelationMember> Members => members.AsReadOnly();
 

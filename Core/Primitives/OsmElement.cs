@@ -8,6 +8,10 @@ namespace Osmalyzer
     public abstract class OsmElement
     {
         [PublicAPI]
+        public abstract OsmElementType ElementType { get; }
+
+
+        [PublicAPI]
         public long Id { get; } 
 
         
@@ -62,6 +66,14 @@ namespace Osmalyzer
             return 
                 RawElement.Tags.ContainsKey(key) &&
                 RawElement.Tags.GetValue(key) == value;
+        }
+
+
+        public enum OsmElementType
+        {
+            Node,
+            Way,
+            Relation
         }
     }
 }

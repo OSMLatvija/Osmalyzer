@@ -7,6 +7,8 @@ namespace Osmalyzer
 {
     public class OsmWay : OsmElement
     {
+        public override OsmElementType ElementType => OsmElementType.Way;
+
         [PublicAPI]
         public IReadOnlyList<OsmNode> Nodes => nodes.AsReadOnly();
         

@@ -41,7 +41,7 @@ namespace Osmalyzer
             // As of last benchmark:
             // OSMSharp data load: 9.3 sec
             // Data conversion to own: 7.0 sec (16,3 together with load)
-            // Data cross-linking: 18.9 sec
+            // Data cross-linking: 8.2 sec
             
             Stopwatch sw = Stopwatch.StartNew();
             using FileStream fs = new FileInfo(dataFileName).OpenRead();
@@ -108,7 +108,7 @@ namespace Osmalyzer
 
                         foreach (long rawWayId in rawWay.Nodes)
                         {
-                            OsmNode node = NodesById[rawWayId];
+                            OsmNode node = _nodesById[rawWayId];
                             
                             // Link
                             osmWay.nodes.Add(node);
@@ -128,7 +128,7 @@ namespace Osmalyzer
                             switch (member.ElementType)
                             {
                                 case OsmRelationMember.MemberElementType.Node:
-                                    if (NodesById.TryGetValue(member.Id, out OsmNode? node))
+                                    if (_nodesById.TryGetValue(member.Id, out OsmNode? node))
                                     {
                                         // Link
                                         member.Element = node;
@@ -141,7 +141,7 @@ namespace Osmalyzer
                                     break;
                                     
                                 case OsmRelationMember.MemberElementType.Way:
-                                    if (WaysById.TryGetValue(member.Id, out OsmWay? way))
+                                    if (_waysById.TryGetValue(member.Id, out OsmWay? way))
                                     {
                                         // Link
                                         member.Element = way;
@@ -154,7 +154,7 @@ namespace Osmalyzer
                                     break;
 
                                 case OsmRelationMember.MemberElementType.Relation:
-                                    if (RelationsById.TryGetValue(member.Id, out OsmRelation? relation))
+                                    if (_relationsById.TryGetValue(member.Id, out OsmRelation? relation))
                                     {
                                         // Link
                                         member.Element = relation;

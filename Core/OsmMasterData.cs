@@ -1,11 +1,11 @@
 ﻿#if !REMOTE_EXECUTION
 #define BENCHMARK
+using System.Diagnostics;
 #endif
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
@@ -44,6 +44,10 @@ namespace Osmalyzer
             // OSM data conversion took 3090 ms
             // OSM data linking took 3574 ms
             
+            // At this point, I cannot think of any (non micro-) optimization to do here.
+            // The bulk of the work is 15 sec for the PBF file reading and processing,
+            // so the remaining 6.5 sec are largely irrelevant then.
+
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
             

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using JetBrains.Annotations;
 using OsmSharp;
 using OsmSharp.Streams;
@@ -39,31 +40,32 @@ namespace Osmalyzer
         {
 #if BENCHMARK
             // As of last benchmark:
-            // OSMSharp data load: 9.3 sec
-            // Data conversion to own: 7.0 sec (16,3 together with load)
-            // Data cross-linking: 5.9 sec
+            // OSMSharp data loading took 15398 ms
+            // OSM data conversion took 3138 ms
+            // OSM data linking took 3636 ms
             
-            Stopwatch sw = Stopwatch.StartNew();
-            using FileStream fs = new FileInfo(dataFileName).OpenRead();
-            using PBFOsmStreamSource ss = new PBFOsmStreamSource(fs);
-            foreach (OsmGeo _ in ss) ;
-            sw.Stop();
-            Debug.WriteLine("OSMSharp data loading by itself takes " + sw.ElapsedMilliseconds + " ms");
+            Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
-
-            _elements = new List<OsmElement>();
+            
+            // Read the "raw" elements from the file
 
             using FileStream fileStream = new FileInfo(dataFileName).OpenRead();
 
             using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
 
-            // Read the "raw" elements from the file
+            List<OsmGeo> rawElements = source.ToList();
 
 #if BENCHMARK
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            stopwatch.Stop();
+            Debug.WriteLine("OSMSharp data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+            stopwatch.Restart();
 #endif
             
-            foreach (OsmGeo element in source)
+            // Convert the "raw" elements to our own structure
+
+            _elements = new List<OsmElement>();
+
+            foreach (OsmGeo element in rawElements)
             {
                 OsmElement osmElement = OsmElement.Create(element);
 
@@ -90,7 +92,7 @@ namespace Osmalyzer
             
 #if BENCHMARK
             stopwatch.Stop();
-            Debug.WriteLine("OSM data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+            Debug.WriteLine("OSM data conversion took " + stopwatch.ElapsedMilliseconds + " ms");
             stopwatch.Restart();
 #endif
 

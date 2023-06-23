@@ -1,7 +1,7 @@
-﻿#if !REMOTE_EXECUTION
+﻿//#if !REMOTE_EXECUTION
 #define BENCHMARK
 using System.Diagnostics;
-#endif
+//#endif
 
 using System;
 using System.Collections.Generic;
@@ -61,7 +61,7 @@ namespace Osmalyzer
 
 #if BENCHMARK
             stopwatch.Stop();
-            Debug.WriteLine("OSMSharp data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+            Console.WriteLine("OSMSharp data loading took " + stopwatch.ElapsedMilliseconds + " ms");
             stopwatch.Restart();
 #endif
             
@@ -96,7 +96,7 @@ namespace Osmalyzer
             
 #if BENCHMARK
             stopwatch.Stop();
-            Debug.WriteLine("OSM data conversion took " + stopwatch.ElapsedMilliseconds + " ms");
+            Console.WriteLine("OSM data conversion took " + stopwatch.ElapsedMilliseconds + " ms");
             stopwatch.Restart();
 #endif
 
@@ -174,7 +174,7 @@ namespace Osmalyzer
 
 #if BENCHMARK
             stopwatch.Stop();
-            Debug.WriteLine("OSM data linking took " + stopwatch.ElapsedMilliseconds + " ms");
+            Console.WriteLine("OSM data linking took " + stopwatch.ElapsedMilliseconds + " ms");
 #endif
         }
     }

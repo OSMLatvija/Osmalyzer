@@ -33,6 +33,15 @@ namespace Osmalyzer
 
         public OsmMasterData(string dataFileName)
         {
+#if !REMOTE_EXECUTION
+            Stopwatch sw = Stopwatch.StartNew();
+            using FileStream fs = new FileInfo(dataFileName).OpenRead();
+            using PBFOsmStreamSource ss = new PBFOsmStreamSource(fs);
+            foreach (OsmGeo _ in ss) ;
+            sw.Stop();
+            Debug.WriteLine("OSMSharp data loading by itself takes " + sw.ElapsedMilliseconds + " ms");
+#endif
+
             _elements = new List<OsmElement>();
 
             using FileStream fileStream = new FileInfo(dataFileName).OpenRead();

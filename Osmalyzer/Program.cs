@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -69,9 +70,15 @@ namespace Osmalyzer
 
             for (int i = 0; i < requestedDatas.Count; i++)
             {
-                Console.WriteLine("Retrieving " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
+                Console.Write("Retrieving " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
+
+                Stopwatch retrieveStopwatch = Stopwatch.StartNew();
 
                 requestedDatas[i].Retrieve();
+                
+                retrieveStopwatch.Stop();
+
+                Console.WriteLine(" (" + retrieveStopwatch.ElapsedMilliseconds + " ms)");
             }
 
 
@@ -81,9 +88,15 @@ namespace Osmalyzer
 
             for (int i = 0; i < preparableData.Count; i++)
             {
-                Console.WriteLine("Preparing " + preparableData[i].Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
+                Console.Write("Preparing " + preparableData[i].Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
 
+                Stopwatch prepareStopwatch = Stopwatch.StartNew();
+                
                 preparableData[i].Prepare();
+                
+                prepareStopwatch.Stop();
+
+                Console.WriteLine(" (" + prepareStopwatch.ElapsedMilliseconds + " ms)");
             }
 
 
@@ -94,7 +107,7 @@ namespace Osmalyzer
             
             for (int i = 0; i < analyzers.Count; i++)
             {
-                Console.WriteLine("Parsing " + analyzers[i].Name + " analyzer [" + (i + 1) + "/" + analyzers.Count + "]...");
+                Console.Write("Parsing " + analyzers[i].Name + " analyzer [" + (i + 1) + "/" + analyzers.Count + "]... ");
 
                 List<AnalysisData> datas = new List<AnalysisData>();
 
@@ -103,15 +116,27 @@ namespace Osmalyzer
 
                 Report report = new Report(analyzers[i], datas);
                 
+                Stopwatch parseStopwatch = Stopwatch.StartNew();
+
                 analyzers[i].Run(datas, report);
+                
+                parseStopwatch.Stop();
+
+                Console.WriteLine(" (" + parseStopwatch.ElapsedMilliseconds + " ms)");
 
                 reporter.AddReport(report);
             }
 
+                
+            Stopwatch reportStopwatch = Stopwatch.StartNew();
             
-            Console.WriteLine("Writing reports...");
+            Console.Write("Writing reports...");
             
             reporter.Save();
+            
+            reportStopwatch.Stop();
+            
+            Console.WriteLine(" (" + reportStopwatch.ElapsedMilliseconds + " ms)");
 
 #if !REMOTE_EXECUTION
             // todo: if only one analyzer enabled, then auto-launch the report

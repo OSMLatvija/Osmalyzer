@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
 using OsmSharp;
@@ -39,6 +40,10 @@ namespace Osmalyzer
             using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
 
             // Read the "raw" elements from the file
+
+#if !REMOTE_EXECUTION
+            Stopwatch stopwatch = Stopwatch.StartNew();
+#endif
             
             foreach (OsmGeo element in source)
             {
@@ -64,6 +69,12 @@ namespace Osmalyzer
                         throw new ArgumentOutOfRangeException(nameof(osmElement));
                 }
             }
+            
+#if !REMOTE_EXECUTION
+            stopwatch.Stop();
+            Debug.WriteLine("OSM data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+            stopwatch.Restart();
+#endif
 
             // Link and backlink all the elements together
             
@@ -145,6 +156,11 @@ namespace Osmalyzer
                         break;
                 }
             }
+            
+#if !REMOTE_EXECUTION
+            stopwatch.Stop();
+            Debug.WriteLine("OSM data linking took " + stopwatch.ElapsedMilliseconds + " ms");
+#endif
         }
     }
 }

@@ -46,14 +46,14 @@ namespace Osmalyzer
             _groups.Add(new ReportGroup(id, description));
         }
 
-        public void AddEntry(object groupId, string text, object? context = null)
+        public void AddEntry(object groupId, ReportEntry newEntry)
         {
             if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
             
             
             ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
-            group.AddEntry(new ReportEntry(text, context));
+            group.AddEntry(newEntry);
         }
 
         public List<ReportGroup> CollectEntries()
@@ -70,7 +70,7 @@ namespace Osmalyzer
             
             ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
-            ReportEntry entry = group.Entries.First(e => e.Context == context);
+            ReportEntry entry = group.MainEntries.First(e => e.Context == context);
 
             group.RemoveEntry(entry);
         }
@@ -83,10 +83,12 @@ namespace Osmalyzer
             public string Description { get; }
 
 
-            public ReadOnlyCollection<ReportEntry> Entries => _entries.AsReadOnly();
+            public ReadOnlyCollection<ReportEntry> MainEntries => _mainEntries.AsReadOnly();
+
+            public ReportEntry? PlaceholderEntry { get; private set; }
 
 
-            private readonly List<ReportEntry> _entries = new List<ReportEntry>();
+            private readonly List<ReportEntry> _mainEntries = new List<ReportEntry>();
 
 
             public ReportGroup(object id, string description)
@@ -98,26 +100,56 @@ namespace Osmalyzer
             
             public void AddEntry(ReportEntry newEntry)
             {
-                _entries.Add(newEntry);
+                switch (newEntry)
+                {
+                    case MainReportEntry:
+                        _mainEntries.Add(newEntry);
+                        break;
+                    
+                    case PlaceholderReportEntry:
+                        if (PlaceholderEntry != null) throw new InvalidOperationException("Placeholder entry already set!");
+                        PlaceholderEntry = newEntry;
+                        break;
+                    
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(newEntry));
+                }
             }
 
             public void RemoveEntry(ReportEntry entry)
             {
-                _entries.Remove(entry);
+                _mainEntries.Remove(entry);
             }
         }
 
-        public class ReportEntry
+        public abstract class ReportEntry
         {
             public string Text { get; }
             
             public object? Context { get; }
 
 
-            public ReportEntry(string text, object? context)
+            protected ReportEntry(string text, object? context = null)
             {
                 Text = text;
                 Context = context;
+            }
+        }
+
+        public class MainReportEntry : ReportEntry
+        {
+            public MainReportEntry(string text, object? context = null)
+                : base(text, context)
+            {
+            }
+        }
+
+        /// <summary> Shown if there are no other entries to show </summary>
+        public class PlaceholderReportEntry : ReportEntry
+        {
+            public PlaceholderReportEntry(string text)
+                : base(text)
+            {
             }
         }
     }

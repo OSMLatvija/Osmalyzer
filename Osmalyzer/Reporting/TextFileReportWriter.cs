@@ -16,7 +16,7 @@ namespace Osmalyzer
             foreach (Report.ReportGroup group in report.CollectEntries())
             {
                 reportFile.WriteLine(group.Description);
-                foreach (Report.ReportEntry entry in group.Entries)
+                foreach (Report.ReportEntry entry in group.MainEntries)
                     reportFile.WriteLine(entry.Text);
                 reportFile.WriteLine();
             }

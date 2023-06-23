@@ -115,7 +115,12 @@ namespace Osmalyzer
                     {
                         string osmStopName = matchedStop.GetValue("name")!; // already matched, can't not have name
 
-                        report.AddEntry(ReportGroup.MatchedOsmStopIsTooFar, "RS stop \"" + rsStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - https://www.openstreetmap.org/node/" + matchedStop.Id + " , expecting around https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5"));
+                        report.AddEntry(
+                            ReportGroup.MatchedOsmStopIsTooFar,
+                            new Report.MainReportEntry(
+                                "RS stop \"" + rsStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - https://www.openstreetmap.org/node/" + matchedStop.Id + " , expecting around https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5")
+                            )
+                        );
                     }
 
                     if (!matchedOsmStops.Contains(matchedStop))
@@ -134,15 +139,30 @@ namespace Osmalyzer
                         
                         if (stopInAcceptRange && osmStopName != null) // already knwo it's not a match
                         {
-                            report.AddEntry(ReportGroup.NoStopMatchButHaveClose, "RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to OSM stop \"" + osmStopName + "\" - https://www.openstreetmap.org/node/" + closestStop.Id);
+                            report.AddEntry(
+                                ReportGroup.NoStopMatchButHaveClose, 
+                                new Report.MainReportEntry(
+                                    "RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to OSM stop \"" + osmStopName + "\" - https://www.openstreetmap.org/node/" + closestStop.Id
+                                )
+                            );
                         }
                         else if (stopInAcceptRange && osmStopName == null)
                         {
-                            report.AddEntry(ReportGroup.NoStopMatchButHaveClose, "RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to unnamed OSM stop - https://www.openstreetmap.org/node/" + closestStop.Id);
+                            report.AddEntry(
+                                ReportGroup.NoStopMatchButHaveClose,
+                                new Report.MainReportEntry(
+                                    "RS stop \"" + rsStop.Name + "\" has no matching OSM stop nearby but is closest to unnamed OSM stop - https://www.openstreetmap.org/node/" + closestStop.Id
+                                )
+                            );
                         }
                         else if (!stopInAcceptRange)
                         {
-                            report.AddEntry(ReportGroup.NoStopMatchAndAllFar, "RS stop \"" + rsStop.Name + "\" has no matching OSM stop in range and all other stops are far away (closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + " at " + stopDistance.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5"));
+                            report.AddEntry(
+                                ReportGroup.NoStopMatchAndAllFar,
+                                new Report.MainReportEntry(
+                                    "RS stop \"" + rsStop.Name + "\" has no matching OSM stop in range and all other stops are far away (closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + " at " + stopDistance.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5")
+                                )
+                            );
                         }
                     }
                     else // no stop at all within distance
@@ -150,7 +170,12 @@ namespace Osmalyzer
                         OsmNode farawayStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon)!;
                         double farawayDistance = OsmGeoTools.DistanceBetween(farawayStop.Lat, farawayStop.Lon, rsStop.Lat, rsStop.Lon);
 
-                        report.AddEntry(ReportGroup.NoStopMatchInRange, "No OSM stops at all in range of RS stop \"" + rsStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + "");
+                        report.AddEntry(
+                            ReportGroup.NoStopMatchInRange,
+                            new Report.MainReportEntry(
+                                "No OSM stops at all in range of RS stop \"" + rsStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - https://www.openstreetmap.org/#map=19/" + rsStop.Lat.ToString("F5") + "/" + rsStop.Lon.ToString("F5") + ""
+                            )
+                        );
                     }
                 }
             }
@@ -185,7 +210,12 @@ namespace Osmalyzer
                         }
                     }
 
-                    report.AddEntry(ReportGroup.NoOsmRouteMatch, "RS " + rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop") + ")")) + ".");
+                    report.AddEntry(
+                        ReportGroup.NoOsmRouteMatch, 
+                        new Report.MainReportEntry(
+                            "RS " + rsRoute.CleanType + " route #" + rsRoute.Number + " \"" + rsRoute.Name + "\" did not match any OSM route. RS end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? "https://www.openstreetmap.org/node/" + fullyMatchedStops[s].Id : "no matched OSM stop") + ")")) + "."
+                        )
+                    );
                 }
                 else
                 {
@@ -215,13 +245,15 @@ namespace Osmalyzer
                                         missingRsStops.Add(rsStop);
                                         report.AddEntry(
                                             ReportGroup.RsRouteMissingOsmStop, 
-                                            "RS " + rsRoute.CleanType + " route's #" + rsRoute.Number + " \"" + rsRoute.Name + "\" " +
-                                            //"trip's #" + trip.Id + " " + -- meaningless ID since many repeat it and this is first found
-                                            "stop \"" + rsStop.Name + "\" matched to " +
-                                            "OSM stop " + expectedOsmStop.GetValue("name") + "\" https://www.openstreetmap.org/node/" + expectedOsmStop.Id + " " +
-                                            "was not in the matched " +
-                                            "OSM route \"" + osmRoute.GetValue("name") + "\" https://www.openstreetmap.org/relation/" + osmRoute.Id + ".", 
-                                            rsStop
+                                            new Report.MainReportEntry(
+                                                "RS " + rsRoute.CleanType + " route's #" + rsRoute.Number + " \"" + rsRoute.Name + "\" " +
+                                                //"trip's #" + trip.Id + " " + -- meaningless ID since many repeat it and this is first found
+                                                "stop \"" + rsStop.Name + "\" matched to " +
+                                                "OSM stop " + expectedOsmStop.GetValue("name") + "\" https://www.openstreetmap.org/node/" + expectedOsmStop.Id + " " +
+                                                "was not in the matched " +
+                                                "OSM route \"" + osmRoute.GetValue("name") + "\" https://www.openstreetmap.org/relation/" + osmRoute.Id + ".", 
+                                                rsStop
+                                            )
                                         );
                                     }
                                 }
@@ -239,13 +271,15 @@ namespace Osmalyzer
                                     missingOsmStops.Add(routeStop);
                                     report.AddEntry(
                                         ReportGroup.OsmRouteExtraStop, 
-                                        "OSM route \"" + osmRoute.GetValue("name") + "\" https://www.openstreetmap.org/relation/" + osmRoute.Id + " " +
-                                        "has " + (routeStop.HasKey("name") ? "a stop \"" + routeStop.GetValue("name") + "\"" : "an unnamed stop") + " https://www.openstreetmap.org/node/" + routeStop.Id + 
-                                        ", which is not in the matched " +
-                                        "RS " + rsRoute.CleanType + " route's #" + rsRoute.Number + " \"" + rsRoute.Name + "\" " +
-                                        //"trip #" + trip.Id + -- meaningless ID since many repeat it and this is first found
-                                        ".", 
-                                        routeStop
+                                        new Report.MainReportEntry(
+                                            "OSM route \"" + osmRoute.GetValue("name") + "\" https://www.openstreetmap.org/relation/" + osmRoute.Id + " " +
+                                            "has " + (routeStop.HasKey("name") ? "a stop \"" + routeStop.GetValue("name") + "\"" : "an unnamed stop") + " https://www.openstreetmap.org/node/" + routeStop.Id + 
+                                            ", which is not in the matched " +
+                                            "RS " + rsRoute.CleanType + " route's #" + rsRoute.Number + " \"" + rsRoute.Name + "\" " +
+                                            //"trip #" + trip.Id + -- meaningless ID since many repeat it and this is first found
+                                            ".", 
+                                            routeStop
+                                        )
                                     );
                                 }
                             }
@@ -266,14 +300,16 @@ namespace Osmalyzer
 
                                     report.AddEntry(
                                         ReportGroup.StopRematchFromRoutes,
-                                        "RS " + rsRoute.CleanType + " route's #" + rsRoute.Number + " \"" + rsRoute.Name + "\" " +
-                                        //"trip's #" + trip.Id + " " + -- meaningless ID since many repeat it and this is first found
-                                        "stop \"" + rsStop.Name + "\" " +
-                                        "and OSM route's \"" + osmRoute.GetValue("name") + "\" https://www.openstreetmap.org/relation/" + osmRoute.Id + " " +
-                                        "stop \"" + possibleRematch.GetValue("name") + "\" https://www.openstreetmap.org/node/" + possibleRematch.Id + " " +
-                                        "appear in both routes but did not cross-match originally " +
-                                        "(RS stop matched \"" + originalMatch.GetValue("name") + "\" https://www.openstreetmap.org/node/" + originalMatch.Id + " " + distance.ToString("F0") + " m away)" +
-                                        "."
+                                        new Report.MainReportEntry(
+                                            "RS " + rsRoute.CleanType + " route's #" + rsRoute.Number + " \"" + rsRoute.Name + "\" " +
+                                            //"trip's #" + trip.Id + " " + -- meaningless ID since many repeat it and this is first found
+                                            "stop \"" + rsStop.Name + "\" " +
+                                            "and OSM route's \"" + osmRoute.GetValue("name") + "\" https://www.openstreetmap.org/relation/" + osmRoute.Id + " " +
+                                            "stop \"" + possibleRematch.GetValue("name") + "\" https://www.openstreetmap.org/node/" + possibleRematch.Id + " " +
+                                            "appear in both routes but did not cross-match originally " +
+                                            "(RS stop matched \"" + originalMatch.GetValue("name") + "\" https://www.openstreetmap.org/node/" + originalMatch.Id + " " + distance.ToString("F0") + " m away)" +
+                                            "."
+                                        )
                                     );
                                 }
                             }

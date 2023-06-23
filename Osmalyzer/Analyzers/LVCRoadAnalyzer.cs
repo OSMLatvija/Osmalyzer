@@ -124,17 +124,22 @@ namespace Osmalyzer
             if (mappedRoadsNotFoundInLawFormatted.Count > 0)
             {
                 report.AddEntry(
-                    ReportGroup.MappedRoadsNotFoundInLaw, 
-                    (mappedRoadsNotFoundInLawFormatted.Count > 1 ? "Roads" : "Road") + " " +
-                    string.Join(", ", mappedRoadsNotFoundInLawFormatted.OrderBy(v => v)) +
-                    " " + (mappedRoadsNotFoundInLawFormatted.Count > 1 ? "are" : "is") + " on the map, but not in the law." +
-                    (anyStricken ? " † Marked as stricken." : "") +
-                    (anyHistoric ? " ‡ Formerly stricken." : "")
+                    ReportGroup.MappedRoadsNotFoundInLaw,
+                    new Report.MainReportEntry(
+                        (mappedRoadsNotFoundInLawFormatted.Count > 1 ? "Roads" : "Road") + " " +
+                        string.Join(", ", mappedRoadsNotFoundInLawFormatted.OrderBy(v => v)) +
+                        " " + (mappedRoadsNotFoundInLawFormatted.Count > 1 ? "are" : "is") + " on the map, but not in the law." +
+                        (anyStricken ? " † Marked as stricken." : "") +
+                        (anyHistoric ? " ‡ Formerly stricken." : "")
+                    )
                 );
             }
             else
             {
-                report.AddEntry(ReportGroup.MappedRoadsNotFoundInLaw, "All roads on the map are present in the law.");
+                report.AddEntry(
+                    ReportGroup.MappedRoadsNotFoundInLaw, 
+                    new Report.MainReportEntry("All roads on the map are present in the law.")
+                );
             }
 
             // Road in law but not on map
@@ -155,14 +160,19 @@ namespace Osmalyzer
             {
                 report.AddEntry(
                     ReportGroup.LawedRoadsNotFoundOnMap,
-                    (lawedRoadsNotFoundOnMap.Count > 1 ? "Roads" : "Road") + " " +
-                    string.Join(", ", lawedRoadsNotFoundOnMap) +
-                    " " + (lawedRoadsNotFoundOnMap.Count > 1 ? "are" : "is") + " in the law, but not on the map."
+                        new Report.MainReportEntry(
+                        (lawedRoadsNotFoundOnMap.Count > 1 ? "Roads" : "Road") + " " +
+                        string.Join(", ", lawedRoadsNotFoundOnMap) +
+                        " " + (lawedRoadsNotFoundOnMap.Count > 1 ? "are" : "is") + " in the law, but not on the map."
+                    )
                 );
             }
             else
             {
-                report.AddEntry(ReportGroup.LawedRoadsNotFoundOnMap, "All roads in the law are present on the map.");
+                report.AddEntry(
+                    ReportGroup.LawedRoadsNotFoundOnMap, 
+                    new Report.MainReportEntry("All roads in the law are present on the map.")
+                );
             }
 
             // Check shared segments
@@ -210,17 +220,19 @@ namespace Osmalyzer
             if (unsharedSegments.Count > 0)
             {
                 report.AddEntry(
-                    ReportGroup.UnsharedSegments, 
-                    (unsharedSegments.Count > 1 ? "These roads do" : "This road does") + " not have expected overlapping segments as in the law: " +
-                    string.Join("; ", unsharedSegments.OrderBy(s => s.Item1).Select(s => s.Item1 + " with " + string.Join(", ", s.Item2.OrderBy(i => i)))) +
-                    "."
+                    ReportGroup.UnsharedSegments,
+                    new Report.MainReportEntry(
+                        (unsharedSegments.Count > 1 ? "These roads do" : "This road does") + " not have expected overlapping segments as in the law: " +
+                        string.Join("; ", unsharedSegments.OrderBy(s => s.Item1).Select(s => s.Item1 + " with " + string.Join(", ", s.Item2.OrderBy(i => i)))) +
+                        "."
+                    )
                 );
             }
             else
             {
                 report.AddEntry(
                     ReportGroup.UnsharedSegments, 
-                    "All roads have expected shared segments as in the law."
+                    new Report.MainReportEntry("All roads have expected shared segments as in the law.")
                 );
             }
 
@@ -272,11 +284,13 @@ namespace Osmalyzer
 
                     report.AddEntry(
                         ReportGroup.SharedRefsNotInLaw,
-                        $"These segments share refs \"{refA}\" and \"{refB}\", but are not in the law: " +
-                        (roads.Count > 5 ?
-                            $" on {roads.Count} road (segments)" :
-                            "on these road (segments): " + string.Join(", ", roads.Select(e => "https://www.openstreetmap.org/way/" + e.Id))) +
-                        "."
+                        new Report.MainReportEntry(
+                            $"These segments share refs \"{refA}\" and \"{refB}\", but are not in the law: " +
+                            (roads.Count > 5 ?
+                                $" on {roads.Count} road (segments)" :
+                                "on these road (segments): " + string.Join(", ", roads.Select(e => "https://www.openstreetmap.org/way/" + e.Id))) +
+                            "."
+                        )
                     );
                 }
             }
@@ -333,14 +347,16 @@ namespace Osmalyzer
             {
                 report.AddEntry(
                     ReportGroup.MissingRelations,
-                    (missingRelations.Count > 1 ? "These route relations are missing" : "This route relation is missing") + ": " +
-                    string.Join(", ", missingRelations.OrderBy(c => c)) +
-                    "."
+                    new Report.MainReportEntry(
+                        (missingRelations.Count > 1 ? "These route relations are missing" : "This route relation is missing") + ": " +
+                        string.Join(", ", missingRelations.OrderBy(c => c)) +
+                        "."
+                    )
                 );
             }
             else
             {
-                report.AddEntry(ReportGroup.MissingRelations, "There are route relations for all mapped road codes.");
+                report.AddEntry(ReportGroup.MissingRelations, new Report.MainReportEntry("There are route relations for all mapped road codes."));
             }
 
             report.AddGroup(ReportGroup.ExtraRelations, "These route relations don't have a road with such code:");
@@ -349,17 +365,20 @@ namespace Osmalyzer
             {
                 report.AddEntry(
                     ReportGroup.ExtraRelations,
-                    (extraRelations.Count > 1 ? "These route relations don't" : "This route relation doesn't") + " have a road with such code: " +
-                    string.Join(", ", extraRelations.OrderBy(c => c)) +
-                    "."
+                    new Report.MainReportEntry(
+                        (extraRelations.Count > 1 ? "These route relations don't" : "This route relation doesn't") + " have a road with such code: " +
+                        string.Join(", ", extraRelations.OrderBy(c => c)) +
+                        "."
+                    )
                 );
             }
             else
             {
-                report.AddEntry(ReportGroup.ExtraRelations, "There are no route relations with codes that no road uses.");
+                report.AddEntry(ReportGroup.ExtraRelations, new Report.MainReportEntry("There are no route relations with codes that no road uses."));
             }
 
             report.AddGroup(ReportGroup.RelationsWithSameRef, "These route relations have the same code:");
+            report.AddEntry(ReportGroup.RelationsWithSameRef, new Report.PlaceholderReportEntry("There are no route relations that use the same ref (that is, all route refs are unique)."));
 
             if (relationsWithSameRef.Count > 0)
             {
@@ -369,10 +388,12 @@ namespace Osmalyzer
 
                     report.AddEntry(
                         ReportGroup.RelationsWithSameRef,
-                        "These " + sameRefRoutes.Count + " route relations have the same code " + routeRef + ": " +
-                        string.Join("; ", sameRefRoutes.Select(
-                                        r => (r.HasKey("name") ? "\"" + r.GetValue("name") + "\"" : "unnamed") + " https://www.openstreetmap.org/relation/" + r.Id + "")
-                        ) + "."
+                        new Report.MainReportEntry(
+                            "These " + sameRefRoutes.Count + " route relations have the same code " + routeRef + ": " +
+                            string.Join("; ", sameRefRoutes.Select(
+                                            r => (r.HasKey("name") ? "\"" + r.GetValue("name") + "\"" : "unnamed") + " https://www.openstreetmap.org/relation/" + r.Id + "")
+                            ) + "."
+                        )
                     );
                 }
             }
@@ -401,12 +422,14 @@ namespace Osmalyzer
                 {
                     report.AddEntry(
                         ReportGroup.UnrecognizedRoadsByRef,
-                        "Road ref " +
-                        "\"" + osmGroup.Value + "\" " +
-                        "not recognized " +
-                        (osmGroup.Elements.Count > 5 ?
-                            " on " + osmGroup.Elements.Count + " road (segments)" :
-                            "on these road (segments): " + string.Join(", ", osmGroup.Elements.Select(e => "https://www.openstreetmap.org/way/" + e.Id))
+                        new Report.MainReportEntry(
+                            "Road ref " +
+                            "\"" + osmGroup.Value + "\" " +
+                            "not recognized " +
+                            (osmGroup.Elements.Count > 5 ?
+                                " on " + osmGroup.Elements.Count + " road (segments)" :
+                                "on these road (segments): " + string.Join(", ", osmGroup.Elements.Select(e => "https://www.openstreetmap.org/way/" + e.Id))
+                            )
                         )
                     );
                 }
@@ -415,7 +438,7 @@ namespace Osmalyzer
                 {
                     report.AddEntry(
                         ReportGroup.UnrecognizedRoadsByRef,
-                        excludedCount + " refs are ignored/excluded."
+                        new Report.MainReportEntry(excludedCount + " refs are ignored/excluded.")
                     );
                 }
             }
@@ -423,9 +446,11 @@ namespace Osmalyzer
             {
                 report.AddEntry(
                     ReportGroup.UnrecognizedRoadsByRef, 
-                    "All road refs are recognized" +
-                    (excludedCount > 0 ? " and " + excludedCount + " are ignored/excluded" : "") +
-                    "."
+                    new Report.MainReportEntry(
+                        "All road refs are recognized" +
+                        (excludedCount > 0 ? " and " + excludedCount + " are ignored/excluded" : "") +
+                        "."
+                    )
                 );
             }
             

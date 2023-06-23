@@ -50,7 +50,14 @@ namespace Osmalyzer
                 
                 foreach (OsmRelationMember member in relation.Members)
                 {
-                    OsmElement roadSegment = member.Element!;
+                    if (member.Element == null)
+                        continue;
+                    
+                    if (member.Element is not OsmWay roadSegment)
+                        continue;
+                    
+                    if (member.Role == "platform") // todo: or should it only accept empty?
+                        continue;
 
                     string? trolley_wire = roadSegment.GetValue("trolley_wire");
                     string? trolley_wire_forward = roadSegment.GetValue("trolley_wire:forward");

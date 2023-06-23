@@ -40,9 +40,9 @@ namespace Osmalyzer
         {
 #if BENCHMARK
             // As of last benchmark:
-            // OSMSharp data loading took 15398 ms
-            // OSM data conversion took 3138 ms
-            // OSM data linking took 3636 ms
+            // OSMSharp data loading took 15336 ms
+            // OSM data conversion took 3090 ms
+            // OSM data linking took 3574 ms
             
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
@@ -97,86 +97,77 @@ namespace Osmalyzer
 #endif
 
             // Link and backlink all the elements together
-            
-            foreach (OsmElement element in _elements)
+
+            foreach (OsmWay osmWay in _waysById.Values)
             {
-                switch (element)
+                Way rawWay = (Way)osmWay.RawElement;
+
+                foreach (long rawWayId in rawWay.Nodes)
                 {
-                    case OsmNode:
-                        break;
+                    OsmNode node = _nodesById[rawWayId];
 
-                    case OsmWay osmWay:
-                        Way rawWay = (Way)osmWay.RawElement;
+                    // Link
+                    osmWay.nodes.Add(node);
 
-                        foreach (long rawWayId in rawWay.Nodes)
-                        {
-                            OsmNode node = _nodesById[rawWayId];
-                            
-                            // Link
-                            osmWay.nodes.Add(node);
-                            
-                            // Backlink
-                            if (node.ways == null) 
-                                node.ways = new List<OsmNode>();
-                            
-                            node.ways.Add(node);
-                        }
+                    // Backlink
+                    if (node.ways == null)
+                        node.ways = new List<OsmNode>();
 
-                        break;
-                    
-                    case OsmRelation osmRelation:
-                        foreach (OsmRelationMember member in osmRelation.members)
-                        {
-                            switch (member.ElementType)
-                            {
-                                case OsmRelationMember.MemberElementType.Node:
-                                    if (_nodesById.TryGetValue(member.Id, out OsmNode? node))
-                                    {
-                                        // Link
-                                        member.Element = node;
-                                        // Backlink
-                                        if (node.relations == null)
-                                            node.relations = new List<OsmRelationMember>();
-                                        node.relations.Add(member);
-                                    }
-
-                                    break;
-                                    
-                                case OsmRelationMember.MemberElementType.Way:
-                                    if (_waysById.TryGetValue(member.Id, out OsmWay? way))
-                                    {
-                                        // Link
-                                        member.Element = way;
-                                        // Backlink
-                                        if (way.relations == null)
-                                            way.relations = new List<OsmRelationMember>();
-                                        way.relations.Add(member);
-                                    }
-
-                                    break;
-
-                                case OsmRelationMember.MemberElementType.Relation:
-                                    if (_relationsById.TryGetValue(member.Id, out OsmRelation? relation))
-                                    {
-                                        // Link
-                                        member.Element = relation;
-                                        // Backlink
-                                        if (relation.relations == null)
-                                            relation.relations = new List<OsmRelationMember>();
-                                        relation.relations.Add(member);
-                                    }
-
-                                    break;
-                                    
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
-                        }
-
-                        break;
+                    node.ways.Add(node);
                 }
             }
-            
+
+            foreach (OsmRelation osmRelation in _relationsById.Values)
+            {
+                foreach (OsmRelationMember member in osmRelation.members)
+                {
+                    switch (member.ElementType)
+                    {
+                        case OsmRelationMember.MemberElementType.Node:
+                            if (_nodesById.TryGetValue(member.Id, out OsmNode? node))
+                            {
+                                // Link
+                                member.Element = node;
+                                // Backlink
+                                if (node.relations == null)
+                                    node.relations = new List<OsmRelationMember>();
+                                node.relations.Add(member);
+                            }
+
+                            break;
+
+                        case OsmRelationMember.MemberElementType.Way:
+                            if (_waysById.TryGetValue(member.Id, out OsmWay? way))
+                            {
+                                // Link
+                                member.Element = way;
+                                // Backlink
+                                if (way.relations == null)
+                                    way.relations = new List<OsmRelationMember>();
+                                way.relations.Add(member);
+                            }
+
+                            break;
+
+                        case OsmRelationMember.MemberElementType.Relation:
+                            if (_relationsById.TryGetValue(member.Id, out OsmRelation? relation))
+                            {
+                                // Link
+                                member.Element = relation;
+                                // Backlink
+                                if (relation.relations == null)
+                                    relation.relations = new List<OsmRelationMember>();
+                                relation.relations.Add(member);
+                            }
+
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+
 #if BENCHMARK
             stopwatch.Stop();
             Debug.WriteLine("OSM data linking took " + stopwatch.ElapsedMilliseconds + " ms");

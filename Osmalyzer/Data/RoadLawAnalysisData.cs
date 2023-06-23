@@ -21,10 +21,5 @@ namespace Osmalyzer
                 DataFileName
             );
         }
-
-        public override void Prepare()
-        {
-            // Don't need to prepare anything
-        }
     }
 }

@@ -21,8 +21,6 @@ namespace Osmalyzer
 
         public abstract void Retrieve();
 
-        public abstract void Prepare();
-
         
         protected void StoreDataDate(DateTime newDate)
         {

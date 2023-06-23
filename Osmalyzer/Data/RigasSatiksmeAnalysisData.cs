@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class RigasSatiksmeAnalysisData : AnalysisData
+    public class RigasSatiksmeAnalysisData : PreparableAnalysisData
     {
         public override string Name => "Rigas Satiksme";
         

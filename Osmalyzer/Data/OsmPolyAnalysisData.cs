@@ -70,11 +70,5 @@ namespace Osmalyzer
                 return DateTime.Parse(newestDateString);
             }
         }
-
-
-        public override void Prepare()
-        {
-            // Don't need to prepare anything
-        }
     }
 }

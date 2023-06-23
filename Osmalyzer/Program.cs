@@ -32,9 +32,9 @@ namespace Osmalyzer
             {
                 new RigasSatiksmeAnalyzer(),
                 new LVCRoadAnalyzer(),
-                //new HighwaySpeedConditionalAnalyzer(),
-                //new TrolleybusWireAnalyzer(),
-                //new CommonBrandsAnalyzer(),
+                new HighwaySpeedConditionalAnalyzer(),
+                new TrolleybusWireAnalyzer(),
+                new CommonBrandsAnalyzer(),
             };
 #endif
 
@@ -77,11 +77,13 @@ namespace Osmalyzer
 
             Console.WriteLine("Preparing data...");
 
-            for (int i = 0; i < requestedDatas.Count; i++)
-            {
-                Console.WriteLine("Preparing " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
+            List<PreparableAnalysisData> preparableData = requestedDatas.OfType<PreparableAnalysisData>().ToList();
 
-                requestedDatas[i].Prepare();
+            for (int i = 0; i < preparableData.Count; i++)
+            {
+                Console.WriteLine("Preparing " + preparableData[i].Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
+
+                preparableData[i].Prepare();
             }
 
 

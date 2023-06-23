@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class OsmAnalysisData : AnalysisData
+    public class OsmAnalysisData : PreparableAnalysisData
     {
         public override string Name => "OSM";
         
@@ -73,7 +73,6 @@ namespace Osmalyzer
                 return DateTime.Parse(newestDateString);
             }
         }
-
 
         public override void Prepare()
         {

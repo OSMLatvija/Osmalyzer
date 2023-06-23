@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if !REMOTE_EXECUTION
+#define BENCHMARK
+#endif
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -33,7 +37,12 @@ namespace Osmalyzer
 
         public OsmMasterData(string dataFileName)
         {
-#if !REMOTE_EXECUTION
+#if BENCHMARK
+            // As of last benchmark:
+            // OSMSharp data load: 9.3 sec
+            // Data conversion to own: 7.0 sec (16,3 together with load)
+            // Data cross-linking: 18.9 sec
+            
             Stopwatch sw = Stopwatch.StartNew();
             using FileStream fs = new FileInfo(dataFileName).OpenRead();
             using PBFOsmStreamSource ss = new PBFOsmStreamSource(fs);
@@ -50,7 +59,7 @@ namespace Osmalyzer
 
             // Read the "raw" elements from the file
 
-#if !REMOTE_EXECUTION
+#if BENCHMARK
             Stopwatch stopwatch = Stopwatch.StartNew();
 #endif
             
@@ -79,7 +88,7 @@ namespace Osmalyzer
                 }
             }
             
-#if !REMOTE_EXECUTION
+#if BENCHMARK
             stopwatch.Stop();
             Debug.WriteLine("OSM data loading took " + stopwatch.ElapsedMilliseconds + " ms");
             stopwatch.Restart();
@@ -166,7 +175,7 @@ namespace Osmalyzer
                 }
             }
             
-#if !REMOTE_EXECUTION
+#if BENCHMARK
             stopwatch.Stop();
             Debug.WriteLine("OSM data linking took " + stopwatch.ElapsedMilliseconds + " ms");
 #endif

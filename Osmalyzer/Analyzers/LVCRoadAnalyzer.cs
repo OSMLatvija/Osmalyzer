@@ -224,7 +224,7 @@ namespace Osmalyzer
                 );
             }
 
-            List<(string, string)> uniqueRefPairs = new List<(string, string)>();
+            List<(string, string, List<OsmElement>)> uniqueRefPairs = new List<(string, string, List<OsmElement>)>();
 
             foreach (OsmElement reffedRoad in reffedRoads.Elements)
             {
@@ -239,18 +239,23 @@ namespace Osmalyzer
                             string refA = refs[a];
                             string refB = refs[b];
 
-                            bool found = uniqueRefPairs.Any(r =>
-                                                                (r.Item1 == refA && r.Item2 == refB) ||
-                                                                (r.Item1 == refB && r.Item2 == refA));
+                            (string, string, List<OsmElement>) existing = uniqueRefPairs
+                                .FirstOrDefault(r =>
+                                                    (r.Item1 == refA && r.Item2 == refB) ||
+                                                    (r.Item1 == refB && r.Item2 == refA));
 
-                            if (!found)
-                                uniqueRefPairs.Add((refA, refB));
+                            if (existing.Item3 != null)
+                                existing.Item3.Add(reffedRoad);
+                            else
+                                uniqueRefPairs.Add((refA, refB, new List<OsmElement>() { reffedRoad }));
                         }
                     }
                 }
             }
 
-            List<string> sharedRefsNotInLaw = new List<string>();
+            report.AddGroup(ReportGroup.SharedRefsNotInLaw, "These roads have shared ref segments that are not in the law:");
+            
+            //todo: for empty report.AddEntry(ReportGroup.SharedRefsNotInLaw, "There are no roads with shared refs that are not in the law.");
 
             for (int i = 0; i < uniqueRefPairs.Count; i++)
             {
@@ -262,26 +267,19 @@ namespace Osmalyzer
                                                             ss.Key == refB && ss.Value.Contains(refA));
 
                 if (!found)
-                    sharedRefsNotInLaw.Add(refA + " + " + refB);
-            }
+                {
+                    List<OsmElement> roads = uniqueRefPairs[i].Item3;
 
-            report.AddGroup(ReportGroup.SharedRefsNotInLaw, "These roads have shared segments that are not in the law:");
-
-            if (sharedRefsNotInLaw.Count > 0)
-            {
-                report.AddEntry(
-                    ReportGroup.SharedRefsNotInLaw, 
-                    (sharedRefsNotInLaw.Count > 1 ? "These roads have" : "This road has") + " shared segments that are not in the law: " +
-                    string.Join("; ", sharedRefsNotInLaw.OrderBy(s => s)) +
-                    "."
-                );
+                    report.AddEntry(
+                        ReportGroup.SharedRefsNotInLaw,
+                        $"These segments share refs \"{refA}\" and \"{refB}\", but are not in the law: " +
+                        (roads.Count > 5 ?
+                            $" on {roads.Count} road (segments)" :
+                            "on these road (segments): " + string.Join(", ", roads.Select(e => "https://www.openstreetmap.org/way/" + e.Id))) +
+                        "."
+                    );
+                }
             }
-            else
-            {
-                report.AddEntry(ReportGroup.SharedRefsNotInLaw, "There are no roads with shared refs that are not in the law.");
-            }
-
-            // todo: roads sharing segments not defined in law
             
             // todo: unconnected segments, i.e. gaps
             

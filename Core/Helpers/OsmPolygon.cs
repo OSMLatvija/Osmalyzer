@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Osmalyzer
 {
@@ -41,18 +42,55 @@ namespace Osmalyzer
             }
         }
 
-        public bool ContainsElement(OsmElement element)
+        public bool ContainsElement(OsmElement element, RelationInclusionCheck relationInclusionCheck)
         {
             switch (element)
             {
                 case OsmNode node: return ContainsCoord(node.Lat, node.Lon);
-                
-                case OsmRelation: return true; // todo: do I care?
-                    
+
                 case OsmWay way:
+                {
                     (double lat, double lon) averageCoord = way.GetAverageNodeCoord();
                     return ContainsCoord(averageCoord.lat, averageCoord.lon);
+                }
                 
+                case OsmRelation relation:
+                {
+                    switch (relationInclusionCheck)
+                    {
+                        case RelationInclusionCheck.Fuzzy:
+                            int count = 0;
+                            int contains = 0;
+                    
+                            foreach (OsmElement osmElement in relation.Elements)
+                            {
+                                switch (osmElement)
+                                {
+                                    case OsmWay way:
+                                    {
+                                        count += way.nodes.Count;
+                                        if (ContainsElement(way, relationInclusionCheck))
+                                            contains += way.nodes.Count;
+                                        break;
+                                    }
+                            
+                                    case OsmNode node:
+                                    {
+                                        count++;
+                                        if (ContainsElement(node, relationInclusionCheck))
+                                            contains++;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            return (float)contains / count > 0.3f;
+                        
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(relationInclusionCheck), relationInclusionCheck, null);
+                    }
+                }
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(element));
             }
@@ -90,6 +128,16 @@ namespace Osmalyzer
             streamWriter.WriteLine("END");
             
             streamWriter.Close();
+        }
+
+
+        public enum RelationInclusionCheck
+        {
+            /// <summary>
+            /// Relations are included if a decent portion of their elements are included.
+            /// This means relations like roads that barely enter the polygon won't get listed.
+            /// </summary>
+            Fuzzy
         }
     }
 }

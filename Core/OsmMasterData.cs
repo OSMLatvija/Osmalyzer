@@ -41,7 +41,7 @@ namespace Osmalyzer
             // As of last benchmark:
             // OSMSharp data load: 9.3 sec
             // Data conversion to own: 7.0 sec (16,3 together with load)
-            // Data cross-linking: 8.2 sec
+            // Data cross-linking: 5.9 sec
             
             Stopwatch sw = Stopwatch.StartNew();
             using FileStream fs = new FileInfo(dataFileName).OpenRead();

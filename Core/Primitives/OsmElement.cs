@@ -69,6 +69,15 @@ namespace Osmalyzer
         }
 
 
+        /// <summary>
+        /// Speeding up collections with hashing, basically dictionaries
+        /// </summary>
+        public override int GetHashCode()
+        {
+            return (int)Id ^ (int)(Id >> 32);
+        }
+
+
         public enum OsmElementType
         {
             Node,

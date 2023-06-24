@@ -11,7 +11,10 @@ namespace Osmalyzer
     public abstract class OsmData
     {
         [PublicAPI]
-        public abstract IReadOnlyList<OsmElement> Elements { get; }
+        public IReadOnlyList<OsmElement> Elements => elements.AsReadOnly();
+
+        
+        protected internal List<OsmElement> elements = null!; // will be set by whichever child constructor
 
 
         [Pure]
@@ -19,7 +22,7 @@ namespace Osmalyzer
         {
             List<OsmElement> filteredElements = new List<OsmElement>();
 
-            foreach (OsmElement element in Elements)
+            foreach (OsmElement element in elements)
                 if (OsmElementMatchesFilters(element, filters))
                     filteredElements.Add(element);
 
@@ -29,26 +32,26 @@ namespace Osmalyzer
         [Pure]
         public List<OsmDataExtract> Filter(List<OsmFilter[]> filters)
         {
-            List<List<OsmElement>> elements = new List<List<OsmElement>>(filters.Count);
+            List<List<OsmElement>> filteredElements = new List<List<OsmElement>>(filters.Count);
             for (int i = 0; i < filters.Count; i++)
-                elements.Add(new List<OsmElement>());
+                filteredElements.Add(new List<OsmElement>());
 
-            foreach (OsmElement element in Elements)
+            foreach (OsmElement element in elements)
                 for (int i = 0; i < filters.Count; i++)
                     if (OsmElementMatchesFilters(element, filters[i]))
-                        elements[i].Add(element);
+                        filteredElements[i].Add(element);
 
             List<OsmDataExtract> extracts = new List<OsmDataExtract>(filters.Count);
 
             for (int i = 0; i < filters.Count; i++)
-                extracts.Add(new OsmDataExtract(GetFullData(), elements[i]));
+                extracts.Add(new OsmDataExtract(GetFullData(), filteredElements[i]));
 
             return extracts;
         }
         
         public OsmElement? Find(params OsmFilter[] filters)
         {
-            foreach (OsmElement element in Elements)
+            foreach (OsmElement element in elements)
                 if (OsmElementMatchesFilters(element, filters))
                     return element;
 
@@ -62,13 +65,13 @@ namespace Osmalyzer
         [Pure]
         public OsmDataExtract Subtract(OsmData other)
         {
-            List<OsmElement> elements = new List<OsmElement>();
+            List<OsmElement> remainingElements = new List<OsmElement>();
 
-            foreach (OsmElement element in Elements)
-                if (!other.Elements.Contains(element))
-                    elements.Add(element);
+            foreach (OsmElement element in elements)
+                if (!other.elements.Contains(element))
+                    remainingElements.Add(element);
 
-            return new OsmDataExtract(GetFullData(), elements);
+            return new OsmDataExtract(GetFullData(), remainingElements);
         }
 
 
@@ -108,7 +111,7 @@ namespace Osmalyzer
 
             List<string> values = new List<string>();
 
-            foreach (OsmElement element in Elements)
+            foreach (OsmElement element in elements)
             {
                 if (element.RawElement.Tags != null)
                 {
@@ -154,7 +157,7 @@ namespace Osmalyzer
         {
             List<string> values = new List<string>();
 
-            foreach (OsmElement element in Elements)
+            foreach (OsmElement element in elements)
             {
                 if (element.RawElement.Tags != null &&
                     element.RawElement.Tags.ContainsKey(tag))
@@ -194,7 +197,7 @@ namespace Osmalyzer
             double bestDistance = 0.0;
             closestDistance = null;
 
-            foreach (OsmElement element in Elements)
+            foreach (OsmElement element in elements)
             {
                 if (element is not OsmNode node)
                     continue; // only care about nodes
@@ -234,7 +237,7 @@ namespace Osmalyzer
         {
             List<(double, OsmNode)> nodes = new List<(double, OsmNode)>(); // todo: presorted collection
 
-            foreach (OsmElement element in Elements)
+            foreach (OsmElement element in elements)
             {
                 if (element is not OsmNode node)
                     continue; // only care about nodes

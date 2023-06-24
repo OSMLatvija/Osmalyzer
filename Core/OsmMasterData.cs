@@ -19,13 +19,6 @@ namespace Osmalyzer
     /// </summary>
     public class OsmMasterData : OsmData
     {
-        [PublicAPI]
-        public override IReadOnlyList<OsmElement> Elements => _elements.AsReadOnly();
-
-
-        private readonly List<OsmElement> _elements;
-
-        
         internal ReadOnlyDictionary<long, OsmNode> NodesById => new ReadOnlyDictionary<long, OsmNode>(_nodesById);
         internal ReadOnlyDictionary<long, OsmWay> WaysById => new ReadOnlyDictionary<long, OsmWay>(_waysById);
         internal ReadOnlyDictionary<long, OsmRelation> RelationsById => new ReadOnlyDictionary<long, OsmRelation>(_relationsById);
@@ -87,13 +80,13 @@ namespace Osmalyzer
             _waysById = new Dictionary<long, OsmWay>(wayCount);
             _relationsById = new Dictionary<long, OsmRelation>(relationCount);
             
-            _elements = new List<OsmElement>(rawElements.Count);
+            elements = new List<OsmElement>(rawElements.Count);
 
             foreach (OsmGeo element in rawElements)
             {
                 OsmElement osmElement = OsmElement.Create(element);
 
-                _elements.Add(osmElement);
+                elements.Add(osmElement);
 
                 switch (osmElement)
                 {

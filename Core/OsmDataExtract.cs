@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace Osmalyzer
@@ -10,28 +11,22 @@ namespace Osmalyzer
     {
         [PublicAPI]
         public OsmMasterData FullData { get; }
-
-        [PublicAPI]
-        public override IReadOnlyList<OsmElement> Elements => _elements.AsReadOnly();
-
-        
-        private readonly List<OsmElement> _elements = new List<OsmElement>();
         
 
         internal OsmDataExtract(OsmMasterData data, params OsmFilter[] filters)
         {
             FullData = data;
 
-            foreach (OsmElement element in data.Elements)
+            foreach (OsmElement element in data.elements)
                 if (OsmElementMatchesFilters(element, filters))
-                    _elements.Add(element);
+                    elements.Add(element);
         }
 
         internal OsmDataExtract(OsmMasterData data, List<OsmElement> elements)
         {
             FullData = data;
 
-            _elements = elements;
+            this.elements = elements;
         }
     }
 }

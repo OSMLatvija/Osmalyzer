@@ -14,12 +14,16 @@ namespace Osmalyzer
         [PublicAPI]
         public long Id { get; } 
 
+
+        [PublicAPI]
+        public bool HasTags => RawElement.Tags != null && RawElement.Tags.Count > 0;
         
         [PublicAPI]
         public IReadOnlyList<OsmRelationMember>? Relations => relations?.AsReadOnly();
         
 
         internal OsmGeo RawElement { get; }
+
         // todo: not keep this eventually, only grab the data
         
         

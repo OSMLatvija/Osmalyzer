@@ -5,6 +5,7 @@
         public override bool ForNodesOnly => false;
         public override bool ForWaysOnly => false;
         public override bool ForRelationsOnly => false;
+        public override bool TaggedOnly => false;
 
 
         private readonly OsmPolygon _polygon;

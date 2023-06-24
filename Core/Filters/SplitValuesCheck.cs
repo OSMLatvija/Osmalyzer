@@ -8,6 +8,7 @@ namespace Osmalyzer
         public override bool ForNodesOnly => false;
         public override bool ForWaysOnly => false;
         public override bool ForRelationsOnly => false;
+        public override bool TaggedOnly => true;
 
 
         private readonly string _tag;

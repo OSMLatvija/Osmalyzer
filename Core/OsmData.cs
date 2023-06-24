@@ -26,8 +26,11 @@ namespace Osmalyzer
         private List<OsmElement> _elements = null!; // will be set by whichever child constructor
         
         private List<OsmElement> _nodes = null!;
+        private List<OsmElement> _nodesWithTags = null!;
         private List<OsmElement> _ways = null!;
+        private List<OsmElement> _waysWithTags = null!;
         private List<OsmElement> _relations = null!;
+        private List<OsmElement> _relationsWithTags = null!;
 
 
         [Pure]
@@ -318,6 +321,10 @@ namespace Osmalyzer
                 relationCapacity != null ?
                     new List<OsmElement>(relationCapacity.Value) :
                     new List<OsmElement>();
+
+            _nodesWithTags = new List<OsmElement>();
+            _waysWithTags = new List<OsmElement>();
+            _relationsWithTags = new List<OsmElement>();
         }
 
         protected void AddElement(OsmElement newElement)
@@ -328,14 +335,23 @@ namespace Osmalyzer
             {
                 case OsmNode:
                     _nodes.Add(newElement);
+                    
+                    if (newElement.HasTags)
+                        _nodesWithTags.Add(newElement);
                     break;
 
                 case OsmWay:
                     _ways.Add(newElement);
+                    
+                    if (newElement.HasTags)
+                        _waysWithTags.Add(newElement);
                     break;
                 
                 case OsmRelation:
                     _relations.Add(newElement);
+                    
+                    if (newElement.HasTags)
+                        _relationsWithTags.Add(newElement);
                     break;
 
                 default:
@@ -349,15 +365,30 @@ namespace Osmalyzer
             // todo: return filter list without the redundant filter
             
             List<OsmFilter> filterList = filters.ToList();
-            
+
             if (filterList.Any(f => f.ForNodesOnly))
+            {
+                if (filterList.Any(f => f.TaggedOnly))
+                    return _nodesWithTags;
+
                 return _nodes;
+            }
 
             if (filterList.Any(f => f.ForWaysOnly))
+            {
+                if (filterList.Any(f => f.TaggedOnly))
+                    return _waysWithTags;
+
                 return _ways;
-            
+            }
+
             if (filterList.Any(f => f.ForRelationsOnly))
+            {
+                if (filterList.Any(f => f.TaggedOnly))
+                    return _relationsWithTags;
+
                 return _relations;
+            }
 
             return _elements;
         }

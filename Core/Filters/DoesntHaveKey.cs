@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer
 {
-    public class DoesntHaveTag : OsmFilter
+    public class DoesntHaveKey : OsmFilter
     {
         public override bool ForNodesOnly => false;
         public override bool ForWaysOnly => false;
@@ -8,20 +8,18 @@
         public override bool TaggedOnly => false;
 
 
-        private readonly string _tag;
+        private readonly string _key;
 
 
-        public DoesntHaveTag(string tag)
+        public DoesntHaveKey(string key)
         {
-            _tag = tag;
+            _key = key;
         }
 
 
         internal override bool Matches(OsmElement element)
         {
-            return
-                element.RawElement.Tags == null ||
-                !element.RawElement.Tags.ContainsKey(_tag);
+            return !element.HasKey(_key);
         }
     }
 }

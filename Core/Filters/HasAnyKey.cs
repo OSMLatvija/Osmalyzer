@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Osmalyzer
 {
-    public class HasAnyTag : OsmFilter
+    public class HasAnyKey : OsmFilter
     {
         public override bool ForNodesOnly => false;
         public override bool ForWaysOnly => false;
@@ -14,7 +14,7 @@ namespace Osmalyzer
         private readonly List<string> _tags;
 
 
-        public HasAnyTag(List<string> tags)
+        public HasAnyKey(List<string> tags)
         {
             _tags = tags;
         }
@@ -22,9 +22,7 @@ namespace Osmalyzer
 
         internal override bool Matches(OsmElement element)
         {
-            return
-                element.RawElement.Tags != null &&
-                element.RawElement.Tags.Any(t => _tags.Contains(t.Key));
+            return _tags.Any(element.HasKey);
         }
     }
 }

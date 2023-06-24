@@ -97,13 +97,13 @@ namespace Osmalyzer
                 // Pick closest best-matched closest - prefer match, but settle for any follow-up, like weak match
                 (StopNameMatching match, OsmNode matchedStop) = matchedStops
                                                                 .OrderByDescending(ms => ms.match)
-                                                                .ThenBy(ms => OsmGeoTools.DistanceBetween(ms.node.Lat, ms.node.Lon, rsStop.Lat, rsStop.Lon))
+                                                                .ThenBy(ms => OsmGeoTools.DistanceBetween(ms.node.lat, ms.node.lon, rsStop.Lat, rsStop.Lon))
                                                                 .FirstOrDefault();
 
                 if (matchedStop != null &&
                     match != StopNameMatching.Mismatch) // anything else is fine
                 {
-                    double stopDistance = OsmGeoTools.DistanceBetween(matchedStop.Lat, matchedStop.Lon, rsStop.Lat, rsStop.Lon);
+                    double stopDistance = OsmGeoTools.DistanceBetween(matchedStop.lat, matchedStop.lon, rsStop.Lat, rsStop.Lon);
                     bool stopInAcceptRange = stopDistance <= acceptDistance;
 
                     if (stopInAcceptRange)
@@ -134,7 +134,7 @@ namespace Osmalyzer
                     {
                         string? osmStopName = closestStop.GetValue("name");
 
-                        double stopDistance = OsmGeoTools.DistanceBetween(closestStop.Lat, closestStop.Lon, rsStop.Lat, rsStop.Lon);
+                        double stopDistance = OsmGeoTools.DistanceBetween(closestStop.lat, closestStop.lon, rsStop.Lat, rsStop.Lon);
                         bool stopInAcceptRange = stopDistance <= acceptDistance;
                         
                         if (stopInAcceptRange && osmStopName != null) // already knwo it's not a match
@@ -168,7 +168,7 @@ namespace Osmalyzer
                     else // no stop at all within distance
                     {
                         OsmNode farawayStop = osmStops.GetClosestNodeTo(rsStop.Lat, rsStop.Lon)!;
-                        double farawayDistance = OsmGeoTools.DistanceBetween(farawayStop.Lat, farawayStop.Lon, rsStop.Lat, rsStop.Lon);
+                        double farawayDistance = OsmGeoTools.DistanceBetween(farawayStop.lat, farawayStop.lon, rsStop.Lat, rsStop.Lon);
 
                         report.AddEntry(
                             ReportGroup.NoStopMatchInRange,
@@ -297,7 +297,7 @@ namespace Osmalyzer
 
                                     OsmNode originalMatch = fullyMatchedStops[rsStop];
 
-                                    double distance = OsmGeoTools.DistanceBetween(originalMatch.Lat, originalMatch.Lon, rsStop.Lat, rsStop.Lon);
+                                    double distance = OsmGeoTools.DistanceBetween(originalMatch.lat, originalMatch.lon, rsStop.Lat, rsStop.Lon);
 
                                     report.AddEntry(
                                         ReportGroup.StopRematchFromRoutes,

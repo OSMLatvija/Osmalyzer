@@ -9,10 +9,10 @@ namespace Osmalyzer
         public override OsmElementType ElementType => OsmElementType.Node;
 
         [PublicAPI]
-        public double Lat => ((Node)RawElement).Latitude!.Value;
+        public readonly double lat;
         [PublicAPI]
-        public double Lon => ((Node)RawElement).Longitude!.Value;
-        // TODO: to coord struct and add allt he useful methods and such
+        public readonly double lon;
+        // TODO: to coord struct and add all the useful methods and such
         
         [PublicAPI]
         public IReadOnlyList<OsmNode>? Ways => ways?.AsReadOnly();
@@ -21,9 +21,13 @@ namespace Osmalyzer
         internal List<OsmNode>? ways;
 
 
-        internal OsmNode(OsmGeo RawElement)
-            : base(RawElement)
+        internal OsmNode(OsmGeo rawElement)
+            : base(rawElement)
         {
+            Node rawNode = (Node)rawElement;
+            
+            lat = rawNode.Latitude!.Value;
+            lon = rawNode.Longitude!.Value;
         }
     }
 }

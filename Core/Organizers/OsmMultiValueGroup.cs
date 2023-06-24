@@ -21,10 +21,20 @@ namespace Osmalyzer
             List<string> used = new List<string>();
 
             foreach (OsmMultiValueElement element in Elements)
-                foreach (Tag tag in element.Element.RawElement.Tags)
-                    if (tag.Key == key)
-                        if (!used.Contains(tag.Value))
-                            used.Add(tag.Value);
+            {
+                if (element.Element.HasAnyTags)
+                {
+                    foreach (string elementKey in element.Element.AllKeys)
+                    {
+                        if (elementKey == key)
+                        {
+                            string value = element.Element.GetValue(key)!;
+                            if (!used.Contains(value))
+                                used.Add(value);
+                        }
+                    }
+                }
+            }
 
             if (sort)
                 used.Sort();

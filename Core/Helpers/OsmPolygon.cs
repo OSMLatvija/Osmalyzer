@@ -46,7 +46,7 @@ namespace Osmalyzer
         {
             switch (element)
             {
-                case OsmNode node: return ContainsCoord(node.Lat, node.Lon);
+                case OsmNode node: return ContainsCoord(node.lat, node.lon);
 
                 case OsmWay way:
                 {

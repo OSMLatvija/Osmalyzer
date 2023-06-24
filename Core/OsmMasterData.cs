@@ -23,9 +23,10 @@ namespace Osmalyzer
         {
 #if BENCHMARK
             // As of last benchmark:
-            // OSMSharp data loading took 15913 ms
-            // OSM data conversion took 1848 ms
-            // OSM data linking took 4034 ms
+            // OSMSharp data loading took 15822 ms
+            // OSM data conversion took 3540 ms
+            // OSM data linking took 4402 ms
+
 
             // At this point, I cannot think of any (non micro-) optimization to do here.
             // The bulk of the work is 15 sec for the PBF file reading and processing,
@@ -107,9 +108,7 @@ namespace Osmalyzer
 
             foreach (OsmWay osmWay in waysById.Values)
             {
-                Way rawWay = (Way)osmWay.RawElement;
-
-                foreach (long rawWayId in rawWay.Nodes)
+                foreach (long rawWayId in osmWay.nodeIds)
                 {
                     OsmNode node = nodesById[rawWayId];
 

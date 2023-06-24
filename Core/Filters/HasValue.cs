@@ -8,22 +8,20 @@
         public override bool TaggedOnly => true;
 
 
-        private readonly string _tag;
+        private readonly string _key;
         private readonly string _value;
 
 
-        public HasValue(string tag, string value)
+        public HasValue(string key, string value)
         {
-            _tag = tag;
+            _key = key;
             _value = value;
         }
 
 
         internal override bool Matches(OsmElement element)
         {
-            return
-                element.RawElement.Tags != null &&
-                element.RawElement.Tags.Contains(_tag, _value);
+            return element.HasValue(_key, _value);
         }
     }
 }

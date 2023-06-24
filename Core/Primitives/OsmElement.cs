@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using OsmSharp;
+using OsmSharp.Tags;
 
 namespace Osmalyzer
 {
@@ -14,27 +15,40 @@ namespace Osmalyzer
         [PublicAPI]
         public long Id { get; } 
 
-
+        
         [PublicAPI]
-        public bool HasTags => RawElement.Tags != null && RawElement.Tags.Count > 0;
+        public IEnumerable<string> AllKeys => _tags.Keys;
+        
+        [PublicAPI]
+        public IEnumerable<string> AllValues => _tags.Values;
+        
+        [PublicAPI]
+        public bool HasAnyTags => _tags != null;
         
         [PublicAPI]
         public IReadOnlyList<OsmRelationMember>? Relations => relations?.AsReadOnly();
-        
 
-        internal OsmGeo RawElement { get; }
 
-        // todo: not keep this eventually, only grab the data
-        
-        
         internal List<OsmRelationMember>? relations;
+
+
+        private readonly Dictionary<string, string>? _tags;
 
 
         protected OsmElement(OsmGeo rawElement)
         {
-            RawElement = rawElement;
-
             Id = rawElement.Id!.Value;
+
+            if (rawElement.Tags != null)
+            {
+                if (rawElement.Tags.Count > 0)
+                {
+                    _tags = new Dictionary<string, string>();
+
+                    foreach (Tag tag in rawElement.Tags)
+                        _tags.Add(tag.Key, tag.Value);
+                }
+            }
         }
 
 
@@ -55,21 +69,32 @@ namespace Osmalyzer
         [Pure]
         public string? GetValue(string key)
         {
-            return RawElement.Tags.ContainsKey(key) ? RawElement.Tags.GetValue(key) : null;
+            if (_tags == null)
+                return null;
+            
+            _tags.TryGetValue(key, out string? value);
+            return value;
         }
         
         [Pure]
         public bool HasKey(string key)
         {
-            return RawElement.Tags.ContainsKey(key);
+            if (_tags == null)
+                return false;
+            
+            return _tags.ContainsKey(key);
         }
         
         [Pure]
         public bool HasValue(string key, string value)
         {
-            return 
-                RawElement.Tags.ContainsKey(key) &&
-                RawElement.Tags.GetValue(key) == value;
+            if (_tags == null)
+                return false;
+
+            if (!_tags.TryGetValue(key, out string? actualValue))
+                return false;
+            
+            return value == actualValue;
         }
 
 

@@ -24,10 +24,13 @@ namespace Osmalyzer
 
         internal override bool Matches(OsmElement element)
         {
-            if (element.RawElement.Tags == null)
+            if (!element.HasAnyTags)
                 return false;
 
-            string rawValue = element.RawElement.Tags.GetValue(_tag);
+            string? rawValue = element.GetValue(_tag);
+
+            if (rawValue == null)
+                return false;
 
             List<string> splitValues = TagUtils.SplitValue(rawValue);
 

@@ -38,7 +38,7 @@ namespace Osmalyzer
                 
             OsmDataExtract titledElements = osmMasterData.Filter(
                 new IsNodeOrWay(),
-                new HasAnyTag(titleTags)
+                new HasAnyKey(titleTags)
             );
 
             string nsiTagsFileName = @"data/NSI tags.tsv"; // from https://nsi.guide/?t=brands

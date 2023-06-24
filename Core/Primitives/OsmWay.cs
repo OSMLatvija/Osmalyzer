@@ -11,21 +11,24 @@ namespace Osmalyzer
 
         [PublicAPI]
         public IReadOnlyList<OsmNode> Nodes => nodes.AsReadOnly();
-        
+
 
         internal readonly List<OsmNode> nodes = new List<OsmNode>();
+        
+        internal readonly long[] nodeIds;
 
 
-        internal OsmWay(OsmGeo RawElement)
-            : base(RawElement)
+        internal OsmWay(OsmGeo rawElement)
+            : base(rawElement)
         {
+            nodeIds = ((Way)rawElement).Nodes;
         }
 
         
         public (double lat, double lon) GetAverageNodeCoord()
         {
-            double lat = nodes.Select(n => n.Lat).Average();
-            double lon = nodes.Select(n => n.Lon).Average();
+            double lat = nodes.Select(n => n.lat).Average();
+            double lon = nodes.Select(n => n.lon).Average();
             return (lat, lon);
         }
     }

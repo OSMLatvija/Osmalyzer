@@ -24,10 +24,10 @@ namespace Osmalyzer
         internal readonly List<OsmRelationMember> members;
 
 
-        internal OsmRelation(OsmGeo RawElement)
-            : base(RawElement)
+        internal OsmRelation(OsmGeo rawElement)
+            : base(rawElement)
         {
-            members = ((Relation)RawElement).Members.Select(m => new OsmRelationMember(this, m.Type, m.Id, m.Role)).ToList();
+            members = ((Relation)rawElement).Members.Select(m => new OsmRelationMember(this, m.Type, m.Id, m.Role)).ToList();
         }
 
         
@@ -39,7 +39,7 @@ namespace Osmalyzer
 
             List<OsmNode> nodes = OsmAlgorithms.CollectNodes(outerWays);
 
-            return new OsmPolygon(nodes.Select(n => (n.Lat, n.Lon)).ToList());
+            return new OsmPolygon(nodes.Select(n => (Lat: n.lat, Lon: n.lon)).ToList());
         }
 
         public List<OsmWay> GetOuterWays()

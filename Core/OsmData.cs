@@ -96,24 +96,24 @@ namespace Osmalyzer
 
         /// <param name="split">Split semicolon-delimited OSM values, e.g. "gravel;asphalt". This is only useful for tags that are actually allowed top have multiple values.</param>
         [Pure]
-        public OsmGroups GroupByValues(string tag, bool split)
+        public OsmGroups GroupByValues(string key, bool split)
         {
             return GroupByValues(
-                e => e.RawElement.Tags.ContainsKey(tag) ? e.RawElement.Tags.GetValue(tag) : null, 
+                e => e.GetValue(key), 
                 split
             );
         }
 
         /// <param name="split">Split semicolon-delimited OSM values, e.g. "gravel;asphalt". This is only useful for tags that are actually allowed top have multiple values.</param>
         [Pure]
-        public OsmGroups GroupByValues(List<string> tags, bool split)
+        public OsmGroups GroupByValues(List<string> keys, bool split)
         {
             return GroupByValues(
                 e =>
                 {
-                    foreach (string tag in tags)
-                        if (e.RawElement.Tags.ContainsKey(tag))
-                            return e.RawElement.Tags.GetValue(tag);
+                    foreach (string tag in keys)
+                        if (e.HasKey(tag))
+                            return e.GetValue(tag);
 
                     return null;
                 }, 
@@ -132,7 +132,7 @@ namespace Osmalyzer
 
             foreach (OsmElement element in _elements)
             {
-                if (element.RawElement.Tags != null)
+                if (element.HasAnyTags)
                 {
                     string? selectedValue = keySelector(element);
 
@@ -178,10 +178,9 @@ namespace Osmalyzer
 
             foreach (OsmElement element in _elements)
             {
-                if (element.RawElement.Tags != null &&
-                    element.RawElement.Tags.ContainsKey(tag))
+                if (element.HasKey(tag))
                 {
-                    string value = element.RawElement.Tags.GetValue(tag);
+                    string value = element.GetValue(tag)!;
 
                     if (!values.Contains(value))
                         values.Add(value);
@@ -223,7 +222,7 @@ namespace Osmalyzer
                 
                 double distance = OsmGeoTools.DistanceBetween(
                     lat, lon,
-                    node.Lat, node.Lon 
+                    node.lat, node.lon 
                 );
 
                 if (maxDistance == null || distance <= maxDistance) // within max distance
@@ -263,7 +262,7 @@ namespace Osmalyzer
                 
                 double distance = OsmGeoTools.DistanceBetween(
                     lat, lon,
-                    node.Lat, node.Lon 
+                    node.lat, node.lon 
                 );
 
                 if (maxDistance == null || distance <= maxDistance) // within max distance
@@ -336,21 +335,21 @@ namespace Osmalyzer
                 case OsmNode:
                     _nodes.Add(newElement);
                     
-                    if (newElement.HasTags)
+                    if (newElement.HasAnyTags)
                         _nodesWithTags.Add(newElement);
                     break;
 
                 case OsmWay:
                     _ways.Add(newElement);
                     
-                    if (newElement.HasTags)
+                    if (newElement.HasAnyTags)
                         _waysWithTags.Add(newElement);
                     break;
                 
                 case OsmRelation:
                     _relations.Add(newElement);
                     
-                    if (newElement.HasTags)
+                    if (newElement.HasAnyTags)
                         _relationsWithTags.Add(newElement);
                     break;
 

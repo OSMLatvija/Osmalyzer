@@ -35,19 +35,19 @@ namespace Osmalyzer
                     new OsmFilter[]
                     {
                         new IsWay(),
-                        new HasTag("highway"),
-                        new HasTag("ref"),
-                        new DoesntHaveTag("aeroway"), // some old aeroways are also tagged as highways
-                        new DoesntHaveTag("abandoned:aeroway"), // some old aeroways are also tagged as highways
-                        new DoesntHaveTag("disused:aeroway"), // some old aeroways are also tagged as highways
-                        new DoesntHaveTag("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
+                        new HasKey("highway"),
+                        new HasKey("ref"),
+                        new DoesntHaveKey("aeroway"), // some old aeroways are also tagged as highways
+                        new DoesntHaveKey("abandoned:aeroway"), // some old aeroways are also tagged as highways
+                        new DoesntHaveKey("disused:aeroway"), // some old aeroways are also tagged as highways
+                        new DoesntHaveKey("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
                     },
                     new OsmFilter[]
                     {
                         new IsRelation(),
                         new HasValue("type", "route"),
                         new HasValue("route", "road"),
-                        new HasTag("ref"),
+                        new HasKey("ref"),
                         new SplitValuesCheck("ref", IsValidRef)
                     }
                 }

@@ -28,8 +28,8 @@ namespace Osmalyzer
             OsmDataExtract speedLimitedRoads = osmMasterData.Filter(
                 new IsWay(),
                 new HasAnyValue("highway", new List<string>() { "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service" }),
-                new HasTag("maxspeed"),
-                new HasTag("maxspeed:conditional")
+                new HasKey("maxspeed"),
+                new HasKey("maxspeed:conditional")
             );
             
             // Start report file

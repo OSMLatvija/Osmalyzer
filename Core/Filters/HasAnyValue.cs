@@ -11,22 +11,22 @@ namespace Osmalyzer
         public override bool TaggedOnly => true;
 
 
-        private readonly string _tag;
+        private readonly string _key;
         private readonly List<string> _values;
 
 
-        public HasAnyValue(string tag, List<string> values)
+        public HasAnyValue(string key, List<string> values)
         {
-            _tag = tag;
+            _key = key;
             _values = values;
         }
 
 
         internal override bool Matches(OsmElement element)
         {
-            return
-                element.RawElement.Tags != null &&
-                element.RawElement.Tags.Any(t => t.Key == _tag && _values.Contains(t.Value));
+            return 
+                element.HasAnyTags &&
+                _values.Any(v => element.HasValue(_key, v));
         }
     }
 }

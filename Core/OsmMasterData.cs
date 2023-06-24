@@ -23,10 +23,10 @@ namespace Osmalyzer
         {
 #if BENCHMARK
             // As of last benchmark:
-            // OSMSharp data loading took 15776 ms
-            // OSM data conversion took 1322 ms
-            // OSM data linking took 3896 ms
-            
+            // OSMSharp data loading took 15913 ms
+            // OSM data conversion took 1848 ms
+            // OSM data linking took 4034 ms
+
             // At this point, I cannot think of any (non micro-) optimization to do here.
             // The bulk of the work is 15 sec for the PBF file reading and processing,
             // so the remaining 6.5 sec are largely irrelevant then.

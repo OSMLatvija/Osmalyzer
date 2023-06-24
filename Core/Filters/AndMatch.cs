@@ -4,10 +4,10 @@ namespace Osmalyzer
 {
     public class AndMatch : OsmFilter
     {
-        public override bool ForNodesOnly => false;
-        public override bool ForWaysOnly => false;
-        public override bool ForRelationsOnly => false;
-        public override bool TaggedOnly => false;
+        public override bool ForNodesOnly => _filters.Any(f => f.ForNodesOnly);
+        public override bool ForWaysOnly => _filters.Any(f => f.ForWaysOnly);
+        public override bool ForRelationsOnly => _filters.Any(f => f.ForRelationsOnly);
+        public override bool TaggedOnly => _filters.Any(f => f.TaggedOnly);
         
         
         private readonly OsmFilter[] _filters;

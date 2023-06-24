@@ -5,6 +5,11 @@ namespace Osmalyzer
 {
     public class HasAnyTag : OsmFilter
     {
+        public override bool ForNodesOnly => false;
+        public override bool ForWaysOnly => false;
+        public override bool ForRelationsOnly => false;
+
+
         private readonly List<string> _tags;
 
 

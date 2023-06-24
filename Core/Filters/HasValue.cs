@@ -2,6 +2,11 @@
 {
     public class HasValue : OsmFilter
     {
+        public override bool ForNodesOnly => false;
+        public override bool ForWaysOnly => false;
+        public override bool ForRelationsOnly => false;
+
+
         private readonly string _tag;
         private readonly string _value;
 

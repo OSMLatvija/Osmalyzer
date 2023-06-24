@@ -2,6 +2,11 @@
 {
     public class InsidePolygon : OsmFilter
     {
+        public override bool ForNodesOnly => false;
+        public override bool ForWaysOnly => false;
+        public override bool ForRelationsOnly => false;
+
+
         private readonly OsmPolygon _polygon;
         
         private readonly OsmPolygon.RelationInclusionCheck _relationInclusionCheck;

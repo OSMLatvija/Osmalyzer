@@ -350,13 +350,13 @@ namespace Osmalyzer
             
             List<OsmFilter> filterList = filters.ToList();
             
-            if (filterList.Any(f => f is IsNode))
+            if (filterList.Any(f => f.ForNodesOnly))
                 return _nodes;
 
-            if (filterList.Any(f => f is IsWay))
+            if (filterList.Any(f => f.ForWaysOnly))
                 return _ways;
             
-            if (filterList.Any(f => f is IsRelation))
+            if (filterList.Any(f => f.ForRelationsOnly))
                 return _relations;
 
             return _elements;

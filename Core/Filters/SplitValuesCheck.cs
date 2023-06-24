@@ -5,6 +5,11 @@ namespace Osmalyzer
 {
     public class SplitValuesCheck : OsmFilter
     {
+        public override bool ForNodesOnly => false;
+        public override bool ForWaysOnly => false;
+        public override bool ForRelationsOnly => false;
+
+
         private readonly string _tag;
         private readonly Func<string, bool> _check;
 

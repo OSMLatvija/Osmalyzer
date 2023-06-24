@@ -11,10 +11,10 @@ namespace Osmalyzer
     public abstract class OsmData
     {
         [PublicAPI]
-        public IReadOnlyList<OsmElement> Elements => elements.AsReadOnly();
+        public IReadOnlyList<OsmElement> Elements => _elements.AsReadOnly();
 
         
-        protected internal List<OsmElement> elements = null!; // will be set by whichever child constructor
+        private List<OsmElement> _elements = null!; // will be set by whichever child constructor
 
 
         [Pure]
@@ -22,7 +22,7 @@ namespace Osmalyzer
         {
             List<OsmElement> filteredElements = new List<OsmElement>();
 
-            foreach (OsmElement element in elements)
+            foreach (OsmElement element in _elements)
                 if (OsmElementMatchesFilters(element, filters))
                     filteredElements.Add(element);
 
@@ -36,7 +36,7 @@ namespace Osmalyzer
             for (int i = 0; i < filters.Count; i++)
                 filteredElements.Add(new List<OsmElement>());
 
-            foreach (OsmElement element in elements)
+            foreach (OsmElement element in _elements)
                 for (int i = 0; i < filters.Count; i++)
                     if (OsmElementMatchesFilters(element, filters[i]))
                         filteredElements[i].Add(element);
@@ -51,7 +51,7 @@ namespace Osmalyzer
         
         public OsmElement? Find(params OsmFilter[] filters)
         {
-            foreach (OsmElement element in elements)
+            foreach (OsmElement element in _elements)
                 if (OsmElementMatchesFilters(element, filters))
                     return element;
 
@@ -67,16 +67,16 @@ namespace Osmalyzer
         {
             List<OsmElement> remainingElements = new List<OsmElement>();
 
-            foreach (OsmElement element in elements)
-                if (!other.elements.Contains(element))
+            foreach (OsmElement element in _elements)
+                if (!other._elements.Contains(element))
                     remainingElements.Add(element);
 
             return new OsmDataExtract(GetFullData(), remainingElements);
         }
 
 
-        [Pure]
         /// <param name="split">Split semicolon-delimited OSM values, e.g. "gravel;asphalt". This is only useful for tags that are actually allowed top have multiple values.</param>
+        [Pure]
         public OsmGroups GroupByValues(string tag, bool split)
         {
             return GroupByValues(
@@ -85,8 +85,8 @@ namespace Osmalyzer
             );
         }
 
-        [Pure]
         /// <param name="split">Split semicolon-delimited OSM values, e.g. "gravel;asphalt". This is only useful for tags that are actually allowed top have multiple values.</param>
+        [Pure]
         public OsmGroups GroupByValues(List<string> tags, bool split)
         {
             return GroupByValues(
@@ -111,7 +111,7 @@ namespace Osmalyzer
 
             List<string> values = new List<string>();
 
-            foreach (OsmElement element in elements)
+            foreach (OsmElement element in _elements)
             {
                 if (element.RawElement.Tags != null)
                 {
@@ -157,7 +157,7 @@ namespace Osmalyzer
         {
             List<string> values = new List<string>();
 
-            foreach (OsmElement element in elements)
+            foreach (OsmElement element in _elements)
             {
                 if (element.RawElement.Tags != null &&
                     element.RawElement.Tags.ContainsKey(tag))
@@ -197,7 +197,7 @@ namespace Osmalyzer
             double bestDistance = 0.0;
             closestDistance = null;
 
-            foreach (OsmElement element in elements)
+            foreach (OsmElement element in _elements)
             {
                 if (element is not OsmNode node)
                     continue; // only care about nodes
@@ -237,7 +237,7 @@ namespace Osmalyzer
         {
             List<(double, OsmNode)> nodes = new List<(double, OsmNode)>(); // todo: presorted collection
 
-            foreach (OsmElement element in elements)
+            foreach (OsmElement element in _elements)
             {
                 if (element is not OsmNode node)
                     continue; // only care about nodes
@@ -279,6 +279,19 @@ namespace Osmalyzer
         private OsmMasterData GetFullData()
         {
             return this is OsmDataExtract ed ? ed.FullData : (OsmMasterData)this;
+        }
+
+        protected void CreateElements(int? capacity)
+        {
+            _elements =
+                capacity != null ?
+                    new List<OsmElement>(capacity.Value) :
+                    new List<OsmElement>();
+        }
+
+        protected void AddElement(OsmElement newElement)
+        {
+            _elements.Add(newElement);
         }
     }
 }

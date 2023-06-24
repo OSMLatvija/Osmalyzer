@@ -17,16 +17,21 @@ namespace Osmalyzer
         {
             FullData = data;
 
-            foreach (OsmElement element in data.elements)
+            CreateElements(null);
+            
+            foreach (OsmElement element in data.Elements)
                 if (OsmElementMatchesFilters(element, filters))
-                    elements.Add(element);
+                    AddElement(element);
         }
 
         internal OsmDataExtract(OsmMasterData data, List<OsmElement> elements)
         {
             FullData = data;
 
-            this.elements = elements;
+            CreateElements(null);
+
+            foreach (OsmElement element in data.Elements)
+                AddElement(element);
         }
     }
 }

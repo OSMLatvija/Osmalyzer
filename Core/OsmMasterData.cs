@@ -62,9 +62,9 @@ namespace Osmalyzer
 
                 switch (geo)
                 {
-                    case Node node:         nodeCount++; break;
-                    case Way way:           wayCount++; break;
-                    case Relation relation: relationCount++; break;
+                    case Node:     nodeCount++; break;
+                    case Way:      wayCount++; break;
+                    case Relation: relationCount++; break;
                 }
             }
 
@@ -80,13 +80,13 @@ namespace Osmalyzer
             _waysById = new Dictionary<long, OsmWay>(wayCount);
             _relationsById = new Dictionary<long, OsmRelation>(relationCount);
             
-            elements = new List<OsmElement>(rawElements.Count);
+            CreateElements(rawElements.Count);
 
             foreach (OsmGeo element in rawElements)
             {
                 OsmElement osmElement = OsmElement.Create(element);
 
-                elements.Add(osmElement);
+                AddElement(osmElement);
 
                 switch (osmElement)
                 {

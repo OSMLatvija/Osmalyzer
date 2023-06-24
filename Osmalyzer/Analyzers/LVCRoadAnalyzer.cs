@@ -44,10 +44,6 @@ namespace Osmalyzer
                     },
                     new OsmFilter[]
                     {
-                        new SplitValuesCheck("ref", IsValidRef)
-                    },
-                    new OsmFilter[]
-                    {
                         new IsRelation(),
                         new HasValue("type", "route"),
                         new HasValue("route", "road"),
@@ -58,8 +54,11 @@ namespace Osmalyzer
             );
 
             OsmDataExtract reffedRoads = osmDataExtracts[0];
-            OsmDataExtract recognizedReffedRoads = osmDataExtracts[1];
-            OsmDataExtract routeRelations = osmDataExtracts[2];
+            OsmDataExtract routeRelations = osmDataExtracts[1];
+
+            OsmDataExtract recognizedReffedRoads = reffedRoads.Filter(
+                new SplitValuesCheck("ref", IsValidRef)
+            );
 
             // Filter strictly to inside Latvia
             

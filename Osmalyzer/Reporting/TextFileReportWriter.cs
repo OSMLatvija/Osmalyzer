@@ -15,10 +15,21 @@ namespace Osmalyzer
 
             foreach (Report.ReportGroup group in report.CollectEntries())
             {
-                reportFile.WriteLine(group.Description);
-                foreach (Report.ReportEntry entry in group.MainEntries)
-                    reportFile.WriteLine(entry.Text);
-                reportFile.WriteLine();
+                if (group.DescriptionEntry != null)
+                    reportFile.WriteLine(group.DescriptionEntry);
+                
+                if (group.MainEntries.Count > 0)
+                {
+                    reportFile.WriteLine(group.Description);
+                    foreach (Report.ReportEntry entry in group.MainEntries)
+                        reportFile.WriteLine(entry.Text);
+                    reportFile.WriteLine();
+                }
+                else
+                {
+                    if (group.PlaceholderEntry != null)
+                        reportFile.WriteLine(group.PlaceholderEntry);
+                }
             }
 
             foreach (string line in report.RawLines)

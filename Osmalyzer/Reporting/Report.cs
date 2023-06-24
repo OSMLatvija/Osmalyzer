@@ -85,7 +85,9 @@ namespace Osmalyzer
 
             public ReadOnlyCollection<ReportEntry> MainEntries => _mainEntries.AsReadOnly();
 
-            public ReportEntry? PlaceholderEntry { get; private set; }
+            public PlaceholderReportEntry? PlaceholderEntry { get; private set; }
+            
+            public DescriptionReportEntry? DescriptionEntry { get; private set; }
 
 
             private readonly List<ReportEntry> _mainEntries = new List<ReportEntry>();
@@ -106,9 +108,14 @@ namespace Osmalyzer
                         _mainEntries.Add(newEntry);
                         break;
                     
-                    case PlaceholderReportEntry:
+                    case PlaceholderReportEntry pe:
                         if (PlaceholderEntry != null) throw new InvalidOperationException("Placeholder entry already set!");
-                        PlaceholderEntry = newEntry;
+                        PlaceholderEntry = pe;
+                        break;
+                    
+                    case DescriptionReportEntry de:
+                        if (DescriptionEntry != null) throw new InvalidOperationException("Description entry already set!");
+                        DescriptionEntry = de;
                         break;
                     
                     default:
@@ -148,6 +155,15 @@ namespace Osmalyzer
         public class PlaceholderReportEntry : ReportEntry
         {
             public PlaceholderReportEntry(string text)
+                : base(text)
+            {
+            }
+        }
+
+        /// <summary> Shown before the main issue list </summary>
+        public class DescriptionReportEntry : ReportEntry
+        {
+            public DescriptionReportEntry(string text)
                 : base(text)
             {
             }

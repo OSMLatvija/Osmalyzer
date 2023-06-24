@@ -23,11 +23,15 @@ namespace Osmalyzer
             foreach (Report.ReportGroup group in report.CollectEntries())
             {
                 reportFile.WriteLine("<h3>" + group.Description + "</h3>");
+                
+                if (group.DescriptionEntry != null)
+                    reportFile.WriteLine("<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");
+
                 if (group.MainEntries.Count == 0)
                 {
                     if (group.PlaceholderEntry != null)
                         reportFile.WriteLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
-                    else
+                    else if (group.DescriptionEntry == null)
                         reportFile.WriteLine("<p>🕸</p>");
                 }
                 else if (group.MainEntries.Count > 1)

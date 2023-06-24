@@ -223,7 +223,7 @@ namespace Osmalyzer
 
                     foreach (OsmRelation osmRoute in matchingOsmRoutes)
                     {
-                        List<OsmElement> routeStops = osmRoute.Elements.ToList();
+                        List<OsmNode> routeStops = osmRoute.Elements.OfType<OsmNode>().Where(n => osmStops.Elements.Contains(n)).ToList();
 
                         (RigasSatiksmeTrip trip, float match) = FindBestTripMatch(rsRoute, routeStops);
 
@@ -266,6 +266,7 @@ namespace Osmalyzer
 
                             foreach (OsmElement routeStop in routeStops)
                             {
+                                
                                 if (fullyMatchedStops.All(ms => ms.Value != routeStop))
                                 {
                                     missingOsmStops.Add(routeStop);
@@ -326,7 +327,7 @@ namespace Osmalyzer
                     // TODO: match services to routes - this may be nigh impossible unless I can distinguish expected regular and optional non-regular trips/services - it's a mess - OSM only has regular for most
                     
                     
-                    (RigasSatiksmeTrip service, float bestMatch) FindBestTripMatch(RigasSatiksmeRoute route, List<OsmElement> stops)
+                    (RigasSatiksmeTrip service, float bestMatch) FindBestTripMatch(RigasSatiksmeRoute route, List<OsmNode> stops)
                     {
                         // I have to do fuzyz matching, because I don't actually know which service and which trip OSM is representing
                         // That is, I don't know which RS trip is the regular normal trip and which are random depo and alternate trips

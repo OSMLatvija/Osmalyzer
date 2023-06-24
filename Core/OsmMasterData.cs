@@ -31,18 +31,18 @@ namespace Osmalyzer
         internal ReadOnlyDictionary<long, OsmRelation> RelationsById => new ReadOnlyDictionary<long, OsmRelation>(_relationsById);
 
         
-        private readonly Dictionary<long, OsmNode> _nodesById = new Dictionary<long, OsmNode>();
-        private readonly Dictionary<long, OsmWay> _waysById = new Dictionary<long, OsmWay>();
-        private readonly Dictionary<long, OsmRelation> _relationsById = new Dictionary<long, OsmRelation>();
+        private readonly Dictionary<long, OsmNode> _nodesById;
+        private readonly Dictionary<long, OsmWay> _waysById;
+        private readonly Dictionary<long, OsmRelation> _relationsById;
         
 
         public OsmMasterData(string dataFileName)
         {
 #if BENCHMARK
             // As of last benchmark:
-            // OSMSharp data loading took 15336 ms
-            // OSM data conversion took 3090 ms
-            // OSM data linking took 3574 ms
+            // OSMSharp data loading took 15776 ms
+            // OSM data conversion took 1322 ms
+            // OSM data linking took 3896 ms
             
             // At this point, I cannot think of any (non micro-) optimization to do here.
             // The bulk of the work is 15 sec for the PBF file reading and processing,
@@ -57,7 +57,23 @@ namespace Osmalyzer
 
             using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
 
-            List<OsmGeo> rawElements = source.ToList();
+            List<OsmGeo> rawElements = new List<OsmGeo>();
+
+            int nodeCount = 0;
+            int wayCount = 0;
+            int relationCount = 0;
+            
+            foreach (OsmGeo geo in source)
+            {
+                rawElements.Add(geo);
+
+                switch (geo)
+                {
+                    case Node node:         nodeCount++; break;
+                    case Way way:           wayCount++; break;
+                    case Relation relation: relationCount++; break;
+                }
+            }
 
 #if BENCHMARK
             stopwatch.Stop();
@@ -67,7 +83,11 @@ namespace Osmalyzer
             
             // Convert the "raw" elements to our own structure
 
-            _elements = new List<OsmElement>();
+            _nodesById = new Dictionary<long, OsmNode>(nodeCount);
+            _waysById = new Dictionary<long, OsmWay>(wayCount);
+            _relationsById = new Dictionary<long, OsmRelation>(relationCount);
+            
+            _elements = new List<OsmElement>(rawElements.Count);
 
             foreach (OsmGeo element in rawElements)
             {

@@ -36,7 +36,7 @@ namespace Osmalyzer
             
             report.AddEntry(
                 ReportGroup.InvalidSpeed,
-                new Report.DescriptionReportEntry("All living streets would have the max speed limit of 20 km/h. Only living zone roads should be tagged as living streets, so any other value is a mistake. Either the road is not classified correctly (it's not living zone) or the max speed value is incorrect for some reason. Note that courtyard roads also have a speed limit of 20 km/h and these are often mistagged as living streets. Only courtyard roads that are in a signed living zone are living streets, otherwise they are just service roads.")
+                new Report.DescriptionReportEntry("All living streets should have the max speed limit of 20 km/h. Only living zone roads should be tagged as living streets, so any other value is a mistake. Either the road is not classified correctly (it's not living zone) or the max speed value is incorrect for some reason. Note that courtyard roads also have a speed limit of 20 km/h and these are often mistagged as living streets. Only courtyard roads that are in a signed living zone are living streets, otherwise they are just service roads.")
             );
             
             report.AddEntry(

@@ -19,16 +19,6 @@ namespace Osmalyzer
     /// </summary>
     public class OsmMasterData : OsmData
     {
-        internal ReadOnlyDictionary<long, OsmNode> NodesById => new ReadOnlyDictionary<long, OsmNode>(_nodesById);
-        internal ReadOnlyDictionary<long, OsmWay> WaysById => new ReadOnlyDictionary<long, OsmWay>(_waysById);
-        internal ReadOnlyDictionary<long, OsmRelation> RelationsById => new ReadOnlyDictionary<long, OsmRelation>(_relationsById);
-
-        
-        private readonly Dictionary<long, OsmNode> _nodesById;
-        private readonly Dictionary<long, OsmWay> _waysById;
-        private readonly Dictionary<long, OsmRelation> _relationsById;
-        
-
         public OsmMasterData(string dataFileName)
         {
 #if BENCHMARK
@@ -76,11 +66,11 @@ namespace Osmalyzer
             
             // Convert the "raw" elements to our own structure
 
-            _nodesById = new Dictionary<long, OsmNode>(nodeCount);
-            _waysById = new Dictionary<long, OsmWay>(wayCount);
-            _relationsById = new Dictionary<long, OsmRelation>(relationCount);
+            Dictionary<long, OsmNode> nodesById = new Dictionary<long, OsmNode>(nodeCount);
+            Dictionary<long, OsmWay> waysById = new Dictionary<long, OsmWay>(wayCount);
+            Dictionary<long, OsmRelation> relationsById = new Dictionary<long, OsmRelation>(relationCount);
             
-            CreateElements(rawElements.Count);
+            CreateElements(rawElements.Count, nodeCount, wayCount, relationCount);
 
             foreach (OsmGeo element in rawElements)
             {
@@ -91,15 +81,15 @@ namespace Osmalyzer
                 switch (osmElement)
                 {
                     case OsmNode osmNode:
-                        _nodesById.Add(osmElement.Id, osmNode);
+                        nodesById.Add(osmElement.Id, osmNode);
                         break;
 
                     case OsmWay osmWay:
-                        _waysById.Add(osmElement.Id, osmWay);
+                        waysById.Add(osmElement.Id, osmWay);
                         break;
                     
                     case OsmRelation osmRelation:
-                        _relationsById.Add(osmElement.Id, osmRelation);
+                        relationsById.Add(osmElement.Id, osmRelation);
                         break;
 
                     default:
@@ -115,13 +105,13 @@ namespace Osmalyzer
 
             // Link and backlink all the elements together
 
-            foreach (OsmWay osmWay in _waysById.Values)
+            foreach (OsmWay osmWay in waysById.Values)
             {
                 Way rawWay = (Way)osmWay.RawElement;
 
                 foreach (long rawWayId in rawWay.Nodes)
                 {
-                    OsmNode node = _nodesById[rawWayId];
+                    OsmNode node = nodesById[rawWayId];
 
                     // Link
                     osmWay.nodes.Add(node);
@@ -134,14 +124,14 @@ namespace Osmalyzer
                 }
             }
 
-            foreach (OsmRelation osmRelation in _relationsById.Values)
+            foreach (OsmRelation osmRelation in relationsById.Values)
             {
                 foreach (OsmRelationMember member in osmRelation.members)
                 {
                     switch (member.ElementType)
                     {
                         case OsmRelationMember.MemberElementType.Node:
-                            if (_nodesById.TryGetValue(member.Id, out OsmNode? node))
+                            if (nodesById.TryGetValue(member.Id, out OsmNode? node))
                             {
                                 // Link
                                 member.Element = node;
@@ -154,7 +144,7 @@ namespace Osmalyzer
                             break;
 
                         case OsmRelationMember.MemberElementType.Way:
-                            if (_waysById.TryGetValue(member.Id, out OsmWay? way))
+                            if (waysById.TryGetValue(member.Id, out OsmWay? way))
                             {
                                 // Link
                                 member.Element = way;
@@ -167,7 +157,7 @@ namespace Osmalyzer
                             break;
 
                         case OsmRelationMember.MemberElementType.Relation:
-                            if (_relationsById.TryGetValue(member.Id, out OsmRelation? relation))
+                            if (relationsById.TryGetValue(member.Id, out OsmRelation? relation))
                             {
                                 // Link
                                 member.Element = relation;

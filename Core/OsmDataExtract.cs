@@ -17,7 +17,7 @@ namespace Osmalyzer
         {
             FullData = data;
 
-            CreateElements(null);
+            CreateElements(null, null, null, null);
             
             foreach (OsmElement element in data.Elements)
                 if (OsmElementMatchesFilters(element, filters))
@@ -28,9 +28,9 @@ namespace Osmalyzer
         {
             FullData = data;
 
-            CreateElements(null);
+            CreateElements(null, null, null, null);
 
-            foreach (OsmElement element in data.Elements)
+            foreach (OsmElement element in elements)
                 AddElement(element);
         }
     }

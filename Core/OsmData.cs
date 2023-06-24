@@ -13,8 +13,21 @@ namespace Osmalyzer
         [PublicAPI]
         public IReadOnlyList<OsmElement> Elements => _elements.AsReadOnly();
 
+        [PublicAPI]
+        public IReadOnlyList<OsmNode> Nodes => _nodes.AsReadOnly();
+
+        [PublicAPI]
+        public IReadOnlyList<OsmWay> Ways => _ways.AsReadOnly();
+
+        [PublicAPI]
+        public IReadOnlyList<OsmRelation> Relations => _relations.AsReadOnly();
+
         
         private List<OsmElement> _elements = null!; // will be set by whichever child constructor
+        
+        private List<OsmNode> _nodes = null!;
+        private List<OsmWay> _ways = null!;
+        private List<OsmRelation> _relations = null!;
 
 
         [Pure]
@@ -281,12 +294,27 @@ namespace Osmalyzer
             return this is OsmDataExtract ed ? ed.FullData : (OsmMasterData)this;
         }
 
-        protected void CreateElements(int? capacity)
+        protected void CreateElements(int? capacity, int? nodeCapacity, int? wayCapacity, int? relationCapacity)
         {
             _elements =
                 capacity != null ?
                     new List<OsmElement>(capacity.Value) :
                     new List<OsmElement>();
+
+            _nodes =
+                nodeCapacity != null ?
+                    new List<OsmNode>(nodeCapacity.Value) :
+                    new List<OsmNode>();
+
+            _ways =
+                wayCapacity != null ?
+                    new List<OsmWay>(wayCapacity.Value) :
+                    new List<OsmWay>();
+
+            _relations =
+                relationCapacity != null ?
+                    new List<OsmRelation>(relationCapacity.Value) :
+                    new List<OsmRelation>();
         }
 
         protected void AddElement(OsmElement newElement)

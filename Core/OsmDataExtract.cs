@@ -11,18 +11,7 @@ namespace Osmalyzer
     {
         [PublicAPI]
         public OsmMasterData FullData { get; }
-        
 
-        internal OsmDataExtract(OsmMasterData data, params OsmFilter[] filters)
-        {
-            FullData = data;
-
-            CreateElements(null, null, null, null);
-            
-            foreach (OsmElement element in data.Elements)
-                if (OsmElementMatchesFilters(element, filters))
-                    AddElement(element);
-        }
 
         internal OsmDataExtract(OsmMasterData data, List<OsmElement> elements)
         {

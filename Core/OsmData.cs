@@ -14,20 +14,20 @@ namespace Osmalyzer
         public IReadOnlyList<OsmElement> Elements => _elements.AsReadOnly();
 
         [PublicAPI]
-        public IReadOnlyList<OsmNode> Nodes => _nodes.AsReadOnly();
+        public IReadOnlyList<OsmElement> Nodes => _nodes.AsReadOnly();
 
         [PublicAPI]
-        public IReadOnlyList<OsmWay> Ways => _ways.AsReadOnly();
+        public IReadOnlyList<OsmElement> Ways => _ways.AsReadOnly();
 
         [PublicAPI]
-        public IReadOnlyList<OsmRelation> Relations => _relations.AsReadOnly();
+        public IReadOnlyList<OsmElement> Relations => _relations.AsReadOnly();
 
         
         private List<OsmElement> _elements = null!; // will be set by whichever child constructor
         
-        private List<OsmNode> _nodes = null!;
-        private List<OsmWay> _ways = null!;
-        private List<OsmRelation> _relations = null!;
+        private List<OsmElement> _nodes = null!;
+        private List<OsmElement> _ways = null!;
+        private List<OsmElement> _relations = null!;
 
 
         [Pure]
@@ -35,7 +35,9 @@ namespace Osmalyzer
         {
             List<OsmElement> filteredElements = new List<OsmElement>();
 
-            foreach (OsmElement element in _elements)
+            List<OsmElement> collection = ChooseCollectionForFiltering(filters);
+
+            foreach (OsmElement element in collection)
                 if (OsmElementMatchesFilters(element, filters))
                     filteredElements.Add(element);
 
@@ -45,23 +47,24 @@ namespace Osmalyzer
         [Pure]
         public List<OsmDataExtract> Filter(List<OsmFilter[]> filters)
         {
-            List<List<OsmElement>> filteredElements = new List<List<OsmElement>>(filters.Count);
-            for (int i = 0; i < filters.Count; i++)
-                filteredElements.Add(new List<OsmElement>());
-
-            foreach (OsmElement element in _elements)
-                for (int i = 0; i < filters.Count; i++)
-                    if (OsmElementMatchesFilters(element, filters[i]))
-                        filteredElements[i].Add(element);
-
             List<OsmDataExtract> extracts = new List<OsmDataExtract>(filters.Count);
 
             for (int i = 0; i < filters.Count; i++)
-                extracts.Add(new OsmDataExtract(GetFullData(), filteredElements[i]));
+            {
+                List<OsmElement> collection = ChooseCollectionForFiltering(filters[i]);
+
+                List<OsmElement> filteredElements = new List<OsmElement>();
+                
+                foreach (OsmElement element in collection)
+                    if (OsmElementMatchesFilters(element, filters[i]))
+                        filteredElements.Add(element);
+                
+                extracts.Add(new OsmDataExtract(GetFullData(), filteredElements));
+            }
 
             return extracts;
         }
-        
+
         public OsmElement? Find(params OsmFilter[] filters)
         {
             foreach (OsmElement element in _elements)
@@ -303,23 +306,60 @@ namespace Osmalyzer
 
             _nodes =
                 nodeCapacity != null ?
-                    new List<OsmNode>(nodeCapacity.Value) :
-                    new List<OsmNode>();
+                    new List<OsmElement>(nodeCapacity.Value) :
+                    new List<OsmElement>();
 
             _ways =
                 wayCapacity != null ?
-                    new List<OsmWay>(wayCapacity.Value) :
-                    new List<OsmWay>();
+                    new List<OsmElement>(wayCapacity.Value) :
+                    new List<OsmElement>();
 
             _relations =
                 relationCapacity != null ?
-                    new List<OsmRelation>(relationCapacity.Value) :
-                    new List<OsmRelation>();
+                    new List<OsmElement>(relationCapacity.Value) :
+                    new List<OsmElement>();
         }
 
         protected void AddElement(OsmElement newElement)
         {
             _elements.Add(newElement);
+
+            switch (newElement)
+            {
+                case OsmNode:
+                    _nodes.Add(newElement);
+                    break;
+
+                case OsmWay:
+                    _ways.Add(newElement);
+                    break;
+                
+                case OsmRelation:
+                    _relations.Add(newElement);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(newElement));
+            }
+        }
+
+        [Pure]
+        private List<OsmElement> ChooseCollectionForFiltering(IEnumerable<OsmFilter> filters)
+        {
+            // todo: return filter list without the redundant filter
+            
+            List<OsmFilter> filterList = filters.ToList();
+            
+            if (filterList.Any(f => f is IsNode))
+                return _nodes;
+
+            if (filterList.Any(f => f is IsWay))
+                return _ways;
+            
+            if (filterList.Any(f => f is IsRelation))
+                return _relations;
+
+            return _elements;
         }
     }
 }

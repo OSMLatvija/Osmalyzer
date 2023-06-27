@@ -104,7 +104,7 @@ namespace Osmalyzer
             {
                 switch (newEntry)
                 {
-                    case MainReportEntry:
+                    case IssueReportEntry:
                         _mainEntries.Add(newEntry);
                         break;
                     
@@ -143,9 +143,9 @@ namespace Osmalyzer
             }
         }
 
-        public class MainReportEntry : ReportEntry
+        public class IssueReportEntry : ReportEntry
         {
-            public MainReportEntry(string text, object? context = null)
+            public IssueReportEntry(string text, object? context = null)
                 : base(text, context)
             {
             }

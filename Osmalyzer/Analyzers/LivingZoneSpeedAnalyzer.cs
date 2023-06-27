@@ -26,11 +26,14 @@ namespace Osmalyzer
 
             OsmDataExtract livingStreets = osmMasterData.Filter(
                 new IsWay(), 
-                new HasValue("highway", "living_street"), 
+                new HasValue("highway", "living_street")
+            );
+            
+            OsmDataExtract limitedLivingStreets = livingStreets.Filter(
                 new HasKey("maxspeed")
             );
-
-            // Process
+            
+            // Bad maxspeed values
 
             report.AddGroup(ReportGroup.InvalidSpeed, "These roads have bad max speed limit values for living streets:");
             
@@ -44,7 +47,7 @@ namespace Osmalyzer
                 new Report.PlaceholderReportEntry("There are no roads with invalid max speed limits.")
             );
             
-            foreach (OsmElement livingStreet in livingStreets.Elements)
+            foreach (OsmElement livingStreet in limitedLivingStreets.Elements)
             {
                 // todo: group connected streets and report as one entry
                 
@@ -58,7 +61,7 @@ namespace Osmalyzer
                         {
                             report.AddEntry(
                                 ReportGroup.InvalidSpeed,
-                                new Report.MainReportEntry(
+                                new Report.IssueReportEntry(
                                     "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                     "has an incorrect maxspeed value \"" + maxspeedStr + "\": https://www.openstreetmap.org/way/" + livingStreet.Id)
                             );
@@ -68,7 +71,7 @@ namespace Osmalyzer
                     {
                         report.AddEntry(
                             ReportGroup.InvalidSpeed,
-                            new Report.MainReportEntry(
+                            new Report.IssueReportEntry(
                                 "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                 "has an invalid maxspeed value \"" + maxspeedStr + "\": https://www.openstreetmap.org/way/" + livingStreet.Id
                             )
@@ -77,12 +80,32 @@ namespace Osmalyzer
                 }
             }
             
-            // todo living streets with no maxspeed at all - there are currently waaaay too many to report - only if we summarize them and link to overpass or something
+            // Stats
+            
+            report.AddGroup(ReportGroup.Stats, "Maxspeed stats on living streets:");
+
+            if (livingStreets.Count > 0) // should never happen otherwise
+            {
+                float unlimitedPortion = (float)limitedLivingStreets.Count / livingStreets.Count;
+
+                report.AddEntry(
+                    ReportGroup.Stats,
+                    new Report.DescriptionReportEntry(
+                        "There are a total of " + livingStreets.Count + " living street (segments), " +
+                        "of which " + limitedLivingStreets.Count + " or " + (unlimitedPortion * 100f).ToString("F1") + " % have maxspeed set."
+                    )
+                );
+            }
+
+            // todo report individual living streets with no maxspeed at all?
+            // there are currently waaaay too many (8000+ at the time of writing) to report - only if we summarize them and link to overpass or something
+            // or may be cluster from neighbourhoods or something, so they can be converted in one go?
         }
         
         private enum ReportGroup
         {
-            InvalidSpeed
+            InvalidSpeed,
+            Stats
         }
     }
 }

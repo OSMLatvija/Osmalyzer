@@ -22,6 +22,9 @@ namespace Osmalyzer
         [PublicAPI]
         public IReadOnlyList<OsmElement> Relations => _relations.AsReadOnly();
 
+        [PublicAPI]
+        public int Count => _elements.Count;
+
         
         private List<OsmElement> _elements = null!; // will be set by whichever child constructor
         

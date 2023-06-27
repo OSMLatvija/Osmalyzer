@@ -35,7 +35,8 @@ namespace Osmalyzer
                 //new HighwaySpeedConditionalAnalyzer(),
                 //new LivingZoneSpeedAnalyzer(),
                 //new LVCRoadAnalyzer(),
-                new RigasSatiksmeAnalyzer(),
+                //new RigasSatiksmeAnalyzer(),
+                new LiepajasTransportsAnalyzer(),
                 //new TrolleybusWireAnalyzer()
             };
 #endif

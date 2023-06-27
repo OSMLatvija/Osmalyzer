@@ -21,7 +21,7 @@ namespace Osmalyzer
         {
             // Load stop data
 
-            RigasSatiksmeAnalysisData rsData = datas.OfType<RigasSatiksmeAnalysisData>().First();
+            GTFSAnalysisData rsData = datas.OfType<T>().First();
 
             RigasSatiksmeNetwork rsNetwork = new RigasSatiksmeNetwork(rsData.ExtractionFolder);
             

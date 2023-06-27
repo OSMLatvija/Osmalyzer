@@ -14,10 +14,10 @@ namespace Osmalyzer
 
         public override string DataDateFileName => @"cache/rigas-satiksme-direct.zip-date.txt";
 
-        public override bool? DataDateHasDayGranularity => true; // only day given on data page (file itself is month only)
+        public override bool? DataDateHasDayGranularity => true; 
 
 
-        public override string ExtractionFolder => "GTFS-RS";
+        public override string ExtractionFolder => "GTFS-RigSat";
         
         
         protected override string DataURL => @"https://saraksti.rigassatiksme.lv/riga/gtfs.zip";

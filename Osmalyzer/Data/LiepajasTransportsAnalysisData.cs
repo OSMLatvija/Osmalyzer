@@ -11,10 +11,10 @@ namespace Osmalyzer
 
         public override string DataDateFileName => @"cache/liepajas-transports.zip-date.txt";
 
-        public override bool? DataDateHasDayGranularity => true; // only day given on data page (file itself is month only)
+        public override bool? DataDateHasDayGranularity => true; 
 
 
-        public override string ExtractionFolder => "GTFS-LT";
+        public override string ExtractionFolder => "GTFS-LiepTra";
         
         protected override string DataURL => @"http://www.marsruti.lv/liepaja/liepaja/gtfs.zip";
         // todo: where could I get a direct link from them? 

@@ -37,6 +37,8 @@ namespace Osmalyzer
                 //new LVCRoadAnalyzer(),
                 //new RigasSatiksmeAnalyzer(),
                 new LiepajasTransportsAnalyzer(),
+                new RezeknesSatiksmeAnalyzer(),
+                new JurmalasSatiksmeAnalyzer(),
                 //new TrolleybusWireAnalyzer()
             };
 #endif

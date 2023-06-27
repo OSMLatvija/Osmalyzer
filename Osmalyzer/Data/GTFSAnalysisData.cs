@@ -6,8 +6,8 @@ namespace Osmalyzer
     public abstract class GTFSAnalysisData : PreparableAnalysisData
     {
         protected abstract string DataURL { get; }
-        
-        protected abstract string ExtractionFolder { get; }
+
+        public abstract string ExtractionFolder { get; }
 
         
         public override void Retrieve()

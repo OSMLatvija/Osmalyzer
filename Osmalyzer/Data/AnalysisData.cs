@@ -7,6 +7,7 @@ namespace Osmalyzer
     public abstract class AnalysisData
     {
         public abstract string Name { get; }
+        // todo: page name not from this - some sort of internal id
 
         public abstract string DataFileName { get; }
         

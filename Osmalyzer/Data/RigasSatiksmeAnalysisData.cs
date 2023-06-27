@@ -16,8 +16,9 @@ namespace Osmalyzer
 
         public override bool? DataDateHasDayGranularity => true; // only day given on data page (file itself is month only)
 
+
+        public override string ExtractionFolder => "GTFS-RS";
         
-        protected override string ExtractionFolder => "RS";
         
         protected override string DataURL => @"https://saraksti.rigassatiksme.lv/riga/gtfs.zip";
     }

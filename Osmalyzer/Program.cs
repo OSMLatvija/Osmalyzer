@@ -33,9 +33,9 @@ namespace Osmalyzer
             {
                 //new CommonBrandsAnalyzer(),
                 //new HighwaySpeedConditionalAnalyzer(),
-                new LivingZoneSpeedAnalyzer(),
+                //new LivingZoneSpeedAnalyzer(),
                 //new LVCRoadAnalyzer(),
-                //new RigasSatiksmeAnalyzer(),
+                new RigasSatiksmeAnalyzer(),
                 //new TrolleybusWireAnalyzer()
             };
 #endif

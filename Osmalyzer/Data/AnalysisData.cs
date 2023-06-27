@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.AccessControl;
 
 namespace Osmalyzer
 {
@@ -27,6 +28,12 @@ namespace Osmalyzer
             _dataDate = newDate;
             
             File.WriteAllText(DataDateFileName!, _dataDate.Value.Ticks.ToString());
+        }
+
+        protected void ClearDataDate()
+        {
+            if (File.Exists(DataDateFileName!))
+                File.Delete(DataDateFileName!);
         }
 
 

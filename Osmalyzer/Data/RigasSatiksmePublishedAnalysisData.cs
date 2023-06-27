@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -6,8 +6,11 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
+    /// <summary>
+    /// The data published in the open portal, once a month
+    /// </summary>
     [UsedImplicitly]
-    public class RigasSatiksmeAnalysisData : PreparableAnalysisData
+    public class RigasSatiksmePublishedAnalysisData : PreparableAnalysisData
     {
         public override string Name => "Rigas Satiksme";
         

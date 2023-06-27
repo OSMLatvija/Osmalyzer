@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -40,6 +42,19 @@ namespace Osmalyzer
             using Task<Stream> stream = client.GetStreamAsync(url);
             using FileStream fileStream = new FileStream(fileName, FileMode.Create);
             stream.Result.CopyTo(fileStream);
+        }
+
+        public static DateTime? ReadHeaderDate(string url)
+        {
+            using HttpClient client = new HttpClient();
+            using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, url)).Result;
+
+            DateTimeOffset? lastModifedOffset = response.Content.Headers.LastModified;
+
+            if (lastModifedOffset == null)
+                return null;
+            
+            return lastModifedOffset.Value.UtcDateTime;
         }
     }
 }

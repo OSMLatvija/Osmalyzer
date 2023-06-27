@@ -483,6 +483,10 @@ namespace Osmalyzer
             // Quick check first, may be we don't need to do anything
             if (rsStopName == osmStopName)
                 return true;
+
+            // Rezeknes almost all stops have "uc" and "nc" suffixes like "Brīvības iela nc" and "Brīvības iela uc" - probably route direction?
+            rsStopName = Regex.Replace(rsStopName, @" uc$", @"");
+            rsStopName = Regex.Replace(rsStopName, @" nc$", @"");
             
             // Both OSM and RS stops are inconsistent about spacing around characters
             // "2.trolejbusu parks" or "Jaunciema 2.šķērslīnija" (also all the abbreviated "P.Lejiņa iela" although this won't match)

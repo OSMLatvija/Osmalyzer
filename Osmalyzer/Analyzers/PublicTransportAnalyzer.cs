@@ -290,7 +290,7 @@ namespace Osmalyzer
 
                                 if (possibleRematch != null)
                                 {
-                                    // Cancel reporting each stop individually
+                                    // Cancel duplicated reporting for each stop (if we had them reported individually)
                                     report.CancelEntry(ReportGroup.RsRouteMissingOsmStop, rsStop);
                                     report.CancelEntry(ReportGroup.OsmRouteExtraStop, possibleRematch);
 
@@ -480,7 +480,7 @@ namespace Osmalyzer
         [Pure]
         private static bool IsStopNameMatchGoodEnough(string rsStopName, string osmStopName)
         {
-            // Stop never differ by capitalization, so just lower them and avoid weird capitalization in additon to everything else
+            // Stops never differ by capitalization, so just lower them and avoid weird capitalization in additon to everything else
             // Rezekne "18.Novembra iela" vs OSM "18. novembra iela"
             rsStopName = rsStopName.ToLower();
             osmStopName = osmStopName.ToLower();
@@ -493,6 +493,12 @@ namespace Osmalyzer
             rsStopName = Regex.Replace(rsStopName, @" uc$", @"");
             rsStopName = Regex.Replace(rsStopName, @" nc$", @"");
             
+            // Trim parenthesis from OSM
+            // Jurmalas OSM stops have a lot of parenthesis, like JS "Majoru stacija" vs OSM "Majoru stacija (Majori)"
+            osmStopName = Regex.Replace(rsStopName, @" \([^\(\)]+\)$", @"");
+            // todo: return if the match was poor quality this way and the name should be checked
+            // todo: what if GTFS data DOES have the parenthesis?
+
             // Both OSM and RS stops are inconsistent about spacing around characters
             // "2.trolejbusu parks" or "Jaunciema 2.šķērslīnija" (also all the abbreviated "P.Lejiņa iela" although this won't match)
             // "Upesgrīvas iela/ Spice"
@@ -501,7 +507,7 @@ namespace Osmalyzer
                 Regex.Replace( Regex.Replace(rsStopName, @"([\./-])(?! )", @"$1 "), @"(?<! )([\./-])", @" $1"))
                 return true;
             
-            // Sometimes proper quotes are inconsistent between thw two
+            // Sometimes proper quotes are inconsistent between the two
             // OSM "Arēna "Rīga"" vs RS "Arēna Rīga" or OSM ""Bērnu pasaule"" vs RS "Bērnu pasaule"
             // or opposite OSM "Dzintars" vs RS ""Dzintars""
             if (osmStopName.Replace("\"", "") == rsStopName.Replace("\"", ""))

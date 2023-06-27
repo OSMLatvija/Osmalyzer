@@ -59,9 +59,10 @@ namespace Osmalyzer
             
             ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
-            ReportEntry entry = group.IssueEntries.First(e => e.Context == context);
+            ReportEntry? entry = group.IssueEntries.FirstOrDefault(e => e.Context == context);
 
-            group.RemoveEntry(entry);
+            if (entry != null)
+                group.RemoveEntry(entry);
         }
 
 

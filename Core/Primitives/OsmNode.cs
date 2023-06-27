@@ -8,6 +8,8 @@ namespace Osmalyzer
     {
         public override OsmElementType ElementType => OsmElementType.Node;
 
+        public override string OsmViewUrl => "https://www.openstreetmap.org/node/" + Id;
+
         [PublicAPI]
         public readonly double lat;
         [PublicAPI]

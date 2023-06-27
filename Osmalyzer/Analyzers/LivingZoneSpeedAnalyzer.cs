@@ -63,7 +63,7 @@ namespace Osmalyzer
                                 ReportGroup.InvalidSpeed,
                                 new Report.IssueReportEntry(
                                     "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
-                                    "has an incorrect maxspeed value \"" + maxspeedStr + "\": https://www.openstreetmap.org/way/" + livingStreet.Id)
+                                    "has an incorrect maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl)
                             );
                         }
                     }
@@ -73,7 +73,7 @@ namespace Osmalyzer
                             ReportGroup.InvalidSpeed,
                             new Report.IssueReportEntry(
                                 "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
-                                "has an invalid maxspeed value \"" + maxspeedStr + "\": https://www.openstreetmap.org/way/" + livingStreet.Id
+                                "has an invalid maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl
                             )
                         );
                     }

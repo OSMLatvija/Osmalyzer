@@ -194,45 +194,64 @@ namespace Osmalyzer
         }
 
         [Pure]
-        public OsmNode? GetClosestNodeTo(double lat, double lon)
+        public OsmElement? GetClosestElementTo(double lat, double lon)
         {
             return GetClosestNodeToRaw(lat, lon, null, out _);
         }
 
         [Pure]
-        public OsmNode? GetClosestNodeTo(double lat, double lon, double maxDistance)
+        public OsmElement? GetClosestElementTo(double lat, double lon, double maxDistance)
         {
             return GetClosestNodeToRaw(lat, lon, maxDistance, out _);
         }
 
         [Pure]
-        public OsmNode? GetClosestNodeTo(double lat, double lon, double maxDistance, out double? closestDistance)
+        public OsmElement? GetClosestElementTo(double lat, double lon, double maxDistance, out double? closestDistance)
         {
             return GetClosestNodeToRaw(lat, lon, maxDistance, out closestDistance);
         }
 
         [Pure]
-        private OsmNode? GetClosestNodeToRaw(double lat, double lon, double? maxDistance, out double? closestDistance)
+        private OsmElement? GetClosestNodeToRaw(double lat, double lon, double? maxDistance, out double? closestDistance)
         {
-            OsmNode? bestNode = null;
+            OsmElement? bestElement = null;
             double bestDistance = 0.0;
             closestDistance = null;
 
             foreach (OsmElement element in _elements)
             {
-                if (element is not OsmNode node)
-                    continue; // only care about nodes
+                double elementLat;
+                double elementLon;
+
+                switch (element)
+                {
+                    case OsmNode osmNode:
+                        elementLat = osmNode.lat;
+                        elementLon = osmNode.lon;
+                        break;
+
+                    case OsmWay osmWay:
+                        (elementLat, elementLon) = osmWay.GetAverageNodeCoord();
+                        break;
+                    
+                    case OsmRelation osmRelation:
+                        (elementLat, elementLon) = osmRelation.GetAverageElementCoord();
+                        break;
+
+                    default:
+                        throw new InvalidOperationException();
+                }
                 
                 double distance = OsmGeoTools.DistanceBetween(
                     lat, lon,
-                    node.lat, node.lon 
+                    elementLat, elementLon
                 );
 
                 if (maxDistance == null || distance <= maxDistance) // within max distance
                 {
-                    if (bestNode == null || bestDistance > distance)
+                    if (bestElement == null || bestDistance > distance)
                     {
-                        bestNode = node;
+                        bestElement = element;
                         bestDistance = distance;
                         closestDistance = distance;
                     }
@@ -243,7 +262,7 @@ namespace Osmalyzer
                 }
             }
 
-            return bestNode;
+            return bestElement;
         }
         
         

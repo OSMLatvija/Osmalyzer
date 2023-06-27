@@ -71,7 +71,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.Issues,
                             new Report.IssueReportEntry(
-                                "Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                "Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on " + roadSegment.OsmViewUrl
                             )
                         );
                     }
@@ -83,7 +83,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Issues,
                                 new Report.IssueReportEntry(
-                                    "`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                    "`trolley_wire` unknown value \"" + trolley_wire + "\" on " + roadSegment.OsmViewUrl
                                 )
                             );
                         }
@@ -96,7 +96,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Issues,
                                 new Report.IssueReportEntry(
-                                    "`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                    "`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on " + roadSegment.OsmViewUrl
                                 )
                             );
                         }
@@ -107,7 +107,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Issues,
                                 new Report.IssueReportEntry(
-                                    "`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                    "`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on " + roadSegment.OsmViewUrl
                                 )
                             );                                    
                         }
@@ -118,7 +118,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.Issues,
                             new Report.IssueReportEntry(
-                                "`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                "`trolley_wire` missing on " + roadSegment.OsmViewUrl
                             )
                         );
                     }

@@ -287,7 +287,7 @@ namespace Osmalyzer
                             $"These segments share refs \"{refA}\" and \"{refB}\", but are not in the law: " +
                             (roads.Count > 5 ?
                                 $" on {roads.Count} road (segments)" :
-                                "on these road (segments): " + string.Join(", ", roads.Select(e => "https://www.openstreetmap.org/way/" + e.Id))) +
+                                "on these road (segments): " + string.Join(", ", roads.Select(e => e.OsmViewUrl))) +
                             "."
                         )
                     );
@@ -390,7 +390,7 @@ namespace Osmalyzer
                         new Report.IssueReportEntry(
                             "These " + sameRefRoutes.Count + " route relations have the same code " + routeRef + ": " +
                             string.Join("; ", sameRefRoutes.Select(
-                                            r => (r.HasKey("name") ? "\"" + r.GetValue("name") + "\"" : "unnamed") + " https://www.openstreetmap.org/relation/" + r.Id + "")
+                                            r => (r.HasKey("name") ? "\"" + r.GetValue("name") + "\"" : "unnamed") + " " + r.OsmViewUrl + "")
                             ) + "."
                         )
                     );
@@ -427,7 +427,7 @@ namespace Osmalyzer
                             "not recognized " +
                             (osmGroup.Elements.Count > 5 ?
                                 " on " + osmGroup.Elements.Count + " road (segments)" :
-                                "on these road (segments): " + string.Join(", ", osmGroup.Elements.Select(e => "https://www.openstreetmap.org/way/" + e.Id))
+                                "on these road (segments): " + string.Join(", ", osmGroup.Elements.Select(e => e.OsmViewUrl))
                             )
                         )
                     );

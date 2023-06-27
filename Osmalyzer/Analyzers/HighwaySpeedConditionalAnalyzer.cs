@@ -62,7 +62,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Main,
                                 new Report.IssueReportEntry(
-                                    "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id
+                                    "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " " + way.OsmViewUrl
                                 )
                             );
                         }
@@ -74,7 +74,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Main,
                                 new Report.IssueReportEntry(
-                                    "Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id
+                                    "Conditional not recognized: " + maxspeedConditionalStr + " " + way.OsmViewUrl
                                 )
                             );
                         }

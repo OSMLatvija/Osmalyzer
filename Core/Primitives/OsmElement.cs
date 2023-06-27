@@ -11,6 +11,9 @@ namespace Osmalyzer
         [PublicAPI]
         public abstract OsmElementType ElementType { get; }
 
+        [PublicAPI]
+        public abstract string OsmViewUrl { get; }
+
 
         [PublicAPI]
         public long Id { get; } 
@@ -86,7 +89,7 @@ namespace Osmalyzer
         }
         
         [Pure]
-        public bool HasValue(string key, string value)
+        public bool HasValue(string key, string value, bool caseSensitive = true)
         {
             if (_tags == null)
                 return false;
@@ -94,7 +97,10 @@ namespace Osmalyzer
             if (!_tags.TryGetValue(key, out string? actualValue))
                 return false;
             
-            return value == actualValue;
+            if (caseSensitive)
+                return value == actualValue;
+            else
+                return string.Equals(value, actualValue, StringComparison.OrdinalIgnoreCase);
         }
 
 

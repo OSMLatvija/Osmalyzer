@@ -9,6 +9,8 @@ namespace Osmalyzer
     {
         public override OsmElementType ElementType => OsmElementType.Way;
 
+        public override string OsmViewUrl => "https://www.openstreetmap.org/way/" + Id;
+
         [PublicAPI]
         public IReadOnlyList<OsmNode> Nodes => nodes.AsReadOnly();
 

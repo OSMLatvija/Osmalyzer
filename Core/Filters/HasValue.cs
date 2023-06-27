@@ -10,18 +10,20 @@
 
         private readonly string _key;
         private readonly string _value;
+        private readonly bool _caseSensitive;
 
 
-        public HasValue(string key, string value)
+        public HasValue(string key, string value, bool caseSensitive = true)
         {
             _key = key;
             _value = value;
+            _caseSensitive = caseSensitive;
         }
 
 
         internal override bool Matches(OsmElement element)
         {
-            return element.HasValue(_key, _value);
+            return element.HasValue(_key, _value, _caseSensitive);
         }
     }
 }

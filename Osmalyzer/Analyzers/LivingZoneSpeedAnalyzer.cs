@@ -96,6 +96,18 @@ namespace Osmalyzer
                     )
                 );
             }
+            
+            OverpassQuery overpassQuery = new OverpassQuery();
+
+            overpassQuery.AddRule(new HasValueOverpassRule("highway", "living_street"));
+            overpassQuery.AddRule(new DoesNotHaveKeyOverpassRule("maxspeed"));
+            
+            report.AddEntry(
+                ReportGroup.Stats,
+                new Report.GenericReportEntry(
+                    "Overpass query for living streets with no maxspeed value: " + overpassQuery.GetQueryLink()
+                )
+            );
 
             // todo report individual living streets with no maxspeed at all?
             // there are currently waaaay too many (8000+ at the time of writing) to report - only if we summarize them and link to overpass or something

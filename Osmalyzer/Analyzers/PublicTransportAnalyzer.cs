@@ -263,9 +263,8 @@ namespace Osmalyzer
                                 }
                             }
 
-                            foreach (OsmElement routeStop in routeStops)
+                            foreach (OsmNode routeStop in routeStops)
                             {
-                                
                                 if (fullyMatchedStops.All(ms => ms.Value != routeStop))
                                 {
                                     missingOsmStops.Add(routeStop);
@@ -495,7 +494,7 @@ namespace Osmalyzer
             
             // Trim parenthesis from OSM
             // Jurmalas OSM stops have a lot of parenthesis, like JS "Majoru stacija" vs OSM "Majoru stacija (Majori)"
-            osmStopName = Regex.Replace(ptStopName, @" \([^\(\)]+\)$", @"");
+            osmStopName = Regex.Replace(osmStopName, @" \([^\(\)]+\)$", @"");
             // todo: return if the match was poor quality this way and the name should be checked
             // todo: what if GTFS data DOES have the parenthesis?
 

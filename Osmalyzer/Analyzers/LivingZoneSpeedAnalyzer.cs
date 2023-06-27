@@ -90,7 +90,7 @@ namespace Osmalyzer
 
                 report.AddEntry(
                     ReportGroup.Stats,
-                    new Report.DescriptionReportEntry(
+                    new Report.GenericReportEntry(
                         "There are a total of " + livingStreets.Count + " living street (segments), " +
                         "of which " + limitedLivingStreets.Count + " or " + (unlimitedPortion * 100f).ToString("F1") + " % have maxspeed set."
                     )

@@ -70,7 +70,7 @@ namespace Osmalyzer
             
             ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
-            ReportEntry entry = group.MainEntries.First(e => e.Context == context);
+            ReportEntry entry = group.IssueEntries.First(e => e.Context == context);
 
             group.RemoveEntry(entry);
         }
@@ -83,14 +83,20 @@ namespace Osmalyzer
             public string Description { get; }
 
 
-            public ReadOnlyCollection<ReportEntry> MainEntries => _mainEntries.AsReadOnly();
+            public ReadOnlyCollection<ReportEntry> GenericEntries => _genericEntries.AsReadOnly();
+            
+            public ReadOnlyCollection<ReportEntry> IssueEntries => _issuesEntries.AsReadOnly();
 
             public PlaceholderReportEntry? PlaceholderEntry { get; private set; }
             
             public DescriptionReportEntry? DescriptionEntry { get; private set; }
 
+            public bool HaveAnyContentEntries => _genericEntries.Count > 0 || _issuesEntries.Count > 0; 
 
-            private readonly List<ReportEntry> _mainEntries = new List<ReportEntry>();
+
+            private readonly List<ReportEntry> _genericEntries = new List<ReportEntry>();
+            
+            private readonly List<ReportEntry> _issuesEntries = new List<ReportEntry>();
 
 
             public ReportGroup(object id, string description)
@@ -104,10 +110,14 @@ namespace Osmalyzer
             {
                 switch (newEntry)
                 {
-                    case IssueReportEntry:
-                        _mainEntries.Add(newEntry);
+                    case GenericReportEntry:
+                        _genericEntries.Add(newEntry);
                         break;
                     
+                    case IssueReportEntry:
+                        _issuesEntries.Add(newEntry);
+                        break;
+
                     case PlaceholderReportEntry pe:
                         if (PlaceholderEntry != null) throw new InvalidOperationException("Placeholder entry already set!");
                         PlaceholderEntry = pe;
@@ -125,7 +135,7 @@ namespace Osmalyzer
 
             public void RemoveEntry(ReportEntry entry)
             {
-                _mainEntries.Remove(entry);
+                _issuesEntries.Remove(entry);
             }
         }
 
@@ -140,6 +150,14 @@ namespace Osmalyzer
             {
                 Text = text;
                 Context = context;
+            }
+        }
+
+        public class GenericReportEntry : ReportEntry
+        {
+            public GenericReportEntry(string text)
+                : base(text)
+            {
             }
         }
 

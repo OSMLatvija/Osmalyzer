@@ -18,17 +18,24 @@ namespace Osmalyzer
                 if (group.DescriptionEntry != null)
                     reportFile.WriteLine(group.DescriptionEntry);
                 
-                if (group.MainEntries.Count > 0)
+                if (!group.HaveAnyContentEntries)
+                    if (group.PlaceholderEntry != null)
+                        reportFile.WriteLine(group.PlaceholderEntry.Text);
+                
+                if (group.GenericEntries.Count > 0)
                 {
                     reportFile.WriteLine(group.Description);
-                    foreach (Report.ReportEntry entry in group.MainEntries)
-                        reportFile.WriteLine(entry.Text);
+                    foreach (Report.ReportEntry entry in group.GenericEntries)
+                        reportFile.WriteLine("* " + entry.Text);
                     reportFile.WriteLine();
                 }
-                else
+                
+                if (group.IssueEntries.Count > 0)
                 {
-                    if (group.PlaceholderEntry != null)
-                        reportFile.WriteLine(group.PlaceholderEntry);
+                    reportFile.WriteLine(group.Description);
+                    foreach (Report.ReportEntry entry in group.IssueEntries)
+                        reportFile.WriteLine("* " + entry.Text);
+                    reportFile.WriteLine();
                 }
             }
 

@@ -27,23 +27,22 @@ namespace Osmalyzer
                 if (group.DescriptionEntry != null)
                     reportFile.WriteLine("<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");
 
-                if (group.MainEntries.Count == 0)
-                {
+                if (!group.HaveAnyContentEntries)
                     if (group.PlaceholderEntry != null)
                         reportFile.WriteLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
-                    else if (group.DescriptionEntry == null)
-                        reportFile.WriteLine("<p>🕸</p>");
+                
+                if (group.GenericEntries.Count > 0)
+                {
+                    foreach (Report.ReportEntry entry in group.GenericEntries)
+                        reportFile.WriteLine("<p>" + PolishLine(entry.Text) + "</p>");
                 }
-                else if (group.MainEntries.Count > 1)
+                    
+                if (group.IssueEntries.Count > 0)
                 {
                     reportFile.WriteLine("<ul>");
-                    foreach (Report.ReportEntry entry in group.MainEntries)
+                    foreach (Report.ReportEntry entry in group.IssueEntries)
                         reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
                     reportFile.WriteLine("</ul>");
-                }
-                else
-                {
-                    reportFile.WriteLine("<p>" + PolishLine(group.MainEntries.First().Text) + "</p>");
                 }
             }
 

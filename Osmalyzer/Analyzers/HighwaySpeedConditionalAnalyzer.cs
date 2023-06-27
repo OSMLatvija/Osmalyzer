@@ -34,7 +34,7 @@ namespace Osmalyzer
             
             // Start report file
             
-            report.WriteRawLine("Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
+            report.AddGroup(ReportGroup.Main, "Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
 
             // Process
             
@@ -56,32 +56,60 @@ namespace Osmalyzer
                         
                         if (!limits.Any(l => l.regular == maxspeed && l.conditional == maxspeedConditional))
                             limits.Add((maxspeed, maxspeedConditional));
-                        
+
                         if (maxspeed == maxspeedConditional)
-                            report.WriteRawLine("Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
+                        {
+                            report.AddEntry(
+                                ReportGroup.Main,
+                                new Report.IssueReportEntry(
+                                    "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id
+                                )
+                            );
+                        }
                     }
                     else
                     {
                         if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
                         {
-                            report.WriteRawLine("Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id);
+                            report.AddEntry(
+                                ReportGroup.Main,
+                                new Report.IssueReportEntry(
+                                    "Conditional not recognized: " + maxspeedConditionalStr + " https://www.openstreetmap.org/way/" + way.Id
+                                )
+                            );
                         }
                     }
                 }
                 else
                 {
-                    report.WriteRawLine("Max speed not recognized as seasonal: " + maxspeedStr);
+                    report.AddEntry(
+                        ReportGroup.Main,
+                        new Report.IssueReportEntry(
+                            "Max speed not recognized as seasonal: " + maxspeedStr
+                        )
+                    );
                 }
             }
 
             limits.Sort();
             
-            report.WriteRawLine("Combos found:");
+            report.AddGroup(ReportGroup.Combos, "Combos found:");
 
             foreach ((int regular, int conditional) in limits)
             {
-                report.WriteRawLine("Conditional limit " + conditional + " for regular limit " + regular);
+                report.AddEntry(
+                    ReportGroup.Combos,
+                    new Report.GenericReportEntry(
+                        "Conditional limit " + conditional + " for regular limit " + regular
+                    )
+                );
             }
+        }
+        
+        private enum ReportGroup
+        {
+            Main,
+            Combos
         }
     }
 }

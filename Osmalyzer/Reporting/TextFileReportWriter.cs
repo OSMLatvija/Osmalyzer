@@ -38,9 +38,6 @@ namespace Osmalyzer
                     reportFile.WriteLine();
                 }
             }
-
-            foreach (string line in report.RawLines)
-                reportFile.WriteLine(line);
             
             reportFile.WriteLine();
             reportFile.WriteLine((report.AnalyzedDataDates != null ? "Data as of " + report.AnalyzedDataDates + ". " : "") + "Provided as is; mistakes possible.");

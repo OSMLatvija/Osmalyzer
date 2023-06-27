@@ -40,6 +40,8 @@ namespace Osmalyzer
 
             // Process
 
+            report.AddGroup(ReportGroup.Issues, "Ways with trolley_wire issues:");
+            
             foreach (OsmElement route in routes.Elements)
             {
                 OsmRelation relation = (OsmRelation)route;
@@ -66,14 +68,24 @@ namespace Osmalyzer
                     if (trolley_wire != null && (trolley_wire_forward != null || trolley_wire_backward != null))
                     {
                         CheckFirstMentionOfRouteIssue();
-                        report.WriteRawLine("Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                        report.AddEntry(
+                            ReportGroup.Issues,
+                            new Report.IssueReportEntry(
+                                "Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on https://www.openstreetmap.org/way/" + roadSegment.Id
+                            )
+                        );
                     }
                     else if (trolley_wire != null)
                     {
                         if (trolley_wire != "yes" && trolley_wire != "no")
                         {
                             CheckFirstMentionOfRouteIssue();
-                            report.WriteRawLine("`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            report.AddEntry(
+                                ReportGroup.Issues,
+                                new Report.IssueReportEntry(
+                                    "`trolley_wire` unknown value \"" + trolley_wire + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                )
+                            );
                         }
                     }
                     else if (trolley_wire_forward != null || trolley_wire_backward != null)
@@ -81,19 +93,34 @@ namespace Osmalyzer
                         if (trolley_wire_forward != null && trolley_wire_forward != "yes" && trolley_wire_forward != "no")
                         {
                             CheckFirstMentionOfRouteIssue();
-                            report.WriteRawLine("`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            report.AddEntry(
+                                ReportGroup.Issues,
+                                new Report.IssueReportEntry(
+                                    "`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                )
+                            );
                         }
 
                         if (trolley_wire_backward != null && trolley_wire_backward != "yes" && trolley_wire_backward != "no")
                         {
                             CheckFirstMentionOfRouteIssue();
-                            report.WriteRawLine("`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                            report.AddEntry(
+                                ReportGroup.Issues,
+                                new Report.IssueReportEntry(
+                                    "`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on https://www.openstreetmap.org/way/" + roadSegment.Id
+                                )
+                            );                                    
                         }
                     }
                     else
                     {
                         CheckFirstMentionOfRouteIssue();
-                        report.WriteRawLine("`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id);
+                        report.AddEntry(
+                            ReportGroup.Issues,
+                            new Report.IssueReportEntry(
+                                "`trolley_wire` missing on https://www.openstreetmap.org/way/" + roadSegment.Id
+                            )
+                        );
                     }
 
 
@@ -102,13 +129,24 @@ namespace Osmalyzer
                         if (!foundIssue)
                         {
                             foundIssue = true;
-                            report.WriteRawLine("Route " + route.Id + " \"" + routeName + "\"");
+                            
+                            report.AddEntry(
+                                ReportGroup.Issues,
+                                new Report.IssueReportEntry(
+                                    "Route " + route.Id + " \"" + routeName + "\""
+                                )
+                            );
                         }
                     }
                 }
             }
             
             // TODO: trolley_wire=no, but no route - pointless? not that it hurts anything
+        }
+        
+        private enum ReportGroup
+        {
+            Issues
         }
     }
 }

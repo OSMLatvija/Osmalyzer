@@ -26,10 +26,17 @@ namespace Osmalyzer
 
             // Start report file
 
-            report.WriteRawLine("These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI):");
+            report.AddGroup(ReportGroup.Main, "These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI):");
             
-            report.WriteRawLine("title(s)" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value(s)");
-
+            // todo: report tables?
+            
+            report.AddEntry(
+                ReportGroup.Main,
+                new Report.GenericReportEntry(
+                    "title(s)" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value(s)"
+                )
+            );
+            
             // Load OSM data
 
             OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
@@ -119,12 +126,28 @@ namespace Osmalyzer
             reportEntries.Sort((e1, e2) => e2.count.CompareTo(e1.count));
 
             foreach ((int _, string line) in reportEntries)
-                report.WriteRawLine(line);
+            {
+                report.AddEntry(
+                    ReportGroup.Main,
+                    new Report.GenericReportEntry(
+                        line
+                    )
+                );
+            }
 
-            report.WriteRawLine(
-                "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "\"" + t + "\"")) + ". " +
-                "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored. " +
-                "Title counts will repeat if the same element is tagged with multiple NSI POI types.");
+            report.AddEntry(
+                ReportGroup.Main,
+                new Report.DescriptionReportEntry(
+                    "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "\"" + t + "\"")) + ". " +
+                    "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored. " +
+                    "Title counts will repeat if the same element is tagged with multiple NSI POI types."
+                )
+            );
+        }
+        
+        private enum ReportGroup
+        {
+            Main
         }
     }
 }

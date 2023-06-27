@@ -46,16 +46,6 @@ namespace Osmalyzer
                 }
             }
 
-            if (report.RawLines.Any())
-            {
-                reportFile.WriteLine("<h3>Other issues and/or notes</h3>");
-                
-                reportFile.WriteLine("<ul>");
-                foreach (string line in report.RawLines)
-                    reportFile.WriteLine("<li>" + PolishLine(line) + "</li>");
-                reportFile.WriteLine("</ul>");
-            }
-
             reportFile.WriteLine("<br>Data as of " + HttpUtility.HtmlEncode(report.AnalyzedDataDates) + ". Provided as is; mistakes possible.");
             
             reportFile.Close();

@@ -10,7 +10,7 @@ namespace Osmalyzer
     /// The data published in the open portal, once a month
     /// </summary>
     [UsedImplicitly]
-    public class RigasSatiksmePublishedAnalysisData : PreparableAnalysisData
+    public class RigasSatiksmeOpenDataAnalysisData : PreparableAnalysisData
     {
         public override string Name => "Rigas Satiksme";
         

@@ -15,14 +15,14 @@ namespace Osmalyzer
         public override string? Description => null;
 
 
-        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RigasSatiksmeDirectAnalysisData) };
+        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RigasSatiksmeAnalysisData) };
         
 
         public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
         {
             // Load RS stop data
 
-            RigasSatiksmeDirectAnalysisData rsData = datas.OfType<RigasSatiksmeDirectAnalysisData>().First();
+            RigasSatiksmeAnalysisData rsData = datas.OfType<RigasSatiksmeAnalysisData>().First();
 
             RigasSatiksmeNetwork rsNetwork = new RigasSatiksmeNetwork(rsData.ExtractionFolder);
             

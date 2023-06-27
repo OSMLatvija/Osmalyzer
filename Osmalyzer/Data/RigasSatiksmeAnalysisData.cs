@@ -6,7 +6,7 @@ namespace Osmalyzer
     /// The data found on their website, seemingly whenever there are changes
     /// </summary>
     [UsedImplicitly]
-    public class RigasSatiksmeDirectAnalysisData : GTFSAnalysisData
+    public class RigasSatiksmeAnalysisData : GTFSAnalysisData
     {
         public override string Name => "Rigas Satiksme";
         

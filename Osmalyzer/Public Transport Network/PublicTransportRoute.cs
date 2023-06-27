@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
-    public class RigasSatiksmeRoute
+    public class PublicTransportRoute
     {
         public string Id { get; }
         
@@ -16,13 +16,13 @@ namespace Osmalyzer
 
         public string CleanType { get; }
 
-        public IEnumerable<RigasSatiksmeService> Services => _services.AsReadOnly();
+        public IEnumerable<PublicTransportService> Services => _services.AsReadOnly();
 
 
-        private readonly List<RigasSatiksmeService> _services = new List<RigasSatiksmeService>();
+        private readonly List<PublicTransportService> _services = new List<PublicTransportService>();
 
         
-        public RigasSatiksmeRoute(string id, string name, string number, string type)
+        public PublicTransportRoute(string id, string name, string number, string type)
         {
             Id = id;
             Name = name;
@@ -32,7 +32,7 @@ namespace Osmalyzer
         }
 
 
-        public void AddService(RigasSatiksmeService service)
+        public void AddService(PublicTransportService service)
         {
             _services.Add(service);
         }

@@ -5,19 +5,19 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
-    public class RigasSatiksmeStops
+    public class PublicTransportStops
     {
-        public IEnumerable<RigasSatiksmeStop> Stops => _stops.Values.AsEnumerable();
+        public IEnumerable<PublicTransportStop> Stops => _stops.Values.AsEnumerable();
 
         
-        private readonly Dictionary<string, RigasSatiksmeStop> _stops;
+        private readonly Dictionary<string, PublicTransportStop> _stops;
 
         
-        public RigasSatiksmeStops(string dataFileName)
+        public PublicTransportStops(string dataFileName)
         {
             string[] lines = File.ReadAllLines(dataFileName);
 
-            _stops = new Dictionary<string, RigasSatiksmeStop>();
+            _stops = new Dictionary<string, PublicTransportStop>();
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -45,7 +45,7 @@ namespace Osmalyzer
                 double lat = double.Parse(segments[4]);
                 double lon = double.Parse(segments[5]);
 
-                RigasSatiksmeStop stop = new RigasSatiksmeStop(id, name, lat, lon);
+                PublicTransportStop stop = new PublicTransportStop(id, name, lat, lon);
 
                 _stops.Add(stop.Id, stop);
             }
@@ -53,7 +53,7 @@ namespace Osmalyzer
 
         
         [Pure]
-        public RigasSatiksmeStop GetStop(string id)
+        public PublicTransportStop GetStop(string id)
         {
             return _stops[id];
         }

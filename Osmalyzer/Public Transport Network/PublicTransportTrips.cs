@@ -5,17 +5,17 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
-    public class RigasSatiksmeTrips
+    public class PublicTransportTrips
     {
-        public IEnumerable<RigasSatiksmeTrip> Trips => _trips.Values.AsEnumerable();
+        public IEnumerable<PublicTransportTrip> Trips => _trips.Values.AsEnumerable();
 
         
-        private readonly Dictionary<string, RigasSatiksmeTrip> _trips;
+        private readonly Dictionary<string, PublicTransportTrip> _trips;
 
         
-        public RigasSatiksmeTrips(string dataFileName, RigasSatiksmeRoutes routes, RigasSatiksmeServices services)
+        public PublicTransportTrips(string dataFileName, PublicTransportRoutes routes, PublicTransportServices services)
         {
-            _trips = new Dictionary<string, RigasSatiksmeTrip>();
+            _trips = new Dictionary<string, PublicTransportTrip>();
 
             string[] lines = File.ReadAllLines(dataFileName);
 
@@ -42,9 +42,9 @@ namespace Osmalyzer
                 string tripId = segments[2];
                 
                 string serviceId = segments[1];
-                RigasSatiksmeService service = services.GetService(serviceId);
+                PublicTransportService service = services.GetService(serviceId);
 
-                RigasSatiksmeTrip trip = new RigasSatiksmeTrip(tripId, service);
+                PublicTransportTrip trip = new PublicTransportTrip(tripId, service);
                 _trips.Add(trip.Id, trip);
 
                 service.AddTrip(trip);
@@ -54,7 +54,7 @@ namespace Osmalyzer
                 // And vice-verse - add route to service (if not known)
                 
                 string routeId = segments[0];
-                RigasSatiksmeRoute route = routes.GetRoute(routeId);
+                PublicTransportRoute route = routes.GetRoute(routeId);
                 if (route.Services.All(s => s != service))
                     route.AddService(service);
                 
@@ -65,7 +65,7 @@ namespace Osmalyzer
 
         
         [Pure]
-        public RigasSatiksmeTrip GetTrip(string id)
+        public PublicTransportTrip GetTrip(string id)
         {
             return _trips[id];
         }

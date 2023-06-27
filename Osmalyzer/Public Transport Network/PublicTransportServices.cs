@@ -5,17 +5,17 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
-    public class RigasSatiksmeServices
+    public class PublicTransportServices
     {
-        public IEnumerable<RigasSatiksmeService> Services => _services.Values.AsEnumerable();
+        public IEnumerable<PublicTransportService> Services => _services.Values.AsEnumerable();
 
         
-        private readonly Dictionary<string, RigasSatiksmeService> _services;
+        private readonly Dictionary<string, PublicTransportService> _services;
 
         
-        public RigasSatiksmeServices(string dataFileName)
+        public PublicTransportServices(string dataFileName)
         {
-            _services = new Dictionary<string, RigasSatiksmeService>();
+            _services = new Dictionary<string, PublicTransportService>();
 
             string[] lines = File.ReadAllLines(dataFileName);
 
@@ -43,14 +43,14 @@ namespace Osmalyzer
 
                 string serviceId = segments[0];
 
-                RigasSatiksmeService service = new RigasSatiksmeService(serviceId);
+                PublicTransportService service = new PublicTransportService(serviceId);
                 _services.Add(service.Id, service);
             }
         }
 
         
         [Pure]
-        public RigasSatiksmeService GetService(string id)
+        public PublicTransportService GetService(string id)
         {
             return _services[id];
         }

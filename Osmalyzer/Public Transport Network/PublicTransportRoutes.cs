@@ -6,19 +6,19 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
-    public class RigasSatiksmeRoutes
+    public class PublicTransportRoutes
     {
-        public IEnumerable<RigasSatiksmeRoute> Routes => _routes.Values.AsEnumerable();
+        public IEnumerable<PublicTransportRoute> Routes => _routes.Values.AsEnumerable();
 
         
-        private readonly Dictionary<string, RigasSatiksmeRoute> _routes;
+        private readonly Dictionary<string, PublicTransportRoute> _routes;
 
         
-        public RigasSatiksmeRoutes(string dataFileName)
+        public PublicTransportRoutes(string dataFileName)
         {
             string[] lines = File.ReadAllLines(dataFileName);
 
-            _routes = new Dictionary<string, RigasSatiksmeRoute>();
+            _routes = new Dictionary<string, PublicTransportRoute>();
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -47,14 +47,14 @@ namespace Osmalyzer
 
                 string type = TypeFromId(id);
                 
-                RigasSatiksmeRoute route = new RigasSatiksmeRoute(id, name, number, type);
+                PublicTransportRoute route = new PublicTransportRoute(id, name, number, type);
 
                 _routes.Add(route.Id, route);
             }
         }
 
         [Pure]
-        public RigasSatiksmeRoute GetRoute(string id)
+        public PublicTransportRoute GetRoute(string id)
         {
             return _routes[id];
         }

@@ -23,7 +23,7 @@ namespace Osmalyzer
 
             GTFSAnalysisData rsData = datas.OfType<T>().First();
 
-            RigasSatiksmeNetwork rsNetwork = new RigasSatiksmeNetwork(rsData.ExtractionFolder);
+            PublicTransportNetwork rsNetwork = new PublicTransportNetwork(rsData.ExtractionFolder);
             
             // Load OSM data
 
@@ -79,9 +79,9 @@ namespace Osmalyzer
             List<OsmNode> matchedOsmStops = new List<OsmNode>();
             // so that we don't match the same stop multiple times
 
-            Dictionary<RigasSatiksmeStop, OsmNode> fullyMatchedStops = new Dictionary<RigasSatiksmeStop, OsmNode>();
+            Dictionary<PublicTransportStop, OsmNode> fullyMatchedStops = new Dictionary<PublicTransportStop, OsmNode>();
 
-            foreach (RigasSatiksmeStop rsStop in rsNetwork.Stops.Stops)
+            foreach (PublicTransportStop rsStop in rsNetwork.Stops.Stops)
             {
                 // Find all potential OSM stops in range
                 List<OsmNode> closestStops = osmStops.GetClosestNodesTo(rsStop.Lat, rsStop.Lon, maxSearchDistance);
@@ -183,7 +183,7 @@ namespace Osmalyzer
             
             // Parse routes
 
-            foreach (RigasSatiksmeRoute rsRoute in rsNetwork.Routes.Routes)
+            foreach (PublicTransportRoute rsRoute in rsNetwork.Routes.Routes)
             {
                 List<OsmRelation> matchingOsmRoutes = osmRoutes.Elements.Cast<OsmRelation>().Where(e => MatchesRoute(e, rsRoute)).ToList();
 
@@ -193,17 +193,17 @@ namespace Osmalyzer
 
                 if (matchingOsmRoutes.Count == 0)
                 {
-                    List<RigasSatiksmeStop> endStops = new List<RigasSatiksmeStop>();
+                    List<PublicTransportStop> endStops = new List<PublicTransportStop>();
                     
-                    foreach (RigasSatiksmeService service in rsRoute.Services)
+                    foreach (PublicTransportService service in rsRoute.Services)
                     {
-                        foreach (RigasSatiksmeTrip trip in service.Trips)
+                        foreach (PublicTransportTrip trip in service.Trips)
                         {
-                            RigasSatiksmeStop firstStop = trip.Points.First().Stop;
+                            PublicTransportStop firstStop = trip.Points.First().Stop;
                             if (!endStops.Contains(firstStop))
                                 endStops.Add(firstStop);
                             
-                            RigasSatiksmeStop lastStop = trip.Points.First().Stop;
+                            PublicTransportStop lastStop = trip.Points.First().Stop;
                             if (!endStops.Contains(lastStop))
                                 endStops.Add(lastStop);
                         }
@@ -224,7 +224,7 @@ namespace Osmalyzer
                     {
                         List<OsmNode> routeStops = osmRoute.Elements.OfType<OsmNode>().Where(n => osmStops.Elements.Contains(n)).ToList();
 
-                        (RigasSatiksmeTrip trip, float match) = FindBestTripMatch(rsRoute, routeStops);
+                        (PublicTransportTrip trip, float match) = FindBestTripMatch(rsRoute, routeStops);
 
 #if !REMOTE_EXECUTION
                         Debug.WriteLine("* \"" + osmRoute.GetValue("name") + "\" best match at " + (match * 100f).ToString("F1") + "% for " + trip);
@@ -232,10 +232,10 @@ namespace Osmalyzer
 
                         if (match >= 0)
                         {
-                            List<RigasSatiksmeStop> missingRsStops = new List<RigasSatiksmeStop>();
+                            List<PublicTransportStop> missingRsStops = new List<PublicTransportStop>();
                             List<OsmElement> missingOsmStops = new List<OsmElement>();
                             
-                            foreach (RigasSatiksmeStop rsStop in trip.Stops)
+                            foreach (PublicTransportStop rsStop in trip.Stops)
                             {
                                 if (fullyMatchedStops.TryGetValue(rsStop, out OsmNode? expectedOsmStop))
                                 {
@@ -284,7 +284,7 @@ namespace Osmalyzer
                                 }
                             }
 
-                            foreach (RigasSatiksmeStop rsStop in missingRsStops)
+                            foreach (PublicTransportStop rsStop in missingRsStops)
                             {
                                 OsmElement? possibleRematch = missingOsmStops.FirstOrDefault(s => s.HasKey("name") && IsStopNameMatchGoodEnough(rsStop.Name, s.GetValue("name")!));
 
@@ -326,23 +326,23 @@ namespace Osmalyzer
                     // TODO: match services to routes - this may be nigh impossible unless I can distinguish expected regular and optional non-regular trips/services - it's a mess - OSM only has regular for most
                     
                     
-                    (RigasSatiksmeTrip service, float bestMatch) FindBestTripMatch(RigasSatiksmeRoute route, List<OsmNode> stops)
+                    (PublicTransportTrip service, float bestMatch) FindBestTripMatch(PublicTransportRoute route, List<OsmNode> stops)
                     {
                         // I have to do fuzyz matching, because I don't actually know which service and which trip OSM is representing
                         // That is, I don't know which GTFS trip is the regular normal trip and which are random depo and alternate trips
                         // OSM may even have alternate trips, so I need to match them in that case
                         // So this matches the route with the best stop match - more stop matches, better match
                         
-                        RigasSatiksmeTrip? bestTrip = null;
+                        PublicTransportTrip? bestTrip = null;
                         float bestMatch = 0f;
                         
-                        foreach (RigasSatiksmeService rsService in route.Services)
+                        foreach (PublicTransportService rsService in route.Services)
                         {
-                            foreach (RigasSatiksmeTrip rsTrip in rsService.Trips)
+                            foreach (PublicTransportTrip rsTrip in rsService.Trips)
                             {
                                 int matchedStops = 0;
 
-                                foreach (RigasSatiksmeStop rsStop in rsTrip.Stops)
+                                foreach (PublicTransportStop rsStop in rsTrip.Stops)
                                 {
                                     if (fullyMatchedStops.TryGetValue(rsStop, out OsmNode? expectedOsmStop))
                                     {
@@ -370,7 +370,7 @@ namespace Osmalyzer
 
 
         [Pure]
-        private static bool MatchesRoute(OsmRelation osmRoute, RigasSatiksmeRoute route)
+        private static bool MatchesRoute(OsmRelation osmRoute, PublicTransportRoute route)
         {
             // OSM
             // from	Preču 2
@@ -436,7 +436,7 @@ namespace Osmalyzer
         }
 
         [Pure]
-        private static StopNameMatching DoStopsMatch(OsmNode osmStop, RigasSatiksmeStop rsStop)
+        private static StopNameMatching DoStopsMatch(OsmNode osmStop, PublicTransportStop rsStop)
         {
             string? stopName = osmStop.GetValue("name");
 

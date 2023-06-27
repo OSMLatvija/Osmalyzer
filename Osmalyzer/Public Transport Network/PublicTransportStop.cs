@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer
 {
-    public class RigasSatiksmeStop
+    public class PublicTransportStop
     {
         public string Id { get; }
 
@@ -17,7 +17,7 @@
         public bool Tram { get; set; }
 
 
-        public RigasSatiksmeStop(string id, string name, double lat, double lon)
+        public PublicTransportStop(string id, string name, double lat, double lon)
         {
             Id = id;
             Name = name;

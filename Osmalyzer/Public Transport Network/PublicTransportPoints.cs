@@ -3,17 +3,17 @@ using System.IO;
 
 namespace Osmalyzer
 {
-    public class RigasSatiksmePoints
+    public class PublicTransportPoints
     {
-        public IEnumerable<RigasSatiksmePoint> Points => _points.AsReadOnly();
+        public IEnumerable<PublicTransportPoint> Points => _points.AsReadOnly();
 
         
-        private readonly List<RigasSatiksmePoint> _points;
+        private readonly List<PublicTransportPoint> _points;
 
         
-        public RigasSatiksmePoints(string dataFileName, RigasSatiksmeStops stops, RigasSatiksmeTrips trips)
+        public PublicTransportPoints(string dataFileName, PublicTransportStops stops, PublicTransportTrips trips)
         {
-            _points = new List<RigasSatiksmePoint>();
+            _points = new List<PublicTransportPoint>();
             
             string[] lines = File.ReadAllLines(dataFileName);
 
@@ -38,10 +38,10 @@ namespace Osmalyzer
 
                 string tripId = segments[0];
                 string stopId = segments[3];
-                RigasSatiksmeStop stop = stops.GetStop(stopId);
-                RigasSatiksmeTrip trip = trips.GetTrip(tripId);
+                PublicTransportStop stop = stops.GetStop(stopId);
+                PublicTransportTrip trip = trips.GetTrip(tripId);
 
-                RigasSatiksmePoint newPoint = new RigasSatiksmePoint(trip, stop);
+                PublicTransportPoint newPoint = new PublicTransportPoint(trip, stop);
 
                 _points.Add(newPoint);
 

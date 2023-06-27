@@ -70,10 +70,11 @@ namespace Osmalyzer
 
             return rawType switch
             {
-                "bus"  => "bus",
-                "trol" => "trolleybus",
-                "tram" => "tram",
-                _      => throw new ArgumentOutOfRangeException()
+                "bus"     => "bus",
+                "trol"    => "trolleybus",
+                "tram"    => "tram",
+                "minibus" => "minibus",
+                _         => throw new ArgumentOutOfRangeException()
             };
         }
     }

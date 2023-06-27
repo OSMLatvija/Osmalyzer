@@ -35,10 +35,11 @@ namespace Osmalyzer
                 //new HighwaySpeedConditionalAnalyzer(),
                 //new LivingZoneSpeedAnalyzer(),
                 //new LVCRoadAnalyzer(),
-                new RigasSatiksmeAnalyzer(),
-                new LiepajasTransportsAnalyzer(),
-                new RezeknesSatiksmeAnalyzer(),
-                new JurmalasSatiksmeAnalyzer(),
+                //new RigasSatiksmeAnalyzer(),
+                //new LiepajasTransportsAnalyzer(),
+                //new RezeknesSatiksmeAnalyzer(),
+                //new JurmalasSatiksmeAnalyzer(),
+                new LatvijasAutobussAnalyzer(),
                 //new TrolleybusWireAnalyzer()
             };
 #endif

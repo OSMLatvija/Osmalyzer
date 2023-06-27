@@ -47,7 +47,13 @@ namespace Osmalyzer
 
                 PublicTransportStop stop = new PublicTransportStop(id, name, lat, lon);
 
-                _stops.Add(stop.Id, stop);
+                if (!_stops.ContainsKey(stop.Id))
+                    _stops.Add(stop.Id, stop);
+                // Latvijas Autobuss has duplicates, e.g.
+                // 7123k,,"Majoru stacija",,56.97155,23.79636,https://www.marsruti.lv/jurmala/index.html#stop/7123k,,
+                // 7123k,,"Majori",,56.97155,23.79636,https://www.marsruti.lv/jurmala/index.html#stop/7123k,,
+                // (second has paired 7123l,,"Majori",,56.97149,23.79807,https://www.marsruti.lv/jurmala/index.html#stop/7123l,,)
+                // todo: report these as problems? only if coord different? store both names?
             }
         }
 

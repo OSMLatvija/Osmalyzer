@@ -480,6 +480,11 @@ namespace Osmalyzer
         [Pure]
         private static bool IsStopNameMatchGoodEnough(string rsStopName, string osmStopName)
         {
+            // Stop never differ by capitalization, so just lower them and avoid weird capitalization in additon to everything else
+            // Rezekne "18.Novembra iela" vs OSM "18. novembra iela"
+            rsStopName = rsStopName.ToLower();
+            osmStopName = osmStopName.ToLower();
+            
             // Quick check first, may be we don't need to do anything
             if (rsStopName == osmStopName)
                 return true;

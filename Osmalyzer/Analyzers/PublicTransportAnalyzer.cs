@@ -498,6 +498,10 @@ namespace Osmalyzer
             // todo: return if the match was poor quality this way and the name should be checked
             // todo: what if GTFS data DOES have the parenthesis?
 
+            // Trim brackets from GTFS
+            // A couple Jurmalas GTFS stops have brackets, like JS "Promenādes iela [Promenādes iela]" and "Promenādes iela [Rīgas iela]" vs OSM "Promenādes iela" and "Promenādes iela"
+            ptStopName = Regex.Replace(ptStopName, @" \[[^\[\]]+\]$", @"");
+            
             // Both OSM and RS stops are inconsistent about spacing around characters
             // "2.trolejbusu parks" or "Jaunciema 2.šķērslīnija" (also all the abbreviated "P.Lejiņa iela" although this won't match)
             // "Upesgrīvas iela/ Spice"

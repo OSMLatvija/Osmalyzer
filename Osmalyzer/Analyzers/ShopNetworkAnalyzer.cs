@@ -89,16 +89,16 @@ namespace Osmalyzer
                     }
                     else
                     {
-                        OsmElement? closestMatchedShop = osmShops.GetClosestElementTo(listedShop.Lat, listedShop.Lon, 200);
+                        OsmElement? closestMatchedShop = osmShops.GetClosestElementTo(listedShop.Lat, listedShop.Lon, 200, out distance);
 
                         if (closestMatchedShop != null)
                         {
-
                             report.AddEntry(
                                 parser.Name,
                                 new Report.IssueReportEntry(
                                     "No expected shop for " + ListedShopString(listedShop) +
-                                    " , closest " + OsmShopString(closestMatchedShop)
+                                    " , closest " + OsmShopString(closestMatchedShop) + 
+                                    " at " + distance!.Value.ToString("F0") + " m."
                                 )
                             );
                         }

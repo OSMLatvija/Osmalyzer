@@ -21,7 +21,8 @@ namespace Osmalyzer
         {
             typeof(OsmAnalysisData), 
             typeof(LatsShopsAnalysisData), 
-            typeof(ElviShopsAnalysisData)
+            typeof(ElviShopsAnalysisData), 
+            //typeof(TopShopsAnalysisData)
         };
         
 
@@ -42,7 +43,8 @@ namespace Osmalyzer
             List<ShopParser> parsers = new List<ShopParser>()
             {
                 new ElviShopParser(),
-                new LatsShopParser()
+                new LatsShopParser(),
+                //new TopShopParser()
             };
 
             foreach (ShopParser parser in parsers)
@@ -265,6 +267,20 @@ namespace Osmalyzer
                 }
 
                 return listedShops;
+            }
+        }
+
+        private class TopShopParser : ShopParserWithData<TopShopsAnalysisData>
+        {
+            public override string Name => "Top!";
+            
+            public override string OsmName => "Top";
+
+            public override List<ShopData> GetShops(string source)
+            {
+                // It's not in source, it's using google map with embedded data that I would need to somehow get
+                
+                throw new NotImplementedException();
             }
         }
 

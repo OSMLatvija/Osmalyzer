@@ -72,7 +72,8 @@ namespace Osmalyzer
                                 ReportGroup.InvalidSpeed,
                                 new Report.MapPointReportEntry(
                                     coord.lat, coord.lon,
-                                    "Incorrect maxspeed value \"" + maxspeedStr + "\""
+                                    "Incorrect maxspeed value \"" + maxspeedStr + "\"",
+                                    livingStreet.OsmViewUrl
                                 )
                             );
                         }
@@ -93,7 +94,8 @@ namespace Osmalyzer
                             ReportGroup.InvalidSpeed,
                             new Report.MapPointReportEntry(
                                 coord.lat, coord.lon,
-                                "Invalid maxspeed value \"" + maxspeedStr + "\""
+                                "Invalid maxspeed value \"" + maxspeedStr + "\"",
+                                livingStreet.OsmViewUrl
                             )
                         );
                     }

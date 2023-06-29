@@ -93,7 +93,8 @@ namespace Osmalyzer
                         string lat = mapPointEntry.Lat.ToString("F6");
                         string lon = mapPointEntry.Lon.ToString("F6");
                         string text = HttpUtility.HtmlEncode(mapPointEntry.Text);
-                        reportFile.WriteLine($@"L.marker([{lat}, {lon}]).addTo(map).bindPopup(""{text}"");");
+                        string? url = mapPointEntry.Url != null ? @$" <a href=\""{mapPointEntry.Url}\"" target=\""_blank\"">🔗</a>" : null;
+                        reportFile.WriteLine($@"L.marker([{lat}, {lon}]).addTo(map).bindPopup(""{text}{url}"");");
                     }
                     reportFile.WriteLine(@"</script>");
                 }

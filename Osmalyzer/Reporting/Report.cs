@@ -200,12 +200,15 @@ namespace Osmalyzer
             
             public double Lon { get; }
             
+            public string? Url { get; }
 
-            public MapPointReportEntry(double lat, double lon, string text)
+
+            public MapPointReportEntry(double lat, double lon, string text, string? url)
                 : base(text)
             {
                 Lat = lat;
                 Lon = lon;
+                Url = url;
             }
         }
     }

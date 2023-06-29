@@ -30,6 +30,29 @@ namespace Osmalyzer
             reportFile.WriteLine(@"<meta http-equiv=""Cache-Control"" content=""no-cache, no-store, must-revalidate"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Pragma"" content=""no-cache"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Expires"" content=""0"" />");
+            
+            reportFile.WriteLine(@"<style>"); // todo: stylesheets? never heard of it
+            reportFile.WriteLine(@"body {");
+            reportFile.WriteLine(@"  font-family: Arial, sans-serif;");
+            reportFile.WriteLine(@"  margin: 0;");
+            reportFile.WriteLine(@"  padding: 20px;");
+            reportFile.WriteLine(@"  background-color: #f2f2f2;");
+            reportFile.WriteLine(@"  color: #333;");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@"h1, h2, h3 {");
+            reportFile.WriteLine(@"  color: #555;");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@"a {");
+            reportFile.WriteLine(@"  color: #007bff;");
+            reportFile.WriteLine(@"  text-decoration: none;");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@"a:hover {");
+            reportFile.WriteLine(@"  text-decoration: underline;");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@"a:visited {");
+            reportFile.WriteLine(@"  color: #1b4b99;");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@"</style>");
 
             bool needMap = report.NeedMap;
             

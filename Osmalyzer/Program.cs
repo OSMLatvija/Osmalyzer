@@ -33,7 +33,7 @@ namespace Osmalyzer
             {
                 //new CommonBrandsAnalyzer(),
                 //new HighwaySpeedConditionalAnalyzer(),
-                //new LivingZoneSpeedAnalyzer(),
+                new LivingZoneSpeedAnalyzer(),
                 //new LVCRoadAnalyzer(),
                 //new RigasSatiksmeAnalyzer(),
                 //new LiepajasTransportsAnalyzer(),
@@ -41,7 +41,7 @@ namespace Osmalyzer
                 //new JurmalasSatiksmeAnalyzer(),
                 //new LatvijasAutobussAnalyzer(),
                 //new TrolleybusWireAnalyzer(),
-                new ShopNetworkAnalyzer()
+                //new ShopNetworkAnalyzer()
             };
 #endif
 

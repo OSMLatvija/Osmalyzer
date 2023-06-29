@@ -65,6 +65,16 @@ namespace Osmalyzer
                                     "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                     "has an incorrect maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl)
                             );
+
+                            (double lat, double lon) coord = ((OsmWay)livingStreet).GetAverageNodeCoord();
+
+                            report.AddEntry(
+                                ReportGroup.InvalidSpeed,
+                                new Report.MapPointReportEntry(
+                                    coord.lat, coord.lon,
+                                    "Incorrect maxspeed value \"" + maxspeedStr + "\""
+                                )
+                            );
                         }
                     }
                     else
@@ -74,6 +84,16 @@ namespace Osmalyzer
                             new Report.IssueReportEntry(
                                 "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                 "has an invalid maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl
+                            )
+                        );
+                        
+                        (double lat, double lon) coord = ((OsmWay)livingStreet).GetAverageNodeCoord();
+
+                        report.AddEntry(
+                            ReportGroup.InvalidSpeed,
+                            new Report.MapPointReportEntry(
+                                coord.lat, coord.lon,
+                                "Invalid maxspeed value \"" + maxspeedStr + "\""
                             )
                         );
                     }

@@ -15,6 +15,9 @@ namespace Osmalyzer
 
             foreach (Report.ReportGroup group in report.CollectEntries())
             {
+                reportFile.WriteLine(group.Description);
+                reportFile.WriteLine();
+
                 if (group.DescriptionEntry != null)
                     reportFile.WriteLine(group.DescriptionEntry);
                 
@@ -24,7 +27,6 @@ namespace Osmalyzer
                 
                 if (group.GenericEntries.Count > 0)
                 {
-                    reportFile.WriteLine(group.Description);
                     foreach (Report.ReportEntry entry in group.GenericEntries)
                         reportFile.WriteLine("* " + entry.Text);
                     reportFile.WriteLine();
@@ -32,11 +34,19 @@ namespace Osmalyzer
                 
                 if (group.IssueEntries.Count > 0)
                 {
-                    reportFile.WriteLine(group.Description);
                     foreach (Report.ReportEntry entry in group.IssueEntries)
                         reportFile.WriteLine("* " + entry.Text);
                     reportFile.WriteLine();
                 }
+                
+                if (group.MapPointEntries.Count > 0)
+                {
+                    foreach (Report.MapPointReportEntry entry in group.MapPointEntries)
+                        reportFile.WriteLine("* " + entry.Lat + " " + entry.Lon + ": " + entry.Text);
+                    reportFile.WriteLine();
+                }
+                
+                reportFile.WriteLine();
             }
             
             reportFile.WriteLine();

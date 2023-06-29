@@ -14,6 +14,9 @@ namespace Osmalyzer
         public string? AnalyzedDataDates { get; }
 
         
+        public bool NeedMap => _groups.Any(g => g.NeedMap);
+
+
         private readonly List<ReportGroup> _groups = new List<ReportGroup>();
 
 
@@ -76,17 +79,26 @@ namespace Osmalyzer
             public ReadOnlyCollection<ReportEntry> GenericEntries => _genericEntries.AsReadOnly();
             
             public ReadOnlyCollection<ReportEntry> IssueEntries => _issuesEntries.AsReadOnly();
+            
+            public ReadOnlyCollection<MapPointReportEntry> MapPointEntries => _mapPointEntries.AsReadOnly();
 
             public PlaceholderReportEntry? PlaceholderEntry { get; private set; }
             
             public DescriptionReportEntry? DescriptionEntry { get; private set; }
 
-            public bool HaveAnyContentEntries => _genericEntries.Count > 0 || _issuesEntries.Count > 0; 
+            public bool HaveAnyContentEntries => 
+                _genericEntries.Count > 0 || 
+                _issuesEntries.Count > 0 || 
+                _mapPointEntries.Count > 0; // this counts too right? would there ever be only map points? report that is just map?
+
+            public bool NeedMap => _mapPointEntries.Count > 0;
 
 
             private readonly List<ReportEntry> _genericEntries = new List<ReportEntry>();
             
             private readonly List<ReportEntry> _issuesEntries = new List<ReportEntry>();
+            
+            private readonly List<MapPointReportEntry> _mapPointEntries = new List<MapPointReportEntry>();
 
 
             public ReportGroup(object id, string description)
@@ -106,6 +118,10 @@ namespace Osmalyzer
                     
                     case IssueReportEntry:
                         _issuesEntries.Add(newEntry);
+                        break;
+                    
+                    case MapPointReportEntry mpe:
+                        _mapPointEntries.Add(mpe);
                         break;
 
                     case PlaceholderReportEntry pe:
@@ -174,6 +190,22 @@ namespace Osmalyzer
             public DescriptionReportEntry(string text)
                 : base(text)
             {
+            }
+        }
+
+        /// <summary> Shown on a map, if possible </summary>
+        public class MapPointReportEntry : ReportEntry
+        {
+            public double Lat { get; }
+            
+            public double Lon { get; }
+            
+
+            public MapPointReportEntry(double lat, double lon, string text)
+                : base(text)
+            {
+                Lat = lat;
+                Lon = lon;
             }
         }
     }

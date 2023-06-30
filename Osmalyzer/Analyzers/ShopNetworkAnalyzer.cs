@@ -84,7 +84,8 @@ namespace Osmalyzer
                                 new IssueReportEntry(
                                     "Shop matched for " + ListedShopString(listedShop) +
                                     " as " + OsmShopString(exactMatchedShop) +
-                                    " , but it's far away - " + distance.Value.ToString("F0") + " m."
+                                    " , but it's far away - " + distance.Value.ToString("F0") + " m.",
+                                    listedShop.Coord
                                 )
                             );
                         }
@@ -100,7 +101,8 @@ namespace Osmalyzer
                                 new IssueReportEntry(
                                     "No expected shop for " + ListedShopString(listedShop) +
                                     " , closest " + OsmShopString(closestMatchedShop) + 
-                                    " at " + distance!.Value.ToString("F0") + " m."
+                                    " at " + distance!.Value.ToString("F0") + " m.",
+                                    listedShop.Coord
                                 )
                             );
                         }
@@ -109,7 +111,8 @@ namespace Osmalyzer
                             report.AddEntry(
                                 parser.Name,
                                 new IssueReportEntry(
-                                    "No expected shop for " + ListedShopString(listedShop) + " , and no shops nearby."
+                                    "No expected shop for " + ListedShopString(listedShop) + " , and no shops nearby.",
+                                    listedShop.Coord
                                 )
                             );
                         }

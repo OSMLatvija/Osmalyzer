@@ -34,14 +34,14 @@ namespace Osmalyzer
                 //new CommonBrandsAnalyzer(),
                 //new HighwaySeasonalSpeedsAnalyzer(),
                 //new LivingZoneSpeedAnalyzer(),
-                new LVCRoadAnalyzer(),
+                //new LVCRoadAnalyzer(),
                 //new RigasSatiksmeAnalyzer(),
                 //new LiepajasTransportsAnalyzer(),
                 //new RezeknesSatiksmeAnalyzer(),
                 //new JurmalasSatiksmeAnalyzer(),
                 //new LatvijasAutobussAnalyzer(),
                 //new TrolleybusWireAnalyzer(),
-                //new ShopNetworkAnalyzer()
+                new ShopNetworkAnalyzer()
             };
 #endif
 

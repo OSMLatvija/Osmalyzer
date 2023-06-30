@@ -54,17 +54,14 @@ namespace Osmalyzer
             return _groups.ToList();
         }
 
-        public void CancelEntry(object groupId, ReportEntryContext context)
+        public void CancelEntries(object groupId, ReportEntryContext context)
         {
             if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
 
             
             ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
-            ReportEntry? entry = group.IssueEntries.FirstOrDefault(e => e.Context == context);
-
-            if (entry != null)
-                group.RemoveEntry(entry);
+            group.CancelEntries(context);
         }
     }
 }

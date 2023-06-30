@@ -11,15 +11,16 @@ namespace Osmalyzer
         public string Description { get; }
 
 
+        public DescriptionReportEntry? DescriptionEntry { get; private set; }
+
+        public PlaceholderReportEntry? PlaceholderEntry { get; private set; }
+
         public ReadOnlyCollection<ReportEntry> GenericEntries => _genericEntries.AsReadOnly();
             
         public ReadOnlyCollection<ReportEntry> IssueEntries => _issuesEntries.AsReadOnly();
             
         public ReadOnlyCollection<MapPointReportEntry> MapPointEntries => _mapPointEntries.AsReadOnly();
 
-        public PlaceholderReportEntry? PlaceholderEntry { get; private set; }
-            
-        public DescriptionReportEntry? DescriptionEntry { get; private set; }
 
         public bool HaveAnyContentEntries => 
             _genericEntries.Count > 0 || 
@@ -77,9 +78,14 @@ namespace Osmalyzer
                 AddEntry(newEntry.SubEntry);
         }
 
-        public void RemoveEntry(ReportEntry entry)
+        public void CancelEntries(ReportEntryContext context)
         {
-            _issuesEntries.Remove(entry);
+            _issuesEntries.RemoveAll(e => e.Context == context);
+            _genericEntries.RemoveAll(e => e.Context == context);
+            _mapPointEntries.RemoveAll(e => e.Context == context);
+
+            if (PlaceholderEntry != null && PlaceholderEntry.Context == context) PlaceholderEntry = null;
+            if (DescriptionEntry != null && DescriptionEntry.Context == context) DescriptionEntry = null;
         }
     }
 }

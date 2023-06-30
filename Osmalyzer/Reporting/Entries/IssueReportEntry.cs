@@ -12,5 +12,11 @@
         {
             SubEntry = new MapPointReportEntry(coord, text);
         }
+            
+        public IssueReportEntry(string text, OsmCoord coord, ReportEntryContext? context)
+            : base(text, context)
+        {
+            SubEntry = new MapPointReportEntry(coord, text, context);
+        }
     }
 }

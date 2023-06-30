@@ -1,6 +1,8 @@
 ﻿namespace Osmalyzer
 {
-    /// <summary> Shown before the main issue list </summary>
+    /// <summary>
+    /// Shown always before the main entries (even if there are none)
+    /// </summary>
     public class DescriptionReportEntry : ReportEntry
     {
         public DescriptionReportEntry(string text)

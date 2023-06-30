@@ -117,7 +117,11 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.MatchedOsmStopIsTooFar,
                             new IssueReportEntry(
-                                Label + " stop \"" + ptStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - " + matchedStop.OsmViewUrl + " , expecting around " + ptStop.Coord.OsmUrl
+                                Label + " stop \"" + ptStop.Name + "\"" + " matches " +
+                                "OSM stop \"" + osmStopName + "\" " +
+                                "but is far away at " + stopDistance.ToString("F0") + " m - " + matchedStop.OsmViewUrl + " , " +
+                                "expecting around " + ptStop.Coord.OsmUrl,
+                                ptStop.Coord
                             )
                         );
                     }
@@ -141,7 +145,9 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.NoStopMatchButHaveClose, 
                                 new IssueReportEntry(
-                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop nearby but is closest to OSM stop \"" + osmStopName + "\" - " + closestStop.OsmViewUrl
+                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop nearby but is closest at " + stopDistance.ToString("F0") + " m to " +
+                                    "OSM stop \"" + osmStopName + "\" - " + closestStop.OsmViewUrl,
+                                    ptStop.Coord
                                 )
                             );
                         }
@@ -150,7 +156,9 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.NoStopMatchButHaveClose,
                                 new IssueReportEntry(
-                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop nearby but is closest to unnamed OSM stop - " + closestStop.OsmViewUrl
+                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop nearby but is closest at " + stopDistance.ToString("F0") + " m to unnamed " +
+                                    "OSM stop - " + closestStop.OsmViewUrl,
+                                    ptStop.Coord
                                 )
                             );
                         }
@@ -159,7 +167,10 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.NoStopMatchAndAllFar,
                                 new IssueReportEntry(
-                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop in range and all other stops are far away (closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + " at " + stopDistance.ToString("F0") + " m) -- " + ptStop.Coord.OsmUrl
+                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop in range and all other stops are far away " +
+                                    "(closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + 
+                                    " at " + stopDistance.ToString("F0") + " m) -- " + ptStop.Coord.OsmUrl,
+                                    ptStop.Coord
                                 )
                             );
                         }
@@ -172,7 +183,9 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.NoStopMatchInRange,
                             new IssueReportEntry(
-                                "No OSM stops at all in range of "+Label+" stop \"" + ptStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - " + ptStop.Coord.OsmUrl + ""
+                                "No OSM stops at all in range of " + Label + " stop \"" + ptStop.Name + "\" " +
+                                "(closest " + farawayDistance.ToString("F0") + " m) - " + ptStop.Coord.OsmUrl,
+                                ptStop.Coord
                             )
                         );
                     }
@@ -210,9 +223,10 @@ namespace Osmalyzer
                     }
 
                     report.AddEntry(
-                        ReportGroup.NoOsmRouteMatch, 
+                        ReportGroup.NoOsmRouteMatch,
                         new IssueReportEntry(
-                            Label + " " + ptRoute.CleanType + " route #" + ptRoute.Number + " \"" + ptRoute.Name + "\" did not match any OSM route. "+Label+" end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? fullyMatchedStops[s].OsmViewUrl : "no matched OSM stop") + ")")) + "."
+                            Label + " " + ptRoute.CleanType + " route #" + ptRoute.Number + " \"" + ptRoute.Name + "\" did not match any OSM route. " +
+                            Label + " end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? fullyMatchedStops[s].OsmViewUrl : "no matched OSM stop") + ")")) + "."
                         )
                     );
                 }
@@ -251,6 +265,7 @@ namespace Osmalyzer
                                                 "OSM stop " + expectedOsmStop.GetValue("name") + "\" " + expectedOsmStop.OsmViewUrl + " " +
                                                 "was not in the matched " +
                                                 "OSM route \"" + osmRoute.GetValue("name") + "\" " + osmRoute.OsmViewUrl + ".", 
+                                                ptStop.Coord,
                                                 new ReportEntryContext(ptStop)
                                             )
                                         );
@@ -277,6 +292,7 @@ namespace Osmalyzer
                                             Label + " " + ptRoute.CleanType + " route's #" + ptRoute.Number + " \"" + ptRoute.Name + "\" " +
                                             //"trip #" + trip.Id + -- meaningless ID since many repeat it and this is first found
                                             ".", 
+                                            routeStop.coord,
                                             new ReportEntryContext(routeStop)
                                         )
                                     );
@@ -290,8 +306,8 @@ namespace Osmalyzer
                                 if (possibleRematch != null)
                                 {
                                     // Cancel duplicated reporting for each stop (if we had them reported individually)
-                                    report.CancelEntry(ReportGroup.NetworkRouteMissingOsmStop, new ReportEntryContext(ptStop));
-                                    report.CancelEntry(ReportGroup.OsmRouteExtraStop, new ReportEntryContext(possibleRematch));
+                                    report.CancelEntries(ReportGroup.NetworkRouteMissingOsmStop, new ReportEntryContext(ptStop));
+                                    report.CancelEntries(ReportGroup.OsmRouteExtraStop, new ReportEntryContext(possibleRematch));
 
                                     OsmNode originalMatch = fullyMatchedStops[ptStop];
 
@@ -307,7 +323,8 @@ namespace Osmalyzer
                                             "stop \"" + possibleRematch.GetValue("name") + "\" " + possibleRematch.OsmViewUrl + " " +
                                             "appear in both routes but did not cross-match originally " +
                                             "("+Label+" stop matched \"" + originalMatch.GetValue("name") + "\" " + originalMatch.OsmViewUrl + " " + distance.ToString("F0") + " m away)" +
-                                            "."
+                                            ".",
+                                            ptStop.Coord
                                         )
                                     );
                                 }

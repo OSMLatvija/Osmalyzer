@@ -20,10 +20,10 @@ namespace Osmalyzer
 
         
         [PublicAPI]
-        public IEnumerable<string> AllKeys => _tags.Keys;
+        public IEnumerable<string>? AllKeys => _tags?.Keys;
         
         [PublicAPI]
-        public IEnumerable<string> AllValues => _tags.Values;
+        public IEnumerable<string>? AllValues => _tags?.Values;
         
         [PublicAPI]
         public bool HasAnyTags => _tags != null;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -44,10 +43,10 @@ namespace Osmalyzer
             {
                 new ElviShopParser(),
                 new LatsShopParser(),
-                //new TopShopParser()
+                new TopShopParser()
             };
 
-            foreach (ShopParser parser in parsers)
+            foreach (ShopParser parser in parsers.Where(p => p.Enabled))
             {
                 report.AddGroup(parser.Name, parser.Name + " shops:");
 
@@ -174,6 +173,8 @@ namespace Osmalyzer
 
         private abstract class ShopParser
         {
+            public abstract bool Enabled { get; }
+            
             public abstract Type DataType { get; }
 
             public abstract string Name { get; }
@@ -191,6 +192,8 @@ namespace Osmalyzer
 
         private class LatsShopParser : ShopParserWithData<LatsShopsAnalysisData>
         {
+            public override bool Enabled => true;
+            
             public override string Name => "LaTS";
             
             public override string OsmName => Name;
@@ -234,6 +237,8 @@ namespace Osmalyzer
 
         private class ElviShopParser : ShopParserWithData<ElviShopsAnalysisData>
         {
+            public override bool Enabled => true;
+
             public override string Name => "Elvi";
             
             public override string OsmName => Name;
@@ -275,6 +280,8 @@ namespace Osmalyzer
 
         private class TopShopParser : ShopParserWithData<TopShopsAnalysisData>
         {
+            public override bool Enabled => false;
+
             public override string Name => "Top!";
             
             public override string OsmName => "Top";
@@ -299,11 +306,6 @@ namespace Osmalyzer
                 Address = address;
                 Coord = coord;
             }
-        }
-        
-        
-        private enum ReportGroup
-        {
         }
     }
 }

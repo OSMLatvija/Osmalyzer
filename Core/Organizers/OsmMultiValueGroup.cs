@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
-using OsmSharp.Tags;
 
 namespace Osmalyzer
 {
@@ -24,7 +23,7 @@ namespace Osmalyzer
             {
                 if (element.Element.HasAnyTags)
                 {
-                    foreach (string elementKey in element.Element.AllKeys)
+                    foreach (string elementKey in element.Element.AllKeys!)
                     {
                         if (elementKey == key)
                         {

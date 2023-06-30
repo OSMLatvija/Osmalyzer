@@ -62,19 +62,7 @@ namespace Osmalyzer
 
         public override (double lat, double lon) GetAverageCoord()
         {
-            double averageLat = 0.0;
-            double averageLon = 0.0;
-
-            List<OsmElement> elements = Elements.ToList();
-            
-            foreach (OsmElement element in elements)
-            {
-                (double lat, double lon) = element.GetAverageCoord(); // todo: recursion on circular relations will kill us
-                averageLat += lat / elements.Count;
-                averageLon += lon / elements.Count;
-            }
-
-            return (averageLat, averageLon);
+            return OsmGeoTools.GetAverageCoord(Elements);
         }
     }
 }

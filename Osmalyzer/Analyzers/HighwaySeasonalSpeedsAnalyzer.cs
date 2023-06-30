@@ -7,9 +7,9 @@ using JetBrains.Annotations;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class HighwaySpeedConditionalAnalyzer : Analyzer
+    public class HighwaySeasonalSpeedsAnalyzer : Analyzer
     {
-        public override string Name => "Highway Speed Conditional";
+        public override string Name => "Highway Seasonal Speeds";
 
         public override string? Description => null;
 

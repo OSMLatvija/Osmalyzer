@@ -266,7 +266,12 @@ namespace Osmalyzer
 
             report.AddGroup(ReportGroup.SharedRefsNotInLaw, "These roads have shared ref segments that are not in the law:");
             
-            //todo: for empty report.AddEntry(ReportGroup.SharedRefsNotInLaw, "There are no roads with shared refs that are not in the law.");
+            report.AddEntry(
+                ReportGroup.SharedRefsNotInLaw,
+                new Report.PlaceholderReportEntry(
+                    "There are no roads with shared refs that are not in the law."
+                )
+            );
 
             for (int i = 0; i < uniqueRefPairs.Count; i++)
             {
@@ -281,6 +286,8 @@ namespace Osmalyzer
                 {
                     List<OsmElement> roads = uniqueRefPairs[i].Item3;
 
+                    (double lat, double lon) coord = OsmGeoTools.GetAverageCoord(roads);
+                    
                     report.AddEntry(
                         ReportGroup.SharedRefsNotInLaw,
                         new Report.IssueReportEntry(
@@ -288,7 +295,8 @@ namespace Osmalyzer
                             (roads.Count > 5 ?
                                 $" on {roads.Count} road (segments)" :
                                 "on these road (segments): " + string.Join(", ", roads.Select(e => e.OsmViewUrl))) +
-                            "."
+                            ".",
+                            coord.lat, coord.lon
                         )
                     );
                 }
@@ -419,6 +427,8 @@ namespace Osmalyzer
             {
                 foreach (OsmGroup osmGroup in unrecognizedRoadsByRef.groups)
                 {
+                    (double lat, double lon) coord = OsmGeoTools.GetAverageCoord(osmGroup.Elements);
+
                     report.AddEntry(
                         ReportGroup.UnrecognizedRoadsByRef,
                         new Report.IssueReportEntry(
@@ -428,7 +438,8 @@ namespace Osmalyzer
                             (osmGroup.Elements.Count > 5 ?
                                 " on " + osmGroup.Elements.Count + " road (segments)" :
                                 "on these road (segments): " + string.Join(", ", osmGroup.Elements.Select(e => e.OsmViewUrl))
-                            )
+                            ),
+                            coord.lat, coord.lon
                         )
                     );
                 }
@@ -437,7 +448,7 @@ namespace Osmalyzer
                 {
                     report.AddEntry(
                         ReportGroup.UnrecognizedRoadsByRef,
-                        new Report.IssueReportEntry(excludedCount + " refs are ignored/excluded.")
+                        new Report.IssueReportEntry(excludedCount + " refs are ignored/excluded as coming from other sources.")
                     );
                 }
             }

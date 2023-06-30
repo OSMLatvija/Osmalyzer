@@ -104,6 +104,10 @@ namespace Osmalyzer
         }
 
 
+        [Pure]
+        public abstract (double lat, double lon) GetAverageCoord();
+        
+
         /// <summary>
         /// Speeding up collections with hashing, basically dictionaries
         /// </summary>

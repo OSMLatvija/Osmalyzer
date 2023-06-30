@@ -27,7 +27,7 @@ namespace Osmalyzer
         }
 
         
-        public (double lat, double lon) GetAverageNodeCoord()
+        public override (double lat, double lon) GetAverageCoord()
         {
             double lat = nodes.Select(n => n.lat).Average();
             double lon = nodes.Select(n => n.lon).Average();

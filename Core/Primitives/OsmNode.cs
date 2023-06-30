@@ -31,5 +31,11 @@ namespace Osmalyzer
             lat = rawNode.Latitude!.Value;
             lon = rawNode.Longitude!.Value;
         }
+        
+        
+        public override (double lat, double lon) GetAverageCoord()
+        {
+            return (lat, lon);
+        }
     }
 }

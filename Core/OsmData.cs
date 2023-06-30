@@ -220,27 +220,7 @@ namespace Osmalyzer
 
             foreach (OsmElement element in _elements)
             {
-                double elementLat;
-                double elementLon;
-
-                switch (element)
-                {
-                    case OsmNode osmNode:
-                        elementLat = osmNode.lat;
-                        elementLon = osmNode.lon;
-                        break;
-
-                    case OsmWay osmWay:
-                        (elementLat, elementLon) = osmWay.GetAverageNodeCoord();
-                        break;
-                    
-                    case OsmRelation osmRelation:
-                        (elementLat, elementLon) = osmRelation.GetAverageElementCoord();
-                        break;
-
-                    default:
-                        throw new InvalidOperationException();
-                }
+                (double elementLat, double elementLon) = element.GetAverageCoord();
                 
                 double distance = OsmGeoTools.DistanceBetween(
                     lat, lon,

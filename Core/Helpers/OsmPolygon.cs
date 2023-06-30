@@ -50,7 +50,7 @@ namespace Osmalyzer
 
                 case OsmWay way:
                 {
-                    (double lat, double lon) averageCoord = way.GetAverageNodeCoord();
+                    (double lat, double lon) averageCoord = way.GetAverageCoord();
                     return ContainsCoord(averageCoord.lat, averageCoord.lon);
                 }
                 

@@ -60,7 +60,7 @@ namespace Osmalyzer
             return outerWays;
         }
 
-        public (double lat, double lon) GetAverageElementCoord()
+        public override (double lat, double lon) GetAverageCoord()
         {
             double averageLat = 0.0;
             double averageLon = 0.0;
@@ -69,34 +69,9 @@ namespace Osmalyzer
             
             foreach (OsmElement element in elements)
             {
-                switch (element)
-                {
-                    case OsmNode osmNode:
-                    {
-                        averageLat += osmNode.lat / elements.Count;
-                        averageLon += osmNode.lon / elements.Count;
-                        break;
-                    }
-
-                    case OsmWay osmWay:
-                    {
-                        (double lat, double lon) = osmWay.GetAverageNodeCoord();
-                        averageLat += lat / elements.Count;
-                        averageLon += lon / elements.Count;
-                        break;
-                    }
-
-                    case OsmRelation osmRelation:
-                    {
-                        (double lat, double lon) = osmRelation.GetAverageElementCoord(); // recursion will kill us
-                        averageLat += lat / elements.Count;
-                        averageLon += lon / elements.Count;
-                        break;
-                    }
-
-                    default:
-                        throw new InvalidOperationException();
-                }
+                (double lat, double lon) = element.GetAverageCoord(); // todo: recursion on circular relations will kill us
+                averageLat += lat / elements.Count;
+                averageLon += lon / elements.Count;
             }
 
             return (averageLat, averageLon);

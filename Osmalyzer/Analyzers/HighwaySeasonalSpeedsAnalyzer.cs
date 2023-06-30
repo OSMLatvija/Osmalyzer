@@ -59,7 +59,7 @@ namespace Osmalyzer
 
                         if (maxspeed == maxspeedConditional)
                         {
-                            (double lat, double lon) coord = ((OsmWay)way).GetAverageNodeCoord();
+                            (double lat, double lon) coord = way.GetAverageCoord();
 
                             report.AddEntry(
                                 ReportGroup.Main,
@@ -74,7 +74,7 @@ namespace Osmalyzer
                     {
                         if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
                         {
-                            (double lat, double lon) coord = ((OsmWay)way).GetAverageNodeCoord();
+                            (double lat, double lon) coord = way.GetAverageCoord();
 
                             report.AddEntry(
                                 ReportGroup.Main,
@@ -88,7 +88,7 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    (double lat, double lon) coord = ((OsmWay)way).GetAverageNodeCoord();
+                    (double lat, double lon) coord = way.GetAverageCoord();
 
                     report.AddEntry(
                         ReportGroup.Main,

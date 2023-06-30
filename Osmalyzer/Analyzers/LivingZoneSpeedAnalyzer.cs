@@ -59,7 +59,7 @@ namespace Osmalyzer
                     {
                         if (maxspeed != 20)
                         {
-                            (double lat, double lon) coord = ((OsmWay)livingStreet).GetAverageNodeCoord();
+                            (double lat, double lon) coord = livingStreet.GetAverageCoord();
 
                             report.AddEntry(
                                 ReportGroup.InvalidSpeed,
@@ -73,7 +73,7 @@ namespace Osmalyzer
                     }
                     else
                     {
-                        (double lat, double lon) coord = ((OsmWay)livingStreet).GetAverageNodeCoord();
+                        (double lat, double lon) coord = livingStreet.GetAverageCoord();
 
                         report.AddEntry(
                             ReportGroup.InvalidSpeed,

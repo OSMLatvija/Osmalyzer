@@ -41,6 +41,13 @@ namespace Osmalyzer
             // Process
 
             report.AddGroup(ReportGroup.Issues, "Ways with trolley_wire issues:");
+
+            report.AddEntry(
+                ReportGroup.Issues,
+                new PlaceholderReportEntry(
+                    "No issues with `trolley_wire`s found"
+                )
+            );
             
             foreach (OsmElement route in routes.Elements)
             {
@@ -71,7 +78,8 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.Issues,
                             new IssueReportEntry(
-                                "Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on " + roadSegment.OsmViewUrl
+                                "Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on " + roadSegment.OsmViewUrl,
+                                roadSegment.GetAverageCoord()
                             )
                         );
                     }
@@ -83,7 +91,8 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Issues,
                                 new IssueReportEntry(
-                                    "`trolley_wire` unknown value \"" + trolley_wire + "\" on " + roadSegment.OsmViewUrl
+                                    "`trolley_wire` unknown value \"" + trolley_wire + "\" on " + roadSegment.OsmViewUrl,
+                                    roadSegment.GetAverageCoord()
                                 )
                             );
                         }
@@ -96,7 +105,8 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Issues,
                                 new IssueReportEntry(
-                                    "`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on " + roadSegment.OsmViewUrl
+                                    "`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on " + roadSegment.OsmViewUrl,
+                                    roadSegment.GetAverageCoord()
                                 )
                             );
                         }
@@ -107,7 +117,8 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.Issues,
                                 new IssueReportEntry(
-                                    "`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on " + roadSegment.OsmViewUrl
+                                    "`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on " + roadSegment.OsmViewUrl,
+                                    roadSegment.GetAverageCoord()
                                 )
                             );                                    
                         }
@@ -118,7 +129,8 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.Issues,
                             new IssueReportEntry(
-                                "`trolley_wire` missing on " + roadSegment.OsmViewUrl
+                                "`trolley_wire` missing on " + roadSegment.OsmViewUrl,
+                                roadSegment.GetAverageCoord()
                             )
                         );
                     }

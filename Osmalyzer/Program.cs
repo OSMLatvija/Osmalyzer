@@ -40,8 +40,8 @@ namespace Osmalyzer
                 //new RezeknesSatiksmeAnalyzer(),
                 //new JurmalasSatiksmeAnalyzer(),
                 //new LatvijasAutobussAnalyzer(),
-                //new TrolleybusWireAnalyzer(),
-                new ShopNetworkAnalyzer()
+                new TrolleybusWireAnalyzer(),
+                //new ShopNetworkAnalyzer()
             };
 #endif
 

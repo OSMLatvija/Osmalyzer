@@ -35,13 +35,14 @@ namespace Osmalyzer
                 //new HighwaySeasonalSpeedsAnalyzer(),
                 //new LivingZoneSpeedAnalyzer(),
                 //new LVCRoadAnalyzer(),
-                new RigasSatiksmeAnalyzer(),
-                new LiepajasTransportsAnalyzer(),
-                new RezeknesSatiksmeAnalyzer(),
-                new JurmalasSatiksmeAnalyzer(),
-                new LatvijasAutobussAnalyzer(),
+                //new RigasSatiksmeAnalyzer(),
+                //new LiepajasTransportsAnalyzer(),
+                //new RezeknesSatiksmeAnalyzer(),
+                //new JurmalasSatiksmeAnalyzer(),
+                //new LatvijasAutobussAnalyzer(),
                 //new TrolleybusWireAnalyzer(),
-                //new ShopNetworkAnalyzer()
+                //new ShopNetworkAnalyzer(),
+                new MicroReservesAnalyzer()
             };
 #endif
 
@@ -49,13 +50,13 @@ namespace Osmalyzer
 
             
             List<Type> requestedDataTypes = new List<Type>();
-            List<List<Type>> perAnalayzerRequestedDataTypes = new List<List<Type>>();
+            List<List<Type>> perAnalyzerRequestedDataTypes = new List<List<Type>>();
             
             foreach (Analyzer analyzer in analyzers)
             {
                 List<Type> analyzerRequiredDataTypes = analyzer.GetRequiredDataTypes();
 
-                perAnalayzerRequestedDataTypes.Add(analyzerRequiredDataTypes);
+                perAnalyzerRequestedDataTypes.Add(analyzerRequiredDataTypes);
                 
                 foreach (Type dataType in analyzerRequiredDataTypes)
                     if (!requestedDataTypes.Contains(dataType))
@@ -117,7 +118,7 @@ namespace Osmalyzer
 
                 List<AnalysisData> datas = new List<AnalysisData>();
 
-                foreach (Type dataType in perAnalayzerRequestedDataTypes[i])
+                foreach (Type dataType in perAnalyzerRequestedDataTypes[i])
                     datas.Add(requestedDatas.First(rd => rd.GetType() == dataType));
 
                 Report report = new Report(analyzers[i], datas);

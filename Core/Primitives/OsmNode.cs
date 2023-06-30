@@ -11,11 +11,7 @@ namespace Osmalyzer
         public override string OsmViewUrl => "https://www.openstreetmap.org/node/" + Id;
 
         [PublicAPI]
-        public readonly double lat;
-        [PublicAPI]
-        public readonly double lon;
-        // TODO: to coord struct and add all the useful methods and such
-        
+        public readonly OsmCoord coord;
         [PublicAPI]
         public IReadOnlyList<OsmNode>? Ways => ways?.AsReadOnly();
 
@@ -27,15 +23,17 @@ namespace Osmalyzer
             : base(rawElement)
         {
             Node rawNode = (Node)rawElement;
-            
-            lat = rawNode.Latitude!.Value;
-            lon = rawNode.Longitude!.Value;
+
+            coord = new OsmCoord(
+                rawNode.Latitude!.Value,
+                rawNode.Longitude!.Value
+            );
         }
         
         
-        public override (double lat, double lon) GetAverageCoord()
+        public override OsmCoord GetAverageCoord()
         {
-            return (lat, lon);
+            return coord;
         }
     }
 }

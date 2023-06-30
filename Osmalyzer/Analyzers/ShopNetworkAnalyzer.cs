@@ -71,7 +71,7 @@ namespace Osmalyzer
 
                 foreach (ShopData listedShop in listedShops)
                 {
-                    OsmElement? exactMatchedShop = brandShops.GetClosestElementTo(listedShop.Lat, listedShop.Lon, 500, out double? distance);
+                    OsmElement? exactMatchedShop = brandShops.GetClosestElementTo(listedShop.Coord, 500, out double? distance);
 
                     if (exactMatchedShop != null)
                     {
@@ -91,7 +91,7 @@ namespace Osmalyzer
                     }
                     else
                     {
-                        OsmElement? closestMatchedShop = osmShops.GetClosestElementTo(listedShop.Lat, listedShop.Lon, 200, out distance);
+                        OsmElement? closestMatchedShop = osmShops.GetClosestElementTo(listedShop.Coord, 200, out distance);
 
                         if (closestMatchedShop != null)
                         {
@@ -152,7 +152,7 @@ namespace Osmalyzer
             {
                 return
                     "\"" + listedShop.Address + "\" " +
-                    "found around https://www.openstreetmap.org/#map=19/" + listedShop.Lat.ToString("F5") + "/" + listedShop.Lon.ToString("F5");
+                    "found around " + listedShop.Coord.OsmUrl;
             }
 
             static string OsmShopString(OsmElement osmShop)
@@ -222,7 +222,7 @@ namespace Osmalyzer
                     
                     address = Regex.Replace(address, @", LV-\d{4}$", "");
                     
-                    listedShops.Add(new ShopData(address, lat, lon));
+                    listedShops.Add(new ShopData(address, new OsmCoord(lat, lon)));
                 }
 
                 return listedShops;
@@ -263,7 +263,7 @@ namespace Osmalyzer
                     address = Regex.Replace(address, @", ELVI veikals$", "");
                     address = Regex.Replace(address, @", LV-\d{4}$", "");
 
-                    listedShops.Add(new ShopData(address, lat, lon));
+                    listedShops.Add(new ShopData(address, new OsmCoord(lat, lon)));
                 }
 
                 return listedShops;
@@ -288,15 +288,13 @@ namespace Osmalyzer
         private class ShopData
         {
             public string Address { get; }
-            public double Lat { get; }
-            public double Lon { get; }
+            public OsmCoord Coord { get; }
 
             
-            public ShopData(string address, double lat, double lon)
+            public ShopData(string address, OsmCoord coord)
             {
                 Address = address;
-                Lat = lat;
-                Lon = lon;
+                Coord = coord;
             }
         }
         

@@ -84,7 +84,7 @@ namespace Osmalyzer
             foreach (PublicTransportStop ptStop in ptNetwork.Stops.Stops)
             {
                 // Find all potential OSM stops in range
-                List<OsmNode> closestStops = osmStops.GetClosestNodesTo(ptStop.Lat, ptStop.Lon, maxSearchDistance);
+                List<OsmNode> closestStops = osmStops.GetClosestNodesTo(ptStop.Coord, maxSearchDistance);
 
                 // Except the ones we already matched (if another PT stop wants them - it will have to find a further one or fail)
                 closestStops = closestStops.Except(matchedOsmStops).ToList();
@@ -96,13 +96,13 @@ namespace Osmalyzer
                 // Pick closest best-matched closest - prefer match, but settle for any follow-up, like weak match
                 (StopNameMatching match, OsmNode matchedStop) = matchedStops
                                                                 .OrderByDescending(ms => ms.match)
-                                                                .ThenBy(ms => OsmGeoTools.DistanceBetween(ms.node.lat, ms.node.lon, ptStop.Lat, ptStop.Lon))
+                                                                .ThenBy(ms => OsmGeoTools.DistanceBetween(ms.node.coord, ptStop.Coord))
                                                                 .FirstOrDefault();
 
                 if (matchedStop != null &&
                     match != StopNameMatching.Mismatch) // anything else is fine
                 {
-                    double stopDistance = OsmGeoTools.DistanceBetween(matchedStop.lat, matchedStop.lon, ptStop.Lat, ptStop.Lon);
+                    double stopDistance = OsmGeoTools.DistanceBetween(matchedStop.coord, ptStop.Coord);
                     bool stopInAcceptRange = stopDistance <= acceptDistance;
 
                     if (stopInAcceptRange)
@@ -117,7 +117,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.MatchedOsmStopIsTooFar,
                             new Report.IssueReportEntry(
-                                Label + " stop \"" + ptStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - " + matchedStop.OsmViewUrl + " , expecting around https://www.openstreetmap.org/#map=19/" + ptStop.Lat.ToString("F5") + "/" + ptStop.Lon.ToString("F5")
+                                Label + " stop \"" + ptStop.Name + "\"" + " matches OSM stop \"" + osmStopName + "\" but is far away " + stopDistance.ToString("F0") + " m - " + matchedStop.OsmViewUrl + " , expecting around " + ptStop.Coord.OsmUrl
                             )
                         );
                     }
@@ -133,7 +133,7 @@ namespace Osmalyzer
                     {
                         string? osmStopName = closestStop.GetValue("name");
 
-                        double stopDistance = OsmGeoTools.DistanceBetween(closestStop.lat, closestStop.lon, ptStop.Lat, ptStop.Lon);
+                        double stopDistance = OsmGeoTools.DistanceBetween(closestStop.coord, ptStop.Coord);
                         bool stopInAcceptRange = stopDistance <= acceptDistance;
                         
                         if (stopInAcceptRange && osmStopName != null) // already knwo it's not a match
@@ -159,20 +159,20 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.NoStopMatchAndAllFar,
                                 new Report.IssueReportEntry(
-                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop in range and all other stops are far away (closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + " at " + stopDistance.ToString("F0") + " m) -- https://www.openstreetmap.org/#map=19/" + ptStop.Lat.ToString("F5") + "/" + ptStop.Lon.ToString("F5")
+                                    Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop in range and all other stops are far away (closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + " at " + stopDistance.ToString("F0") + " m) -- " + ptStop.Coord.OsmUrl
                                 )
                             );
                         }
                     }
                     else // no stop at all within distance
                     {
-                        OsmNode farawayStop = (OsmNode)osmStops.GetClosestElementTo(ptStop.Lat, ptStop.Lon)!;
-                        double farawayDistance = OsmGeoTools.DistanceBetween(farawayStop.lat, farawayStop.lon, ptStop.Lat, ptStop.Lon);
+                        OsmNode farawayStop = (OsmNode)osmStops.GetClosestElementTo(ptStop.Coord)!;
+                        double farawayDistance = OsmGeoTools.DistanceBetween(farawayStop.coord, ptStop.Coord);
 
                         report.AddEntry(
                             ReportGroup.NoStopMatchInRange,
                             new Report.IssueReportEntry(
-                                "No OSM stops at all in range of "+Label+" stop \"" + ptStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - https://www.openstreetmap.org/#map=19/" + ptStop.Lat.ToString("F5") + "/" + ptStop.Lon.ToString("F5") + ""
+                                "No OSM stops at all in range of "+Label+" stop \"" + ptStop.Name + "\" (closest " + farawayDistance.ToString("F0") + " m) - " + ptStop.Coord.OsmUrl + ""
                             )
                         );
                     }
@@ -295,7 +295,7 @@ namespace Osmalyzer
 
                                     OsmNode originalMatch = fullyMatchedStops[ptStop];
 
-                                    double distance = OsmGeoTools.DistanceBetween(originalMatch.lat, originalMatch.lon, ptStop.Lat, ptStop.Lon);
+                                    double distance = OsmGeoTools.DistanceBetween(originalMatch.coord, ptStop.Coord);
 
                                     report.AddEntry(
                                         ReportGroup.StopRematchFromRoutes,

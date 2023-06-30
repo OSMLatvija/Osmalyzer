@@ -179,10 +179,10 @@ namespace Osmalyzer
             {
             }
             
-            public IssueReportEntry(string text, double lat, double lon)
+            public IssueReportEntry(string text, OsmCoord coord)
                 : base(text)
             {
-                SubEntry = new MapPointReportEntry(lat, lon, text);
+                SubEntry = new MapPointReportEntry(coord, text);
             }
         }
 
@@ -207,16 +207,13 @@ namespace Osmalyzer
         /// <summary> Shown on a map, if possible </summary>
         public class MapPointReportEntry : ReportEntry
         {
-            public double Lat { get; }
-            
-            public double Lon { get; }
+            public OsmCoord Coord { get; }
 
 
-            public MapPointReportEntry(double lat, double lon, string text)
+            public MapPointReportEntry(OsmCoord coord, string text)
                 : base(text)
             {
-                Lat = lat;
-                Lon = lon;
+                Coord = coord;
             }
         }
     }

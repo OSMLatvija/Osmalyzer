@@ -6,9 +6,7 @@
 
         public string Name { get; }
         
-        public double Lat { get; }
-        
-        public double Lon { get; }
+        public OsmCoord Coord { get; }
         
         public bool Bus { get; set; }
         
@@ -17,12 +15,11 @@
         public bool Tram { get; set; }
 
 
-        public PublicTransportStop(string id, string name, double lat, double lon)
+        public PublicTransportStop(string id, string name, OsmCoord coord)
         {
             Id = id;
             Name = name;
-            Lat = lat;
-            Lon = lon;
+            Coord = coord;
         }
     }
 }

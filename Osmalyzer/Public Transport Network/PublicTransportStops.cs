@@ -45,7 +45,7 @@ namespace Osmalyzer
                 double lat = double.Parse(segments[4]);
                 double lon = double.Parse(segments[5]);
 
-                PublicTransportStop stop = new PublicTransportStop(id, name, lat, lon);
+                PublicTransportStop stop = new PublicTransportStop(id, name, new OsmCoord(lat, lon));
 
                 if (!_stops.ContainsKey(stop.Id))
                     _stops.Add(stop.Id, stop);

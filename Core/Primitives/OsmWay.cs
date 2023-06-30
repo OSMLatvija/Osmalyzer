@@ -27,7 +27,7 @@ namespace Osmalyzer
         }
 
         
-        public override (double lat, double lon) GetAverageCoord()
+        public override OsmCoord GetAverageCoord()
         {
             return OsmGeoTools.GetAverageCoord(nodes);
         }

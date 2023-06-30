@@ -112,10 +112,10 @@ namespace Osmalyzer
                     reportFile.WriteLine(@"}).addTo(map);");
                     foreach (Report.MapPointReportEntry mapPointEntry in group.MapPointEntries)
                     {
-                        string lat = mapPointEntry.Lat.ToString("F6");
-                        string lon = mapPointEntry.Lon.ToString("F6");
+                        string lat = mapPointEntry.Coord.lat.ToString("F6");
+                        string lon = mapPointEntry.Coord.lon.ToString("F6");
                         string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
-                        string mapUrl = @"<a href=\""https://www.openstreetmap.org/#map=19/" + mapPointEntry.Lat.ToString("F5") + @"/" + mapPointEntry.Lon.ToString("F5") + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
+                        string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
                         reportFile.WriteLine($@"L.marker([{lat}, {lon}]).addTo(map).bindPopup(""{text} {mapUrl}"");");
                     }
                     reportFile.WriteLine(@"</script>");

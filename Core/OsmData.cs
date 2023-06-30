@@ -194,25 +194,25 @@ namespace Osmalyzer
         }
 
         [Pure]
-        public OsmElement? GetClosestElementTo(double lat, double lon)
+        public OsmElement? GetClosestElementTo(OsmCoord coord)
         {
-            return GetClosestNodeToRaw(lat, lon, null, out _);
+            return GetClosestNodeToRaw(coord, null, out _);
         }
 
         [Pure]
-        public OsmElement? GetClosestElementTo(double lat, double lon, double maxDistance)
+        public OsmElement? GetClosestElementTo(OsmCoord coord, double maxDistance)
         {
-            return GetClosestNodeToRaw(lat, lon, maxDistance, out _);
+            return GetClosestNodeToRaw(coord, maxDistance, out _);
         }
 
         [Pure]
-        public OsmElement? GetClosestElementTo(double lat, double lon, double maxDistance, out double? closestDistance)
+        public OsmElement? GetClosestElementTo(OsmCoord coord, double maxDistance, out double? closestDistance)
         {
-            return GetClosestNodeToRaw(lat, lon, maxDistance, out closestDistance);
+            return GetClosestNodeToRaw(coord, maxDistance, out closestDistance);
         }
 
         [Pure]
-        private OsmElement? GetClosestNodeToRaw(double lat, double lon, double? maxDistance, out double? closestDistance)
+        private OsmElement? GetClosestNodeToRaw(OsmCoord coord, double? maxDistance, out double? closestDistance)
         {
             OsmElement? bestElement = null;
             double bestDistance = 0.0;
@@ -220,11 +220,9 @@ namespace Osmalyzer
 
             foreach (OsmElement element in _elements)
             {
-                (double elementLat, double elementLon) = element.GetAverageCoord();
-                
                 double distance = OsmGeoTools.DistanceBetween(
-                    lat, lon,
-                    elementLat, elementLon
+                    coord,
+                    element.GetAverageCoord()
                 );
 
                 if (maxDistance == null || distance <= maxDistance) // within max distance
@@ -247,13 +245,13 @@ namespace Osmalyzer
         
         
         [Pure]
-        public List<OsmNode> GetClosestNodesTo(double lat, double lon, double maxDistance)
+        public List<OsmNode> GetClosestNodesTo(OsmCoord coord, double maxDistance)
         {
-            return GetClosestNodesToRaw(lat, lon, maxDistance);
+            return GetClosestNodesToRaw(coord, maxDistance);
         }
 
         [Pure]
-        private List<OsmNode> GetClosestNodesToRaw(double lat, double lon, double? maxDistance)
+        private List<OsmNode> GetClosestNodesToRaw(OsmCoord coord, double? maxDistance)
         {
             List<(double, OsmNode)> nodes = new List<(double, OsmNode)>(); // todo: presorted collection
 
@@ -263,8 +261,8 @@ namespace Osmalyzer
                     continue; // only care about nodes
                 
                 double distance = OsmGeoTools.DistanceBetween(
-                    lat, lon,
-                    node.lat, node.lon 
+                    coord,
+                    node.coord 
                 );
 
                 if (maxDistance == null || distance <= maxDistance) // within max distance

@@ -31,17 +31,17 @@ namespace Osmalyzer
 #else
             List<Analyzer> analyzers = new List<Analyzer>()
             {
-                //new CommonBrandsAnalyzer(),
-                //new HighwaySeasonalSpeedsAnalyzer(),
-                //new LivingZoneSpeedAnalyzer(),
+                new CommonBrandsAnalyzer(),
+                new HighwaySeasonalSpeedsAnalyzer(),
+                new LivingZoneSpeedAnalyzer(),
                 new LVCRoadAnalyzer(),
-                //new RigasSatiksmeAnalyzer(),
-                //new LiepajasTransportsAnalyzer(),
-                //new RezeknesSatiksmeAnalyzer(),
-                //new JurmalasSatiksmeAnalyzer(),
-                //new LatvijasAutobussAnalyzer(),
-                //new TrolleybusWireAnalyzer(),
-                //new ShopNetworkAnalyzer()
+                new RigasSatiksmeAnalyzer(),
+                new LiepajasTransportsAnalyzer(),
+                new RezeknesSatiksmeAnalyzer(),
+                new JurmalasSatiksmeAnalyzer(),
+                new LatvijasAutobussAnalyzer(),
+                new TrolleybusWireAnalyzer(),
+                new ShopNetworkAnalyzer()
             };
 #endif
 
@@ -94,7 +94,7 @@ namespace Osmalyzer
 
             for (int i = 0; i < preparableData.Count; i++)
             {
-                Console.WriteLine("Preparing " + preparableData[i].Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
+                Console.Write("Preparing " + preparableData[i].Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
 
                 Stopwatch prepareStopwatch = Stopwatch.StartNew();
                 

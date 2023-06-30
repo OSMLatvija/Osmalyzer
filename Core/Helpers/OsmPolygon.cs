@@ -7,10 +7,10 @@ namespace Osmalyzer
 {
     public class OsmPolygon
     {
-        private readonly List<(double lat, double lon)> _coords = new List<(double lat, double lon)>();
+        private readonly List<OsmCoord> _coords = new List<OsmCoord>();
 
 
-        public OsmPolygon(List<(double lat, double lon)> coords)
+        public OsmPolygon(List<OsmCoord> coords)
         {
             _coords = coords;
         }
@@ -38,7 +38,7 @@ namespace Osmalyzer
                 double lat = double.Parse(coords[1]);
                 double lon = double.Parse(coords[0]);
                 
-                _coords.Add((lat, lon));
+                _coords.Add(new OsmCoord(lat, lon));
             }
         }
 
@@ -46,12 +46,12 @@ namespace Osmalyzer
         {
             switch (element)
             {
-                case OsmNode node: return ContainsCoord(node.lat, node.lon);
+                case OsmNode node: return ContainsCoord(node.coord);
 
                 case OsmWay way:
                 {
-                    (double lat, double lon) averageCoord = way.GetAverageCoord();
-                    return ContainsCoord(averageCoord.lat, averageCoord.lon);
+                    OsmCoord averageCoord = way.GetAverageCoord();
+                    return ContainsCoord(averageCoord);
                 }
                 
                 case OsmRelation relation:
@@ -96,7 +96,7 @@ namespace Osmalyzer
             }
         }
 
-        public bool ContainsCoord(double lat, double lon)
+        public bool ContainsCoord(OsmCoord coord)
         {
             bool result = false;
 
@@ -104,8 +104,8 @@ namespace Osmalyzer
 
             for (int a = 0; a < _coords.Count; a++)
             {
-                if (_coords[a].lon < lon && _coords[b].lon >= lon || _coords[b].lon < lon && _coords[a].lon >= lon)
-                    if (_coords[a].lat + (lon - _coords[a].lon) / (_coords[b].lon - _coords[a].lon) * (_coords[b].lat - _coords[a].lat) < lat)
+                if (_coords[a].lon < coord.lon && _coords[b].lon >= coord.lon || _coords[b].lon < coord.lon && _coords[a].lon >= coord.lon)
+                    if (_coords[a].lat + (coord.lon - _coords[a].lon) / (_coords[b].lon - _coords[a].lon) * (_coords[b].lat - _coords[a].lat) < coord.lat)
                         result = !result;
 
                 b = a;
@@ -121,8 +121,8 @@ namespace Osmalyzer
             streamWriter.WriteLine("none");
             streamWriter.WriteLine("1");
 
-            foreach ((double lat, double lon) in _coords)
-                streamWriter.WriteLine(lon.ToString("E") + " " + lat.ToString("E"));
+            foreach (OsmCoord coord in _coords)
+                streamWriter.WriteLine(coord.lon.ToString("E") + " " + coord.lat.ToString("E"));
             
             streamWriter.WriteLine("END");
             streamWriter.WriteLine("END");

@@ -42,7 +42,7 @@ namespace Osmalyzer
 
             List<OsmNode> nodes = OsmAlgorithms.CollectNodes(outerWays);
 
-            return new OsmPolygon(nodes.Select(n => (Lat: n.lat, Lon: n.lon)).ToList());
+            return new OsmPolygon(nodes.Select(n => n.coord).ToList());
         }
 
         public List<OsmWay> GetOuterWays()
@@ -60,7 +60,7 @@ namespace Osmalyzer
             return outerWays;
         }
 
-        public override (double lat, double lon) GetAverageCoord()
+        public override OsmCoord GetAverageCoord()
         {
             return OsmGeoTools.GetAverageCoord(Elements);
         }

@@ -105,7 +105,7 @@ namespace Osmalyzer
 
 
         [Pure]
-        public abstract (double lat, double lon) GetAverageCoord();
+        public abstract OsmCoord GetAverageCoord();
         
 
         /// <summary>

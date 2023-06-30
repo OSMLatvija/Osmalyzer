@@ -42,7 +42,7 @@ namespace Osmalyzer
                 if (group.MapPointEntries.Count > 0)
                 {
                     foreach (Report.MapPointReportEntry entry in group.MapPointEntries)
-                        reportFile.WriteLine("* " + entry.Lat + " " + entry.Lon + ": " + entry.Text);
+                        reportFile.WriteLine("* " + entry.Coord + ": " + entry.Text);
                     reportFile.WriteLine();
                 }
                 

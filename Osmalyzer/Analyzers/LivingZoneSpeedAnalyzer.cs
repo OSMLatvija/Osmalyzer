@@ -59,28 +59,28 @@ namespace Osmalyzer
                     {
                         if (maxspeed != 20)
                         {
-                            (double lat, double lon) coord = livingStreet.GetAverageCoord();
+                            OsmCoord coord = livingStreet.GetAverageCoord();
 
                             report.AddEntry(
                                 ReportGroup.InvalidSpeed,
                                 new Report.IssueReportEntry(
                                     "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                     "has an incorrect maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
-                                    coord.lat, coord.lon
+                                    coord
                                 )
                             );
                         }
                     }
                     else
                     {
-                        (double lat, double lon) coord = livingStreet.GetAverageCoord();
+                        OsmCoord coord = livingStreet.GetAverageCoord();
 
                         report.AddEntry(
                             ReportGroup.InvalidSpeed,
                             new Report.IssueReportEntry(
                                 "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                 "has an invalid maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
-                                coord.lat, coord.lon
+                                coord
                             )
                         );
                     }

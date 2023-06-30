@@ -26,7 +26,6 @@ namespace Osmalyzer
             reportFile.WriteLine(@"<head>");
             reportFile.WriteLine(@"<title>" + HttpUtility.HtmlEncode(report.AnalyzerName) + " report</title>");
             reportFile.WriteLine(@"<meta name=""description"" content=""Osmalyzer " + report.AnalyzerName + @" report"" />");
-            reportFile.WriteLine(@"<meta name=""keywords"" content=""html tutorial template"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Cache-Control"" content=""no-cache, no-store, must-revalidate"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Pragma"" content=""no-cache"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Expires"" content=""0"" />");

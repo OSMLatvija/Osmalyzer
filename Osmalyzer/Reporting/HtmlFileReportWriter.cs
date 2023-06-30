@@ -71,11 +71,11 @@ namespace Osmalyzer
             
             reportFile.WriteLine("Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "<br><br>");
 
-            List<Report.ReportGroup> groups = report.CollectEntries();
+            List<ReportGroup> groups = report.CollectEntries();
 
             for (int g = 0; g < groups.Count; g++)
             {
-                Report.ReportGroup group = groups[g];
+                ReportGroup group = groups[g];
                 
                 reportFile.WriteLine("<h3>" + group.Description + "</h3>");
 
@@ -88,14 +88,14 @@ namespace Osmalyzer
 
                 if (group.GenericEntries.Count > 0)
                 {
-                    foreach (Report.ReportEntry entry in group.GenericEntries)
+                    foreach (ReportEntry entry in group.GenericEntries)
                         reportFile.WriteLine("<p>" + PolishLine(entry.Text) + "</p>");
                 }
 
                 if (group.IssueEntries.Count > 0)
                 {
                     reportFile.WriteLine("<ul>");
-                    foreach (Report.ReportEntry entry in group.IssueEntries)
+                    foreach (ReportEntry entry in group.IssueEntries)
                         reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
                     reportFile.WriteLine("</ul>");
                 }
@@ -110,7 +110,7 @@ namespace Osmalyzer
                     reportFile.WriteLine(@"    maxZoom: 21,");
                     reportFile.WriteLine(@"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'");
                     reportFile.WriteLine(@"}).addTo(map);");
-                    foreach (Report.MapPointReportEntry mapPointEntry in group.MapPointEntries)
+                    foreach (MapPointReportEntry mapPointEntry in group.MapPointEntries)
                     {
                         string lat = mapPointEntry.Coord.lat.ToString("F6");
                         string lon = mapPointEntry.Coord.lon.ToString("F6");

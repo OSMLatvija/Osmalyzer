@@ -63,7 +63,7 @@ namespace Osmalyzer
 
                             report.AddEntry(
                                 ReportGroup.Main,
-                                new Report.IssueReportEntry(
+                                new IssueReportEntry(
                                     "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
                                     coord
                                 )
@@ -78,7 +78,7 @@ namespace Osmalyzer
 
                             report.AddEntry(
                                 ReportGroup.Main,
-                                new Report.IssueReportEntry(
+                                new IssueReportEntry(
                                     "Max speed not recognized as seasonal: " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
                                     coord
                                 )
@@ -92,7 +92,7 @@ namespace Osmalyzer
 
                     report.AddEntry(
                         ReportGroup.Main,
-                        new Report.IssueReportEntry(
+                        new IssueReportEntry(
                             "Maxspeed not recognized: " + maxspeedStr + " on " + way.OsmViewUrl,
                             coord
                         )
@@ -108,7 +108,7 @@ namespace Osmalyzer
             {
                 report.AddEntry(
                     ReportGroup.Combos,
-                    new Report.GenericReportEntry(
+                    new GenericReportEntry(
                         "Conditional limit " + conditional + " for regular limit " + regular
                     )
                 );

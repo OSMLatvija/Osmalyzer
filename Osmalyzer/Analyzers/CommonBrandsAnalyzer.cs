@@ -32,7 +32,7 @@ namespace Osmalyzer
             
             report.AddEntry(
                 ReportGroup.Main,
-                new Report.GenericReportEntry(
+                new GenericReportEntry(
                     "title(s)" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value(s)"
                 )
             );
@@ -129,7 +129,7 @@ namespace Osmalyzer
             {
                 report.AddEntry(
                     ReportGroup.Main,
-                    new Report.GenericReportEntry(
+                    new GenericReportEntry(
                         line
                     )
                 );
@@ -137,7 +137,7 @@ namespace Osmalyzer
 
             report.AddEntry(
                 ReportGroup.Main,
-                new Report.DescriptionReportEntry(
+                new DescriptionReportEntry(
                     "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "\"" + t + "\"")) + ". " +
                     "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored. " +
                     "Title counts will repeat if the same element is tagged with multiple NSI POI types."

@@ -39,12 +39,12 @@ namespace Osmalyzer
             
             report.AddEntry(
                 ReportGroup.InvalidSpeed,
-                new Report.DescriptionReportEntry("All living streets should have the max speed limit of 20 km/h. Only living zone roads should be tagged as living streets, so any other value is a mistake. Either the road is not classified correctly (it's not living zone) or the max speed value is incorrect for some reason. Note that courtyard roads also have a speed limit of 20 km/h and these are often mistagged as living streets. Only courtyard roads that are in a signed living zone are living streets, otherwise they are just service roads.")
+                new DescriptionReportEntry("All living streets should have the max speed limit of 20 km/h. Only living zone roads should be tagged as living streets, so any other value is a mistake. Either the road is not classified correctly (it's not living zone) or the max speed value is incorrect for some reason. Note that courtyard roads also have a speed limit of 20 km/h and these are often mistagged as living streets. Only courtyard roads that are in a signed living zone are living streets, otherwise they are just service roads.")
             );
             
             report.AddEntry(
                 ReportGroup.InvalidSpeed,
-                new Report.PlaceholderReportEntry("There are no roads with invalid max speed limits.")
+                new PlaceholderReportEntry("There are no roads with invalid max speed limits.")
             );
             
             foreach (OsmElement livingStreet in limitedLivingStreets.Elements)
@@ -63,7 +63,7 @@ namespace Osmalyzer
 
                             report.AddEntry(
                                 ReportGroup.InvalidSpeed,
-                                new Report.IssueReportEntry(
+                                new IssueReportEntry(
                                     "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                     "has an incorrect maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
                                     coord
@@ -77,7 +77,7 @@ namespace Osmalyzer
 
                         report.AddEntry(
                             ReportGroup.InvalidSpeed,
-                            new Report.IssueReportEntry(
+                            new IssueReportEntry(
                                 "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                 "has an invalid maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
                                 coord
@@ -97,7 +97,7 @@ namespace Osmalyzer
 
                 report.AddEntry(
                     ReportGroup.Stats,
-                    new Report.GenericReportEntry(
+                    new GenericReportEntry(
                         "There are a total of " + livingStreets.Count + " living street (segments), " +
                         "of which " + limitedLivingStreets.Count + " or " + (unlimitedPortion * 100f).ToString("F1") + " % have maxspeed set."
                     )
@@ -111,7 +111,7 @@ namespace Osmalyzer
             
             report.AddEntry(
                 ReportGroup.Stats,
-                new Report.GenericReportEntry(
+                new GenericReportEntry(
                     "Overpass query for living streets with no maxspeed value: " + overpassQuery.GetQueryLink()
                 )
             );

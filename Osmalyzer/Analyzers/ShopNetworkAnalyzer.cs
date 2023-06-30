@@ -81,7 +81,7 @@ namespace Osmalyzer
                         {
                             report.AddEntry(
                                 parser.Name,
-                                new Report.IssueReportEntry(
+                                new IssueReportEntry(
                                     "Shop matched for " + ListedShopString(listedShop) +
                                     " as " + OsmShopString(exactMatchedShop) +
                                     " , but it's far away - " + distance.Value.ToString("F0") + " m."
@@ -97,7 +97,7 @@ namespace Osmalyzer
                         {
                             report.AddEntry(
                                 parser.Name,
-                                new Report.IssueReportEntry(
+                                new IssueReportEntry(
                                     "No expected shop for " + ListedShopString(listedShop) +
                                     " , closest " + OsmShopString(closestMatchedShop) + 
                                     " at " + distance!.Value.ToString("F0") + " m."
@@ -108,7 +108,7 @@ namespace Osmalyzer
                         {
                             report.AddEntry(
                                 parser.Name,
-                                new Report.IssueReportEntry(
+                                new IssueReportEntry(
                                     "No expected shop for " + ListedShopString(listedShop) + " , and no shops nearby."
                                 )
                             );
@@ -126,7 +126,7 @@ namespace Osmalyzer
 
                         report.AddEntry(
                             parser.Name,
-                            new Report.IssueReportEntry(
+                            new IssueReportEntry(
                                 "OSM shop " + OsmShopString(osmShop) +
                                 " matched " + multimatch.Count() + " times to listed shops - " +
                                 string.Join(", ", multimatch.Select(m => ListedShopString(m.listedShop) + " (" + m.distance.ToString("F0") + " m) "))
@@ -137,7 +137,7 @@ namespace Osmalyzer
 
                 report.AddEntry(
                     parser.Name,
-                    new Report.DescriptionReportEntry(
+                    new DescriptionReportEntry(
                         "Matching " + listedShops.Count + " shops from the " + parser.Name + " website shop list ( " + shopData.ShopListUrl + " ) to OSM elements. " +
                         "Matched " + matchedOsmShops.Count + " shops."
                     )

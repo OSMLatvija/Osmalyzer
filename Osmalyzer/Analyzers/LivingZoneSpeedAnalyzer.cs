@@ -59,43 +59,28 @@ namespace Osmalyzer
                     {
                         if (maxspeed != 20)
                         {
-                            report.AddEntry(
-                                ReportGroup.InvalidSpeed,
-                                new Report.IssueReportEntry(
-                                    "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
-                                    "has an incorrect maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl)
-                            );
-
                             (double lat, double lon) coord = ((OsmWay)livingStreet).GetAverageNodeCoord();
 
                             report.AddEntry(
                                 ReportGroup.InvalidSpeed,
-                                new Report.MapPointReportEntry(
-                                    coord.lat, coord.lon,
-                                    "Incorrect maxspeed value \"" + maxspeedStr + "\"",
-                                    livingStreet.OsmViewUrl
+                                new Report.IssueReportEntry(
+                                    "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
+                                    "has an incorrect maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
+                                    coord.lat, coord.lon
                                 )
                             );
                         }
                     }
                     else
                     {
-                        report.AddEntry(
-                            ReportGroup.InvalidSpeed,
-                            new Report.IssueReportEntry(
-                                "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
-                                "has an invalid maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl
-                            )
-                        );
-                        
                         (double lat, double lon) coord = ((OsmWay)livingStreet).GetAverageNodeCoord();
 
                         report.AddEntry(
                             ReportGroup.InvalidSpeed,
-                            new Report.MapPointReportEntry(
-                                coord.lat, coord.lon,
-                                "Invalid maxspeed value \"" + maxspeedStr + "\"",
-                                livingStreet.OsmViewUrl
+                            new Report.IssueReportEntry(
+                                "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
+                                "has an invalid maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
+                                coord.lat, coord.lon
                             )
                         );
                     }

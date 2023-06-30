@@ -137,6 +137,9 @@ namespace Osmalyzer
                     default:
                         throw new ArgumentOutOfRangeException(nameof(newEntry));
                 }
+                
+                if (newEntry.SubEntry != null)
+                    AddEntry(newEntry.SubEntry);
             }
 
             public void RemoveEntry(ReportEntry entry)
@@ -150,6 +153,8 @@ namespace Osmalyzer
             public string Text { get; }
             
             public object? Context { get; }
+            
+            public ReportEntry? SubEntry { get; protected set; }
 
 
             protected ReportEntry(string text, object? context = null)
@@ -172,6 +177,12 @@ namespace Osmalyzer
             public IssueReportEntry(string text, object? context = null)
                 : base(text, context)
             {
+            }
+            
+            public IssueReportEntry(string text, double lat, double lon)
+                : base(text)
+            {
+                SubEntry = new MapPointReportEntry(lat, lon, text);
             }
         }
 
@@ -199,16 +210,13 @@ namespace Osmalyzer
             public double Lat { get; }
             
             public double Lon { get; }
-            
-            public string? Url { get; }
 
 
-            public MapPointReportEntry(double lat, double lon, string text, string? url)
+            public MapPointReportEntry(double lat, double lon, string text)
                 : base(text)
             {
                 Lat = lat;
                 Lon = lon;
-                Url = url;
             }
         }
     }

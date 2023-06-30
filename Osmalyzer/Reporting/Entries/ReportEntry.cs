@@ -1,15 +1,18 @@
 ﻿namespace Osmalyzer
 {
+    /// <summary>
+    /// An entry for a <see cref="Report"/>.
+    /// </summary>
     public abstract class ReportEntry
     {
         public string Text { get; }
             
-        public object? Context { get; }
+        public ReportEntryContext? Context { get; }
             
         public ReportEntry? SubEntry { get; protected set; }
 
 
-        protected ReportEntry(string text, object? context = null)
+        protected ReportEntry(string text, ReportEntryContext? context = null)
         {
             Text = text;
             Context = context;

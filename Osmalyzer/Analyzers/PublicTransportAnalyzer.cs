@@ -251,7 +251,7 @@ namespace Osmalyzer
                                                 "OSM stop " + expectedOsmStop.GetValue("name") + "\" " + expectedOsmStop.OsmViewUrl + " " +
                                                 "was not in the matched " +
                                                 "OSM route \"" + osmRoute.GetValue("name") + "\" " + osmRoute.OsmViewUrl + ".", 
-                                                ptStop
+                                                new ReportEntryContext(ptStop)
                                             )
                                         );
                                     }
@@ -277,7 +277,7 @@ namespace Osmalyzer
                                             Label + " " + ptRoute.CleanType + " route's #" + ptRoute.Number + " \"" + ptRoute.Name + "\" " +
                                             //"trip #" + trip.Id + -- meaningless ID since many repeat it and this is first found
                                             ".", 
-                                            routeStop
+                                            new ReportEntryContext(routeStop)
                                         )
                                     );
                                 }
@@ -290,8 +290,8 @@ namespace Osmalyzer
                                 if (possibleRematch != null)
                                 {
                                     // Cancel duplicated reporting for each stop (if we had them reported individually)
-                                    report.CancelEntry(ReportGroup.NetworkRouteMissingOsmStop, ptStop);
-                                    report.CancelEntry(ReportGroup.OsmRouteExtraStop, possibleRematch);
+                                    report.CancelEntry(ReportGroup.NetworkRouteMissingOsmStop, new ReportEntryContext(ptStop));
+                                    report.CancelEntry(ReportGroup.OsmRouteExtraStop, new ReportEntryContext(possibleRematch));
 
                                     OsmNode originalMatch = fullyMatchedStops[ptStop];
 

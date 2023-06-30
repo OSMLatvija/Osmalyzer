@@ -31,17 +31,17 @@ namespace Osmalyzer
 #else
             List<Analyzer> analyzers = new List<Analyzer>()
             {
-                new CommonBrandsAnalyzer(),
-                new HighwaySeasonalSpeedsAnalyzer(),
-                new LivingZoneSpeedAnalyzer(),
+                //new CommonBrandsAnalyzer(),
+                //new HighwaySeasonalSpeedsAnalyzer(),
+                //new LivingZoneSpeedAnalyzer(),
                 new LVCRoadAnalyzer(),
-                new RigasSatiksmeAnalyzer(),
-                new LiepajasTransportsAnalyzer(),
-                new RezeknesSatiksmeAnalyzer(),
-                new JurmalasSatiksmeAnalyzer(),
-                new LatvijasAutobussAnalyzer(),
-                new TrolleybusWireAnalyzer(),
-                new ShopNetworkAnalyzer()
+                //new RigasSatiksmeAnalyzer(),
+                //new LiepajasTransportsAnalyzer(),
+                //new RezeknesSatiksmeAnalyzer(),
+                //new JurmalasSatiksmeAnalyzer(),
+                //new LatvijasAutobussAnalyzer(),
+                //new TrolleybusWireAnalyzer(),
+                //new ShopNetworkAnalyzer()
             };
 #endif
 

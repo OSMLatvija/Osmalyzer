@@ -2,7 +2,7 @@
 {
     public class IssueReportEntry : ReportEntry
     {
-        public IssueReportEntry(string text, object? context = null)
+        public IssueReportEntry(string text, ReportEntryContext? context = null)
             : base(text, context)
         {
         }

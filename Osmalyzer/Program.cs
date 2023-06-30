@@ -32,8 +32,8 @@ namespace Osmalyzer
             List<Analyzer> analyzers = new List<Analyzer>()
             {
                 //new CommonBrandsAnalyzer(),
-                //new HighwaySpeedConditionalAnalyzer(),
-                new LivingZoneSpeedAnalyzer(),
+                new HighwaySpeedConditionalAnalyzer(),
+                //new LivingZoneSpeedAnalyzer(),
                 //new LVCRoadAnalyzer(),
                 //new RigasSatiksmeAnalyzer(),
                 //new LiepajasTransportsAnalyzer(),

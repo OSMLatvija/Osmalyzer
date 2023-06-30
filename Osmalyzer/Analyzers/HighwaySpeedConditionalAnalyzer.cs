@@ -59,10 +59,13 @@ namespace Osmalyzer
 
                         if (maxspeed == maxspeedConditional)
                         {
+                            (double lat, double lon) coord = ((OsmWay)way).GetAverageNodeCoord();
+
                             report.AddEntry(
                                 ReportGroup.Main,
                                 new Report.IssueReportEntry(
-                                    "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " " + way.OsmViewUrl
+                                    "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
+                                    coord.lat, coord.lon
                                 )
                             );
                         }
@@ -71,10 +74,13 @@ namespace Osmalyzer
                     {
                         if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
                         {
+                            (double lat, double lon) coord = ((OsmWay)way).GetAverageNodeCoord();
+
                             report.AddEntry(
                                 ReportGroup.Main,
                                 new Report.IssueReportEntry(
-                                    "Conditional not recognized: " + maxspeedConditionalStr + " " + way.OsmViewUrl
+                                    "Max speed not recognized as seasonal: " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
+                                    coord.lat, coord.lon
                                 )
                             );
                         }
@@ -82,10 +88,13 @@ namespace Osmalyzer
                 }
                 else
                 {
+                    (double lat, double lon) coord = ((OsmWay)way).GetAverageNodeCoord();
+
                     report.AddEntry(
                         ReportGroup.Main,
                         new Report.IssueReportEntry(
-                            "Max speed not recognized as seasonal: " + maxspeedStr
+                            "Maxspeed not recognized: " + maxspeedStr + " on " + way.OsmViewUrl,
+                            coord.lat, coord.lon
                         )
                     );
                 }

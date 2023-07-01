@@ -10,8 +10,6 @@ namespace Osmalyzer
     public class MicroReserveAnalysisData : PreparableAnalysisData
     {
         public override string Name => "Micro Reserves";
-        
-        public override string DataFileName => @"cache/micro-reserves.zip";
 
         public override string DataDateFileName => @"cache/micro-reserves.zip-date.txt";
 
@@ -24,7 +22,7 @@ namespace Osmalyzer
         public override void Retrieve()
         {
             // Check if we have a data file cached
-            bool cachedFileOk = File.Exists(DataFileName);
+            bool cachedFileOk = File.Exists(@"cache/micro-reserves.zip");
 
             DateTime? newestDataDate = GetNewestDataDate();
             
@@ -70,7 +68,7 @@ namespace Osmalyzer
                 
                 WebsiteDownloadHelper.Download(
                     url,
-                    DataFileName
+                    @"cache/micro-reserves.zip"
                 );
 
                 StoreDataDate(newestDataDate.Value);
@@ -93,7 +91,7 @@ namespace Osmalyzer
         {
             // Data comes in a zip file, so unzip
             
-            ZipHelper.ExtractZipFile(DataFileName, ExtractionFolder + "/");
+            ZipHelper.ExtractZipFile(@"cache/micro-reserves.zip", ExtractionFolder + "/");
         }
     }
 }

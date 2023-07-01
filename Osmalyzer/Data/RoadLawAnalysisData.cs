@@ -6,8 +6,6 @@ namespace Osmalyzer
     public class RoadLawAnalysisData : AnalysisData
     {
         public override string Name => "Road Law";
-        
-        public override string DataFileName => @"cache/road-law.html";
 
         public override string? DataDateFileName => null;
 
@@ -18,7 +16,7 @@ namespace Osmalyzer
         {
             WebsiteDownloadHelper.Download(
                 "https://likumi.lv/ta/id/198589-noteikumi-par-valsts-autocelu-un-valsts-autocelu-maroadLawruta-ietverto-pasvaldibam-piederoso-autocelu-posmu-sarakstiem", 
-                DataFileName
+                @"cache/road-law.html"
             );
         }
     }

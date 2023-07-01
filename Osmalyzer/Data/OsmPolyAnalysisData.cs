@@ -9,8 +9,6 @@ namespace Osmalyzer
     public class OsmPolyAnalysisData : AnalysisData
     {
         public override string Name => "OSM Poly";
-        
-        public override string DataFileName => @"cache/latvia.poly";
 
         public override string DataDateFileName => @"cache/latvia.poly-date.txt";
 
@@ -20,7 +18,7 @@ namespace Osmalyzer
         public override void Retrieve()
         {
             // Check if we have a data file cached
-            bool cachedFileOk = File.Exists(DataFileName);
+            bool cachedFileOk = File.Exists(@"cache/latvia.poly");
 
             DateTime? newestDataDate = GetNewestOsmDataDate();
 
@@ -54,7 +52,7 @@ namespace Osmalyzer
                 
                 WebsiteDownloadHelper.Download(
                     "https://download.geofabrik.de/europe/latvia.poly", 
-                    DataFileName
+                    @"cache/latvia.poly"
                 );
 
                 StoreDataDate(newestDataDate.Value);

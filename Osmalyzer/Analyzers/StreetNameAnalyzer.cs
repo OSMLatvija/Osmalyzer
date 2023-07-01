@@ -16,7 +16,7 @@ namespace Osmalyzer
         public override string? Description => null;
 
 
-        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
+        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData), typeof(KuldigaRoadsAnalysisData) };
         
 
         public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -80,7 +80,11 @@ namespace Osmalyzer
 
             RoadLawAnalysisData lawData = datas.OfType<RoadLawAnalysisData>().First();
 
-            RoadLaw roadLaw = new RoadLaw(lawData.DataFileName);
+            RoadLaw roadLaw = new RoadLaw(@"cache/road-law.html");
+            
+            // TODO: 
+            // Kuldīga road names from PDF - a lot of them and can filter them out more or less
+            // https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases
             
             // Prepare report groups
 

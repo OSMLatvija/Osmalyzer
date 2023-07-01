@@ -10,15 +10,14 @@ namespace Osmalyzer
     {
         public override string Name => "Rigas Satiksme";
         
-        public override string DataFileName => @"cache/rigas-satiksme-direct.zip";
-
         public override string DataDateFileName => @"cache/rigas-satiksme-direct.zip-date.txt";
 
         public override bool? DataDateHasDayGranularity => true; 
 
 
+        protected override string DataFileName => @"cache/rigas-satiksme-direct.zip";
+
         public override string ExtractionFolder => "GTFS-RigSat";
-        
         
         protected override string DataURL => @"https://saraksti.rigassatiksme.lv/riga/gtfs.zip";
     }

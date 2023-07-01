@@ -9,8 +9,6 @@ namespace Osmalyzer
     public class OsmAnalysisData : PreparableAnalysisData
     {
         public override string Name => "OSM";
-        
-        public override string DataFileName => @"cache/latvia-latest.osm.pbf";
 
         public override string DataDateFileName => @"cache/latvia-latest.osm.pbf-date.txt";
 
@@ -23,7 +21,7 @@ namespace Osmalyzer
         public override void Retrieve()
         {
             // Check if we have a data file cached
-            bool cachedFileOk = File.Exists(DataFileName);
+            bool cachedFileOk = File.Exists(@"cache/latvia-latest.osm.pbf");
 
             DateTime? newestDataDate = GetNewestOsmDataDate();
 
@@ -57,7 +55,7 @@ namespace Osmalyzer
                 
                 WebsiteDownloadHelper.Download(
                     "https://download.geofabrik.de/europe/latvia-latest.osm.pbf", 
-                    DataFileName
+                    @"cache/latvia-latest.osm.pbf"
                 );
 
                 StoreDataDate(newestDataDate.Value);
@@ -76,7 +74,7 @@ namespace Osmalyzer
 
         public override void Prepare()
         {
-            MasterData = new OsmMasterData(DataFileName);
+            MasterData = new OsmMasterData(@"cache/latvia-latest.osm.pbf");
         }
     }
 }

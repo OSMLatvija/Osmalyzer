@@ -6,13 +6,13 @@ namespace Osmalyzer
     public class LiepajasTransportsAnalysisData : GTFSAnalysisData
     {
         public override string Name => "Liepajas Sabiedriskais Transports";
-        
-        public override string DataFileName => @"cache/liepajas-transports.zip";
 
         public override string DataDateFileName => @"cache/liepajas-transports.zip-date.txt";
 
         public override bool? DataDateHasDayGranularity => true; 
 
+        
+        protected override string DataFileName => @"cache/liepajas-transports.zip";
 
         public override string ExtractionFolder => "GTFS-LiepTra";
         

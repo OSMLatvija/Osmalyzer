@@ -23,7 +23,7 @@ namespace Osmalyzer
 
             RoadLawAnalysisData lawData = datas.OfType<RoadLawAnalysisData>().First();
 
-            RoadLaw roadLaw = new RoadLaw(lawData.DataFileName);
+            RoadLaw roadLaw = new RoadLaw(@"cache/road-law.html");
 
             // Load OSM data
 

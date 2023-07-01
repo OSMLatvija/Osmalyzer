@@ -8,8 +8,6 @@ namespace Osmalyzer
         public abstract string Name { get; }
         // todo: page name not from this - some sort of internal id
 
-        public abstract string DataFileName { get; }
-        
         public abstract string? DataDateFileName { get; }
 
         public DateTime? DataDate => DataDateFileName != null ? _dataDate ??= GetDataDateFromMetadataFile() : null;

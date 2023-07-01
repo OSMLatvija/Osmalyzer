@@ -13,8 +13,6 @@ namespace Osmalyzer
     public class RigasSatiksmeOpenDataAnalysisData : PreparableAnalysisData
     {
         public override string Name => "Rigas Satiksme";
-        
-        public override string DataFileName => @"cache/rigas-satiksme.zip";
 
         public override string DataDateFileName => @"cache/rigas-satiksme.zip-date.txt";
 
@@ -27,7 +25,7 @@ namespace Osmalyzer
         public override void Retrieve()
         {
             // Check if we have a data file cached
-            bool cachedFileOk = File.Exists(DataFileName);
+            bool cachedFileOk = File.Exists(@"cache/rigas-satiksme.zip");
 
             DateTime? newestDataDate = GetNewestRSDataDate(out string newestDataUrl);
             
@@ -61,7 +59,7 @@ namespace Osmalyzer
                 
                 WebsiteDownloadHelper.Download(
                     newestDataUrl, 
-                    DataFileName
+                    @"cache/rigas-satiksme.zip"
                 );
 
                 StoreDataDate(newestDataDate.Value);
@@ -89,7 +87,7 @@ namespace Osmalyzer
         {
             // RS data comes in a zip file, so unzip
             
-            ZipHelper.ExtractZipFile(DataFileName, ExtractionFolder + "/");
+            ZipHelper.ExtractZipFile(@"cache/rigas-satiksme.zip", ExtractionFolder + "/");
         }
     }
 }

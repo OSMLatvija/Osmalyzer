@@ -7,12 +7,12 @@ namespace Osmalyzer
     {
         public override string Name => "Rezeknes Satiksme";
         
-        public override string DataFileName => @"cache/rezeknes-satiksme.zip";
-
         public override string DataDateFileName => @"cache/rezeknes-satiksme.zip-date.txt";
 
         public override bool? DataDateHasDayGranularity => true; 
 
+
+        protected override string DataFileName => @"cache/rezeknes-satiksme.zip";
 
         public override string ExtractionFolder => "GTFS-RezSat";
         

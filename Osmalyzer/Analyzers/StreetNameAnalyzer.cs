@@ -79,7 +79,7 @@ namespace Osmalyzer
 
             OsmGroups osmWaysByName = osmNamedWays.GroupByValues("name", false);
 
-            List<(string n, string r)> matchedRouteNames = new List<(string n, string r)>();
+            List<(string n, string r)> cleanlyMatchedRouteNames = new List<(string n, string r)>();
             List<(string n, int c)> lvmFullyMatchedNames = new List<(string n, int c)>();
 
             foreach (OsmGroup osmGroup in osmWaysByName.groups)
@@ -98,11 +98,23 @@ namespace Osmalyzer
                 else
                 {
                     // Try to match to regional routes
-                
-                    if (IsWayNamedAfterMajorRouteName(wayName, osmNamedRoutes, out string? routeRef))
+
+                    RouteNameMatch routeNameMatch = IsWayNamedAfterMajorRouteName(wayName, osmNamedRoutes, out string? routeRef, out string? routeName);
+
+                    if (routeNameMatch == RouteNameMatch.Yes)
                     {
-                        matchedRouteNames.Add((wayName, routeRef!));
+                        cleanlyMatchedRouteNames.Add((wayName, routeRef!));
                         continue;
+                    }
+                    else if (routeNameMatch == RouteNameMatch.Partial)
+                    {
+                        report.AddEntry(
+                            ReportGroup.RouteNames,
+                            new IssueReportEntry(
+                                "Ways partially match regional route \"" + routeName + "\" for \"" + routeRef + "\" as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)",
+                                new SortEntryDesc(osmGroup.Elements.Count)
+                            )
+                        );
                     }
 
                     // Try to match to LVM roads
@@ -154,13 +166,13 @@ namespace Osmalyzer
                 );
             }
 
-            if (matchedRouteNames.Count > 0)
+            if (cleanlyMatchedRouteNames.Count > 0)
             {
                 report.AddEntry(
                     ReportGroup.RouteNames,
                     new GenericReportEntry(
-                        "These " + matchedRouteNames.Count + " names fully matched regional route roads: " +
-                        string.Join(", ", matchedRouteNames.Select(n => "\"" + n.n + "\" for \"" + n.r + "\""))
+                        "These " + cleanlyMatchedRouteNames.Count + " names fully matched regional route roads: " +
+                        string.Join(", ", cleanlyMatchedRouteNames.Select(n => "\"" + n.n + "\" for \"" + n.r + "\""))
                     )
                 );
             }
@@ -192,18 +204,55 @@ namespace Osmalyzer
             }
 
             [Pure]
-            static bool IsWayNamedAfterMajorRouteName(string wayName, OsmDataExtract namedRoutes, out string? routeRef)
+            static RouteNameMatch IsWayNamedAfterMajorRouteName(string wayName, OsmDataExtract namedRoutes, out string? routeRef, out string? routeName)
             {
-                OsmElement? foundRoute = namedRoutes.Elements.FirstOrDefault(e => e.GetValue("name")! == wayName);
+                OsmElement? foundRoute = namedRoutes.Elements.FirstOrDefault(e => IsNameMatch(e.GetValue("name")!, wayName, out bool _));
 
                 if (foundRoute != null)
                 {
+                    routeName = foundRoute.GetValue("name")!;
                     routeRef = foundRoute.GetValue("ref"); 
-                    return true;
+
+                    // Check again, but get extra info
+                    IsNameMatch(routeName, wayName, out bool cleanMatch);
+                    
+                    return cleanMatch ? RouteNameMatch.Yes : RouteNameMatch.Partial;
                 }
 
+                routeName = null;
                 routeRef = null;
-                return false;
+                return RouteNameMatch.No;
+                
+
+                [Pure]
+                static bool IsNameMatch(string routeName, string roadName, out bool cleanMatch)
+                {
+                    if (routeName == roadName)
+                    {
+                        cleanMatch = true;
+                        return true;
+                    }
+
+                    cleanMatch = false;
+                    
+                    if (CleanName(routeName) == CleanName(roadName))
+                        return true;
+
+                    return false;
+
+
+                    [Pure]
+                    static string CleanName(string name)
+                    {
+                        return name
+                            .Replace("—", "-") // mdash
+                            .Replace("–", "-") // ndash
+                            .Replace(" - ", "-")
+                            .Replace("- ", "-")
+                            .Replace(" -", "-")
+                            ;
+                    }
+                }
             }
 
             [Pure]
@@ -238,7 +287,14 @@ namespace Osmalyzer
                 FoundVariantCount++;
             }
         }
-        
+
+        private enum RouteNameMatch
+        {
+            Yes,
+            Partial,
+            No
+        }
+
         private enum ReportGroup
         {
             UnknownSuffixes,

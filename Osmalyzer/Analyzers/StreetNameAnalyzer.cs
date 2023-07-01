@@ -78,8 +78,6 @@ namespace Osmalyzer
 
             // Load law road data
 
-            RoadLawAnalysisData lawData = datas.OfType<RoadLawAnalysisData>().First();
-
             RoadLaw roadLaw = new RoadLaw(@"cache/road-law.html");
             
             // TODO: 

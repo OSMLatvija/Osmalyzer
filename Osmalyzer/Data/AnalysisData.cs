@@ -10,7 +10,7 @@ namespace Osmalyzer
 
         public abstract string? DataDateFileName { get; }
 
-        public DateTime? DataDate => DataDateFileName != null ? _dataDate ??= GetDataDateFromMetadataFile() : null;
+        public DateTime? DataDate => _dataDate;
 
         public abstract bool? DataDateHasDayGranularity { get; }
 
@@ -18,21 +18,45 @@ namespace Osmalyzer
         private DateTime? _dataDate;
 
 
-        public abstract void OldRetrieve();
+        public void Retrieve()
+        {
+            if (this is ICachableAnalysisData cachableAnalysisData)
+            {
+                _dataDate = GetDataDateFromMetadataFile();
+
+                if (_dataDate != null)
+                {
+                    Console.WriteLine("Getting cache date...");
+                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+
+                    if (DataDate < newDataDate)
+                    {
+                        Console.WriteLine("Downloading (cache out of date)...");
+                        Download();
+                    }
+
+                    StoreDataDate(newDataDate);
+                }
+                else
+                {
+                    Console.WriteLine("Getting cache date...");
+                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+
+                    Console.WriteLine("Downloading (not yet cached)...");
+                    Download();
+                    
+                    StoreDataDate(newDataDate);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Downloading (no cache)...");
+                Download();
+            }
+        }
 
         
-        protected void StoreDataDate(DateTime newDate)
-        {
-            _dataDate = newDate;
-            
-            File.WriteAllText(DataDateFileName!, _dataDate.Value.Ticks.ToString());
-        }
-
-        protected void ClearDataDate()
-        {
-            if (File.Exists(DataDateFileName!))
-                File.Delete(DataDateFileName!);
-        }
+        protected abstract void Download();
 
 
         private DateTime? GetDataDateFromMetadataFile()
@@ -45,9 +69,12 @@ namespace Osmalyzer
             return new DateTime(long.Parse(dataDateString));
         }
 
-        public void Retrieve()
+
+        private void StoreDataDate(DateTime newDate)
         {
-            OldRetrieve();
+            _dataDate = newDate;
+            
+            File.WriteAllText(DataDateFileName!, _dataDate.Value.Ticks.ToString());
         }
     }
 }

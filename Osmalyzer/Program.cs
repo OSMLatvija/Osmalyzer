@@ -78,7 +78,7 @@ namespace Osmalyzer
 
             for (int i = 0; i < requestedDatas.Count; i++)
             {
-                Console.Write("Retrieving " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
+                Console.WriteLine("Retrieving " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
 
                 Stopwatch retrieveStopwatch = Stopwatch.StartNew();
 
@@ -86,7 +86,7 @@ namespace Osmalyzer
                 
                 retrieveStopwatch.Stop();
 
-                Console.WriteLine(" (" + retrieveStopwatch.ElapsedMilliseconds + " ms)");
+                Console.WriteLine("(" + retrieveStopwatch.ElapsedMilliseconds + " ms)");
             }
 
 

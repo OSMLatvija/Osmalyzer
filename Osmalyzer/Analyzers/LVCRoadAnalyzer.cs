@@ -21,8 +21,6 @@ namespace Osmalyzer
         {
             // Load law road data
 
-            RoadLawAnalysisData lawData = datas.OfType<RoadLawAnalysisData>().First();
-
             RoadLaw roadLaw = new RoadLaw(@"cache/road-law.html");
 
             // Load OSM data
@@ -430,7 +428,7 @@ namespace Osmalyzer
                             "Road ref " +
                             "\"" + osmGroup.Value + "\" " +
                             "not recognized on " + osmGroup.Elements.Count + " road (segments) - " +
-                            ReportEntryFormattingHelper.ListElements(osmGroup.Elements, 5),
+                            ReportEntryFormattingHelper.ListElements(osmGroup.Elements),
                             coord
                         )
                     );

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -10,7 +9,7 @@ namespace Osmalyzer
     /// The data published in the open portal, once a month
     /// </summary>
     [UsedImplicitly]
-    public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalysisData
+    public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalysisData, ICachableAnalysisData
     {
         public override string Name => "Rigas Satiksme";
 
@@ -20,67 +19,34 @@ namespace Osmalyzer
 
         
         public string ExtractionFolder => "RS";
-        
 
-        public override void OldRetrieve()
+
+        public DateTime RetrieveDataDate()
         {
-            // Check if we have a data file cached
-            bool cachedFileOk = File.Exists(@"cache/rigas-satiksme.zip");
+            string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam", true);
 
-            DateTime? newestDataDate = GetNewestRSDataDate(out string newestDataUrl);
+            Match dateMatch = Regex.Match(result, @"Datu pēdējo izmaiņu datums</th>\s*<td class=""dataset-details"">\s*(\d{4})-(\d{2})-(\d{2})");
+            int newestYear = int.Parse(dateMatch.Groups[1].ToString());
+            int newestMonth = int.Parse(dateMatch.Groups[2].ToString());
+            int newestDay = int.Parse(dateMatch.Groups[3].ToString());
             
-            if (cachedFileOk)
-            {
-                // Check that we actually know the date it was cached
+            // todo: check if url date matches publish date? does it matter?
 
-                if (DataDate == null)
-                {
-                    Console.WriteLine("Missing data date metafile!");
-                    cachedFileOk = false;
-                }
-            }
+            return new DateTime(newestYear, newestMonth, newestDay);
+        }
 
-            if (cachedFileOk)
-            {
-                // Check that we have the latest date
-
-                if (DataDate < newestDataDate)
-                {
-                    Console.WriteLine("Cached data out of date!");
-                    cachedFileOk = false;
-                }
-            }
+        protected override void Download()
+        {
+            string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam", true);
+        
+            MatchCollection matches = Regex.Matches(result, @"<a href=""(https://data.gov.lv/dati/dataset/[a-f0-9\-]+/resource/[a-f0-9\-]+/download/marsrutusaraksti(\d{2})_(\d{4}).zip)""");
+            Match urlMatch = matches.Last(); // last is latest... hopefully
+            string dataUrl = urlMatch.Groups[1].ToString();
             
-            if (!cachedFileOk)
-            {
-                // Download latest (if anything is wrong)
-             
-                Console.WriteLine("Downloading...");
-                
-                WebsiteDownloadHelper.Download(
-                    newestDataUrl, 
-                    @"cache/rigas-satiksme.zip"
-                );
-
-                StoreDataDate(newestDataDate.Value);
-            }
-            
-            
-            static DateTime GetNewestRSDataDate(out string dataUrl)
-            {
-                string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam", true);
-                
-                MatchCollection matches = Regex.Matches(result, @"<a href=""(https://data.gov.lv/dati/dataset/[a-f0-9\-]+/resource/[a-f0-9\-]+/download/marsrutusaraksti(\d{2})_(\d{4}).zip)""");
-                Match urlMatch = matches.Last(); // last is latest... hopefully
-                dataUrl = urlMatch.Groups[1].ToString();
-                // todo: check if url date matches publish date? does it matter?
-
-                Match dateMatch = Regex.Match(result, @"Datu pēdējo izmaiņu datums</th>\s*<td class=""dataset-details"">\s*(\d{4})-(\d{2})-(\d{2})");
-                int newestYear = int.Parse(dateMatch.Groups[1].ToString());
-                int newestMonth = int.Parse(dateMatch.Groups[2].ToString());
-                int newestDay = int.Parse(dateMatch.Groups[3].ToString());
-                return new DateTime(newestYear, newestMonth, newestDay);
-            }
+            WebsiteDownloadHelper.Download(
+                dataUrl, 
+                @"cache/rigas-satiksme.zip"
+            );
         }
 
         public void Prepare()

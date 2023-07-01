@@ -42,6 +42,10 @@ namespace Osmalyzer
                         Console.WriteLine("Downloading (cache out of date)...");
                         Download();
                     }
+                    else
+                    {
+                        Console.WriteLine("Using cached files.");
+                    }
 
                     StoreDataDate(newDataDate);
                 }

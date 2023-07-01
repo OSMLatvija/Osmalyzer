@@ -31,20 +31,20 @@ namespace Osmalyzer
 
         protected override void Download()
         {
-            if (!Directory.Exists(DataFileIdentifier))
-                Directory.CreateDirectory(DataFileIdentifier);
+            if (!Directory.Exists(cacheBasePath + DataFileIdentifier))
+                Directory.CreateDirectory(cacheBasePath + DataFileIdentifier);
 
             string result = WebsiteDownloadHelper.Read("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
 
-            MatchCollection urlMatches = Regex.Matches(result, @"<a href=""(/images/Faili/Pasvaldiba/autoceli/([^""]+))"">");
+            MatchCollection urlMatches = Regex.Matches(result, @"<a href=""(/images/Faili/Pasvaldiba/autoceli/[^""]+)"">");
 
-            foreach (Match urlMatch in urlMatches)
+            for (int i = 0; i < urlMatches.Count; i++)
             {
-                string url = @"https://www.kuldiga.lv" + urlMatch.Groups[1];
+                string url = @"https://www.kuldiga.lv" + urlMatches[i].Groups[1];
 
                 WebsiteDownloadHelper.Download(
                     url,
-                    DataFileIdentifier + "/" + urlMatch.Groups[2]
+                    cacheBasePath + DataFileIdentifier + "/" + (i + 1) + ".pdf"
                 );
             }
         }

@@ -12,7 +12,7 @@ namespace Osmalyzer
         public override bool? DataDateHasDayGranularity => null;
 
 
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             WebsiteDownloadHelper.Download(
                 "https://likumi.lv/ta/id/198589-noteikumi-par-valsts-autocelu-un-valsts-autocelu-maroadLawruta-ietverto-pasvaldibam-piederoso-autocelu-posmu-sarakstiem", 

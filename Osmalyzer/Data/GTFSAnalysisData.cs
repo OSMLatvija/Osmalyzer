@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Osmalyzer
 {
-    public abstract class GTFSAnalysisData : PreparableAnalysisData
+    public abstract class GTFSAnalysisData : AnalysisData, IPreparableAnalysisData
     {
         public abstract string ExtractionFolder { get; }
 
@@ -13,7 +13,7 @@ namespace Osmalyzer
         protected abstract string DataFileName { get; }
 
         
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             // Check if we have a data file cached
             bool cachedFileOk = File.Exists(DataFileName);
@@ -66,7 +66,7 @@ namespace Osmalyzer
             }
         }
 
-        public override void Prepare()
+        public void Prepare()
         {
             // RS data comes in a zip file, so unzip
             

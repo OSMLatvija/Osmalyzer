@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class OsmAnalysisData : PreparableAnalysisData
+    public class OsmAnalysisData : AnalysisData, IPreparableAnalysisData
     {
         public override string Name => "OSM";
 
@@ -18,7 +18,7 @@ namespace Osmalyzer
         public OsmMasterData MasterData { get; private set; } = null!; // only null during initialization
 
 
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             // Check if we have a data file cached
             bool cachedFileOk = File.Exists(@"cache/latvia-latest.osm.pbf");
@@ -72,7 +72,7 @@ namespace Osmalyzer
             }
         }
 
-        public override void Prepare()
+        public void Prepare()
         {
             MasterData = new OsmMasterData(@"cache/latvia-latest.osm.pbf");
         }

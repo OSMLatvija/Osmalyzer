@@ -15,7 +15,7 @@ namespace Osmalyzer
         public override bool? DataDateHasDayGranularity => true;
         
 
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             // Check if we have a data file cached
             bool cachedFileOk = File.Exists(@"cache/latvia.poly");

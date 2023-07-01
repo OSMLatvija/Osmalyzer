@@ -92,11 +92,11 @@ namespace Osmalyzer
 
             Console.WriteLine("Preparing data...");
 
-            List<PreparableAnalysisData> preparableData = requestedDatas.OfType<PreparableAnalysisData>().ToList();
+            List<IPreparableAnalysisData> preparableData = requestedDatas.OfType<IPreparableAnalysisData>().ToList();
 
             for (int i = 0; i < preparableData.Count; i++)
             {
-                Console.Write("Preparing " + preparableData[i].Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
+                Console.Write("Preparing " + ((AnalysisData)preparableData[i]).Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
 
                 Stopwatch prepareStopwatch = Stopwatch.StartNew();
                 

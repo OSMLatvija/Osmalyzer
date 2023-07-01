@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class MicroReserveAnalysisData : PreparableAnalysisData
+    public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData
     {
         public override string Name => "Micro Reserves";
 
@@ -19,7 +19,7 @@ namespace Osmalyzer
         public string ExtractionFolder => "MR";
         
 
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             // Check if we have a data file cached
             bool cachedFileOk = File.Exists(@"cache/micro-reserves.zip");
@@ -87,7 +87,7 @@ namespace Osmalyzer
             }
         }
 
-        public override void Prepare()
+        public void Prepare()
         {
             // Data comes in a zip file, so unzip
             

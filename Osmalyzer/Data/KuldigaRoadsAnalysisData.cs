@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class KuldigaRoadsAnalysisData : PreparableAnalysisData
+    public class KuldigaRoadsAnalysisData : AnalysisData, IPreparableAnalysisData
     {
         public override string Name => "Micro Reserves";
 
@@ -18,7 +18,7 @@ namespace Osmalyzer
         public string SubFolder => "cache/Kuldiga-roads";
         
 
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             // todo: chceck actual file list matches
 
@@ -86,7 +86,7 @@ namespace Osmalyzer
             }
         }
 
-        public override void Prepare()
+        public void Prepare()
         {
             
         }

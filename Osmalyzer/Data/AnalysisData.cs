@@ -18,7 +18,7 @@ namespace Osmalyzer
         private DateTime? _dataDate;
 
 
-        public abstract void Retrieve();
+        public abstract void OldRetrieve();
 
         
         protected void StoreDataDate(DateTime newDate)
@@ -43,6 +43,11 @@ namespace Osmalyzer
             string dataDateString = File.ReadAllText(DataDateFileName!);
             
             return new DateTime(long.Parse(dataDateString));
+        }
+
+        public void Retrieve()
+        {
+            OldRetrieve();
         }
     }
 }

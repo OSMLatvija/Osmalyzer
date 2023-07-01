@@ -10,7 +10,7 @@ namespace Osmalyzer
     /// The data published in the open portal, once a month
     /// </summary>
     [UsedImplicitly]
-    public class RigasSatiksmeOpenDataAnalysisData : PreparableAnalysisData
+    public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalysisData
     {
         public override string Name => "Rigas Satiksme";
 
@@ -22,7 +22,7 @@ namespace Osmalyzer
         public string ExtractionFolder => "RS";
         
 
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             // Check if we have a data file cached
             bool cachedFileOk = File.Exists(@"cache/rigas-satiksme.zip");
@@ -83,7 +83,7 @@ namespace Osmalyzer
             }
         }
 
-        public override void Prepare()
+        public void Prepare()
         {
             // RS data comes in a zip file, so unzip
             

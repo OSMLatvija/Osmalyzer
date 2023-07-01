@@ -12,7 +12,7 @@ namespace Osmalyzer
         public abstract string ShopListUrl { get; }
 
 
-        public override void Retrieve()
+        public override void OldRetrieve()
         {
             WebsiteDownloadHelper.Download(
                 ShopListUrl, 

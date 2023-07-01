@@ -125,11 +125,8 @@ namespace Osmalyzer
                                 ReportGroup.RouteNames,
                                 new IssueReportEntry(
                                     "Ways partially match regional route \"" + routeName + "\" for \"" + routeRef + "\" " +
-                                    "as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)" +
-                                    (osmGroup.Elements.Count <= 5 ?
-                                        " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
-                                        ""
-                                    ),
+                                    "as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments) - " +
+                                    ReportEntryFormattingHelper.ListElements(osmGroup.Elements),
                                     new SortEntryDesc(osmGroup.Elements.Count)
                                 )
                             );
@@ -144,11 +141,8 @@ namespace Osmalyzer
                                 ReportGroup.RouteNames,
                                 new IssueReportEntry(
                                     "Ways don't match OSM regional route, but do partially match road law entry \"" + routeName + "\" for \"" + routeRef + "\" " +
-                                    "as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)" +
-                                    (osmGroup.Elements.Count <= 5 ?
-                                        " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
-                                        ""
-                                    ),
+                                    "as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments) - " +
+                                    ReportEntryFormattingHelper.ListElements(osmGroup.Elements),
                                     new SortEntryDesc(osmGroup.Elements.Count)
                                 )
                             );
@@ -165,11 +159,8 @@ namespace Osmalyzer
                                 ReportGroup.LVMRoads,
                                 new IssueReportEntry(
                                     "Ways partially match LVM-operated roads for \"" + wayName + "\" " +
-                                    "on " + lvmMatchCount + "/" + osmGroup.Elements.Count + " road (segments)" +
-                                    (osmGroup.Elements.Count <= 5 ?
-                                        " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
-                                        ""
-                                    ),
+                                    "on " + lvmMatchCount + "/" + osmGroup.Elements.Count + " road (segments) - " +
+                                    ReportEntryFormattingHelper.ListElements(osmGroup.Elements),
                                     new SortEntryDesc(osmGroup.Elements.Count)
                                 )
                             );
@@ -187,11 +178,8 @@ namespace Osmalyzer
                     report.AddEntry(
                         ReportGroup.UnknownSuffixes,
                         new IssueReportEntry(
-                            "Unknown name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)" +
-                            (osmGroup.Elements.Count <= 5 ?
-                                " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
-                                ""
-                            ),
+                            "Unknown name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments) - " +
+                            ReportEntryFormattingHelper.ListElements(osmGroup.Elements),
                             new SortEntryDesc(osmGroup.Elements.Count),
                             osmGroup.GetAverageElementCoord()
                         )

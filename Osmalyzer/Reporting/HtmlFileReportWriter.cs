@@ -63,6 +63,9 @@ namespace Osmalyzer
             reportFile.WriteLine(@"}");
             reportFile.WriteLine(@".custom-list.issues-list li:before {");
             reportFile.WriteLine(@"  content: ""⚠"";");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@"li {");
+            reportFile.WriteLine(@"  margin-bottom: 4px;");
             reportFile.WriteLine(@"}");            
             
             reportFile.WriteLine(@"</style>");

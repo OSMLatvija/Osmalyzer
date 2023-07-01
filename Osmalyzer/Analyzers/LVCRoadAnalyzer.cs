@@ -289,11 +289,8 @@ namespace Osmalyzer
                     report.AddEntry(
                         ReportGroup.SharedRefsNotInLaw,
                         new IssueReportEntry(
-                            $"These segments share refs \"{refA}\" and \"{refB}\", but are not in the law: " +
-                            (roads.Count > 5 ?
-                                $" on {roads.Count} road (segments)" :
-                                "on these road (segments): " + string.Join(", ", roads.Select(e => e.OsmViewUrl))) +
-                            ".",
+                            $"Segments share refs \"{refA}\" and \"{refB}\", but are not in the law on {roads.Count} road (segments) - " + 
+                            ReportEntryFormattingHelper.ListElements(roads),
                             coord
                         )
                     );
@@ -432,11 +429,8 @@ namespace Osmalyzer
                         new IssueReportEntry(
                             "Road ref " +
                             "\"" + osmGroup.Value + "\" " +
-                            "not recognized " +
-                            (osmGroup.Elements.Count > 5 ?
-                                " on " + osmGroup.Elements.Count + " road (segments)" :
-                                "on these road (segments): " + string.Join(", ", osmGroup.Elements.Select(e => e.OsmViewUrl))
-                            ),
+                            "not recognized on " + osmGroup.Elements.Count + " road (segments) - " +
+                            ReportEntryFormattingHelper.ListElements(osmGroup.Elements, 5),
                             coord
                         )
                     );

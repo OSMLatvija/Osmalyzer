@@ -9,9 +9,9 @@ namespace Osmalyzer
     {
         public override string Name => "Micro Reserves";
 
-        public override string DataDateFileName => @"cache/micro-reserves.zip-date.txt";
+        public bool DataDateHasDayGranularity => false; // only day given on data page
 
-        public override bool? DataDateHasDayGranularity => false; // only day given on data page
+        protected override string DataFileIdentifier => "micro-reserves";
 
         
         public string ExtractionFolder => "MR";
@@ -47,7 +47,7 @@ namespace Osmalyzer
 
             WebsiteDownloadHelper.Download(
                 url,
-                @"cache/micro-reserves.zip"
+                cacheBasePath + @"micro-reserves.zip"
             );
         }
 
@@ -55,7 +55,7 @@ namespace Osmalyzer
         {
             // Data comes in a zip file, so unzip
             
-            ZipHelper.ExtractZipFile(@"cache/micro-reserves.zip", ExtractionFolder + "/");
+            ZipHelper.ExtractZipFile(cacheBasePath + DataFileIdentifier + @".zip", ExtractionFolder + "/");
         }
     }
 }

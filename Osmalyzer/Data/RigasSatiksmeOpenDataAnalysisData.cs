@@ -13,9 +13,9 @@ namespace Osmalyzer
     {
         public override string Name => "Rigas Satiksme";
 
-        public override string DataDateFileName => @"cache/rigas-satiksme.zip-date.txt";
+        public bool DataDateHasDayGranularity => false; // only day given on data page (file itself is month only)
 
-        public override bool? DataDateHasDayGranularity => false; // only day given on data page (file itself is month only)
+        protected override string DataFileIdentifier => "rigas-satiksme-opendata";
 
         
         public string ExtractionFolder => "RS";
@@ -45,7 +45,7 @@ namespace Osmalyzer
             
             WebsiteDownloadHelper.Download(
                 dataUrl, 
-                @"cache/rigas-satiksme.zip"
+                cacheBasePath + DataFileIdentifier + @".zip"
             );
         }
 
@@ -53,7 +53,7 @@ namespace Osmalyzer
         {
             // RS data comes in a zip file, so unzip
             
-            ZipHelper.ExtractZipFile(@"cache/rigas-satiksme.zip", ExtractionFolder + "/");
+            ZipHelper.ExtractZipFile(cacheBasePath + DataFileIdentifier + @".zip", ExtractionFolder + "/");
         }
     }
 }

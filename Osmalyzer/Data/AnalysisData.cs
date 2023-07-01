@@ -1,18 +1,24 @@
 using System;
 using System.IO;
+using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
     public abstract class AnalysisData
     {
+        public const string cacheBasePath = "cache/";
+        
+
         public abstract string Name { get; }
         // todo: page name not from this - some sort of internal id
 
-        public abstract string? DataDateFileName { get; }
-
         public DateTime? DataDate => _dataDate;
 
-        public abstract bool? DataDateHasDayGranularity { get; }
+        
+        /// <summary>
+        /// Unique short ID used for file names
+        /// </summary>
+        protected abstract string DataFileIdentifier { get; }
 
 
         private DateTime? _dataDate;
@@ -61,10 +67,12 @@ namespace Osmalyzer
 
         private DateTime? GetDataDateFromMetadataFile()
         {
-            if (!File.Exists(DataDateFileName!))
+            string cachedDateFileName = CachedDateFileName();
+            
+            if (!File.Exists(cachedDateFileName))
                 return null;
             
-            string dataDateString = File.ReadAllText(DataDateFileName!);
+            string dataDateString = File.ReadAllText(cachedDateFileName);
             
             return new DateTime(long.Parse(dataDateString));
         }
@@ -74,7 +82,13 @@ namespace Osmalyzer
         {
             _dataDate = newDate;
             
-            File.WriteAllText(DataDateFileName!, _dataDate.Value.Ticks.ToString());
+            File.WriteAllText(CachedDateFileName(), _dataDate.Value.Ticks.ToString());
+        }
+
+        [Pure]
+        private string CachedDateFileName()
+        {
+            return cacheBasePath + DataFileIdentifier + "-cache-date.txt";
         }
     }
 }

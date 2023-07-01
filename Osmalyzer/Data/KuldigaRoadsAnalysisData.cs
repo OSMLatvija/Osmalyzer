@@ -8,14 +8,11 @@ namespace Osmalyzer
     [UsedImplicitly]
     public class KuldigaRoadsAnalysisData : AnalysisData, ICachableAnalysisData
     {
-        public override string Name => "Micro Reserves";
+        public override string Name => "Kuldiga Roads";
 
-        public override string DataDateFileName => @"cache/kuldiga-roads-date.txt";
+        public bool DataDateHasDayGranularity => false; // only day given on data page
 
-        public override bool? DataDateHasDayGranularity => false; // only day given on data page
-
-        
-        public string SubFolder => "cache/Kuldiga-roads";
+        protected override string DataFileIdentifier => "kuldiga-roads";
 
 
         public DateTime RetrieveDataDate()
@@ -34,8 +31,8 @@ namespace Osmalyzer
 
         protected override void Download()
         {
-            if (!Directory.Exists(SubFolder))
-                Directory.CreateDirectory(SubFolder);
+            if (!Directory.Exists(DataFileIdentifier))
+                Directory.CreateDirectory(DataFileIdentifier);
 
             string result = WebsiteDownloadHelper.Read("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
 
@@ -47,7 +44,7 @@ namespace Osmalyzer
 
                 WebsiteDownloadHelper.Download(
                     url,
-                    SubFolder + "/" + urlMatch.Groups[2]
+                    DataFileIdentifier + "/" + urlMatch.Groups[2]
                 );
             }
         }

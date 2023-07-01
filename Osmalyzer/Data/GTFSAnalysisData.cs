@@ -6,12 +6,14 @@ namespace Osmalyzer
     {
         public abstract string ExtractionFolder { get; }
 
+        public abstract bool DataDateHasDayGranularity { get; }
+
         
         protected abstract string DataURL { get; }
 
         protected abstract string DataFileName { get; }
 
-
+        
         public DateTime RetrieveDataDate()
         {
             return WebsiteDownloadHelper.ReadHeaderDate(DataURL)!.Value;

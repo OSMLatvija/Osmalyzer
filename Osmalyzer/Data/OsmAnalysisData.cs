@@ -9,9 +9,9 @@ namespace Osmalyzer
     {
         public override string Name => "OSM";
 
-        public override string DataDateFileName => @"cache/latvia-latest.osm.pbf-date.txt";
+        public bool DataDateHasDayGranularity => true;
 
-        public override bool? DataDateHasDayGranularity => true;
+        protected override string DataFileIdentifier => "osm-latvia";
 
 
         public OsmMasterData MasterData { get; private set; } = null!; // only null during initialization
@@ -33,13 +33,13 @@ namespace Osmalyzer
             
             WebsiteDownloadHelper.Download(
                 "https://download.geofabrik.de/europe/latvia-latest.osm.pbf", 
-                @"cache/latvia-latest.osm.pbf"
+                cacheBasePath + DataFileIdentifier + @".osm.pbf"
             );
         }
 
         public void Prepare()
         {
-            MasterData = new OsmMasterData(@"cache/latvia-latest.osm.pbf");
+            MasterData = new OsmMasterData(cacheBasePath + DataFileIdentifier + @".osm.pbf");
         }
     }
 }

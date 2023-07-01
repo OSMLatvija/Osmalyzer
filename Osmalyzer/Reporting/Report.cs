@@ -25,10 +25,10 @@ namespace Osmalyzer
             
             AnalyzerDescription = analyzer.Description;
 
-            List<AnalysisData> datasWithDate = datas.Where(d => d.DataDate != null).ToList();
+            List<ICachableAnalysisData> datasWithDate = datas.OfType<ICachableAnalysisData>().ToList();
 
             if (datasWithDate.Count > 0)
-                AnalyzedDataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity!.Value ? d.DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : d.DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + d.Name + ")" : "")));
+                AnalyzedDataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity ? ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + ((AnalysisData)d).Name + ")" : "")));
         }
 
 

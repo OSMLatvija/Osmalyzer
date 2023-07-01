@@ -7,8 +7,10 @@ namespace Osmalyzer
     {
         public override string Name => "Elvi Shops";
 
+        protected override string DataFileIdentifier => "shops-elvi";
 
-        public override string DataFileName => @"cache/elvi-shops.html";
+
+        public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
 
         public override string ShopListUrl => "https://elvi.lv/elvi-veikali/";
     }

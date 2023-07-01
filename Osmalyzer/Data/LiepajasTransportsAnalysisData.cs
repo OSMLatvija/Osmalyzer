@@ -7,12 +7,12 @@ namespace Osmalyzer
     {
         public override string Name => "Liepajas Sabiedriskais Transports";
 
-        public override string DataDateFileName => @"cache/liepajas-transports.zip-date.txt";
+        public override bool DataDateHasDayGranularity => true; 
 
-        public override bool? DataDateHasDayGranularity => true; 
+        protected override string DataFileIdentifier => "liepajas-transports";
 
         
-        protected override string DataFileName => @"cache/liepajas-transports.zip";
+        protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
 
         public override string ExtractionFolder => "GTFS-LiepTra";
         

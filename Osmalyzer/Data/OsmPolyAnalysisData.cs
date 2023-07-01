@@ -9,9 +9,9 @@ namespace Osmalyzer
     {
         public override string Name => "OSM Poly";
 
-        public override string DataDateFileName => @"cache/latvia.poly-date.txt";
+        public bool DataDateHasDayGranularity => true;
 
-        public override bool? DataDateHasDayGranularity => true;
+        protected override string DataFileIdentifier => "osm-latvia-poly";
 
 
         public DateTime RetrieveDataDate()
@@ -30,7 +30,7 @@ namespace Osmalyzer
 
             WebsiteDownloadHelper.Download(
                 "https://download.geofabrik.de/europe/latvia.poly",
-                @"cache/latvia.poly"
+                cacheBasePath + DataFileIdentifier + @".poly"
             );
         }
     }

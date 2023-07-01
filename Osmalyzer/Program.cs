@@ -73,8 +73,8 @@ namespace Osmalyzer
             
             Console.WriteLine("Retrieving data...");
 
-            if (!Directory.Exists("cache/"))
-                Directory.CreateDirectory("cache/");
+            if (!Directory.Exists(AnalysisData.cacheBasePath))
+                Directory.CreateDirectory(AnalysisData.cacheBasePath);
 
             for (int i = 0; i < requestedDatas.Count; i++)
             {

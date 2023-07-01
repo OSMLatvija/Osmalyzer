@@ -19,9 +19,11 @@ namespace Osmalyzer
 
         public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
         {
-            // Load law road data
+            // Get law road data
 
-            RoadLaw roadLaw = new RoadLaw(@"cache/road-law.html");
+            RoadLawAnalysisData roadLawData = datas.OfType<RoadLawAnalysisData>().First();
+
+            RoadLaw roadLaw = roadLawData.RoadLaw;
 
             // Load OSM data
 

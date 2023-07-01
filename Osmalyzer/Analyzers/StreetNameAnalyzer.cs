@@ -76,9 +76,11 @@ namespace Osmalyzer
             
             List<string> knownNames = File.ReadAllLines(knownNamesFileName, Encoding.UTF8).Select(l => l.Split('\t')[0]).ToList();
 
-            // Load law road data
+            // Get law road data
 
-            RoadLaw roadLaw = new RoadLaw(@"cache/road-law.html");
+            RoadLawAnalysisData roadLawData = datas.OfType<RoadLawAnalysisData>().First();
+
+            RoadLaw roadLaw = roadLawData.RoadLaw;
             
             // TODO: 
             // Kuldīga road names from PDF - a lot of them and can filter them out more or less

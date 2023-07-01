@@ -36,6 +36,7 @@ namespace Osmalyzer
             reportFile.WriteLine(@"  padding: 20px;");
             reportFile.WriteLine(@"  background-color: #f2f2f2;");
             reportFile.WriteLine(@"  color: #333;");
+            reportFile.WriteLine(@"  font-size: .85em;");
             reportFile.WriteLine(@"}");
             reportFile.WriteLine(@"h1, h2, h3 {");
             reportFile.WriteLine(@"  color: #555;");

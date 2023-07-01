@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
 namespace Osmalyzer
@@ -15,7 +16,7 @@ namespace Osmalyzer
         public override string? Description => null;
 
 
-        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
         
 
         public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -66,20 +67,32 @@ namespace Osmalyzer
 
             List<KnownSuffix> knownSuffixes = knownSuffixesRaw.Select(ks => new KnownSuffix(ks)).ToList();
 
-            // Parse
+            // Load law road data
+
+            RoadLawAnalysisData lawData = datas.OfType<RoadLawAnalysisData>().First();
+
+            RoadLaw roadLaw = new RoadLaw(lawData.DataFileName);
+            
+            // Prepare report groups
 
             report.AddGroup(ReportGroup.UnknownSuffixes, "Unknown names");
             report.AddEntry(ReportGroup.UnknownSuffixes, new DescriptionReportEntry("These names are not necessarily wrong, just not recognized as common street names or classified by some other name source."));
             
             report.AddGroup(ReportGroup.KnownSuffixes, "Recognized street name suffixes");
-            
+            report.AddEntry(ReportGroup.KnownSuffixes, new DescriptionReportEntry("These names have common suffixes for street names, so they are assumed to be \"real\" street and road names."));
+
             report.AddGroup(ReportGroup.RouteNames, "Named after regional routes");
-            
+            report.AddEntry(ReportGroup.RouteNames, new DescriptionReportEntry("The names of these roads match a regional road route. While technically incorrect (road name is not route name), these are commonly used and not invalid per se."));
+
             report.AddGroup(ReportGroup.LVMRoads, "LVM roads");
+            report.AddEntry(ReportGroup.LVMRoads, new DescriptionReportEntry("These roads are marked as operated by LVM and so they mostly have unique names."));
+
+            // Parse
 
             OsmGroups osmWaysByName = osmNamedWays.GroupByValues("name", false);
 
-            List<(string n, string r)> cleanlyMatchedRouteNames = new List<(string n, string r)>();
+            List<(string n, string r)> cleanlyMatchedOsmRouteNames = new List<(string n, string r)>();
+            List<(string n, string r)> cleanlyMatchedLawRouteNames = new List<(string n, string r)>();
             List<(string n, int c)> lvmFullyMatchedNames = new List<(string n, int c)>();
 
             foreach (OsmGroup osmGroup in osmWaysByName.groups)
@@ -97,24 +110,49 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    // Try to match to regional routes
+                    // Try to match to regional routes or law road list
 
-                    RouteNameMatch routeNameMatch = IsWayNamedAfterMajorRouteName(wayName, osmNamedRoutes, out string? routeRef, out string? routeName);
+                    RouteNameMatch routeNameMatch = IsWayNamedAfterMajorRouteName(wayName, osmNamedRoutes, roadLaw, out string? routeRef, out string? routeName);
 
-                    if (routeNameMatch == RouteNameMatch.Yes)
+                    switch (routeNameMatch)
                     {
-                        cleanlyMatchedRouteNames.Add((wayName, routeRef!));
-                        continue;
-                    }
-                    else if (routeNameMatch == RouteNameMatch.Partial)
-                    {
-                        report.AddEntry(
-                            ReportGroup.RouteNames,
-                            new IssueReportEntry(
-                                "Ways partially match regional route \"" + routeName + "\" for \"" + routeRef + "\" as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)",
-                                new SortEntryDesc(osmGroup.Elements.Count)
-                            )
-                        );
+                        case RouteNameMatch.YesOsm:
+                            cleanlyMatchedOsmRouteNames.Add((wayName, routeRef!));
+                            continue;
+                        
+                        case RouteNameMatch.PartialOsm:
+                            report.AddEntry(
+                                ReportGroup.RouteNames,
+                                new IssueReportEntry(
+                                    "Ways partially match regional route \"" + routeName + "\" for \"" + routeRef + "\" " +
+                                    "as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)" +
+                                    (osmGroup.Elements.Count <= 5 ?
+                                        " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
+                                        ""
+                                    ),
+                                    new SortEntryDesc(osmGroup.Elements.Count)
+                                )
+                            );
+                            continue;
+                        
+                        case RouteNameMatch.YesLaw:
+                            cleanlyMatchedLawRouteNames.Add((wayName, routeRef!));
+                            continue;
+                        
+                        case RouteNameMatch.PartialLaw:
+                            report.AddEntry(
+                                ReportGroup.RouteNames,
+                                new IssueReportEntry(
+                                    "Ways don't match OSM regional route, but do partially match road law entry \"" + routeName + "\" for \"" + routeRef + "\" " +
+                                    "as name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)" +
+                                    (osmGroup.Elements.Count <= 5 ?
+                                        " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
+                                        ""
+                                    ),
+                                    new SortEntryDesc(osmGroup.Elements.Count)
+                                )
+                            );
+                            continue;
                     }
 
                     // Try to match to LVM roads
@@ -126,7 +164,12 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.LVMRoads,
                                 new IssueReportEntry(
-                                    "Ways partially match LVM roads for \"" + wayName + "\" on " + lvmMatchCount + "/" + osmGroup.Elements.Count + " road (segments)",
+                                    "Ways partially match LVM-operated roads for \"" + wayName + "\" " +
+                                    "on " + lvmMatchCount + "/" + osmGroup.Elements.Count + " road (segments)" +
+                                    (osmGroup.Elements.Count <= 5 ?
+                                        " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
+                                        ""
+                                    ),
                                     new SortEntryDesc(osmGroup.Elements.Count)
                                 )
                             );
@@ -144,8 +187,13 @@ namespace Osmalyzer
                     report.AddEntry(
                         ReportGroup.UnknownSuffixes,
                         new IssueReportEntry(
-                            "Unknown name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)",
-                            new SortEntryDesc(osmGroup.Elements.Count)
+                            "Unknown name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments)" +
+                            (osmGroup.Elements.Count <= 5 ?
+                                " - " + string.Join("; ", osmGroup.Elements.Select(e => e.OsmViewUrl)) :
+                                ""
+                            ),
+                            new SortEntryDesc(osmGroup.Elements.Count),
+                            osmGroup.GetAverageElementCoord()
                         )
                     );
                 }
@@ -166,13 +214,24 @@ namespace Osmalyzer
                 );
             }
 
-            if (cleanlyMatchedRouteNames.Count > 0)
+            if (cleanlyMatchedOsmRouteNames.Count > 0)
             {
                 report.AddEntry(
                     ReportGroup.RouteNames,
                     new GenericReportEntry(
-                        "These " + cleanlyMatchedRouteNames.Count + " names fully matched regional route roads: " +
-                        string.Join(", ", cleanlyMatchedRouteNames.Select(n => "\"" + n.n + "\" for \"" + n.r + "\""))
+                        "These " + cleanlyMatchedOsmRouteNames.Count + " names fully matched regional route roads: " +
+                        string.Join(", ", cleanlyMatchedOsmRouteNames.Select(n => "\"" + n.n + "\" for \"" + n.r + "\""))
+                    )
+                );
+            }
+
+            if (cleanlyMatchedLawRouteNames.Count > 0)
+            {
+                report.AddEntry(
+                    ReportGroup.RouteNames,
+                    new GenericReportEntry(
+                        "These " + cleanlyMatchedLawRouteNames.Count + " names fully matched entries in road law, but not any OSM regional route roads: " +
+                        string.Join(", ", cleanlyMatchedLawRouteNames.Select(n => "\"" + n.n + "\" for \"" + n.r + "\""))
                     )
                 );
             }
@@ -182,7 +241,7 @@ namespace Osmalyzer
                 report.AddEntry(
                     ReportGroup.LVMRoads,
                     new GenericReportEntry(
-                        "These " + lvmFullyMatchedNames.Count + " names fully matched for LVM roads: " +
+                        "These " + lvmFullyMatchedNames.Count + " names fully matched for LVM-operated roads: " +
                         string.Join(", ", lvmFullyMatchedNames.Select(n => "\"" + n.n + "\" x " + n.c + ""))
                     )
                 );
@@ -204,8 +263,10 @@ namespace Osmalyzer
             }
 
             [Pure]
-            static RouteNameMatch IsWayNamedAfterMajorRouteName(string wayName, OsmDataExtract namedRoutes, out string? routeRef, out string? routeName)
+            static RouteNameMatch IsWayNamedAfterMajorRouteName(string wayName, OsmDataExtract namedRoutes, RoadLaw roadLaw, out string? routeRef, out string? routeName)
             {
+                // Match agains an OSM road route
+                
                 OsmElement? foundRoute = namedRoutes.Elements.FirstOrDefault(e => IsNameMatch(e.GetValue("name")!, wayName, out bool _));
 
                 if (foundRoute != null)
@@ -216,9 +277,26 @@ namespace Osmalyzer
                     // Check again, but get extra info
                     IsNameMatch(routeName, wayName, out bool cleanMatch);
                     
-                    return cleanMatch ? RouteNameMatch.Yes : RouteNameMatch.Partial;
+                    return cleanMatch ? RouteNameMatch.YesOsm : RouteNameMatch.PartialOsm;
                 }
 
+                // Match against the law route list
+                
+                ActiveRoad? foundLawRoad = roadLaw.roads.OfType<ActiveRoad>().FirstOrDefault(r => IsNameMatch(r.Name, wayName, out bool _));
+
+                if (foundLawRoad != null)
+                {
+                    routeName = foundLawRoad.Name;
+                    routeRef = foundLawRoad.Code; 
+
+                    // Check again, but get extra info
+                    IsNameMatch(routeName, wayName, out bool cleanMatch);
+                    
+                    return cleanMatch ? RouteNameMatch.YesLaw : RouteNameMatch.PartialLaw;
+                }
+
+                // Couldn't match
+                
                 routeName = null;
                 routeRef = null;
                 return RouteNameMatch.No;
@@ -244,13 +322,23 @@ namespace Osmalyzer
                     [Pure]
                     static string CleanName(string name)
                     {
-                        return name
-                            .Replace("—", "-") // mdash
-                            .Replace("–", "-") // ndash
-                            .Replace(" - ", "-")
-                            .Replace("- ", "-")
-                            .Replace(" -", "-")
+                        // Remove braces
+                        // "Krāslava–Preiļi–Madona (Madonas apvedceļš)" == "Krāslava — Preiļi — Madona" 
+                        name = Regex.Replace(name, @"\([^\)]+\)", @"");
+                        // have to do this before, because these happen near dashes with spaces in all sorts of combos
+
+                        // In case above created extra space in the middle
+                        name = name.Replace("  ", " ");
+
+                        name = name
+                               .Replace("—", "-") // mdash
+                               .Replace("–", "-") // ndash
+                               .Replace(" - ", "-")
+                               .Replace("- ", "-")
+                               .Replace(" -", "-")
                             ;
+                        
+                        return name.Trim();
                     }
                 }
             }
@@ -259,7 +347,7 @@ namespace Osmalyzer
             static bool IsWayForLVM(OsmGroup osmGroup, out int count)
             {
                 count = osmGroup.Elements.Count(e => e.GetValue("operator") == "Latvijas valsts meži");
-                return count > 1;
+                return count >= 1;
             }
         }
 
@@ -290,9 +378,11 @@ namespace Osmalyzer
 
         private enum RouteNameMatch
         {
-            Yes,
-            Partial,
-            No
+            YesOsm,
+            PartialOsm,
+            No,
+            YesLaw,
+            PartialLaw
         }
 
         private enum ReportGroup

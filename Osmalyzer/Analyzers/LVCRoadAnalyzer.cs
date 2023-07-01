@@ -425,7 +425,7 @@ namespace Osmalyzer
             {
                 foreach (OsmGroup osmGroup in unrecognizedRoadsByRef.groups)
                 {
-                    OsmCoord coord = OsmGeoTools.GetAverageCoord(osmGroup.Elements);
+                    OsmCoord coord = osmGroup.GetAverageElementCoord();
 
                     report.AddEntry(
                         ReportGroup.UnrecognizedRoadsByRef,

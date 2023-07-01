@@ -13,6 +13,12 @@
             SubEntry = new MapPointReportEntry(coord, text);
         }
             
+        public IssueReportEntry(string text, EntrySortingRule sortingRule, OsmCoord coord)
+            : base(text, null, sortingRule)
+        {
+            SubEntry = new MapPointReportEntry(coord, text);
+        }
+            
         public IssueReportEntry(string text, EntrySortingRule sortingRule)
             : base(text, null, sortingRule)
         {

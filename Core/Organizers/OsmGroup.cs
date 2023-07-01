@@ -15,5 +15,12 @@ namespace Osmalyzer
         {
             Value = value;
         }
+
+        
+        [Pure]
+        public OsmCoord GetAverageElementCoord()
+        {
+            return OsmGeoTools.GetAverageCoord(Elements);
+        }
     }
 }

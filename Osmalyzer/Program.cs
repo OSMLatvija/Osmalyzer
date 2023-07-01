@@ -74,7 +74,16 @@ namespace Osmalyzer
             Console.WriteLine("Retrieving data...");
 
             if (!Directory.Exists(AnalysisData.cacheBasePath))
+            {
                 Directory.CreateDirectory(AnalysisData.cacheBasePath);
+            }
+            else if (!File.Exists(AnalysisData.cacheRevisionFilePath))
+            {
+                Console.WriteLine("Cache revision out of date, wiping...");
+                Directory.Delete(AnalysisData.cacheBasePath, true);
+                Directory.CreateDirectory(AnalysisData.cacheBasePath);
+                File.WriteAllText(AnalysisData.cacheRevisionFilePath, "hi!");
+            }
 
             for (int i = 0; i < requestedDatas.Count; i++)
             {

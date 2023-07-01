@@ -8,6 +8,8 @@ namespace Osmalyzer
     {
         public const string cacheBasePath = "cache/";
         
+        public const string cacheRevisionFilePath = cacheBasePath + "cache-v2.txt"; // just has to be unique to previous one(s)
+        
 
         public abstract string Name { get; }
         // todo: page name not from this - some sort of internal id

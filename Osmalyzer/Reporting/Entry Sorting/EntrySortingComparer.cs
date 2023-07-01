@@ -18,10 +18,10 @@ namespace Osmalyzer
                 return 0;
 
             if (ruleA != null && ruleB == null)
-                return 1;
+                return -1;
 
             if (ruleA == null && ruleB != null)
-                return -1;
+                return 1;
 
             if (ruleA!.GetType() != ruleB!.GetType())
                 throw new NotImplementedException("Cannot sort with different rules, need to implement sort hierarchy or default behaviour or rule precedence");

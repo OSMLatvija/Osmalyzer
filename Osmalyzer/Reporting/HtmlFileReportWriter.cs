@@ -50,6 +50,20 @@ namespace Osmalyzer
             reportFile.WriteLine(@"a:visited {");
             reportFile.WriteLine(@"  color: #1b4b99;");
             reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@".custom-list {");
+            reportFile.WriteLine(@"  list-style-type: none;");
+            reportFile.WriteLine(@"  padding-left: 10px;");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@".custom-list li:before {");
+            reportFile.WriteLine(@"  margin-right: 10px;");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@".custom-list.notes-list li:before {");
+            reportFile.WriteLine(@"  content: ""🛈"";");
+            reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@".custom-list.issues-list li:before {");
+            reportFile.WriteLine(@"  content: ""⚠"";");
+            reportFile.WriteLine(@"}");            
+            
             reportFile.WriteLine(@"</style>");
 
             bool needMap = report.NeedMap;
@@ -85,16 +99,18 @@ namespace Osmalyzer
                     if (group.PlaceholderEntry != null)
                         reportFile.WriteLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
 
-                if (group.GenericEntryCount > 0)
-                {
-                    foreach (GenericReportEntry entry in group.CollectGenericEntries())
-                        reportFile.WriteLine("<p>" + PolishLine(entry.Text) + "</p>");
-                }
-
                 if (group.IssueEntryCount > 0)
                 {
-                    reportFile.WriteLine("<ul>");
+                    reportFile.WriteLine("<ul class=\"custom-list issues-list\">");
                     foreach (IssueReportEntry entry in group.CollectIssueEntries())
+                        reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
+                    reportFile.WriteLine("</ul>");
+                }
+
+                if (group.GenericEntryCount > 0)
+                {
+                    reportFile.WriteLine("<ul class=\"custom-list notes-list\">");
+                    foreach (GenericReportEntry entry in group.CollectGenericEntries())
                         reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
                     reportFile.WriteLine("</ul>");
                 }

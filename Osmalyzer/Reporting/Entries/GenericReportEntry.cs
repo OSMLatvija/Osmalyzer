@@ -6,5 +6,10 @@
             : base(text, null, null)
         {
         }
+        
+        public GenericReportEntry(string text, EntrySortingRule sortingRule)
+            : base(text, null, sortingRule)
+        {
+        }
     }
 }

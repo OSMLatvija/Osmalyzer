@@ -25,16 +25,16 @@ namespace Osmalyzer
                     if (group.PlaceholderEntry != null)
                         reportFile.WriteLine(group.PlaceholderEntry.Text);
                 
-                if (group.GenericEntryCount > 0)
+                if (group.IssueEntryCount > 0)
                 {
-                    foreach (GenericReportEntry entry in group.CollectGenericEntries())
+                    foreach (IssueReportEntry entry in group.CollectIssueEntries())
                         reportFile.WriteLine("* " + entry.Text);
                     reportFile.WriteLine();
                 }
                 
-                if (group.IssueEntryCount > 0)
+                if (group.GenericEntryCount > 0)
                 {
-                    foreach (IssueReportEntry entry in group.CollectIssueEntries())
+                    foreach (GenericReportEntry entry in group.CollectGenericEntries())
                         reportFile.WriteLine("* " + entry.Text);
                     reportFile.WriteLine();
                 }

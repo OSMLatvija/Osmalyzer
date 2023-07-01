@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -64,6 +65,9 @@ namespace Osmalyzer
             reportFile.WriteLine(@".custom-list.issues-list li:before {");
             reportFile.WriteLine(@"  content: ""⚠"";");
             reportFile.WriteLine(@"}");
+            reportFile.WriteLine(@".custom-list.toc-list li:before {");
+            reportFile.WriteLine(@"  content: ""§"";");
+            reportFile.WriteLine(@"}");
             reportFile.WriteLine(@"li {");
             reportFile.WriteLine(@"  margin-bottom: 4px;");
             reportFile.WriteLine(@"}");
@@ -89,15 +93,29 @@ namespace Osmalyzer
             reportFile.WriteLine(@"</head>");
             reportFile.WriteLine(@"<body>");
             
-            reportFile.WriteLine("Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "<br><br>");
+            reportFile.WriteLine("<h2>Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "</h2>");
 
             List<ReportGroup> groups = report.CollectGroups();
+
+            bool needTOC = groups.Count > 1 && groups.Sum(g => g.TotalEntryCount) > 30;
+
+            if (needTOC)
+            {
+                reportFile.WriteLine("<h3>Sections</h3>");
+                reportFile.WriteLine("<ul class=\"custom-list toc-list\">");
+                for (int g = 0; g < groups.Count; g++)
+                    reportFile.WriteLine(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a></li>");
+                reportFile.WriteLine("</ul>");
+            }
 
             for (int g = 0; g < groups.Count; g++)
             {
                 ReportGroup group = groups[g];
-                
-                reportFile.WriteLine("<h3>" + group.Description + "</h3>");
+
+                if (needTOC)
+                    reportFile.WriteLine(@"<h3 id=""g" + (g + 1) + @""">" + group.Title + "</h3>");
+                else
+                    reportFile.WriteLine("<h3>" + group.Title + "</h3>");
 
                 if (group.DescriptionEntry != null)
                     reportFile.WriteLine("<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");

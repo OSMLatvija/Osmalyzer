@@ -8,7 +8,7 @@ namespace Osmalyzer
     {
         public object ID { get; }
             
-        public string Description { get; }
+        public string Title { get; }
 
 
         public DescriptionReportEntry? DescriptionEntry { get; private set; }
@@ -18,6 +18,13 @@ namespace Osmalyzer
         public ReadOnlyCollection<MapPointReportEntry> MapPointEntries => _mapPointEntries.AsReadOnly();
 
         
+        public int TotalEntryCount =>
+            _genericEntries.Count + 
+            _issuesEntries.Count + 
+            _mapPointEntries.Count +
+            (DescriptionEntry != null ? 1 : 0) +
+            (PlaceholderEntry != null ? 1 : 0);
+
         public int GenericEntryCount => _genericEntries.Count;
 
         public int IssueEntryCount => _issuesEntries.Count;
@@ -38,10 +45,10 @@ namespace Osmalyzer
         private readonly List<MapPointReportEntry> _mapPointEntries = new List<MapPointReportEntry>();
 
 
-        public ReportGroup(object id, string description)
+        public ReportGroup(object id, string title)
         {
             ID = id;
-            Description = description;
+            Title = title;
         }
 
             

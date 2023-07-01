@@ -15,7 +15,7 @@ namespace Osmalyzer
 
             foreach (ReportGroup group in report.CollectGroups())
             {
-                reportFile.WriteLine(group.Description);
+                reportFile.WriteLine(group.Title);
                 reportFile.WriteLine();
 
                 if (group.DescriptionEntry != null)

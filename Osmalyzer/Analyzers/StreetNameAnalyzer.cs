@@ -66,6 +66,15 @@ namespace Osmalyzer
             string[] knownSuffixesRaw = File.ReadAllLines(knownSuffixFileName, Encoding.UTF8);
 
             List<KnownSuffix> knownSuffixes = knownSuffixesRaw.Select(ks => new KnownSuffix(ks)).ToList();
+            
+            // Load known names
+            
+            string knownNamesFileName = @"data/known street names.tsv";
+
+            if (!File.Exists(knownNamesFileName))
+                knownNamesFileName = @"../../../../" + knownNamesFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
+            
+            List<string> knownNames = File.ReadAllLines(knownNamesFileName, Encoding.UTF8).Select(l => l.Split('\t')[0]).ToList();
 
             // Load law road data
 
@@ -81,6 +90,9 @@ namespace Osmalyzer
             report.AddGroup(ReportGroup.KnownSuffixes, "Recognized street name suffixes");
             report.AddEntry(ReportGroup.KnownSuffixes, new DescriptionReportEntry("These names have common suffixes for street names, so they are assumed to be \"real\" street and road names."));
 
+            report.AddGroup(ReportGroup.KnownNames, "Recognized names");
+            report.AddEntry(ReportGroup.KnownNames, new DescriptionReportEntry("These names were manually checked as having unique but valid street names in cadaster."));
+
             report.AddGroup(ReportGroup.RouteNames, "Named after regional routes");
             report.AddEntry(ReportGroup.RouteNames, new DescriptionReportEntry("The names of these roads match a regional road route. While technically incorrect (road name is not route name), these are commonly used and not invalid per se."));
 
@@ -91,6 +103,7 @@ namespace Osmalyzer
 
             OsmGroups osmWaysByName = osmNamedWays.GroupByValues("name", false);
 
+            List<(string n, int c)> knownFullyMatchedNames = new List<(string n, int c)>();
             List<(string n, string r)> cleanlyMatchedOsmRouteNames = new List<(string n, string r)>();
             List<(string n, string r)> cleanlyMatchedLawRouteNames = new List<(string n, string r)>();
             List<(string n, int c)> lvmFullyMatchedNames = new List<(string n, int c)>();
@@ -110,6 +123,14 @@ namespace Osmalyzer
                 }
                 else
                 {
+                    // Try to match known names
+
+                    if (knownNames.Contains(wayName))
+                    {
+                        knownFullyMatchedNames.Add((wayName, osmGroup.Elements.Count));
+                        continue;
+                    }
+                    
                     // Try to match to regional routes or law road list
 
                     RouteNameMatch routeNameMatch = IsWayNamedAfterMajorRouteName(wayName, osmNamedRoutes, roadLaw, out string? routeRef, out string? routeName);
@@ -201,7 +222,22 @@ namespace Osmalyzer
                     )
                 );
             }
+            
+            // Known names
 
+            if (knownFullyMatchedNames.Count > 0)
+            {
+                report.AddEntry(
+                    ReportGroup.KnownNames,
+                    new GenericReportEntry(
+                        "These " + knownFullyMatchedNames.Count + " names are known as unique and valid: " +
+                        string.Join(", ", knownFullyMatchedNames.Select(n => "\"" + n.n + "\" x \"" + n.c + "\""))
+                    )
+                );
+            }
+
+            // Matched names to something
+            
             if (cleanlyMatchedOsmRouteNames.Count > 0)
             {
                 report.AddEntry(
@@ -378,7 +414,8 @@ namespace Osmalyzer
             UnknownSuffixes,
             KnownSuffixes,
             RouteNames,
-            LVMRoads
+            LVMRoads,
+            KnownNames
         }
     }
 }

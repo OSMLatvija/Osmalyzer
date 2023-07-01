@@ -55,10 +55,10 @@ namespace Osmalyzer
             
             string[] nsiRawTags = File.ReadAllLines(nsiTagsFileName);
 
-            List<(string, List<string>)> nsiTags = nsiRawTags.Select(t =>
+            List<(string, string[])> nsiTags = nsiRawTags.Select(t =>
             {
                 int i = t.IndexOf('\t'); 
-                return (t.Substring(0, i), t.Substring(i + 1).Split(';').ToList());
+                return (t.Substring(0, i), t.Substring(i + 1).Split(';').ToArray());
             }).ToList();
             // todo: retrieve automatically from NSI repo or wherever they keep these
             // todo: would need to manually specify exceptions/grouping if parsing
@@ -66,7 +66,7 @@ namespace Osmalyzer
 
             List<(int count, string line)> reportEntries = new List<(int, string)>();
             
-            foreach ((string nsiTag, List<string> nsiValues) in nsiTags)
+            foreach ((string nsiTag, string[] nsiValues) in nsiTags)
             {
                 OsmDataExtract matchingElements = titledElements.Filter(
                     new HasAnyValue(nsiTag, nsiValues)

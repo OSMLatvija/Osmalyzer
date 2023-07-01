@@ -1,9 +1,9 @@
 ﻿namespace Osmalyzer
 {
-    public class GenericReportEntry : ReportEntry
+    public class GenericReportEntry : SortableReportEntry
     {
         public GenericReportEntry(string text)
-            : base(text)
+            : base(text, null, null)
         {
         }
     }

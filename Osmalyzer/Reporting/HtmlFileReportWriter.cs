@@ -70,7 +70,7 @@ namespace Osmalyzer
             
             reportFile.WriteLine("Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "<br><br>");
 
-            List<ReportGroup> groups = report.CollectEntries();
+            List<ReportGroup> groups = report.CollectGroups();
 
             for (int g = 0; g < groups.Count; g++)
             {
@@ -85,16 +85,16 @@ namespace Osmalyzer
                     if (group.PlaceholderEntry != null)
                         reportFile.WriteLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
 
-                if (group.GenericEntries.Count > 0)
+                if (group.GenericEntryCount > 0)
                 {
-                    foreach (ReportEntry entry in group.GenericEntries)
+                    foreach (GenericReportEntry entry in group.CollectGenericEntries())
                         reportFile.WriteLine("<p>" + PolishLine(entry.Text) + "</p>");
                 }
 
-                if (group.IssueEntries.Count > 0)
+                if (group.IssueEntryCount > 0)
                 {
                     reportFile.WriteLine("<ul>");
-                    foreach (ReportEntry entry in group.IssueEntries)
+                    foreach (IssueReportEntry entry in group.CollectIssueEntries())
                         reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
                     reportFile.WriteLine("</ul>");
                 }

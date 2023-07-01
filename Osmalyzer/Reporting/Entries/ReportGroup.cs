@@ -14,14 +14,14 @@ namespace Osmalyzer
         public DescriptionReportEntry? DescriptionEntry { get; private set; }
 
         public PlaceholderReportEntry? PlaceholderEntry { get; private set; }
-
-        public ReadOnlyCollection<ReportEntry> GenericEntries => _genericEntries.AsReadOnly();
-            
-        public ReadOnlyCollection<ReportEntry> IssueEntries => _issuesEntries.AsReadOnly();
             
         public ReadOnlyCollection<MapPointReportEntry> MapPointEntries => _mapPointEntries.AsReadOnly();
 
+        
+        public int GenericEntryCount => _genericEntries.Count;
 
+        public int IssueEntryCount => _issuesEntries.Count;
+        
         public bool HaveAnyContentEntries => 
             _genericEntries.Count > 0 || 
             _issuesEntries.Count > 0 || 
@@ -30,9 +30,10 @@ namespace Osmalyzer
         public bool NeedMap => _mapPointEntries.Count > 0;
 
 
-        private readonly List<ReportEntry> _genericEntries = new List<ReportEntry>();
+        private readonly List<GenericReportEntry> _genericEntries = new List<GenericReportEntry>();
             
-        private readonly List<ReportEntry> _issuesEntries = new List<ReportEntry>();
+        private readonly List<IssueReportEntry> _issuesEntries = new List<IssueReportEntry>();
+        // todo: should I merge issue with generic? add some sort of "issue rating"?
             
         private readonly List<MapPointReportEntry> _mapPointEntries = new List<MapPointReportEntry>();
 
@@ -48,12 +49,12 @@ namespace Osmalyzer
         {
             switch (newEntry)
             {
-                case GenericReportEntry:
-                    _genericEntries.Add(newEntry);
+                case GenericReportEntry gre:
+                    _genericEntries.Add(gre);
                     break;
                     
-                case IssueReportEntry:
-                    _issuesEntries.Add(newEntry);
+                case IssueReportEntry ire:
+                    _issuesEntries.Add(ire);
                     break;
                     
                 case MapPointReportEntry mpe:
@@ -86,6 +87,20 @@ namespace Osmalyzer
 
             if (PlaceholderEntry != null && PlaceholderEntry.Context == context) PlaceholderEntry = null;
             if (DescriptionEntry != null && DescriptionEntry.Context == context) DescriptionEntry = null;
+        }
+        
+        public ReadOnlyCollection<GenericReportEntry> CollectGenericEntries()
+        {
+            _genericEntries.Sort(new EntrySortingComparer());
+
+            return _genericEntries.AsReadOnly();
+        }
+        
+        public ReadOnlyCollection<IssueReportEntry> CollectIssueEntries()
+        {
+            _issuesEntries.Sort(new EntrySortingComparer());
+            
+            return _issuesEntries.AsReadOnly();
         }
     }
 }

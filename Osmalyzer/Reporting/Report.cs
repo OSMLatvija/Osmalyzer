@@ -47,10 +47,8 @@ namespace Osmalyzer
             group.AddEntry(newEntry);
         }
 
-        public List<ReportGroup> CollectEntries()
+        public List<ReportGroup> CollectGroups()
         {
-            // TODO: organize
-            
             return _groups.ToList();
         }
 

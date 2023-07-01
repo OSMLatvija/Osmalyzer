@@ -71,8 +71,6 @@ namespace Osmalyzer
 
             OsmPolygon latviaPolygon = latviaRelation.GetOuterWayPolygon();
 
-            //latviaPolygon.SaveToFile("latvia-real.poly");
-            
             InsidePolygon insidePolygonFilter = new InsidePolygon(latviaPolygon, OsmPolygon.RelationInclusionCheck.Fuzzy); // somewhat expensive, so keep outside
             
             reffedRoads = reffedRoads.Filter(insidePolygonFilter);

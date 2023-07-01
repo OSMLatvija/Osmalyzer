@@ -13,7 +13,7 @@ namespace Osmalyzer
             reportFile.WriteLine("Report for " + report.AnalyzerName);
             reportFile.WriteLine();
 
-            foreach (ReportGroup group in report.CollectEntries())
+            foreach (ReportGroup group in report.CollectGroups())
             {
                 reportFile.WriteLine(group.Description);
                 reportFile.WriteLine();
@@ -25,16 +25,16 @@ namespace Osmalyzer
                     if (group.PlaceholderEntry != null)
                         reportFile.WriteLine(group.PlaceholderEntry.Text);
                 
-                if (group.GenericEntries.Count > 0)
+                if (group.GenericEntryCount > 0)
                 {
-                    foreach (ReportEntry entry in group.GenericEntries)
+                    foreach (GenericReportEntry entry in group.CollectGenericEntries())
                         reportFile.WriteLine("* " + entry.Text);
                     reportFile.WriteLine();
                 }
                 
-                if (group.IssueEntries.Count > 0)
+                if (group.IssueEntryCount > 0)
                 {
-                    foreach (ReportEntry entry in group.IssueEntries)
+                    foreach (IssueReportEntry entry in group.CollectIssueEntries())
                         reportFile.WriteLine("* " + entry.Text);
                     reportFile.WriteLine();
                 }

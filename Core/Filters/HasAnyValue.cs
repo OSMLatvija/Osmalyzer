@@ -12,10 +12,10 @@ namespace Osmalyzer
 
 
         private readonly string _key;
-        private readonly List<string> _values;
+        private readonly string[] _values;
 
 
-        public HasAnyValue(string key, List<string> values)
+        public HasAnyValue(string key, params string[] values)
         {
             _key = key;
             _values = values;

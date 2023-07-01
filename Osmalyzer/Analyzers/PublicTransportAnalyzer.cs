@@ -47,8 +47,8 @@ namespace Osmalyzer
                         new IsRelation(),
                         new HasValue("type", "route"),
                         new OrMatch(
-                            new HasAnyValue("route", new List<string> { "tram", "bus", "trolleybus" }),
-                            new HasAnyValue("disused:route", new List<string> { "tram", "bus", "trolleybus" })
+                            new HasAnyValue("route", "tram", "bus", "trolleybus"),
+                            new HasAnyValue("disused:route", "tram", "bus", "trolleybus")
                         )
                     }
                 }

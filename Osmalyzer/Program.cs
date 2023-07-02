@@ -44,7 +44,7 @@ namespace Osmalyzer
                 //new ShopNetworkAnalyzer(),
                 //new MicroReservesAnalyzer(),
                 //new StreetNameAnalyzer(),
-                new DrinkingWaterAnalyzer(),
+                new RigaDrinkingWaterAnalyzer(),
                 //new PublicTransportAccessAnalyzer()
             };
 #endif

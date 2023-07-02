@@ -6,9 +6,9 @@ using JetBrains.Annotations;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class DrinkingWaterAnalyzer : Analyzer
+    public class RigaDrinkingWaterAnalyzer : Analyzer
     {
-        public override string Name => "Drinking Water";
+        public override string Name => "Riga Drinking Water";
 
         public override string? Description => null;
 
@@ -40,7 +40,6 @@ namespace Osmalyzer
             RigaDrinkingWaterAnalysisData drinkingWaterData = datas.OfType<RigaDrinkingWaterAnalysisData>().First();
 
             List<DrinkingWater> rigaTaps = drinkingWaterData.DrinkingWaters;
-            
             // Parse
 
             List<DrinkingWater> matchedTaps = new List<DrinkingWater>();
@@ -81,6 +80,10 @@ namespace Osmalyzer
                             )
                         );
                     }
+                    
+                    
+                    // todo: operator
+                    // todo: source
                 }
             }
             

@@ -89,7 +89,7 @@ namespace Osmalyzer
                     // 1
                     // 6254A001 Krastnieki-Mazīvande 6,81 C                    
 
-                    MatchCollection matches = Regex.Matches(pageText, @"(?<![,\d])\d{1,2}\s*(?:\d{4}[ABC]\d{3}\s*)?([^\n,]{8,}?)\s*\d+,\d+\s*[ABCD]");
+                    MatchCollection matches = Regex.Matches(pageText, @"(?<![,\d])\d{1,2}\s*(?:\d{4}[ABC]\d{3}\s*)?([^\n,]{8,}?)\s*\d+,\d+");
                     // at some point regexes just look like I randomly mashed the keyboard
 
                     if (matches.Count == 0) throw new Exception("Something wrong with PDF or extracted text");

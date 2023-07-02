@@ -230,7 +230,7 @@ namespace Osmalyzer
                     ReportGroup.KnownNames,
                     new GenericReportEntry(
                         "These " + knownFullyMatchedNames.Count + " names are known as unique and valid: " +
-                        string.Join(", ", knownFullyMatchedNames.Select(n => "\"" + n.n + "\" x \"" + n.c + "\""))
+                        string.Join(", ", knownFullyMatchedNames.Select(n => "\"" + n.n + "\" x " + n.c + ""))
                     )
                 );
             }

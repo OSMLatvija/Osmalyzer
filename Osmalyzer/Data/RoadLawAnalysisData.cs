@@ -7,8 +7,6 @@ namespace Osmalyzer
     {
         public override string Name => "Road Law";
 
-        public bool? DataDateHasDayGranularity => null;
-
         protected override string DataFileIdentifier => "road-law";
         
         public RoadLaw RoadLaw { get; private set; } = null!; // only null during initialization

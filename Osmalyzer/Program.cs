@@ -43,7 +43,8 @@ namespace Osmalyzer
                 //new TrolleybusWireAnalyzer(),
                 //new ShopNetworkAnalyzer(),
                 //new MicroReservesAnalyzer(),
-                new StreetNameAnalyzer(),
+                //new StreetNameAnalyzer(),
+                new DrinkingWaterAnalyzer(),
                 //new PublicTransportAccessAnalyzer()
             };
 #endif

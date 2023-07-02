@@ -76,8 +76,10 @@ namespace Osmalyzer
             reportFile.WriteLine(@"}");  
             reportFile.WriteLine(@".osm-tag {");
             reportFile.WriteLine(@"  font-family: 'Consolas', monospace;");
+            reportFile.WriteLine(@"  font-size: .9em;");
             reportFile.WriteLine(@"  white-space: pre;");
             reportFile.WriteLine(@"  background-color: #e1e1e1;");
+            reportFile.WriteLine(@"  padding: 0 2px;");
             reportFile.WriteLine(@"}");    
             reportFile.WriteLine(@".map {");
             reportFile.WriteLine(@"  border: 1px solid #ccc;");

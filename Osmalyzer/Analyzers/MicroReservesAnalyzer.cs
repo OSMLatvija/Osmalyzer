@@ -80,6 +80,8 @@ namespace Osmalyzer
                 )
             );
 
+            // TODO: https://likumi.lv/ta/id/20083-noteikumi-par-dabas-liegumiem - full reserves
+            
             // Parse
 
             report.AddGroup(ReportGroup.Issues, "Unmatched Micro Reserves");

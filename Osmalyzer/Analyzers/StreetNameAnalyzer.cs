@@ -88,20 +88,15 @@ namespace Osmalyzer
             
             // Prepare report groups
 
-            report.AddGroup(ReportGroup.UnknownSuffixes, "Unknown names");
-            report.AddEntry(ReportGroup.UnknownSuffixes, new DescriptionReportEntry("These names are not necessarily wrong, just not recognized as common street names or classified by some other name source."));
+            report.AddGroup(ReportGroup.UnknownSuffixes, "Unknown names", "These names are not necessarily wrong, just not recognized as common street names or classified by some other name source.");
             
-            report.AddGroup(ReportGroup.KnownSuffixes, "Recognized street name suffixes");
-            report.AddEntry(ReportGroup.KnownSuffixes, new DescriptionReportEntry("These names have common suffixes for street names, so they are assumed to be \"real\" street and road names."));
+            report.AddGroup(ReportGroup.KnownSuffixes, "Recognized street name suffixes", "These names have common suffixes for street names, so they are assumed to be \"real\" street and road names.");
 
-            report.AddGroup(ReportGroup.KnownNames, "Recognized names");
-            report.AddEntry(ReportGroup.KnownNames, new DescriptionReportEntry("These names were manually checked as having unique but valid street names in cadaster."));
+            report.AddGroup(ReportGroup.KnownNames, "Recognized names", "These names were manually checked as having unique but valid street names in cadaster.");
 
-            report.AddGroup(ReportGroup.RouteNames, "Named after regional routes");
-            report.AddEntry(ReportGroup.RouteNames, new DescriptionReportEntry("The names of these roads match a regional road route. While technically incorrect (road name is not route name), these are commonly used and not invalid per se."));
+            report.AddGroup(ReportGroup.RouteNames, "Named after regional routes", "The names of these roads match a regional road route. While technically incorrect (road name is not route name), these are commonly used and not invalid per se.");
 
-            report.AddGroup(ReportGroup.LVMRoads, "LVM roads");
-            report.AddEntry(ReportGroup.LVMRoads, new DescriptionReportEntry("These roads are marked as operated by LVM and so they mostly have unique names."));
+            report.AddGroup(ReportGroup.LVMRoads, "LVM roads", "These roads are marked as operated by LVM and so they mostly have unique names.");
 
             // Parse
 

@@ -73,6 +73,14 @@ namespace Osmalyzer
             reportFile.WriteLine(@"}");
             reportFile.WriteLine(@".osm-link {");
             reportFile.WriteLine(@"  font-size: .8em;");
+            reportFile.WriteLine(@"}");  
+            reportFile.WriteLine(@".osm-tag {");
+            reportFile.WriteLine(@"  font-family: 'Consolas', monospace;");
+            reportFile.WriteLine(@"  white-space: pre;");
+            reportFile.WriteLine(@"  background-color: #e1e1e1;");
+            reportFile.WriteLine(@"}");    
+            reportFile.WriteLine(@".map {");
+            reportFile.WriteLine(@"  border: 1px solid #ccc;");
             reportFile.WriteLine(@"}");            
             
             reportFile.WriteLine(@"</style>");
@@ -104,7 +112,7 @@ namespace Osmalyzer
                 reportFile.WriteLine("<h3>Sections</h3>");
                 reportFile.WriteLine("<ul class=\"custom-list toc-list\">");
                 for (int g = 0; g < groups.Count; g++)
-                    reportFile.WriteLine(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a></li>");
+                    reportFile.WriteLine(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a> (" + groups[g].ImportantEntryCount + ")</li>");
                 reportFile.WriteLine("</ul>");
             }
 
@@ -142,7 +150,7 @@ namespace Osmalyzer
 
                 if (group.MapPointEntries.Count > 0)
                 {
-                    reportFile.WriteLine($@"<div id=""map{g}"" style=""width: 800px; height: 400px;""></div>");
+                    reportFile.WriteLine($@"<div class=""map"" id=""map{g}"" style=""width: 800px; height: 400px;""></div>");
 
                     reportFile.WriteLine(@"<script>");
                     reportFile.WriteLine(@$"var map = L.map('map{g}').setView([56.906, 24.505], 7);");
@@ -182,6 +190,8 @@ namespace Osmalyzer
             line = Regex.Replace(line, @"(https://www.openstreetmap.org/#map=\d{1,2}/(-?\d{1,3}\.\d+)/(-?\d{1,3}\.\d+))", @"<a href=""$1"" class=""osm-link"">Location $2, $3</a>");
             
             line = Regex.Replace(line, @"(https://overpass-turbo.eu/\?Q=[a-zA-Z0-9%\-_\.!*()+]+)", @"<a href=""$1"">Query</a>");
+
+            line = Regex.Replace(line, @"`([^`]+)`", @"<code class=""osm-tag"">$1</code>");
 
             return line;
         }

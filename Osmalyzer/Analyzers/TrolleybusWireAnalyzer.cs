@@ -40,7 +40,7 @@ namespace Osmalyzer
 
             // Process
 
-            report.AddGroup(ReportGroup.Issues, "Ways with trolley_wire issues:");
+            report.AddGroup(ReportGroup.Issues, "Ways with trolley_wire issues");
 
             report.AddEntry(
                 ReportGroup.Issues,

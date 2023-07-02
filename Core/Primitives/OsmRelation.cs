@@ -32,6 +32,7 @@ namespace Osmalyzer
         }
 
         
+        [Pure]
         public OsmPolygon GetOuterWayPolygon()
         {
             List<OsmWay> outerWays = GetOuterWays();
@@ -43,6 +44,7 @@ namespace Osmalyzer
             return new OsmPolygon(nodes.Select(n => n.coord).ToList());
         }
 
+        [Pure]
         public List<OsmWay> GetOuterWays()
         {
             List<OsmWay> outerWays = new List<OsmWay>();
@@ -58,9 +60,16 @@ namespace Osmalyzer
             return outerWays;
         }
 
+        [Pure]
         public override OsmCoord GetAverageCoord()
         {
             return OsmGeoTools.GetAverageCoord(Elements);
+        }
+
+        [Pure]
+        public IEnumerable<T> GetElementsWithRole<T>(string role) where T : OsmElement
+        {
+            return Members.Where(m => m.Element is T && m.Role == role).Select(m => (T)m.Element!);
         }
     }
 }

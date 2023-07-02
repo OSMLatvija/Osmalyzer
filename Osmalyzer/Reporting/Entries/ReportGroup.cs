@@ -25,10 +25,17 @@ namespace Osmalyzer
             (DescriptionEntry != null ? 1 : 0) +
             (PlaceholderEntry != null ? 1 : 0);
 
+        public int ImportantEntryCount =>
+            _genericEntries.Count +
+            _issuesEntries.Count; 
+
         public int GenericEntryCount => _genericEntries.Count;
 
         public int IssueEntryCount => _issuesEntries.Count;
         
+        /// <summary>
+        /// This is basically for deciding to show <see cref="PlaceholderReportEntry"/>.
+        /// </summary>
         public bool HaveAnyContentEntries => 
             _genericEntries.Count > 0 || 
             _issuesEntries.Count > 0 || 

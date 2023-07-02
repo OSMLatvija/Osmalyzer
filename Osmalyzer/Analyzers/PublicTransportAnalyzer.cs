@@ -64,14 +64,14 @@ namespace Osmalyzer
             
             // Prepare report stuff
 
-            report.AddGroup(ReportGroup.NoStopMatchButHaveClose, "These "+Label+" stops don't have a matching OSM stop in range (" + maxSearchDistance + " m), but have a stop nearby (<" + acceptDistance + " m):");
+            report.AddGroup(ReportGroup.NoStopMatchButHaveClose, "These "+Label+" stops don't have a matching OSM stop in range (" + maxSearchDistance + " m), but have a stop nearby (<" + acceptDistance + " m)");
             report.AddGroup(ReportGroup.MatchedOsmStopIsTooFar, "These "+Label+" stops have a matching OSM stop in range (" + maxSearchDistance + " m), but it is far away (>" + acceptDistance + " m)");
             report.AddGroup(ReportGroup.NoStopMatchInRange, "These "+Label+" stops don't have any already-unmatched OSM stops in range (" + maxSearchDistance + " m)");
             report.AddGroup(ReportGroup.NoStopMatchAndAllFar, "These "+Label+" stops have no matching OSM stop in range (" + maxSearchDistance + " m), and even all unmatched stops are far away (>" + acceptDistance + " m)");
-            report.AddGroup(ReportGroup.NoOsmRouteMatch, "These "+Label+" routes were not matched to any OSM route:");
-            report.AddGroup(ReportGroup.StopRematchFromRoutes, "These "+Label+"-OSM stop pairs didn't match "+Label+" & OSM routes:");
-            report.AddGroup(ReportGroup.NetworkRouteMissingOsmStop, "These "+Label+" stops are not in the OSM route:");
-            report.AddGroup(ReportGroup.OsmRouteExtraStop, "These OSM stops are not in the "+Label+" route:");
+            report.AddGroup(ReportGroup.NoOsmRouteMatch, "These "+Label+" routes were not matched to any OSM route");
+            report.AddGroup(ReportGroup.StopRematchFromRoutes, "These "+Label+"-OSM stop pairs didn't match "+Label+" & OSM routes");
+            report.AddGroup(ReportGroup.NetworkRouteMissingOsmStop, "These "+Label+" stops are not in the OSM route");
+            report.AddGroup(ReportGroup.OsmRouteExtraStop, "These OSM stops are not in the "+Label+" route");
 
             // Parse stops
 

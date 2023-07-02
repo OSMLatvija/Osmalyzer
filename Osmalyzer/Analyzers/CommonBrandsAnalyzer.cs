@@ -26,7 +26,7 @@ namespace Osmalyzer
 
             // Start report file
 
-            report.AddGroup(ReportGroup.Main, "These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI):");
+            report.AddGroup(ReportGroup.Main, "These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI)");
             
             // todo: report tables?
             

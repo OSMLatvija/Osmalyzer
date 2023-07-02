@@ -14,13 +14,13 @@ namespace Osmalyzer
         public IReadOnlyList<OsmElement> Elements => _elements.AsReadOnly();
 
         [PublicAPI]
-        public IReadOnlyList<OsmElement> Nodes => _nodes.AsReadOnly();
+        public IReadOnlyList<OsmNode> Nodes => _nodes.AsReadOnly();
 
         [PublicAPI]
-        public IReadOnlyList<OsmElement> Ways => _ways.AsReadOnly();
+        public IReadOnlyList<OsmWay> Ways => _ways.AsReadOnly();
 
         [PublicAPI]
-        public IReadOnlyList<OsmElement> Relations => _relations.AsReadOnly();
+        public IReadOnlyList<OsmRelation> Relations => _relations.AsReadOnly();
 
         [PublicAPI]
         public int Count => _elements.Count;
@@ -28,12 +28,12 @@ namespace Osmalyzer
         
         private List<OsmElement> _elements = null!; // will be set by whichever child constructor
         
-        private List<OsmElement> _nodes = null!;
-        private List<OsmElement> _nodesWithTags = null!;
-        private List<OsmElement> _ways = null!;
-        private List<OsmElement> _waysWithTags = null!;
-        private List<OsmElement> _relations = null!;
-        private List<OsmElement> _relationsWithTags = null!;
+        private List<OsmNode> _nodes = null!;
+        private List<OsmNode> _nodesWithTags = null!;
+        private List<OsmWay> _ways = null!;
+        private List<OsmWay> _waysWithTags = null!;
+        private List<OsmRelation> _relations = null!;
+        private List<OsmRelation> _relationsWithTags = null!;
 
 
         [Pure]
@@ -41,7 +41,7 @@ namespace Osmalyzer
         {
             List<OsmElement> filteredElements = new List<OsmElement>();
 
-            List<OsmElement> collection = ChooseCollectionForFiltering(filters);
+            IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters);
 
             foreach (OsmElement element in collection)
                 if (OsmElementMatchesFilters(element, filters))
@@ -57,7 +57,7 @@ namespace Osmalyzer
 
             for (int i = 0; i < filters.Count; i++)
             {
-                List<OsmElement> collection = ChooseCollectionForFiltering(filters[i]);
+                IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters[i]);
 
                 List<OsmElement> filteredElements = new List<OsmElement>();
                 
@@ -308,22 +308,22 @@ namespace Osmalyzer
 
             _nodes =
                 nodeCapacity != null ?
-                    new List<OsmElement>(nodeCapacity.Value) :
-                    new List<OsmElement>();
+                    new List<OsmNode>(nodeCapacity.Value) :
+                    new List<OsmNode>();
 
             _ways =
                 wayCapacity != null ?
-                    new List<OsmElement>(wayCapacity.Value) :
-                    new List<OsmElement>();
+                    new List<OsmWay>(wayCapacity.Value) :
+                    new List<OsmWay>();
 
             _relations =
                 relationCapacity != null ?
-                    new List<OsmElement>(relationCapacity.Value) :
-                    new List<OsmElement>();
+                    new List<OsmRelation>(relationCapacity.Value) :
+                    new List<OsmRelation>();
 
-            _nodesWithTags = new List<OsmElement>();
-            _waysWithTags = new List<OsmElement>();
-            _relationsWithTags = new List<OsmElement>();
+            _nodesWithTags = new List<OsmNode>();
+            _waysWithTags = new List<OsmWay>();
+            _relationsWithTags = new List<OsmRelation>();
         }
 
         protected void AddElement(OsmElement newElement)
@@ -332,25 +332,25 @@ namespace Osmalyzer
 
             switch (newElement)
             {
-                case OsmNode:
-                    _nodes.Add(newElement);
+                case OsmNode node:
+                    _nodes.Add(node);
                     
                     if (newElement.HasAnyTags)
-                        _nodesWithTags.Add(newElement);
+                        _nodesWithTags.Add(node);
                     break;
 
-                case OsmWay:
-                    _ways.Add(newElement);
+                case OsmWay way:
+                    _ways.Add(way);
                     
                     if (newElement.HasAnyTags)
-                        _waysWithTags.Add(newElement);
+                        _waysWithTags.Add(way);
                     break;
                 
-                case OsmRelation:
-                    _relations.Add(newElement);
+                case OsmRelation relation:
+                    _relations.Add(relation);
                     
                     if (newElement.HasAnyTags)
-                        _relationsWithTags.Add(newElement);
+                        _relationsWithTags.Add(relation);
                     break;
 
                 default:
@@ -359,31 +359,31 @@ namespace Osmalyzer
         }
 
         [Pure]
-        private List<OsmElement> ChooseCollectionForFiltering(IEnumerable<OsmFilter> filters)
+        private IEnumerable<OsmElement> ChooseCollectionForFiltering(IEnumerable<OsmFilter> filters)
         {
-            // todo: return filter list without the redundant filter
+            // todo: return back a new filter list without the redundant filter we dismissed
             
-            List<OsmFilter> filterList = filters.ToList();
-
-            if (filterList.Any(f => f.ForNodesOnly))
+            // todo: go through filters one at a time and keep flags insetad of multiple enumerations
+            
+            if (filters.Any(f => f.ForNodesOnly))
             {
-                if (filterList.Any(f => f.TaggedOnly))
+                if (filters.Any(f => f.TaggedOnly))
                     return _nodesWithTags;
 
                 return _nodes;
             }
 
-            if (filterList.Any(f => f.ForWaysOnly))
+            if (filters.Any(f => f.ForWaysOnly))
             {
-                if (filterList.Any(f => f.TaggedOnly))
+                if (filters.Any(f => f.TaggedOnly))
                     return _waysWithTags;
 
                 return _ways;
             }
 
-            if (filterList.Any(f => f.ForRelationsOnly))
+            if (filters.Any(f => f.ForRelationsOnly))
             {
-                if (filterList.Any(f => f.TaggedOnly))
+                if (filters.Any(f => f.TaggedOnly))
                     return _relationsWithTags;
 
                 return _relations;

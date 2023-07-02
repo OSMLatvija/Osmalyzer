@@ -35,11 +35,10 @@ namespace Osmalyzer
             
             // Bad maxspeed values
 
-            report.AddGroup(ReportGroup.InvalidSpeed, "These roads have bad max speed limit values for living streets:");
-            
-            report.AddEntry(
-                ReportGroup.InvalidSpeed,
-                new DescriptionReportEntry("All living streets should have the max speed limit of 20 km/h. Only living zone roads should be tagged as living streets, so any other value is a mistake. Either the road is not classified correctly (it's not living zone) or the max speed value is incorrect for some reason. Note that courtyard roads also have a speed limit of 20 km/h and these are often mistagged as living streets. Only courtyard roads that are in a signed living zone are living streets, otherwise they are just service roads.")
+            report.AddGroup(
+                ReportGroup.InvalidSpeed, 
+                "These roads have bad max speed limit values for living streets",
+                "All living streets should have the max speed limit of 20 km/h. Only living zone roads should be tagged as living streets, so any other value is a mistake. Either the road is not classified correctly (it's not living zone) or the max speed value is incorrect for some reason. Note that courtyard roads also have a speed limit of 20 km/h and these are often mistagged as living streets. Only courtyard roads that are in a signed living zone are living streets, otherwise they are just service roads."
             );
             
             report.AddEntry(
@@ -89,7 +88,7 @@ namespace Osmalyzer
             
             // Stats
             
-            report.AddGroup(ReportGroup.Stats, "Maxspeed stats on living streets:");
+            report.AddGroup(ReportGroup.Stats, "Maxspeed stats on living streets");
 
             if (livingStreets.Count > 0) // should never happen otherwise
             {

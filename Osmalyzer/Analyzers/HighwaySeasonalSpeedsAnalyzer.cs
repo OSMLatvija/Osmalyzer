@@ -102,7 +102,7 @@ namespace Osmalyzer
 
             limits.Sort();
             
-            report.AddGroup(ReportGroup.Combos, "Combos found:");
+            report.AddGroup(ReportGroup.Combos, "Combos found");
 
             foreach ((int regular, int conditional) in limits)
             {

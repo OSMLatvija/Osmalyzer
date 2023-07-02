@@ -308,7 +308,8 @@ namespace Osmalyzer
             {
                 foreach (KnownSuffix knownSuffix in suffixes)
                 {
-                    if (name.ToLower().EndsWith(knownSuffix.Suffix)) // space not required
+                    if (name.Length > knownSuffix.Suffix.Length && // can't be all suffix like "iela" or "taka"
+                        name.ToLower().EndsWith(knownSuffix.Suffix)) // space not required
                     {
                         return knownSuffix;
                     }

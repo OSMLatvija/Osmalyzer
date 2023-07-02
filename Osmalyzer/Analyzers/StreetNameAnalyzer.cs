@@ -82,10 +82,10 @@ namespace Osmalyzer
 
             RoadLaw roadLaw = roadLawData.RoadLaw;
             
-            // TODO: 
-            // Kuldīga road names from PDF - a lot of them and can filter them out more or less
-            // https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases
+            // Get Kuldiga road names
             
+            KuldigaRoadsAnalysisData kuldigaRoadsData = datas.OfType<KuldigaRoadsAnalysisData>().First();
+
             // Prepare report groups
 
             report.AddGroup(ReportGroup.UnknownSuffixes, "Unknown names", "These names are not necessarily wrong, just not recognized as common street names or classified by some other name source.");
@@ -97,6 +97,8 @@ namespace Osmalyzer
             report.AddGroup(ReportGroup.RouteNames, "Named after regional routes", "The names of these roads match a regional road route. While technically incorrect (road name is not route name), these are commonly used and not invalid per se.");
 
             report.AddGroup(ReportGroup.LVMRoads, "LVM roads", "These roads are marked as operated by LVM and so they mostly have unique names.");
+            
+            report.AddGroup(ReportGroup.KuldigaRoads, "Kuldīga roads", "These roads are listed as local Kuldīga region roads.");
 
             // Parse
 
@@ -106,6 +108,7 @@ namespace Osmalyzer
             List<(string n, string r)> cleanlyMatchedOsmRouteNames = new List<(string n, string r)>();
             List<(string n, string r)> cleanlyMatchedLawRouteNames = new List<(string n, string r)>();
             List<(string n, int c)> lvmFullyMatchedNames = new List<(string n, int c)>();
+            List<(string n, int c)> kuldigaMatchedNames = new List<(string n, int c)>();
 
             foreach (OsmGroup osmGroup in osmWaysByName.groups)
             {
@@ -193,6 +196,24 @@ namespace Osmalyzer
                         continue;
                     }
                     
+                    // Try to match Kuldiga names
+
+                    KuldigaNameMatch kuldigaNameMatch = IsWayNamedAfterKuldigaRoad(wayName, kuldigaRoadsData.RoadNames);
+
+                    switch (kuldigaNameMatch)
+                    {
+                        case KuldigaNameMatch.Yes:
+                        case KuldigaNameMatch.Partial: // kuldiga names themselves are badly formatted, so reporting "partial" means nothing unless we format them into proper expected names
+                            kuldigaMatchedNames.Add((wayName, osmGroup.Elements.Count));
+                            continue;
+                        
+                        case KuldigaNameMatch.No:
+                            break;
+                        
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                    
                     // Nothing matched anything, so unknown
                     
                     report.AddEntry(
@@ -266,6 +287,17 @@ namespace Osmalyzer
                     new GenericReportEntry(
                         "These " + lvmFullyMatchedNames.Count + " names fully matched for LVM-operated roads: " +
                         string.Join(", ", lvmFullyMatchedNames.Select(n => "\"" + n.n + "\" x " + n.c + ""))
+                    )
+                );
+            }
+
+            if (kuldigaMatchedNames.Count > 0)
+            {
+                report.AddEntry(
+                    ReportGroup.KuldigaRoads,
+                    new GenericReportEntry(
+                        "These " + kuldigaMatchedNames.Count + " names fully matched to Kuldīga local roads: " +
+                        string.Join(", ", kuldigaMatchedNames.Select(n => "\"" + n.n + "\" x " + n.c + ""))
                     )
                 );
             }
@@ -372,6 +404,55 @@ namespace Osmalyzer
                 count = osmGroup.Elements.Count(e => e.GetValue("operator") == "Latvijas valsts meži");
                 return count >= 1;
             }
+            
+            [Pure]
+            static KuldigaNameMatch IsWayNamedAfterKuldigaRoad(string wayName, List<string> kuldigaRoadNames)
+            {
+                string? foundName = kuldigaRoadNames.FirstOrDefault(n => IsNameMatch(n, wayName, out bool _));
+
+                if (foundName != null)
+                {
+                    // Check again, but get extra info
+                    IsNameMatch(wayName, wayName, out bool cleanMatch);
+                    
+                    return cleanMatch ? KuldigaNameMatch.Yes : KuldigaNameMatch.Partial;
+                }
+
+                return KuldigaNameMatch.No;
+                
+                
+                [Pure]
+                static bool IsNameMatch(string routeName, string roadName, out bool cleanMatch)
+                {
+                    if (routeName == roadName)
+                    {
+                        cleanMatch = true;
+                        return true;
+                    }
+
+                    cleanMatch = false;
+                    
+                    if (CleanName(routeName) == CleanName(roadName))
+                        return true;
+
+                    return false;
+
+
+                    [Pure]
+                    static string CleanName(string name)
+                    {
+                        name = name
+                               .Replace("—", "-") // mdash
+                               .Replace("–", "-") // ndash
+                               .Replace(" - ", "-")
+                               .Replace("- ", "-")
+                               .Replace(" -", "-")
+                            ;
+                        
+                        return name.Trim();
+                    }
+                }
+            }
         }
 
 
@@ -408,13 +489,21 @@ namespace Osmalyzer
             PartialLaw
         }
 
+        private enum KuldigaNameMatch
+        {
+            Yes,
+            Partial,
+            No
+        }
+
         private enum ReportGroup
         {
             UnknownSuffixes,
             KnownSuffixes,
             RouteNames,
             LVMRoads,
-            KnownNames
+            KnownNames,
+            KuldigaRoads
         }
     }
 }

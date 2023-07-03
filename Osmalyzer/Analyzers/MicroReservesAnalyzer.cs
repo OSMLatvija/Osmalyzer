@@ -46,6 +46,7 @@ namespace Osmalyzer
 
             DbaseFileHeader dbaseHeader = shapefileReader.DbaseHeader;
 
+#if !REMOTE_EXECUTION
             // Dump header info
             
             StreamWriter dumpFileWriter = File.CreateText("microreserves_dump.tsv");
@@ -71,6 +72,7 @@ namespace Osmalyzer
             })));
             // Note the match check and StartsWith because the shapefile data header names are both wrong and mismatched
             // The reader doesn't have this meta-info or at least I didn't find it, so I just manually grab it from XML
+#endif
 
             // Read shapes
             
@@ -78,6 +80,7 @@ namespace Osmalyzer
             {
                 Geometry geometry = shapefileReader.Geometry;
 
+#if !REMOTE_EXECUTION
                 // Dump all non-shape fields
                 
                 object?[] values = new object?[dbaseHeader.Fields.Length];
@@ -86,6 +89,7 @@ namespace Osmalyzer
                     values[i] = shapefileReader.GetValue(i + 1); // 0 is apparently the shape itself and columns start with 1 - this doesn't exactly match XML 
 
                 dumpFileWriter.WriteLine(string.Join("\t", values.Select(v => v != null ? v.ToString() : "NULL")));
+#endif
 
                 // Process shape
                 
@@ -102,8 +106,10 @@ namespace Osmalyzer
                     )
                 );
             }
-            
+
+#if !REMOTE_EXECUTION
             dumpFileWriter.Close();
+#endif
 
             // Load OSM data
 

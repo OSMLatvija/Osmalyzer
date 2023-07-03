@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -43,10 +44,51 @@ namespace Osmalyzer
 
             using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
 
+            DbaseFileHeader dbaseHeader = shapefileReader.DbaseHeader;
+
+            // Dump header info
+            
+            StreamWriter dumpFileWriter = File.CreateText("microreserves_dump.tsv");
+            
+            dumpFileWriter.WriteLine("Rows: Field name (shapefile); Field type (shapefile); Field name (XML); Field label (XML); Shapefile rows...");
+
+            dumpFileWriter.WriteLine(string.Join("\t", dbaseHeader.Fields.Select(f => f.Name)));
+            
+            dumpFileWriter.WriteLine(string.Join("\t", dbaseHeader.Fields.Select(f => f.Type.Name)));
+            
+            string xmlPath = reserveData.ExtractionFolder + "/GIS_OZOLS_Microreserves_PUB.shp.xml";
+            MatchCollection fieldDescMatches = Regex.Matches(File.ReadAllText(xmlPath), @"<attrlabl Sync=""TRUE"">([^<]+)</attrlabl><attalias Sync=""TRUE"">([^<]+)</attalias>");
+
+            dumpFileWriter.WriteLine(string.Join("\t", dbaseHeader.Fields.Select(f =>
+            {
+                Match? match = fieldDescMatches.FirstOrDefault(m => m.Groups[1].ToString().StartsWith(f.Name));
+                return match != null ? match.Groups[1].ToString() : "UNMATCHED";
+            })));
+            dumpFileWriter.WriteLine(string.Join("\t", dbaseHeader.Fields.Select(f =>
+            {
+                Match? match = fieldDescMatches.FirstOrDefault(m => m.Groups[1].ToString().StartsWith(f.Name));
+                return match != null ? match.Groups[2].ToString() : "UNMATCHED";
+            })));
+            // Note the match check and StartsWith because the shapefile data header names are both wrong and mismatched
+            // The reader doesn't have this meta-info or at least I didn't find it, so I just manually grab it from XML
+
+            // Read shapes
+            
             while (shapefileReader.Read())
             {
                 Geometry geometry = shapefileReader.Geometry;
 
+                // Dump all non-shape fields
+                
+                object?[] values = new object?[dbaseHeader.Fields.Length];
+                
+                for (int i = 0; i < dbaseHeader.Fields.Length; i++)
+                    values[i] = shapefileReader.GetValue(i + 1); // 0 is apparently the shape itself and columns start with 1 - this doesn't exactly match XML 
+
+                dumpFileWriter.WriteLine(string.Join("\t", values.Select(v => v != null ? v.ToString() : "NULL")));
+
+                // Process shape
+                
                 Point centroid = geometry.Centroid;
 
                 (double lon, double lat) = coordTransformation.MathTransform.Transform(centroid.X, centroid.Y);
@@ -60,6 +102,8 @@ namespace Osmalyzer
                     )
                 );
             }
+            
+            dumpFileWriter.Close();
 
             // Load OSM data
 

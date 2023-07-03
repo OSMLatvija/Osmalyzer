@@ -42,9 +42,9 @@ namespace Osmalyzer
                 //new LatvijasAutobussAnalyzer(),
                 //new TrolleybusWireAnalyzer(),
                 //new ShopNetworkAnalyzer(),
-                //new MicroReservesAnalyzer(),
+                new MicroReservesAnalyzer(),
                 //new StreetNameAnalyzer(),
-                new RigaDrinkingWaterAnalyzer(),
+                //new RigaDrinkingWaterAnalyzer(),
                 //new PublicTransportAccessAnalyzer()
             };
 #endif

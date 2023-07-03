@@ -118,7 +118,7 @@ namespace Osmalyzer
                         new HasValue("leisure", "nature_reserve")
                     ),
                     new AndMatch(
-                        new IsRelation(),
+                        new IsWayOrRelation(),
                         new HasValue("boundary", "protected_area")
                     )
                 )

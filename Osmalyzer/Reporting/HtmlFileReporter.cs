@@ -50,7 +50,7 @@ namespace Osmalyzer
             reportFile.WriteLine(@"</head>");
             reportFile.WriteLine(@"<body>");
             
-            reportFile.WriteLine("Reports:");
+            reportFile.WriteLine("<h3>Reports</h3>");
 
             HtmlFileReportWriter reportWriter = new HtmlFileReportWriter();
             
@@ -64,9 +64,17 @@ namespace Osmalyzer
             }
 
             reportFile.WriteLine("</ul>");
+
+            reportFile.WriteLine("<p>Reports generated " + DateTime.UtcNow.ToString("R") + ".</p>");
+
             
-            reportFile.WriteLine("<br>Reports generated " + DateTime.UtcNow.ToString("R") + ".");
-            
+            reportFile.WriteLine("<h3>Disclaimer</h3>");
+
+            reportFile.WriteLine("<p>Reports look for specific problems, but the very nature of OSM free tagging and public editing means there are endless possibilities. Thus no report is complete or exhaustive - there are false positives and false negatives.</p>");
+            reportFile.WriteLine("<p>If you are fixing anything based on this, it's your responsibility to understand the actual issue and why and how it should be fixed. Not everything identified as an issue is an issue.</p>");
+            reportFile.WriteLine("<p>This supposes that you are familiar with OSM and tagging. Reports can and do omit a lot of explanations.</p>");
+            reportFile.WriteLine("<p>The sources used are almost always out of date. OSM may lag a day or more behind, while various other providers may be months or even years out of date.</p>");
+
             reportFile.WriteLine(@"</body>");
             reportFile.WriteLine(@"</html>");
 

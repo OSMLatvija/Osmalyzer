@@ -88,7 +88,63 @@ namespace Osmalyzer
                 for (int i = 0; i < dbaseHeader.Fields.Length; i++)
                     values[i] = shapefileReader.GetValue(i + 1); // 0 is apparently the shape itself and columns start with 1 - this doesn't exactly match XML 
 
-                dumpFileWriter.WriteLine(string.Join("\t", values.Select(v => v != null ? v.ToString() : "NULL")));
+                int mrObject = (int)(double)values[1]!;
+                int mrType = (int)(double)values[8]!;
+                
+                dumpFileWriter.WriteLine(
+                    string.Join("\t", values.Select(v => v != null ? v.ToString() : "NULL")) +
+                    "\t" + MakeProtectionObjectValue(mrObject, mrType)
+                );
+                
+                [Pure]
+                static string MakeProtectionObjectValue(int mrObject, int mrType)
+                {
+                    switch (mrObject)
+                    {
+                        case 0: // Nav definēts
+                            return MakeTypeValue(mrType); 
+                            // There is exactly 1 entry 0-4 - "birds" type but undefined object
+                            
+                        case 1: // Biotops un suga
+                            if (mrType == 10)
+                                return "biotope";
+                                
+                            return "biotope; " + MakeTypeValue(mrType);
+                            
+                        case 2: // Biotops
+                            if (mrType != 10) throw new NotImplementedException();
+                            // All entries are 2-10
+                            
+                            return "biotope";
+                            
+                        case 3: // Suga
+                            return MakeTypeValue(mrType);
+                        
+                        default: 
+                            throw new NotImplementedException();
+                    }
+
+                    [Pure]
+                    static string MakeTypeValue(int mrType)
+                    {
+                        switch (mrType)
+                        {
+                            case 0:  return "amphibians"; // Abinieki
+                            case 1:  return "reptiles"; // Rāpuļi
+                            case 2:  return "invertebrates"; // Bezmugurkaulnieki
+                            case 3:  return "fish"; // Zivis
+                            case 4:  return "birds"; // Putni
+                            case 5:  return "mammals"; // Zīdītāji
+                            case 6:  return "vascular plants and ferns"; // Vaskulārie augi un paparžaugi
+                            case 7:  return "lichens"; // Ķērpji
+                            case 8:  return "moss"; // Sūnas
+                            case 9:  return "mushrooms"; // Sēnes
+                            case 10: return "biotope"; // Biotopi
+                            
+                            default: throw new NotImplementedException();
+                        }
+                    }
+                }
 #endif
 
                 // Process shape

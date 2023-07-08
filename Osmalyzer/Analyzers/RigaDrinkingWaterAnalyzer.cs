@@ -10,7 +10,7 @@ namespace Osmalyzer
     {
         public override string Name => "Riga Drinking Water";
 
-        public override string Description => "This report checks that drinking water taps for Riga are mapped";
+        public override string Description => "This report checks that drinking water taps for Riga are mapped and their tagging is correct.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RigaDrinkingWaterAnalysisData) };
@@ -26,12 +26,25 @@ namespace Osmalyzer
 
             OsmDataExtract osmTaps = osmMasterData.Filter(
                 new IsNode(),
-                new HasValue("amenity", "drinking_water")
+                new HasValue("amenity", "drinking_water"),
+                new InsidePolygon(BoundaryHelper.GetRigaPolygon(osmMasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
             );
             
             // Prepare report groups
 
-            report.AddGroup(ReportGroup.Issues, "Problems with drinking water taps");
+            report.AddGroup(
+                ReportGroup.RigaIssues, 
+                "Problems with drinking water taps",
+                "These taps listed in Riga tap list have issues with OSM counterparts.",
+                "No issues found with matching OSM taps."
+            );
+            
+            report.AddGroup(
+                ReportGroup.OsmIssues, 
+                "Unrecognized taps", 
+                "These taps are not listed in Riga tap list. They may not be operated by Rīgas ūdens or considered public taps (brīvkrāni) or added to the official list (yet). These are most likely not incorrect.", 
+                "No additional taps found."
+            );
             
             report.AddGroup(ReportGroup.Stats, "Matched taps");
 
@@ -44,7 +57,7 @@ namespace Osmalyzer
             List<DrinkingWater> rigaTapsStatic = rigaTapsAll.Where(t => t.Type == DrinkingWater.InstallationType.Static).ToList();
             // We don't care about their mobile ones since we wouldn't map them on OSM (although with this report we could keep track)
 
-            // Parse
+            // Match Riga taps to OSM taps
 
             List<(DrinkingWater riga, OsmElement osm)> matchedTaps = new List<(DrinkingWater, OsmElement)>();
             
@@ -59,9 +72,10 @@ namespace Osmalyzer
                 if (closestOsmTap == null)
                 {
                     report.AddEntry(
-                        ReportGroup.Issues,
+                        ReportGroup.RigaIssues,
                         new IssueReportEntry(
                             "No OSM tap found in " + seekDistance + " m range of Rīga tap `" + rigaTap.Name + "` at " + rigaTap.Coord.OsmUrl,
+                            new SortEntryAsc(SortOrder.NoTap),
                             rigaTap.Coord
                         )
                     );
@@ -73,10 +87,10 @@ namespace Osmalyzer
                         matchedFarCount++;
                         
                         report.AddEntry(
-                            ReportGroup.Issues,
+                            ReportGroup.RigaIssues,
                             new IssueReportEntry(
                                 "OSM tap found close to Rīga tap `" + rigaTap.Name + "` but it's far away (" + closestDistance!.Value.ToString("F0") + " m), expected at " + rigaTap.Coord.OsmUrl,
-                                new SortEntryAsc(SortOrder.MainIssue),
+                                new SortEntryAsc(SortOrder.TapFar),
                                 rigaTap.Coord
                             )
                         );
@@ -89,10 +103,10 @@ namespace Osmalyzer
                     if (operatorValue == null)
                     {
                         report.AddEntry(
-                            ReportGroup.Issues,
+                            ReportGroup.RigaIssues,
                             new IssueReportEntry(
-                                "OSM tap doesn't have expected `oparator=Rīgas Ūdens` set - " + rigaTap.Coord.OsmUrl,
-                                new SortEntryAsc(SortOrder.SideIssue),
+                                "OSM tap doesn't have expected `oparator=Rīgas Ūdens` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
+                                new SortEntryAsc(SortOrder.Oper),
                                 closestOsmTap.GetAverageCoord()
                             )
                         );
@@ -104,10 +118,10 @@ namespace Osmalyzer
                         if (operatorValue != expectedOperator)
                         {
                             report.AddEntry(
-                                ReportGroup.Issues,
+                                ReportGroup.RigaIssues,
                                 new IssueReportEntry(
-                                    "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set, insetad `" + operatorValue + "` - " + rigaTap.Coord.OsmUrl,
-                                    new SortEntryDesc(SortOrder.SideIssue),
+                                    "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "`, instead `" + operatorValue + "` - " + rigaTap.Coord.OsmUrl,
+                                    new SortEntryAsc(SortOrder.Oper),
                                     closestOsmTap.GetAverageCoord()
                                 )
                             );
@@ -128,7 +142,24 @@ namespace Osmalyzer
                 }
             }
             
-            // todo: match osm within riga bounds to these? there are way more though. 
+            // Match OSM taps to Riga taps
+
+            foreach (OsmElement osmTap in osmTaps.Elements)
+            {
+                if (matchedTaps.Any(mt => mt.osm == osmTap))
+                    continue;
+                
+                report.AddEntry(
+                    ReportGroup.OsmIssues,
+                    new GenericReportEntry(
+                        "OSM tap found, but not matched to any Riga tap - " + osmTap.OsmViewUrl,
+                        osmTap.GetAverageCoord()
+                    )
+                );
+                
+                // todo: operator
+            }
+            
             
             // Stats
 
@@ -145,14 +176,16 @@ namespace Osmalyzer
 
         private enum ReportGroup
         {
-            Issues,
-            Stats
+            RigaIssues,
+            Stats,
+            OsmIssues
         }
 
         private enum SortOrder // values used for sorting
         {
-            MainIssue = 0,
-            SideIssue = 1
+            NoTap = 0,
+            TapFar = 1,
+            Oper = 2
         }
     }
 }

@@ -117,7 +117,11 @@ namespace Osmalyzer
                 reportFile.WriteLine("<h3>Sections</h3>");
                 reportFile.WriteLine("<ul class=\"custom-list toc-list\">");
                 for (int g = 0; g < groups.Count; g++)
-                    reportFile.WriteLine(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a> (" + groups[g].ImportantEntryCount + ")</li>");
+                {
+                    int importantEntryCount = groups[g].ImportantEntryCount;
+                    reportFile.WriteLine(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>" + (importantEntryCount > 0 ? @" (" + importantEntryCount + ")" : "") + @"</li>");
+                }
+
                 reportFile.WriteLine("</ul>");
             }
 

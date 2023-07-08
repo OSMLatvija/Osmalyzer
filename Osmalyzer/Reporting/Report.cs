@@ -31,7 +31,7 @@ namespace Osmalyzer
         }
 
 
-        public void AddGroup(object id, string title, string? descriptionEntry = null)
+        public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null)
         {
             ReportGroup newGroup = new ReportGroup(id, title);
             
@@ -39,6 +39,9 @@ namespace Osmalyzer
             
             if (descriptionEntry != null)
                 newGroup.AddEntry(new DescriptionReportEntry(descriptionEntry));
+            
+            if (placeholderEntry != null)
+                newGroup.AddEntry(new PlaceholderReportEntry(placeholderEntry));
         }
 
         public void AddEntry(object groupId, ReportEntry newEntry)

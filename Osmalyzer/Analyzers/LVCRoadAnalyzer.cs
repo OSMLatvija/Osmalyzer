@@ -62,17 +62,8 @@ namespace Osmalyzer
 
             // Filter strictly to inside Latvia
             
-            OsmRelation latviaRelation = (OsmRelation)osmData.MasterData.Find(
-                new IsRelation(),
-                new HasValue("type", "boundary"),
-                new HasValue("admin_level", "2"),
-                new HasValue("name", "Latvija")
-            )!; // never expecting to not have this
+            InsidePolygon insidePolygonFilter = new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy); // somewhat expensive, so keep outside
 
-            OsmPolygon latviaPolygon = latviaRelation.GetOuterWayPolygon();
-
-            InsidePolygon insidePolygonFilter = new InsidePolygon(latviaPolygon, OsmPolygon.RelationInclusionCheck.Fuzzy); // somewhat expensive, so keep outside
-            
             reffedRoads = reffedRoads.Filter(insidePolygonFilter);
             recognizedReffedRoads = recognizedReffedRoads.Filter(insidePolygonFilter);
             routeRelations = routeRelations.Filter(insidePolygonFilter);

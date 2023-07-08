@@ -17,5 +17,11 @@
         {
             SubEntry = new MapPointReportEntry(coord, text);
         }
+        
+        public GenericReportEntry(string text, EntrySortingRule sortingRule, OsmCoord coord)
+            : base(text, null, sortingRule)
+        {
+            SubEntry = new MapPointReportEntry(coord, text);
+        }
     }
 }

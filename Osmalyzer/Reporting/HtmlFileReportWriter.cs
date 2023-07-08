@@ -167,14 +167,16 @@ namespace Osmalyzer
                     reportFile.WriteLine(@"    maxZoom: 21,");
                     reportFile.WriteLine(@"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'");
                     reportFile.WriteLine(@"}).addTo(map);");
+                    reportFile.WriteLine(@"var markerGroup = L.featureGroup().addTo(map);");
                     foreach (MapPointReportEntry mapPointEntry in group.MapPointEntries)
                     {
                         string lat = mapPointEntry.Coord.lat.ToString("F6");
                         string lon = mapPointEntry.Coord.lon.ToString("F6");
                         string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                         string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                        reportFile.WriteLine($@"L.marker([{lat}, {lon}]).addTo(map).bindPopup(""{text} {mapUrl}"");");
+                        reportFile.WriteLine($@"L.marker([{lat}, {lon}]).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");");
                     }
+                    reportFile.WriteLine(@"map.fitBounds(markerGroup.getBounds(), { maxZoom: 12, animate: false });");
                     reportFile.WriteLine(@"</script>");
                 }
             }

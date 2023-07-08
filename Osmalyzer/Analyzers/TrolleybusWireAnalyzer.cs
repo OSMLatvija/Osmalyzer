@@ -40,14 +40,11 @@ namespace Osmalyzer
 
             // Process
 
-            report.AddGroup(ReportGroup.Issues, "Ways with trolley_wire issues");
+            report.AddGroup(ReportGroup.Issues, "Ways with trolley_wire issues", "No issues with `trolley_wire`s found");
 
-            report.AddEntry(
-                ReportGroup.Issues,
-                new PlaceholderReportEntry(
-                    "No issues with `trolley_wire`s found"
-                )
-            );
+            List<OsmWay> waysWithTrolleyRoute = new List<OsmWay>();
+            List<OsmWay> routedWaysWithWires = new List<OsmWay>();
+            List<OsmWay> routedWaysWithNoWires = new List<OsmWay>();
             
             foreach (OsmElement route in routes.Elements)
             {
@@ -67,10 +64,23 @@ namespace Osmalyzer
                     
                     if (member.Role == "platform") // todo: or should it only accept empty?
                         continue;
+                    
+                    if (!waysWithTrolleyRoute.Contains(roadSegment))
+                        waysWithTrolleyRoute.Add(roadSegment);
 
                     string? trolley_wire = roadSegment.GetValue("trolley_wire");
                     string? trolley_wire_forward = roadSegment.GetValue("trolley_wire:forward");
                     string? trolley_wire_backward = roadSegment.GetValue("trolley_wire:backward");
+                    
+                    if (trolley_wire == "yes")
+                        if (!routedWaysWithWires.Contains(roadSegment))
+                            routedWaysWithWires.Add(roadSegment);
+                    
+                    if (trolley_wire == "no")
+                        if (!routedWaysWithNoWires.Contains(roadSegment))
+                            routedWaysWithNoWires.Add(roadSegment);
+                    
+                    // todo: check directional when route is directional
 
                     if (trolley_wire != null && (trolley_wire_forward != null || trolley_wire_backward != null))
                     {
@@ -154,11 +164,36 @@ namespace Osmalyzer
             }
             
             // TODO: trolley_wire=no, but no route - pointless? not that it hurts anything
+            
+            
+            report.AddGroup(ReportGroup.Stats, "Stats");
+
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry(
+                    "There are " + waysWithTrolleyRoute.Count + " ways that have one or more trolleybus route."
+                )
+            );
+
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry(
+                    "There are " + routedWaysWithWires.Count + " route ways with `trolley_wire=yes`."
+                )
+            );
+
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry(
+                    "There are " + routedWaysWithNoWires.Count + " route ways with `trolley_wire=no`."
+                )
+            );
         }
         
         private enum ReportGroup
         {
-            Issues
+            Issues,
+            Stats
         }
     }
 }

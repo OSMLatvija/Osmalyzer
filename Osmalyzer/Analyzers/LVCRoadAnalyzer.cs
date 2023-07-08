@@ -209,8 +209,10 @@ namespace Osmalyzer
                 }
             }
 
-            report.AddGroup(ReportGroup.SharedRefsNotInLaw, "These roads have shared ref segments that are not in the law", null, "There are no roads with shared refs that are not in the law.");
+            report.AddGroup(ReportGroup.SharedRefsNotInLaw, "These roads have shared ref segments that are not in the law", "The law has a list of routes that overlap, but this list is not accurate, especially for minor connections like viaducts. Roundabouts are ignored.", "There are no roads with shared refs that are not in the law.");
 
+            List<(string, string)> roundaboutOnlyShared = new List<(string, string)>();
+            
             for (int i = 0; i < uniqueRefPairs.Count; i++)
             {
                 string refA = uniqueRefPairs[i].Item1;
@@ -225,16 +227,36 @@ namespace Osmalyzer
                     List<OsmElement> roads = uniqueRefPairs[i].Item3;
 
                     OsmCoord coord = OsmGeoTools.GetAverageCoord(roads);
-                    
-                    report.AddEntry(
-                        ReportGroup.SharedRefsNotInLaw,
-                        new IssueReportEntry(
-                            $"Segments share refs \"{refA}\" and \"{refB}\", but are not in the law on {roads.Count} road (segments) - " + 
-                            ReportEntryFormattingHelper.ListElements(roads),
-                            coord
-                        )
-                    );
+
+                    string text = $"Segments share refs \"{refA}\" and \"{refB}\", but are not in the law on {roads.Count} road (segments) - " +
+                                  ReportEntryFormattingHelper.ListElements(roads);
+
+                    bool onlyRoundabout = roads.All(r => r.HasValue("junction", "roundabout"));
+
+                    if (!onlyRoundabout)
+                    {
+                        report.AddEntry(
+                            ReportGroup.SharedRefsNotInLaw,
+                            new IssueReportEntry(
+                                text,
+                                coord
+                            )
+                        );
+                    }
+                    else
+                    {
+                        roundaboutOnlyShared.Add((refA, refB));
+                    }
                 }
+            }
+
+            if (roundaboutOnlyShared.Count > 0)
+            {
+                report.AddEntry(
+                    ReportGroup.SharedRefsNotInLaw,
+                    new GenericReportEntry("These segments share refs that are not in the law, but are ignored because they are roundabouts, which the law doesn't list as shared - " +
+                                           string.Join(", ", roundaboutOnlyShared.Select(s => "`" + s.Item1 + "` + `" + s.Item2 + "`")))
+                );
             }
             
             // todo: unconnected segments, i.e. gaps
@@ -301,6 +323,8 @@ namespace Osmalyzer
 
             if (extraRelations.Count > 0)
             {
+                // TODO: INDIVIDUAL
+
                 report.AddEntry(
                     ReportGroup.ExtraRelations,
                     new IssueReportEntry(

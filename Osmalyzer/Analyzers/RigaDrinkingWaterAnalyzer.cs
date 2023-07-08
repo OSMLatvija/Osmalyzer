@@ -10,7 +10,7 @@ namespace Osmalyzer
     {
         public override string Name => "Riga Drinking Water";
 
-        public override string Description => "This report checks that drinking water taps for Riga are mapped and their tagging is correct.";
+        public override string Description => "This report checks that drinking water taps for Riga are mapped and their tagging is correct. They are all expected to be free-standing drinkable water taps (brīvkrāni) operated by Rīgas ūdens.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RigaDrinkingWaterAnalysisData) };
@@ -96,32 +96,92 @@ namespace Osmalyzer
                         );
                     }
                     
-                    // Check tags
+                    // Check operator
 
                     string? operatorValue = closestOsmTap.GetValue("operator");
+
+                    const string expectedOperator = "Rīgas ūdens";
 
                     if (operatorValue == null)
                     {
                         report.AddEntry(
                             ReportGroup.RigaIssues,
                             new IssueReportEntry(
-                                "OSM tap doesn't have expected `oparator=Rīgas Ūdens` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
-                                new SortEntryAsc(SortOrder.Oper),
+                                "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
+                                new SortEntryAsc(SortOrder.Tagging),
                                 closestOsmTap.GetAverageCoord()
                             )
                         );
                     }
                     else
                     {
-                        const string expectedOperator = "Rīgas ūdens";
-                        
                         if (operatorValue != expectedOperator)
                         {
                             report.AddEntry(
                                 ReportGroup.RigaIssues,
                                 new IssueReportEntry(
                                     "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "`, instead `" + operatorValue + "` - " + rigaTap.Coord.OsmUrl,
-                                    new SortEntryAsc(SortOrder.Oper),
+                                    new SortEntryAsc(SortOrder.Tagging),
+                                    closestOsmTap.GetAverageCoord()
+                                )
+                            );
+                        }
+                    }
+                    
+                    // Check type
+                    
+                    string? manmadeValue = closestOsmTap.GetValue("man_made");
+
+                    if (manmadeValue == null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.RigaIssues,
+                            new IssueReportEntry(
+                                "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
+                                new SortEntryAsc(SortOrder.Tagging),
+                                closestOsmTap.GetAverageCoord()
+                            )
+                        );
+                    }
+                    else
+                    {
+                        if (manmadeValue != expectedOperator)
+                        {
+                            report.AddEntry(
+                                ReportGroup.RigaIssues,
+                                new IssueReportEntry(
+                                    "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "`, instead `" + manmadeValue + "` - " + rigaTap.Coord.OsmUrl,
+                                    new SortEntryAsc(SortOrder.Tagging),
+                                    closestOsmTap.GetAverageCoord()
+                                )
+                            );
+                        }
+                    }
+                    
+                    // Check drinkable
+                    
+                    string? drinkableValue = closestOsmTap.GetValue("drinking_water");
+
+                    if (drinkableValue == null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.RigaIssues,
+                            new IssueReportEntry(
+                                "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
+                                new SortEntryAsc(SortOrder.Tagging),
+                                closestOsmTap.GetAverageCoord()
+                            )
+                        );
+                    }
+                    else
+                    {
+                        if (drinkableValue != expectedOperator)
+                        {
+                            report.AddEntry(
+                                ReportGroup.RigaIssues,
+                                new IssueReportEntry(
+                                    "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "`, instead `" + drinkableValue + "` - " + rigaTap.Coord.OsmUrl,
+                                    new SortEntryAsc(SortOrder.Tagging),
                                     closestOsmTap.GetAverageCoord()
                                 )
                             );
@@ -185,7 +245,7 @@ namespace Osmalyzer
         {
             NoTap = 0,
             TapFar = 1,
-            Oper = 2
+            Tagging = 2
         }
     }
 }

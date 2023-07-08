@@ -39,14 +39,16 @@ namespace Osmalyzer
 
             RigaDrinkingWaterAnalysisData drinkingWaterData = datas.OfType<RigaDrinkingWaterAnalysisData>().First();
 
-            List<DrinkingWater> rigaTaps = drinkingWaterData.DrinkingWaters;
+            List<DrinkingWater> rigaTapsAll = drinkingWaterData.DrinkingWaters;
+            
+            List<DrinkingWater> rigaTapsStatic = rigaTapsAll.Where(t => t.Type == DrinkingWater.InstallationType.Static).ToList();
+            // We don't care about their mobile ones since we wouldn't map them on OSM (although with this report we could keep track)
+
             // Parse
 
-            List<DrinkingWater> matchedTaps = new List<DrinkingWater>();
+            List<(DrinkingWater riga, OsmElement osm)> matchedTaps = new List<(DrinkingWater, OsmElement)>();
             
             int matchedFarCount = 0;
-
-            List<DrinkingWater> rigaTapsStatic = rigaTaps.Where(t => t.Type == DrinkingWater.InstallationType.Static).ToList();
 
             foreach (DrinkingWater rigaTap in rigaTapsStatic)
             {
@@ -66,8 +68,6 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    matchedTaps.Add(rigaTap);
-                        
                     if (closestDistance! > 15)
                     {
                         matchedFarCount++;
@@ -75,15 +75,56 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.Issues,
                             new IssueReportEntry(
-                                "OSM tap found close to Rīga tap `" + rigaTap.Name + "` but it's far away (" + closestDistance.Value.ToString("F0") + " m), expected at " + rigaTap.Coord.OsmUrl,
+                                "OSM tap found close to Rīga tap `" + rigaTap.Name + "` but it's far away (" + closestDistance!.Value.ToString("F0") + " m), expected at " + rigaTap.Coord.OsmUrl,
+                                new SortEntryAsc(SortOrder.MainIssue),
                                 rigaTap.Coord
                             )
                         );
                     }
                     
+                    // Check tags
+
+                    string? operatorValue = closestOsmTap.GetValue("operator");
+
+                    if (operatorValue == null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.Issues,
+                            new IssueReportEntry(
+                                "OSM tap doesn't have expected `oparator=Rīgas Ūdens` set - " + rigaTap.Coord.OsmUrl,
+                                new SortEntryAsc(SortOrder.SideIssue),
+                                closestOsmTap.GetAverageCoord()
+                            )
+                        );
+                    }
+                    else
+                    {
+                        const string expectedOperator = "Rīgas ūdens";
+                        
+                        if (operatorValue != expectedOperator)
+                        {
+                            report.AddEntry(
+                                ReportGroup.Issues,
+                                new IssueReportEntry(
+                                    "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set, insetad `" + operatorValue + "` - " + rigaTap.Coord.OsmUrl,
+                                    new SortEntryDesc(SortOrder.SideIssue),
+                                    closestOsmTap.GetAverageCoord()
+                                )
+                            );
+                        }
+                    }
+
+                    // Add found tap to stats
+                        
+                    matchedTaps.Add((rigaTap, closestOsmTap));
                     
-                    // todo: operator
-                    // todo: source
+                    report.AddEntry(
+                        ReportGroup.Stats,
+                        new MapPointReportEntry(
+                            closestOsmTap.GetAverageCoord(), 
+                            rigaTap.Name + " - " + closestOsmTap.OsmViewUrl
+                        )
+                    );
                 }
             }
             
@@ -95,7 +136,7 @@ namespace Osmalyzer
                 ReportGroup.Stats,
                 new DescriptionReportEntry(
                     "Matched " + matchedTaps.Count + "/" + rigaTapsStatic.Count + " Riga taps to OSM taps (" + matchedFarCount + " far away) -- " +
-                    string.Join(", ", matchedTaps.Select(t => "`" + t.Name + "`")) +
+                    string.Join(", ", matchedTaps.Select(t => "`" + t.riga.Name + "`")) +
                     "."
                 )
             );
@@ -106,6 +147,12 @@ namespace Osmalyzer
         {
             Issues,
             Stats
+        }
+
+        private enum SortOrder // values used for sorting
+        {
+            MainIssue = 0,
+            SideIssue = 1
         }
     }
 }

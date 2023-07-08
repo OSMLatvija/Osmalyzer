@@ -74,7 +74,7 @@ namespace Osmalyzer
 
             // Road on map but not in law
 
-            report.AddGroup(ReportGroup.MappedRoadsNotFoundInLaw, "These roads are on the map, but not in the law", "There shouldn't be any roads with LVC route codes on the map if they aren't in the law.", "All roads on the map are present in the law.");
+            report.AddGroup(ReportGroup.MappedRoadsNotFoundInLaw, "Roads  on the map, but not in the law", "There shouldn't be any roads with LVC route codes on the map if they aren't in the law.", "All roads on the map are present in the law.");
 
             foreach (OsmGroup osmGroup in roadsByRef.groups)
             {
@@ -108,7 +108,7 @@ namespace Osmalyzer
                     lawedRoadsNotFoundOnMap.Add(road.Code);
             }
 
-            report.AddGroup(ReportGroup.LawedRoadsNotFoundOnMap, "These roads are in the law, but not on the map", null, "All roads in the law are present on the map.");
+            report.AddGroup(ReportGroup.LawedRoadsNotFoundOnMap, "Roads in the law, but not on the map", null, "All roads in the law are present on the map.");
 
             if (lawedRoadsNotFoundOnMap.Count > 0)
             {
@@ -164,7 +164,7 @@ namespace Osmalyzer
                 }
             }
 
-            report.AddGroup(ReportGroup.UnsharedSegments, "These roads do not have expected overlapping segments as in the law", null, "All roads have expected shared segments as in the law.");
+            report.AddGroup(ReportGroup.UnsharedSegments, "Roads without expected overlapping segments as in the law", null, "All roads have expected shared segments as in the law.");
 
             if (unsharedSegments.Count > 0)
             {
@@ -209,7 +209,7 @@ namespace Osmalyzer
                 }
             }
 
-            report.AddGroup(ReportGroup.SharedRefsNotInLaw, "These roads have shared ref segments that are not in the law", "The law has a list of routes that overlap, but this list is not accurate, especially for minor connections like viaducts. Roundabouts are ignored.", "There are no roads with shared refs that are not in the law.");
+            report.AddGroup(ReportGroup.SharedRefsNotInLaw, "Roads with shared ref segments not in the law", "The law has a list of routes that overlap, but this list is not accurate, especially for minor connections like viaducts. Roundabouts are ignored.", "There are no roads with shared refs that are not in the law.");
 
             List<(string, string)> roundaboutOnlyShared = new List<(string, string)>();
             
@@ -293,7 +293,7 @@ namespace Osmalyzer
                 }
             }
 
-            report.AddGroup(ReportGroup.ExtraRelations, "These route relations don't have a road with such code", null, "There are no route relations with codes that no road uses.");
+            report.AddGroup(ReportGroup.ExtraRelations, "Route relations without a road matching code", null, "There are no route relations with codes that no road uses.");
 
             foreach (OsmElement routeElement in routeRelations.Elements)
             {
@@ -315,7 +315,7 @@ namespace Osmalyzer
                 // todo: ROUTE MEMEBRS TO ALL HAVE SEGMENTS WITH REF and no other road to have ref without route parent
             }
 
-            report.AddGroup(ReportGroup.MissingRelations, "These route relations are missing", null, "There are route relations for all mapped road codes.");
+            report.AddGroup(ReportGroup.MissingRelations, "Missing route relations", null, "There are route relations for all mapped road codes.");
 
             if (missingRelations.Count > 0)
             {
@@ -329,7 +329,7 @@ namespace Osmalyzer
                 );
             }
 
-            report.AddGroup(ReportGroup.RelationsWithSameRef, "These route relations have the same code", null, "There are no route relations that use the same ref (that is, all route refs are unique).");
+            report.AddGroup(ReportGroup.RelationsWithSameRef, "Route relations with the same code", null, "There are no route relations that use the same ref (that is, all route refs are unique).");
 
             if (relationsWithSameRef.Count > 0)
             {
@@ -365,7 +365,7 @@ namespace Osmalyzer
 
             excludedCount -= unrecognizedRoadsByRef.groups.Count;
 
-            report.AddGroup(ReportGroup.UnrecognizedRoadsByRef, "These road refs are not recognized", null, "All road refs are recognized" + (excludedCount > 0 ? " and " + excludedCount + " are ignored/excluded" : "") + ".");
+            report.AddGroup(ReportGroup.UnrecognizedRoadsByRef, "Unrecognized road refs", null, "All road refs are recognized" + (excludedCount > 0 ? " and " + excludedCount + " are ignored/excluded" : "") + ".");
 
             if (unrecognizedRoadsByRef.groups.Count > 0)
             {

@@ -293,7 +293,7 @@ namespace Osmalyzer
                 }
             }
 
-            List<string> extraRelations = new List<string>();
+            report.AddGroup(ReportGroup.ExtraRelations, "These route relations don't have a road with such code", null, "There are no route relations with codes that no road uses.");
 
             foreach (OsmElement routeElement in routeRelations.Elements)
             {
@@ -302,7 +302,17 @@ namespace Osmalyzer
                 bool haveRoad = roadsByRef.groups.Any(g => g.Value == code);
 
                 if (!haveRoad)
-                    extraRelations.Add(code);
+                {
+                    report.AddEntry(
+                        ReportGroup.ExtraRelations,
+                        new IssueReportEntry(
+                            "The route relation `" + code + "` doesn't have a any road segment with such code - " + routeElement.OsmViewUrl,
+                            routeElement.GetAverageCoord()
+                        )
+                    );
+                }
+                
+                // todo: ROUTE MEMEBRS TO ALL HAVE SEGMENTS WITH REF and no other road to have ref without route parent
             }
 
             report.AddGroup(ReportGroup.MissingRelations, "These route relations are missing", null, "There are route relations for all mapped road codes.");
@@ -317,26 +327,6 @@ namespace Osmalyzer
                         "."
                     )
                 );
-            }
-
-            report.AddGroup(ReportGroup.ExtraRelations, "These route relations don't have a road with such code");
-
-            if (extraRelations.Count > 0)
-            {
-                // TODO: INDIVIDUAL
-
-                report.AddEntry(
-                    ReportGroup.ExtraRelations,
-                    new IssueReportEntry(
-                        (extraRelations.Count > 1 ? "These route relations don't" : "This route relation doesn't") + " have a road with such code: " +
-                        string.Join(", ", extraRelations.OrderBy(c => c)) +
-                        "."
-                    )
-                );
-            }
-            else
-            {
-                report.AddEntry(ReportGroup.ExtraRelations, new IssueReportEntry("There are no route relations with codes that no road uses."));
             }
 
             report.AddGroup(ReportGroup.RelationsWithSameRef, "These route relations have the same code", null, "There are no route relations that use the same ref (that is, all route refs are unique).");

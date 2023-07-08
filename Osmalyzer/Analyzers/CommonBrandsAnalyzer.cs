@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 
 namespace Osmalyzer
@@ -52,6 +53,17 @@ namespace Osmalyzer
             // todo: would need to manually specify exceptions/grouping if parsing
             // todo: this can only group different values for the same key, not different keys
 
+            // Load same-brand-different-name entries
+            
+            string knownBrandsFileName = @"data/brand variations.tsv";
+
+            if (!File.Exists(knownBrandsFileName))
+                knownBrandsFileName = @"../../../../" + knownBrandsFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
+            
+            string[] knownSuffixesRaw = File.ReadAllLines(knownBrandsFileName, Encoding.UTF8);
+
+            List<List<string>> knownBrands = knownSuffixesRaw.Select(ks => ks.Split('\t').Select(CleanName).ToList()).ToList();
+
             // Prepare groups
 
             report.AddGroup(ReportGroup.Main, "Frequent brand names");
@@ -61,7 +73,7 @@ namespace Osmalyzer
                 new DescriptionReportEntry(
                     "These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI)." + Environment.NewLine +
                     "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "`" + t + "`")) + "." + Environment.NewLine +
-                    "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored." + Environment.NewLine +
+                    "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored. Some brands have known alternative (usually incorrect) spellings, also grouped." + Environment.NewLine +
                     "Title counts will repeat if the same element is tagged with multiple NSI POI types."
                 )
             );
@@ -69,7 +81,7 @@ namespace Osmalyzer
             // todo: report tables?
 
             // Parse
-            
+
             foreach ((string nsiTag, string[] nsiValues) in nsiTags)
             {
                 OsmDataExtract matchingElements = titledElements.Filter(
@@ -78,33 +90,7 @@ namespace Osmalyzer
 
                 OsmGroups titleGroupsSeparate = matchingElements.GroupByValues(titleTags, false);
 
-                OsmMultiValueGroups titleGroupsSimilar = titleGroupsSeparate.CombineBySimilarValues(
-                    (s1, s2) => string.Equals(
-                        CleanName(s1), 
-                        CleanName(s2), 
-                        StringComparison.InvariantCulture),
-                    true
-                );
-
-                string CleanName(string s)
-                {
-                    return s
-                           .Trim()
-                           .ToLower()
-                           .Replace("!", "") // e.g. Top! -> Top
-                           .Replace("ā", "a")
-                           .Replace("č", "c")
-                           .Replace("ē", "e")
-                           .Replace("ģ", "g")
-                           .Replace("ī", "i")
-                           .Replace("ķ", "k")
-                           .Replace("ļ", "l")
-                           .Replace("ņ", "n")
-                           .Replace("ō", "o")
-                           .Replace("š", "s")
-                           .Replace("ū", "u")
-                           .Replace("ž", "z");
-                }
+                OsmMultiValueGroups titleGroupsSimilar = titleGroupsSeparate.CombineBySimilarValues((brand1, brand2) => BrandsMatch(brand1, brand2, knownBrands), true);
 
                 foreach (OsmMultiValueGroup group in titleGroupsSimilar.groups)
                 {
@@ -171,7 +157,47 @@ namespace Osmalyzer
                 }
             }
         }
+
         
+        [Pure]
+        private static string CleanName(string s)
+        {
+            return s
+                   .Trim()
+                   .ToLower()
+                   .Replace("ā", "a")
+                   .Replace("č", "c")
+                   .Replace("ē", "e")
+                   .Replace("ģ", "g")
+                   .Replace("ī", "i")
+                   .Replace("ķ", "k")
+                   .Replace("ļ", "l")
+                   .Replace("ņ", "n")
+                   .Replace("ō", "o")
+                   .Replace("š", "s")
+                   .Replace("ū", "u")
+                   .Replace("ž", "z");
+        }
+
+        [Pure]
+        private static bool BrandsMatch(string brand1, string brand2, List<List<string>> brands)
+        {
+            brand1 = CleanName(brand1);
+            brand2 = CleanName(brand2);
+
+            if (brand1 == brand2)
+                return true;
+
+            List<string>? knownList1 = brands.FirstOrDefault(kb => kb.Contains(brand1));
+            List<string>? knownList2 = brands.FirstOrDefault(kb => kb.Contains(brand2));
+
+            if (knownList1 != null && knownList2 != null &&
+                knownList1 == knownList2) // same list reference, we don't actually care which one as long as both are in it
+                return true;
+
+            return false;
+        }
+
         private enum ReportGroup
         {
             Main

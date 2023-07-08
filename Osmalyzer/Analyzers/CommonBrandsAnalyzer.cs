@@ -11,7 +11,7 @@ namespace Osmalyzer
     {
         public override string Name => "Common Brands";
 
-        public override string Description => "This report lists the most common brand names.";
+        public override string Description => "This report lists the most common brand names and name variations for common amenity/shop/misc POIs.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
@@ -24,19 +24,6 @@ namespace Osmalyzer
             List<string> titleTags = new List<string>() { "brand", "name", "operator" };
             // Note that the first found is picked, so if there's no brand but is a "name", then "operator" will be ignored and "name" picked
 
-            // Start report file
-
-            report.AddGroup(ReportGroup.Main, "These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI)");
-            
-            // todo: report tables?
-            
-            report.AddEntry(
-                ReportGroup.Main,
-                new GenericReportEntry(
-                    "title(s)" + "\t" + "count" + "\t" + "counts" + "\t" + "tag" + "\t" + "value(s)"
-                )
-            );
-            
             // Load OSM data
 
             OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
@@ -44,9 +31,10 @@ namespace Osmalyzer
             OsmMasterData osmMasterData = osmData.MasterData;
                 
             OsmDataExtract titledElements = osmMasterData.Filter(
-                new IsNodeOrWay(),
                 new HasAnyKey(titleTags)
             );
+            
+            // Load NSI tags
 
             string nsiTagsFileName = @"data/NSI tags.tsv"; // from https://nsi.guide/?t=brands
 
@@ -64,7 +52,23 @@ namespace Osmalyzer
             // todo: would need to manually specify exceptions/grouping if parsing
             // todo: this can only group different values for the same key, not different keys
 
-            List<(int count, string line)> reportEntries = new List<(int, string)>();
+            // Prepare groups
+
+            report.AddGroup(ReportGroup.Main, "Frequent brand names");
+
+            report.AddEntry(
+                ReportGroup.Main,
+                new DescriptionReportEntry(
+                    "These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI)." + Environment.NewLine +
+                    "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "`" + t + "`")) + "." + Environment.NewLine +
+                    "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored." + Environment.NewLine +
+                    "Title counts will repeat if the same element is tagged with multiple NSI POI types."
+                )
+            );
+            
+            // todo: report tables?
+
+            // Parse
             
             foreach ((string nsiTag, string[] nsiValues) in nsiTags)
             {
@@ -78,7 +82,8 @@ namespace Osmalyzer
                     (s1, s2) => string.Equals(
                         CleanName(s1), 
                         CleanName(s2), 
-                        StringComparison.InvariantCulture)
+                        StringComparison.InvariantCulture),
+                    true
                 );
 
                 string CleanName(string s)
@@ -105,44 +110,66 @@ namespace Osmalyzer
                 {
                     if (group.Elements.Count >= titleCountThreshold)
                     {
-                        string reportLine =
-                            string.Join(", ", group.Values.Select(v => "\"" + v + "\"")) +
-                            "\t" +
-                            group.Elements.Count +
-                            "\t" +
-                            (group.Values.Count > 1 ? string.Join("+", group.ElementCounts.Select(c => c.ToString())) : "") +
-                            "\t" +
-                            nsiTag +
-                            "\t" +
-                            string.Join("; ", group.GetUniqueKeyValues(nsiTag, true)) + // just because we grouped NSI POII types, doesn't mean data has instances for each
-                            "\t";
+                        string reportLine;
 
-                        reportEntries.Add((group.Elements.Count, reportLine));
+                        // Title
+
+                        if (group.Values.Count == 1)
+                            reportLine = "`" + group.Values[0].value + "`";
+                        else
+                            reportLine = string.Join(", ", group.Values.Select(v => "`" + v.value + "` (" + v.count + ")"));
+                                
+                        // Occurrences
+                        
+                        reportLine += " found " + group.Elements.Count + " times ";
+
+                        // Tags
+
+                        List<(string v, int c)> uniqueNsiValues = group.GetUniqueValuesForKey(nsiTag, true); // just because we grouped NSI POI types, doesn't mean data has instances for each
+
+                        if (uniqueNsiValues.Count == 1)
+                            reportLine += "for `" + nsiTag + "=" + uniqueNsiValues[0].v + "`";
+                        else
+                            reportLine += "for `" + nsiTag + "=` values " + string.Join(", ", uniqueNsiValues.Select(uv => "`" + uv.v + "` (" + uv.c + ")"));
+
+                        // Mismatched names
+
+                        if (group.Values.Count > 1)
+                        {
+                            int max = group.Values.Max(v => v.count);
+
+                            List<(string value, int count)> reportable = group.Values.Where(v => v.count < 10 && v.count <= max / 2).ToList();
+
+                            if (reportable.Count > 0)
+                            {
+                                reportLine += " -- " + string.Join("; ", reportable.Select(r => "`" + r.value + "`: " + string.Join(", ", group.GetElementsWithValue(r.value).Select(e => e.OsmViewUrl))));
+                            }
+                        }
+
+
+                        if (group.Values.Count > 1)
+                        {
+                            report.AddEntry(
+                                ReportGroup.Main,
+                                new IssueReportEntry(
+                                    reportLine,
+                                    new SortEntryDesc(group.Elements.Count)
+                                )
+                            );
+                        }
+                        else
+                        {
+                            report.AddEntry(
+                                ReportGroup.Main,
+                                new GenericReportEntry(
+                                    reportLine,
+                                    new SortEntryDesc(group.Elements.Count)
+                                )
+                            );
+                        }
                     }
                 }
             }
-
-            // Each NSI tag pair has a separate name multi-value group, so we need to re-sort if we want to order by count indepenedent of POI type
-            reportEntries.Sort((e1, e2) => e2.count.CompareTo(e1.count));
-
-            foreach ((int _, string line) in reportEntries)
-            {
-                report.AddEntry(
-                    ReportGroup.Main,
-                    new GenericReportEntry(
-                        line
-                    )
-                );
-            }
-
-            report.AddEntry(
-                ReportGroup.Main,
-                new DescriptionReportEntry(
-                    "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "\"" + t + "\"")) + ". " +
-                    "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored, character '!' ignored. " +
-                    "Title counts will repeat if the same element is tagged with multiple NSI POI types."
-                )
-            );
         }
         
         private enum ReportGroup

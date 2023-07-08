@@ -106,7 +106,7 @@ namespace Osmalyzer
             
             reportFile.WriteLine("<h2>Report for " + HttpUtility.HtmlEncode(report.Name) + "</h2>");
 
-            reportFile.WriteLine("<p>" + PolishLine(report.Description).Replace(Environment.NewLine, "<br>") + "</p>");
+            reportFile.WriteLine("<p>" + PolishLine(report.Description) + "</p>");
             
             List<ReportGroup> groups = report.CollectGroups();
 
@@ -204,6 +204,8 @@ namespace Osmalyzer
 
             line = Regex.Replace(line, @"`([^`]+)`", @"<code class=""osm-tag"">$1</code>");
 
+            line = line.Replace(Environment.NewLine, "<br>");
+            
             return line;
         }
     }

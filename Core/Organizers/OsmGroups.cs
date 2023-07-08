@@ -26,7 +26,7 @@ namespace Osmalyzer
             groups.Sort((g1, g2) => g2.Elements.Count.CompareTo(g1.Elements.Count));
         }
 
-        public OsmMultiValueGroups CombineBySimilarValues(Func<string, string, bool> valueMatcher)
+        public OsmMultiValueGroups CombineBySimilarValues(Func<string, string, bool> valueMatcher, bool sortValues)
         {
             List<OsmMultiValueGroup> multiGroups = new List<OsmMultiValueGroup>();
 
@@ -42,8 +42,7 @@ namespace Osmalyzer
                     
                     // Add elements from group 1 - these always go in 
                     
-                    multiGroup.Values.Add(group1.Value);
-                    multiGroup.ElementCounts.Add(group1.Elements.Count);
+                    multiGroup.Values.Add((group1.Value, group1.Elements.Count));
                     foreach (OsmElement element in group1.Elements)
                         multiGroup.Elements.Add(new OsmMultiValueElement(group1.Value, element));
 
@@ -59,8 +58,7 @@ namespace Osmalyzer
                             {
                                 // Add elements from group 2 since they matched
                     
-                                multiGroup.Values.Add(group2.Value);
-                                multiGroup.ElementCounts.Add(group2.Elements.Count);
+                                multiGroup.Values.Add((group2.Value, group2.Elements.Count));
                                 foreach (OsmElement element in group2.Elements)
                                     multiGroup.Elements.Add(new OsmMultiValueElement(group2.Value, element));
 
@@ -71,6 +69,9 @@ namespace Osmalyzer
 
                     processed[g1] = true; // although this is pointless since we never "go back"
 
+                    if (sortValues)
+                        multiGroup.SortValues(); 
+                    
                     multiGroups.Add(multiGroup);
                 }
             }

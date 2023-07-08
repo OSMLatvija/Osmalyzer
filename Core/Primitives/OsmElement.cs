@@ -113,7 +113,10 @@ namespace Osmalyzer
         /// </summary>
         public override int GetHashCode()
         {
-            return (int)Id ^ (int)(Id >> 32);
+            unchecked
+            {
+                return (int)Id ^ (int)(Id >> 32);
+            }
         }
 
 

@@ -5,7 +5,7 @@
     /// </summary>
     public abstract class ReportEntry
     {
-        public string Text { get; }
+        public string Text { get; protected set; }
             
         public ReportEntryContext? Context { get; }
             

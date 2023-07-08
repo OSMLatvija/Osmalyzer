@@ -1,6 +1,8 @@
-﻿namespace Osmalyzer
+﻿using System;
+
+namespace Osmalyzer
 {
-    public struct OsmCoord
+    public struct OsmCoord : IEquatable<OsmCoord>
     {
         public readonly double lat;
         
@@ -15,6 +17,43 @@
             this.lat = lat;
             this.lon = lon;
         }
+
+
+        #region ==
+        
+        public override bool Equals(object? obj)
+        {
+            return obj is OsmCoord other && Equals(other);
+        }
+
+        public bool Equals(OsmCoord other)
+        {
+            const double epsilon = 0.00001; // about a meter
+            
+            return 
+                Math.Abs(lat - other.lat) < epsilon && 
+                Math.Abs(lon - other.lon) < epsilon;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (lat.GetHashCode() * 397) ^ lon.GetHashCode();
+            }
+        }
+
+        public static bool operator ==(OsmCoord left, OsmCoord right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(OsmCoord left, OsmCoord right)
+        {
+            return !left.Equals(right);
+        }
+        
+        #endregion
 
 
         public override string ToString()

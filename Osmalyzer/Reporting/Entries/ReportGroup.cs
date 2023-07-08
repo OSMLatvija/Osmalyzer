@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Osmalyzer
 {
@@ -72,7 +73,12 @@ namespace Osmalyzer
                     break;
                     
                 case MapPointReportEntry mpe:
-                    _mapPointEntries.Add(mpe);
+                    MapPointReportEntry? existingPoint = _mapPointEntries.FirstOrDefault(e => e.Coord == mpe.Coord);
+
+                    if (existingPoint != null)
+                        existingPoint.Append(mpe);
+                    else
+                        _mapPointEntries.Add(mpe);
                     break;
 
                 case PlaceholderReportEntry pe:

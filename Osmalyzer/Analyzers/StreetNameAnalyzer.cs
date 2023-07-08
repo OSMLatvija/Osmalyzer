@@ -13,7 +13,8 @@ namespace Osmalyzer
     {
         public override string Name => "Street Names";
 
-        public override string? Description => null;
+        public override string Description => "Finds all named roads and reports those that aren't recognized as likely street or road names." + Environment.NewLine +
+                                              "Note that most of these are likely correct. This report just narrows down the scope of names that need to be checked manually.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData), typeof(KuldigaRoadsAnalysisData) };

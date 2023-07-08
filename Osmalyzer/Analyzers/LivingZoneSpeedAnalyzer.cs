@@ -10,7 +10,7 @@ namespace Osmalyzer
     {
         public override string Name => "Living Zone Speeds";
 
-        public override string? Description => null;
+        public override string Description => "The report checks that living zone have the corretc maxspeed set.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };

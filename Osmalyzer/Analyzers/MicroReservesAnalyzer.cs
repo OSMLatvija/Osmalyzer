@@ -16,8 +16,7 @@ namespace Osmalyzer
     {
         public override string Name => "Micro Reserves";
 
-        public override string? Description => null;
-
+        public override string Description => "This report checks that excepted microreserves are mapped";
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(MicroReserveAnalysisData) };
         

@@ -10,7 +10,7 @@ namespace Osmalyzer
     {
         public override string Name => "Public Transport Access";
 
-        public override string? Description => null;
+        public override string Description => "This report checks that ways with public transport routes have expected and valid access values.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };

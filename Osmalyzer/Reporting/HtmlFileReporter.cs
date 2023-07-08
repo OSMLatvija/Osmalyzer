@@ -60,7 +60,7 @@ namespace Osmalyzer
             {
                 reportWriter.Save(report);
 
-                reportFile.WriteLine("<li><a href=\"" + reportWriter.ReportFileName + "\">" + HttpUtility.HtmlEncode(report.AnalyzerName) + "</a>" + (report.AnalyzerDescription != null ? " - " + HttpUtility.HtmlEncode(report.AnalyzerDescription) : "") + "</li>");
+                reportFile.WriteLine("<li><a href=\"" + reportWriter.ReportFileName + "\">" + HttpUtility.HtmlEncode(report.Name) + "</a></li>");
             }
 
             reportFile.WriteLine("</ul>");

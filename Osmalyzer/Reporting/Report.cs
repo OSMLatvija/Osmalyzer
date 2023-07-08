@@ -6,11 +6,11 @@ namespace Osmalyzer
 {
     public class Report
     {
-        public string AnalyzerName { get; }
+        public string Name { get; }
         
-        public string? AnalyzerDescription { get; }
+        public string Description { get; }
 
-        public string? AnalyzedDataDates { get; }
+        public string? DataDates { get; }
 
         
         public bool NeedMap => _groups.Any(g => g.NeedMap);
@@ -21,14 +21,13 @@ namespace Osmalyzer
 
         public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
         {
-            AnalyzerName = analyzer.Name;
-            
-            AnalyzerDescription = analyzer.Description;
+            Name = analyzer.Name;
+            Description = analyzer.Description;
 
             List<ICachableAnalysisData> datasWithDate = datas.OfType<ICachableAnalysisData>().ToList();
 
             if (datasWithDate.Count > 0)
-                AnalyzedDataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity ? ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + ((AnalysisData)d).Name + ")" : "")));
+                DataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity ? ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + ((AnalysisData)d).Name + ")" : "")));
         }
 
 

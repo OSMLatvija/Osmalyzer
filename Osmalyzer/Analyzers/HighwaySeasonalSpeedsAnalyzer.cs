@@ -11,7 +11,7 @@ namespace Osmalyzer
     {
         public override string Name => "Highway Seasonal Speeds";
 
-        public override string? Description => null;
+        public override string Description => "This report finds different values for highway seasonal speeds, that is, highways that have higher summer speed limits.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
@@ -78,8 +78,8 @@ namespace Osmalyzer
 
                             report.AddEntry(
                                 ReportGroup.Main,
-                                new IssueReportEntry(
-                                    "Max speed not recognized as seasonal: " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
+                                new GenericReportEntry(
+                                    "Max speed does not appear to be seasonal: " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
                                     coord
                                 )
                             );
@@ -92,7 +92,7 @@ namespace Osmalyzer
 
                     report.AddEntry(
                         ReportGroup.Main,
-                        new IssueReportEntry(
+                        new GenericReportEntry(
                             "Maxspeed not recognized: " + maxspeedStr + " on " + way.OsmViewUrl,
                             coord
                         )

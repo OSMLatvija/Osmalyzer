@@ -11,5 +11,11 @@
             : base(text, null, sortingRule)
         {
         }
+
+        public GenericReportEntry(string text, OsmCoord coord)
+            : base(text, null, null)
+        {
+            SubEntry = new MapPointReportEntry(coord, text);
+        }
     }
 }

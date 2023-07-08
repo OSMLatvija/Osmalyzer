@@ -13,7 +13,7 @@ namespace Osmalyzer
     {
         public override string Name => "Shop Networks";
 
-        public override string? Description => null;
+        public override string Description => "This report checks that all shops listed on brand's website are found on the map.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>()

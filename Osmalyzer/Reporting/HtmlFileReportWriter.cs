@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Osmalyzer
 
         public override void Save(Report report)
         {
-            ReportFileName = report.AnalyzerName + @" report.html";
+            ReportFileName = report.Name + @" report.html";
             
             string fullReportFileName = outputFolder + "/" + ReportFileName;
             
@@ -24,8 +25,8 @@ namespace Osmalyzer
             reportFile.WriteLine(@"<!doctype html>");
             reportFile.WriteLine(@"<html>");
             reportFile.WriteLine(@"<head>");
-            reportFile.WriteLine(@"<title>" + HttpUtility.HtmlEncode(report.AnalyzerName) + " report</title>");
-            reportFile.WriteLine(@"<meta name=""description"" content=""Osmalyzer " + report.AnalyzerName + @" report"" />");
+            reportFile.WriteLine(@"<title>" + HttpUtility.HtmlEncode(report.Name) + " report</title>");
+            reportFile.WriteLine(@"<meta name=""description"" content=""Osmalyzer " + report.Name + @" report"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Cache-Control"" content=""no-cache, no-store, must-revalidate"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Pragma"" content=""no-cache"" />");
             reportFile.WriteLine(@"<meta http-equiv=""Expires"" content=""0"" />");
@@ -103,8 +104,10 @@ namespace Osmalyzer
             reportFile.WriteLine(@"</head>");
             reportFile.WriteLine(@"<body>");
             
-            reportFile.WriteLine("<h2>Report for " + HttpUtility.HtmlEncode(report.AnalyzerName) + "</h2>");
+            reportFile.WriteLine("<h2>Report for " + HttpUtility.HtmlEncode(report.Name) + "</h2>");
 
+            reportFile.WriteLine("<p>" + PolishLine(report.Description).Replace(Environment.NewLine, "<br>") + "</p>");
+            
             List<ReportGroup> groups = report.CollectGroups();
 
             bool needTOC = groups.Count > 1 && groups.Sum(g => g.TotalEntryCount) > 30;
@@ -172,7 +175,7 @@ namespace Osmalyzer
                 }
             }
 
-            reportFile.WriteLine("<br>Data as of " + HttpUtility.HtmlEncode(report.AnalyzedDataDates) + ". Provided as is; mistakes possible.");
+            reportFile.WriteLine("<br>Data as of " + HttpUtility.HtmlEncode(report.DataDates) + ". Provided as is; mistakes possible.");
             
             reportFile.WriteLine(@"</body>");
             reportFile.WriteLine(@"</html>");

@@ -7,7 +7,7 @@ namespace Osmalyzer
     {
         public override string Name => "Liepajas Sabiedriskais Transports";
 
-        public override string? Description => null;
+        public override string Description => "This checks the public transport route issues for " + Name;
 
         
         protected override string Label => "LST";

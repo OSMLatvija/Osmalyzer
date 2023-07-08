@@ -6,8 +6,8 @@ namespace Osmalyzer
     public abstract class Analyzer
     {
         public abstract string Name { get; }
-        
-        public abstract string? Description { get; }
+
+        public abstract string Description { get; }
 
 
         public abstract List<Type> GetRequiredDataTypes();

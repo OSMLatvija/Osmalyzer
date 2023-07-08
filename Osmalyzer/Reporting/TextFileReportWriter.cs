@@ -6,11 +6,11 @@ namespace Osmalyzer
     {
         public override void Save(Report report)
         {
-            string reportFileName = outputFolder + "/" + report.AnalyzerName + @" report.txt";
+            string reportFileName = outputFolder + "/" + report.Name + @" report.txt";
             
             using StreamWriter reportFile = File.CreateText(reportFileName);
 
-            reportFile.WriteLine("Report for " + report.AnalyzerName);
+            reportFile.WriteLine("Report for " + report.Name);
             reportFile.WriteLine();
 
             foreach (ReportGroup group in report.CollectGroups())
@@ -50,7 +50,7 @@ namespace Osmalyzer
             }
             
             reportFile.WriteLine();
-            reportFile.WriteLine((report.AnalyzedDataDates != null ? "Data as of " + report.AnalyzedDataDates + ". " : "") + "Provided as is; mistakes possible.");
+            reportFile.WriteLine((report.DataDates != null ? "Data as of " + report.DataDates + ". " : "") + "Provided as is; mistakes possible.");
             
             reportFile.Close();
         }

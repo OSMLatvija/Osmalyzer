@@ -11,7 +11,7 @@ namespace Osmalyzer
     {
         public override string Name => "Common Brands";
 
-        public override string? Description => null;
+        public override string Description => "This report lists the most common brand names.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };

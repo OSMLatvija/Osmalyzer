@@ -89,7 +89,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.RigaIssues,
                             new IssueReportEntry(
-                                "OSM tap found close to Rīga tap `" + rigaTap.Name + "` but it's far away (" + closestDistance!.Value.ToString("F0") + " m), expected at " + rigaTap.Coord.OsmUrl,
+                                "OSM tap " + closestOsmTap.OsmViewUrl + " found close to Rīga tap `" + rigaTap.Name + "` but it's far away (" + closestDistance!.Value.ToString("F0") + " m), expected at " + rigaTap.Coord.OsmUrl,
                                 new SortEntryAsc(SortOrder.TapFar),
                                 rigaTap.Coord
                             )
@@ -107,7 +107,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.RigaIssues,
                             new IssueReportEntry(
-                                "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
+                                "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "` - " + closestOsmTap.OsmViewUrl,
                                 new SortEntryAsc(SortOrder.Tagging),
                                 closestOsmTap.GetAverageCoord()
                             )
@@ -120,7 +120,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.RigaIssues,
                                 new IssueReportEntry(
-                                    "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "`, instead `" + operatorValue + "` - " + rigaTap.Coord.OsmUrl,
+                                    "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "`, instead `" + operatorValue + "` - " + closestOsmTap.OsmViewUrl,
                                     new SortEntryAsc(SortOrder.Tagging),
                                     closestOsmTap.GetAverageCoord()
                                 )
@@ -137,7 +137,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.RigaIssues,
                             new IssueReportEntry(
-                                "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
+                                "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "` - " + closestOsmTap.OsmViewUrl,
                                 new SortEntryAsc(SortOrder.Tagging),
                                 closestOsmTap.GetAverageCoord()
                             )
@@ -150,7 +150,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.RigaIssues,
                                 new IssueReportEntry(
-                                    "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "`, instead `" + manmadeValue + "` - " + rigaTap.Coord.OsmUrl,
+                                    "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "`, instead `" + manmadeValue + "` - " + closestOsmTap.OsmViewUrl,
                                     new SortEntryAsc(SortOrder.Tagging),
                                     closestOsmTap.GetAverageCoord()
                                 )
@@ -167,7 +167,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.RigaIssues,
                             new IssueReportEntry(
-                                "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "` - " + rigaTap.Coord.OsmUrl,
+                                "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "` - " + closestOsmTap.OsmViewUrl,
                                 new SortEntryAsc(SortOrder.Tagging),
                                 closestOsmTap.GetAverageCoord()
                             )
@@ -180,7 +180,7 @@ namespace Osmalyzer
                             report.AddEntry(
                                 ReportGroup.RigaIssues,
                                 new IssueReportEntry(
-                                    "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "`, instead `" + drinkableValue + "` - " + rigaTap.Coord.OsmUrl,
+                                    "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "`, instead `" + drinkableValue + "` - " + closestOsmTap.OsmViewUrl,
                                     new SortEntryAsc(SortOrder.Tagging),
                                     closestOsmTap.GetAverageCoord()
                                 )

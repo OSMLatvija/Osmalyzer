@@ -15,7 +15,7 @@ namespace Osmalyzer
         /// <summary> Element counts for each unique value </summary>
         public List<int> ElementCounts { get; } = new List<int>();
 
-        
+
         [Pure]
         public List<(string v, int c)> GetUniqueValuesForKey(string key, bool sort = false)
         {

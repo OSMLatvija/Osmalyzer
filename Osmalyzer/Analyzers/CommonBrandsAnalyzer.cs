@@ -60,9 +60,18 @@ namespace Osmalyzer
             if (!File.Exists(knownBrandsFileName))
                 knownBrandsFileName = @"../../../../" + knownBrandsFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
             
-            string[] knownSuffixesRaw = File.ReadAllLines(knownBrandsFileName, Encoding.UTF8);
+            string[] knownBrandsRaw = File.ReadAllLines(knownBrandsFileName, Encoding.UTF8);
 
-            List<List<string>> knownBrands = knownSuffixesRaw.Select(ks => ks.Split('\t').Select(CleanName).ToList()).ToList();
+            List<List<string>> knownBrands = knownBrandsRaw.Select(ks => ks.Split('\t').Select(CleanName).ToList()).ToList();
+
+            // Load same-brand-different-name entries
+            
+            string genericPoiNamesFileName = @"data/generic poi names.tsv";
+
+            if (!File.Exists(genericPoiNamesFileName))
+                genericPoiNamesFileName = @"../../../../" + genericPoiNamesFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
+            
+            List<string> genericPoiNames = File.ReadAllLines(genericPoiNamesFileName, Encoding.UTF8).ToList();
 
             // Prepare groups
 
@@ -72,7 +81,7 @@ namespace Osmalyzer
                 ReportGroup.Main,
                 new DescriptionReportEntry(
                     "These are the most common POI titles with at least " + titleCountThreshold + " occurences grouped by type (recognized by NSI)." + Environment.NewLine +
-                    "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "`" + t + "`")) + "." + Environment.NewLine +
+                    "POI \"title\" here means the first found value from tags " + string.Join(", ", titleTags.Select(t => "`" + t + "`")) + ". The report doesn't check if the value appears in the correct field." + Environment.NewLine +
                     "Title values are case-insensitive, leading/trailing whitespace ignored, Latvian diacritics ignored. Some brands have known alternative (usually incorrect) spellings, also grouped." + Environment.NewLine +
                     "Title counts will repeat if the same element is tagged with multiple NSI POI types."
                 )
@@ -96,14 +105,21 @@ namespace Osmalyzer
                 {
                     if (group.Elements.Count >= titleCountThreshold)
                     {
-                        string reportLine;
+                        string reportLine = "";
 
+                        // Generic?
+
+                        bool generic = genericPoiNames.Any(n => group.Values.Any(gv => CleanName(n) == CleanName(gv.value)));
+
+                        if (generic)
+                            reportLine = "Generic ";
+                        
                         // Title
 
                         if (group.Values.Count == 1)
-                            reportLine = "`" + group.Values[0].value + "`";
+                            reportLine += "`" + group.Values[0].value + "`";
                         else
-                            reportLine = string.Join(", ", group.Values.Select(v => "`" + v.value + "` (" + v.count + ")"));
+                            reportLine += string.Join(", ", group.Values.Select(v => "`" + v.value + "` (" + v.count + ")"));
                                 
                         // Occurrences
                         
@@ -120,20 +136,31 @@ namespace Osmalyzer
 
                         // Mismatched names
 
-                        if (group.Values.Count > 1)
+                        if (!generic)
                         {
-                            int max = group.Values.Max(v => v.count);
-
-                            List<(string value, int count)> reportable = group.Values.Where(v => v.count < 10 && v.count <= max / 2).ToList();
-
-                            if (reportable.Count > 0)
+                            // Report less common ones
+                            
+                            if (group.Values.Count > 1)
                             {
-                                reportLine += " -- " + string.Join("; ", reportable.Select(r => "`" + r.value + "`: " + string.Join(", ", group.GetElementsWithValue(r.value).Select(e => e.OsmViewUrl))));
+                                int max = group.Values.Max(v => v.count);
+
+                                List<(string value, int count)> reportable = group.Values.Where(v => v.count < 10 && v.count <= max / 2).ToList();
+
+                                if (reportable.Count > 0)
+                                {
+                                    reportLine += " -- " + string.Join("; ", reportable.Select(r => "`" + r.value + "`: " + string.Join(", ", group.GetElementsWithValue(r.value).Select(e => e.OsmViewUrl))));
+                                }
                             }
+                        }
+                        else
+                        {
+                            // Report all
+                            
+                            reportLine += " -- " + ReportEntryFormattingHelper.ListElements(group.Elements.Select(mve => mve.Element), 10);
                         }
 
 
-                        if (group.Values.Count > 1)
+                        if (group.Values.Count > 1 || generic)
                         {
                             report.AddEntry(
                                 ReportGroup.Main,

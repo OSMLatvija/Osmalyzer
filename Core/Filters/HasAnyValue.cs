@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Osmalyzer
 {
@@ -12,12 +13,21 @@ namespace Osmalyzer
 
         private readonly string _key;
         private readonly string[] _values;
+        private readonly bool _caseSensitive;
 
 
         public HasAnyValue(string key, params string[] values)
         {
             _key = key;
             _values = values;
+            _caseSensitive = false;
+        }
+
+        public HasAnyValue(string key, IEnumerable<string> values, bool caseSensitive = true)
+        {
+            _key = key;
+            _values = values.ToArray();
+            _caseSensitive = caseSensitive;
         }
 
 
@@ -25,7 +35,7 @@ namespace Osmalyzer
         {
             return 
                 element.HasAnyTags &&
-                _values.Any(v => element.HasValue(_key, v));
+                _values.Any(v => element.HasValue(_key, v, _caseSensitive));
         }
     }
 }

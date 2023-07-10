@@ -13,7 +13,8 @@ namespace Osmalyzer
     {
         public override string Name => "Shop Networks";
 
-        public override string Description => "This report checks that all shops listed on brand's website are found on the map.";
+        public override string Description => "This report checks that all shops listed on brand's website are found on the map. " +
+                                              "This supposes that brand shops are tagged correctly to match among multiple.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>()
@@ -60,9 +61,9 @@ namespace Osmalyzer
 
                 OsmDataExtract brandShops = osmShops.Filter(
                     new OrMatch(
-                        new HasValue("name", parser.OsmName, false),
-                        new HasValue("operator", parser.OsmName, false),
-                        new HasValue("brand", parser.OsmName, false)
+                        new HasAnyValue("name", parser.OsmNames, false),
+                        new HasAnyValue("operator", parser.OsmNames, false),
+                        new HasAnyValue("brand", parser.OsmNames, false)
                     )
                 );
                 
@@ -179,7 +180,7 @@ namespace Osmalyzer
 
             public abstract string Name { get; }
             
-            public abstract string OsmName { get; }
+            public abstract List<string> OsmNames { get; }
 
             public abstract List<ShopData> GetShops(string source);
         }
@@ -196,7 +197,7 @@ namespace Osmalyzer
             
             public override string Name => "LaTS";
             
-            public override string OsmName => Name;
+            public override List<string> OsmNames => new List<string>() { Name };
 
             public override List<ShopData> GetShops(string source)
             {
@@ -241,7 +242,7 @@ namespace Osmalyzer
 
             public override string Name => "Elvi";
             
-            public override string OsmName => Name;
+            public override List<string> OsmNames => new List<string>() { Name, "Mazais " + Name, Name + " mazais" };
 
             public override List<ShopData> GetShops(string source)
             {
@@ -284,7 +285,7 @@ namespace Osmalyzer
 
             public override string Name => "Top!";
             
-            public override string OsmName => "Top";
+            public override List<string> OsmNames => new List<string>() { Name, "Top" };
 
             public override List<ShopData> GetShops(string source)
             {

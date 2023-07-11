@@ -28,7 +28,7 @@ namespace Osmalyzer
                 // route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id,wheelchair_accessible
                 // riga_bus_9,23274,1279,"Abrenes iela",1,169766,riga_bus_9_b-a,
 
-                string[] segments = line.Split(',');
+                List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
 
                 // route_id - riga_bus_9
                 // service_id - 23274
@@ -40,8 +40,8 @@ namespace Osmalyzer
                 // wheelchair_accessible -
 
                 string tripId = segments[2];
-                
                 string serviceId = segments[1];
+                
                 PublicTransportService service = services.GetService(serviceId);
 
                 PublicTransportTrip trip = new PublicTransportTrip(tripId, service);

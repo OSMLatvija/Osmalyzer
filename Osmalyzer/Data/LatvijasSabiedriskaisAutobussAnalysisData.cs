@@ -3,7 +3,7 @@
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class LatvijasAutobussAnalysisData : GTFSAnalysisData
+    public class LatvijasSabiedriskaisAutobussAnalysisData : GTFSAnalysisData
     {
         public override string Name => "Latvijas Sabiedriskais Autobuss";
 
@@ -13,11 +13,10 @@ namespace Osmalyzer
         protected override string DataFileIdentifier => "latvijas-autobuss";
 
 
-        public override string ExtractionFolder => "GTFS-LatAut";
+        public override string ExtractionFolder => "GTFS-LSA";
         
         protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
 
-        protected override string DataURL => @"http://www.marsruti.lv/LSA/lsa/gtfs.zip";
-        // todo: where could I get a direct link from them? 
+        protected override string DataURL => @"https://www.atd.lv/sites/default/files/GTFS/gtfs-latvia-lv.zip";
     }
 }

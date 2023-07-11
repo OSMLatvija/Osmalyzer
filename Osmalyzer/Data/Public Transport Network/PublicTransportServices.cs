@@ -28,7 +28,7 @@ namespace Osmalyzer
                 // service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
                 // 24837,0,0,0,0,0,1,1,20230415,20240401
 
-                string[] segments = line.Split(',');
+                List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
 
                 // service_id - 24837
                 // monday - 0

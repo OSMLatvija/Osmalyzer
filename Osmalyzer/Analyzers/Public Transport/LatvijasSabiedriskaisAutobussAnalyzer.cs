@@ -3,7 +3,7 @@
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class LatvijasAutobussAnalyzer : PublicTransportAnalyzer<LatvijasAutobussAnalysisData>
+    public class LatvijasSabiedriskaisAutobussAnalyzer : PublicTransportAnalyzer<LatvijasSabiedriskaisAutobussAnalysisData>
     {
         public override string Name => "Latvijas Sabiedriskais Autobuss";
 

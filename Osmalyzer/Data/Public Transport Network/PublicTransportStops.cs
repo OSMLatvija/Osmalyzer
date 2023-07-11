@@ -28,10 +28,10 @@ namespace Osmalyzer
                 // stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon,stop_url,location_type,parent_station
                 // 0470,,"Tallinas iela",,56.95896,24.14143,https://saraksti.rigassatiksme.lv,,
 
-                string[] segments = line.Split(',');
+                List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
 
                 // stop_id - 0470
-                // top_code - 
+                // stop_code - 
                 // stop_name - "Tallinas iela"
                 // stop_desc - 
                 // stop_lat - 56.95896

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Osmalyzer
 {
@@ -26,7 +27,7 @@ namespace Osmalyzer
                 // trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
                 // 2961,21:53:00,21:53:00,5003,13,0,0
 
-                string[] segments = line.Split(',');
+                List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
 
                 // trip_id - 2961
                 // arrival_time - 21:53:00

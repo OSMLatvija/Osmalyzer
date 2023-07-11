@@ -129,7 +129,9 @@ namespace Osmalyzer
                     }
                     
                     // Check type
-                    
+                   
+                    const string expectedManmade = "water_tap";
+
                     string? manmadeValue = closestOsmTap.GetValue("man_made");
 
                     if (manmadeValue == null)
@@ -137,7 +139,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.RigaIssues,
                             new IssueReportEntry(
-                                "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "` - " + closestOsmTap.OsmViewUrl,
+                                "OSM tap doesn't have expected `man_made="+expectedManmade+"` set for tap `" + rigaTap.Name + "` - " + closestOsmTap.OsmViewUrl,
                                 new SortEntryAsc(SortOrder.Tagging),
                                 closestOsmTap.GetAverageCoord()
                             )
@@ -145,12 +147,12 @@ namespace Osmalyzer
                     }
                     else
                     {
-                        if (manmadeValue != expectedOperator)
+                        if (manmadeValue != expectedManmade)
                         {
                             report.AddEntry(
                                 ReportGroup.RigaIssues,
                                 new IssueReportEntry(
-                                    "OSM tap doesn't have expected `man_made=water_tap` set for tap `" + rigaTap.Name + "`, instead `" + manmadeValue + "` - " + closestOsmTap.OsmViewUrl,
+                                    "OSM tap doesn't have expected `man_made="+expectedManmade+"` set for tap `" + rigaTap.Name + "`, instead `" + manmadeValue + "` - " + closestOsmTap.OsmViewUrl,
                                     new SortEntryAsc(SortOrder.Tagging),
                                     closestOsmTap.GetAverageCoord()
                                 )
@@ -175,7 +177,7 @@ namespace Osmalyzer
                     }
                     else
                     {
-                        if (drinkableValue != expectedOperator)
+                        if (drinkableValue != "yes")
                         {
                             report.AddEntry(
                                 ReportGroup.RigaIssues,

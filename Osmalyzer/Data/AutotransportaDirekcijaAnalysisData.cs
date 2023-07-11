@@ -3,17 +3,17 @@
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class LatvijasSabiedriskaisAutobussAnalysisData : GTFSAnalysisData
+    public class AutotransportaDirekcijaAnalysisData : GTFSAnalysisData
     {
-        public override string Name => "Latvijas Sabiedriskais Autobuss";
+        public override string Name => "Autotransporta Direkcija";
 
         public override bool DataDateHasDayGranularity => true;
 
         
-        protected override string DataFileIdentifier => "latvijas-autobuss";
+        protected override string DataFileIdentifier => "autotransporta-direkcija";
 
 
-        public override string ExtractionFolder => "GTFS-LSA";
+        public override string ExtractionFolder => "GTFS-ATD";
         
         protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
 

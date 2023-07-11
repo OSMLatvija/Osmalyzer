@@ -22,15 +22,15 @@ namespace Osmalyzer
 #else
             List<Analyzer> analyzers = new List<Analyzer>()
             {
-                new CommonBrandsAnalyzer(),
+                // new CommonBrandsAnalyzer(),
                 // new HighwaySeasonalSpeedsAnalyzer(),
                 // new LivingZoneSpeedAnalyzer(),
                 // new LVCRoadAnalyzer(),
                 // new RigasSatiksmeAnalyzer(),
                 // new LiepajasTransportsAnalyzer(),
                 // new RezeknesSatiksmeAnalyzer(),
-                new JurmalasSatiksmeAnalyzer(),
-                // new LatvijasSabiedriskaisAutobussAnalyzer(),
+                // new JurmalasSatiksmeAnalyzer(),
+                new AutotransportaDirekcijaAnalyzer(),
                 // new TrolleybusWireAnalyzer(),
                 // new ShopNetworkAnalyzer(),
                 // new MicroReservesAnalyzer(),

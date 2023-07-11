@@ -103,7 +103,7 @@ namespace Osmalyzer
                 if (data.RetrievalStatus != DataRetrievalStatus.Ok)
                     continue;
 
-                Console.Write("Preparing " + data.Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
+                Console.WriteLine("Preparing " + data.Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
 
                 Stopwatch prepareStopwatch = Stopwatch.StartNew();
                 
@@ -111,7 +111,7 @@ namespace Osmalyzer
                 
                 prepareStopwatch.Stop();
 
-                Console.WriteLine(" (" + prepareStopwatch.ElapsedMilliseconds + " ms)");
+                Console.WriteLine("(" + prepareStopwatch.ElapsedMilliseconds + " ms)");
             }
 
 

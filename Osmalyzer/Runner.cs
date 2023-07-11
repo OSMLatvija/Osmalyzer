@@ -85,7 +85,7 @@ namespace Osmalyzer
                 Stopwatch retrieveStopwatch = Stopwatch.StartNew();
 
                 requestedDatas[i].Retrieve();
-                
+
                 retrieveStopwatch.Stop();
 
                 Console.WriteLine("(" + retrieveStopwatch.ElapsedMilliseconds + " ms)");
@@ -98,7 +98,12 @@ namespace Osmalyzer
 
             for (int i = 0; i < preparableData.Count; i++)
             {
-                Console.Write("Preparing " + ((AnalysisData)preparableData[i]).Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
+                AnalysisData data = (AnalysisData)preparableData[i];
+
+                if (data.RetrievalStatus != DataRetrievalStatus.Ok)
+                    continue;
+
+                Console.Write("Preparing " + data.Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
 
                 Stopwatch prepareStopwatch = Stopwatch.StartNew();
                 
@@ -117,13 +122,22 @@ namespace Osmalyzer
             
             for (int i = 0; i < analyzers.Count; i++)
             {
-                Console.Write("Parsing " + analyzers[i].Name + " analyzer [" + (i + 1) + "/" + analyzers.Count + "]... ");
-
                 List<AnalysisData> datas = new List<AnalysisData>();
 
                 foreach (Type dataType in perAnalyzerRequestedDataTypes[i])
                     datas.Add(requestedDatas.First(rd => rd.GetType() == dataType));
 
+                if (datas.Any(d => d.RetrievalStatus != DataRetrievalStatus.Ok))
+                {
+                    Console.WriteLine("Skipping " + analyzers[i].Name + " analyzer due to missing required data [" + (i + 1) + "/" + analyzers.Count + "].");
+                    
+                    // TODO: tell reporter about failure
+                    
+                    continue;
+                }
+
+                Console.Write("Parsing " + analyzers[i].Name + " analyzer [" + (i + 1) + "/" + analyzers.Count + "]... ");
+                
                 Report report = new Report(analyzers[i], datas);
                 
                 Stopwatch parseStopwatch = Stopwatch.StartNew();

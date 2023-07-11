@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
 
@@ -15,6 +16,8 @@ namespace Osmalyzer
         // todo: page name not from this - some sort of internal id
 
         public DateTime? DataDate => _dataDate;
+        
+        public DataRetrievalStatus RetrievalStatus { get; private set; }
 
         
         /// <summary>
@@ -28,43 +31,60 @@ namespace Osmalyzer
 
         public void Retrieve()
         {
-            if (this is ICachableAnalysisData cachableAnalysisData)
+            try
             {
-                _dataDate = GetDataDateFromMetadataFile();
-
-                if (_dataDate != null)
+                if (this is ICachableAnalysisData cachableAnalysisData)
                 {
-                    Console.WriteLine("Getting cache date...");
-                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+                    _dataDate = GetDataDateFromMetadataFile();
 
-                    if (DataDate < newDataDate)
+                    if (_dataDate != null)
                     {
-                        Console.WriteLine("Downloading (cache out of date)...");
-                        Download();
+                        Console.WriteLine("Getting cache date...");
+                        DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+
+                        if (DataDate < newDataDate)
+                        {
+                            Console.WriteLine("Downloading (cache out of date)...");
+                            Download();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Using cached files.");
+                        }
+
+                        StoreDataDate(newDataDate);
                     }
                     else
                     {
-                        Console.WriteLine("Using cached files.");
-                    }
+                        Console.WriteLine("Getting cache date...");
+                        DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
 
-                    StoreDataDate(newDataDate);
+                        Console.WriteLine("Downloading (not yet cached)...");
+                        Download();
+                        
+                        StoreDataDate(newDataDate);
+                    }
                 }
                 else
                 {
-                    Console.WriteLine("Getting cache date...");
-                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
-
-                    Console.WriteLine("Downloading (not yet cached)...");
+                    Console.WriteLine("Downloading (no cache)...");
                     Download();
-                    
-                    StoreDataDate(newDataDate);
                 }
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("Downloading (no cache)...");
-                Download();
+                Console.WriteLine("Failed with exception!");
+
+#if !REMOTE_EXECUTION
+                Debug.WriteLine(e);
+#endif
+
+                RetrievalStatus = DataRetrievalStatus.Fail;
+                return;
             }
+
+            RetrievalStatus = DataRetrievalStatus.Ok;
+            return;
         }
 
         
@@ -96,5 +116,12 @@ namespace Osmalyzer
         {
             return cacheBasePath + DataFileIdentifier + "-cache-date.txt";
         }
+    }
+    
+    
+    public enum DataRetrievalStatus
+    {
+        Ok,
+        Fail
     }
 }

@@ -71,7 +71,11 @@ namespace Osmalyzer
                     Download();
                 }
             }
+#if !REMOTE_EXECUTION
             catch (Exception e)
+#else
+            catch (Exception)
+#endif
             {
                 Console.WriteLine("Failed with exception!");
 
@@ -84,7 +88,6 @@ namespace Osmalyzer
             }
 
             RetrievalStatus = DataRetrievalStatus.Ok;
-            return;
         }
 
         

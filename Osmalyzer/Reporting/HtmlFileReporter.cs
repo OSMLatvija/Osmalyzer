@@ -70,10 +70,19 @@ namespace Osmalyzer
             
             reportFile.WriteLine("<h3>Disclaimer</h3>");
 
-            reportFile.WriteLine("<p>Reports look for specific problems, but the very nature of OSM free tagging and public editing means there are endless possibilities. Thus no report is complete or exhaustive - there are false positives and false negatives.</p>");
-            reportFile.WriteLine("<p>If you are fixing anything based on this, it's your responsibility to understand the actual issue and why and how it should be fixed. Not everything identified as an issue is an issue.</p>");
+            reportFile.WriteLine("<p>Reports look for specific problems, but the very nature of OSM free tagging and public editing means there are endless possibilities. " +
+                                 "Thus no report is complete or exhaustive - there are false positives and false negatives.</p>");
+            reportFile.WriteLine("<p>If you are fixing anything based on this, it's your responsibility to understand the actual issue and why and how it should be fixed. " +
+                                 "Not everything identified as an issue is an issue.</p>");
             reportFile.WriteLine("<p>This supposes that you are familiar with OSM and tagging. Reports can and do omit a lot of explanations.</p>");
-            reportFile.WriteLine("<p>The sources used are almost always out of date. OSM may lag a day or more behind, while various other providers may be months or even years out of date.</p>");
+            reportFile.WriteLine("<p>The sources used are almost always out of date. " +
+                                 "OSM may lag a day or more behind, while various other providers may be months or even years out of date.</p>");
+            reportFile.WriteLine("<p>Make sure you understand licensing, copyright and the exact terms of use for each source. " +
+                                 "OSM does not allow data from incompatable licenses. " +
+                                 "These reports may use publicly-available data, but this does not mean it's freely-usable. " +
+                                 "These reports are merely an indication of problems and not an invitation to change anything en masse. " +
+                                 "You are still responsible for your edits and by using any information from these reports, " +
+                                 "you may also be indirectly using data from such sources that you may not have permission to use in this way.</p>");
 
             reportFile.WriteLine(@"</body>");
             reportFile.WriteLine(@"</html>");

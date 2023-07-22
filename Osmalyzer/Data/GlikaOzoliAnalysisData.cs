@@ -10,7 +10,7 @@ using SharpKml.Engine;
 namespace Osmalyzer
 {
     [UsedImplicitly]
-    public class GikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData
+    public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData
     {
         public override string Name => "Glika Ozoli";
 
@@ -55,16 +55,45 @@ namespace Osmalyzer
                 {
                     if (placemark.Name.ToLower().Contains("vides objekts"))
                         continue;
+
+                    string startDate = GetStartDate(placemark);
                     
                     Oaks.Add(
                         new GlikaOak(
                             new OsmCoord(point.Coordinate.Latitude, point.Coordinate.Longitude),
                             placemark.Name,
-                            placemark.Description?.Text
+                            placemark.Description?.Text,
+                            startDate
                         )
                     );
                 }
             }
+        }
+
+        [Pure]
+        private static string GetStartDate(Placemark placemark)
+        {
+            // GLIKA OZOLU stādīšanas vietas.
+            // Dzeltens – rudens 2022
+            // Zaļš – pavasaris 2022
+            // Zils – vides objekti
+            // Gaiši zaļš - pavasaris 2023
+            
+            // Yellow - <styleUrl>#icon-1886-FBC02D</styleUrl> 
+            // Green - <styleUrl>#icon-1886-006064</styleUrl>
+            // Light green - <styleUrl>#icon-1886-7CB342</styleUrl>
+
+            string colorString = Regex.Match(placemark.StyleUrl.OriginalString, @"[0-9A-F]{6}").Groups[0].ToString();
+
+            // TODO: not season, but months - I don't know exactly what they are though, data uses seasons
+            
+            return colorString switch
+            {
+                "FBC02D" => "autumn 2022",
+                "006064" => "spring 2022",
+                "7CB342" => "spring 2023",
+                _        => throw new Exception()
+            };
         }
     }
 }

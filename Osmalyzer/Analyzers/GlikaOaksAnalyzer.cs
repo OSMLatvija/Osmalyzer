@@ -12,7 +12,7 @@ namespace Osmalyzer
 
         public override string Description => "This report checks that all Glika Ozoli oak trees are mapped.";
 
-        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(GikaOzoliAnalysisData) };
+        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(GlikaOzoliAnalysisData) };
 
 
         public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -30,13 +30,13 @@ namespace Osmalyzer
 
             // Get Oak data
 
-            List<GlikaOak> oaks = datas.OfType<GikaOzoliAnalysisData>().First().Oaks;
+            List<GlikaOak> oaks = datas.OfType<GlikaOzoliAnalysisData>().First().Oaks;
 
             // Parse
 
             report.AddGroup(ReportGroup.Issues, "Issues", null, "All trees appear to be mapped.");
 
-            report.AddGroup(ReportGroup.Stats, "Matched oaks", "These trees were matched to the oak coordinates. Note that there are many individual trees mapped, so this doesn't mean it's the correct tree.");
+            report.AddGroup(ReportGroup.Stats, "Matched oaks");
 
             foreach (GlikaOak oak in oaks)
             {
@@ -49,7 +49,8 @@ namespace Osmalyzer
                     report.AddEntry(
                         ReportGroup.Issues,
                         new IssueReportEntry(
-                            "No matching OSM tree found in " + seekDistance + " m range of Glika oak `" + oak.Name + "` at " + oak.Coord.OsmUrl,
+                            "No matching OSM tree found in " + seekDistance + " m range of " +
+                            "Glika oak `" + oak.Name + "` (" + oak.StartDate + ") at " + oak.Coord.OsmUrl,
                             new SortEntryAsc(SortOrder.NoTree),
                             oak.Coord
                         )
@@ -70,7 +71,9 @@ namespace Osmalyzer
                                 new IssueReportEntry(
                                     "Matching OSM tree " +
                                     (matchedOsmTree.HasKey("name") ? "`" + matchedOsmTree.GetValue("name") + "` " : "") +
-                                    matchedOsmTree.OsmViewUrl + " found close to Glika oak `" + oak.Name + "`, but it's far away (" + matchedOsmTreeDistance.ToString("F0") + " m), expected at " + oak.Coord.OsmUrl,
+                                    matchedOsmTree.OsmViewUrl + " found close to " +
+                                    "Glika oak `" + oak.Name + "` (" + oak.StartDate + "), " +
+                                    "but it's far away (" + matchedOsmTreeDistance.ToString("F0") + " m), expected at " + oak.Coord.OsmUrl,
                                     new SortEntryAsc(SortOrder.TreeFar),
                                     oak.Coord
                                 )
@@ -81,7 +84,10 @@ namespace Osmalyzer
                             ReportGroup.Stats,
                             new MapPointReportEntry(
                                 matchedOsmTree.coord,
-                                "`" + oak.Name + "` " + matchedOsmTree.OsmViewUrl + " (" + matchedOsmTreeDistance.ToString("F0") + " m)"
+                                "`" + oak.Name + "` (" + oak.StartDate + ") matched " + 
+                                matchedOsmTree.OsmViewUrl + " " + 
+                                (matchedOsmTree.HasKey("name") ? "`" + matchedOsmTree.GetValue("name") + "` " : "") +
+                                " at " + matchedOsmTreeDistance.ToString("F0") + " m"
                             )
                         );
                         
@@ -104,7 +110,7 @@ namespace Osmalyzer
                                 new IssueReportEntry(
                                     "Unmatched OSM tree " +
                                     (closestUnmatchedTree.HasKey("name") ? "`" + closestUnmatchedTree.GetValue("name") + "` " : "") +
-                                    closestUnmatchedTree.OsmViewUrl + " found close to Glika oak `" + oak.Name + "` at " + unmatchedOsmTreeDistance.ToString("F0") + " m" +
+                                    closestUnmatchedTree.OsmViewUrl + " found close to Glika oak `" + oak.Name + "` (" + oak.StartDate + ") at " + unmatchedOsmTreeDistance.ToString("F0") + " m" +
                                     (closestOsmTrees.Count > 1 ? " (there are " + closestOsmTrees.Count + " trees nearby)" : "") +
                                     ", expected at " + oak.Coord.OsmUrl,
                                     new SortEntryAsc(SortOrder.TreeFar),

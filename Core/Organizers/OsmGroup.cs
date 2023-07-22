@@ -11,6 +11,9 @@ namespace Osmalyzer
         public List<OsmElement> Elements { get; } = new List<OsmElement>();
 
 
+        public int Count => Elements.Count;
+
+
         public OsmGroup(string value)
         {
             Value = value;
@@ -21,6 +24,23 @@ namespace Osmalyzer
         public OsmCoord GetAverageElementCoord()
         {
             return OsmGeoTools.GetAverageCoord(Elements);
+        }
+
+        [Pure]
+        public List<string> CollectValues(string key)
+        {
+            List<string> values = new List<string>();
+
+            foreach (OsmElement element in Elements)
+            {
+                string? value = element.GetValue(key);
+                
+                if (value != null)
+                    if (!values.Contains(value))
+                        values.Add(value);
+            }
+            
+            return values;
         }
     }
 }

@@ -10,6 +10,8 @@
         
         public string StartDate { get; }
 
+        public int? Id { get; set; }
+
 
         public GlikaOak(OsmCoord coord, string name, string? description, string startDate)
         {

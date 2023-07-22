@@ -49,11 +49,16 @@ namespace Osmalyzer
 
             IEnumerable<Placemark> placemarks = kmlFile.Root.Flatten().OfType<Placemark>();
 
+            List<string> names = new List<string>();
+            List<string> repeats = new List<string>();
+            
             foreach (Placemark placemark in placemarks)
             {
                 if (placemark.Geometry is Point point)
                 {
-                    if (placemark.Name.ToLower().Contains("vides objekts"))
+                    string name = placemark.Name;
+                    
+                    if (name.ToLower().Contains("vides objekts"))
                         continue;
 
                     string startDate = GetStartDate(placemark);
@@ -61,11 +66,32 @@ namespace Osmalyzer
                     Oaks.Add(
                         new GlikaOak(
                             new OsmCoord(point.Coordinate.Latitude, point.Coordinate.Longitude),
-                            placemark.Name,
+                            name,
                             placemark.Description?.Text,
                             startDate
                         )
                     );
+                    
+                    if (!names.Contains(name))
+                        names.Add(name);
+                    else if (!repeats.Contains(name))
+                        repeats.Add(name);
+                }
+            }
+
+            // Disambiguate same-named trees, probably planted at the same time (in the same place)
+            
+            foreach (string repeat in repeats)
+            {
+                int id = 1;
+                
+                foreach (GlikaOak oak in Oaks)
+                {
+                    if (oak.Name == repeat)
+                    {
+                        oak.Id = id;
+                        id++;
+                    }
                 }
             }
         }

@@ -189,14 +189,7 @@ namespace Osmalyzer
             
             // Parse
 
-            report.AddGroup(ReportGroup.Issues, "Unmatched Micro Reserves");
-            
-            report.AddEntry(
-                ReportGroup.Issues,
-                new PlaceholderReportEntry(
-                    "All defined reserves have a matching OSM element."
-                )
-            );
+            report.AddGroup(ReportGroup.Issues, "Unmatched Micro Reserves", null, "All defined reserves have a matching OSM element.");
             
             report.AddGroup(ReportGroup.Matched, "Matched Micro Reserves");
 

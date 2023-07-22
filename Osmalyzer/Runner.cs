@@ -24,7 +24,7 @@ namespace Osmalyzer
             {
                 // new CommonBrandsAnalyzer(),
                 // new HighwaySeasonalSpeedsAnalyzer(),
-                // new LivingZoneSpeedAnalyzer(),
+                new LivingZoneSpeedAnalyzer(),
                 // new LVCRoadAnalyzer(),
                 // new RigasSatiksmeAnalyzer(),
                 // new LiepajasTransportsAnalyzer(),
@@ -35,8 +35,9 @@ namespace Osmalyzer
                 // new ShopNetworkAnalyzer(),
                 // new MicroReservesAnalyzer(),
                 // new StreetNameAnalyzer(),
-                new RigaDrinkingWaterAnalyzer(),
-                // new PublicTransportAccessAnalyzer()
+                // new RigaDrinkingWaterAnalyzer(),
+                // new PublicTransportAccessAnalyzer(),
+                new SpeedLimitAnalyzer()
             };
 #endif
 

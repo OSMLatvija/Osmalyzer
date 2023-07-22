@@ -40,16 +40,16 @@ namespace Osmalyzer
 
             foreach (GlikaOak oak in oaks)
             {
-                const double seekDistance = 30;
+                const double seekDistance = 75;
 
-                OsmElement? closestOsmTree = osmTrees.GetClosestElementTo(oak.Coord, seekDistance, out double? closestDistance);
+                List<OsmNode> closestOsmTrees = osmTrees.GetClosestNodesTo(oak.Coord, seekDistance);
 
-                if (closestOsmTree == null)
+                if (closestOsmTrees.Count == 0)
                 {
                     report.AddEntry(
                         ReportGroup.Issues,
                         new IssueReportEntry(
-                            "No OSM tree found in " + seekDistance + " m range of Glika oak `" + oak.Name + "` at " + oak.Coord.OsmUrl,
+                            "No matching OSM tree found in " + seekDistance + " m range of Glika oak `" + oak.Name + "` at " + oak.Coord.OsmUrl,
                             new SortEntryAsc(SortOrder.NoTree),
                             oak.Coord
                         )
@@ -57,29 +57,70 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    if (closestDistance! > 10)
+                    OsmNode? matchedOsmTree = closestOsmTrees.FirstOrDefault(t => DoesOsmTreeMatchOak(t, oak));
+
+                    if (matchedOsmTree != null)
                     {
+                        double matchedOsmTreeDistance = OsmGeoTools.DistanceBetween(matchedOsmTree.coord, oak.Coord);
+
+                        if (matchedOsmTreeDistance > 15)
+                        {
+                            report.AddEntry(
+                                ReportGroup.Issues,
+                                new IssueReportEntry(
+                                    "Matching OSM tree " +
+                                    (matchedOsmTree.HasKey("name") ? "`" + matchedOsmTree.GetValue("name") + "` " : "") +
+                                    matchedOsmTree.OsmViewUrl + " found close to Glika oak `" + oak.Name + "`, but it's far away (" + matchedOsmTreeDistance.ToString("F0") + " m), expected at " + oak.Coord.OsmUrl,
+                                    new SortEntryAsc(SortOrder.TreeFar),
+                                    oak.Coord
+                                )
+                            );
+                        }
+
                         report.AddEntry(
-                            ReportGroup.Issues,
-                            new IssueReportEntry(
-                                "OSM tree " + closestOsmTree.OsmViewUrl + " found close to Glika oak `" + oak.Name + "`, but it's far away (" + closestDistance!.Value.ToString("F0") + " m), expected at " + oak.Coord.OsmUrl,
-                                new SortEntryAsc(SortOrder.TreeFar),
-                                oak.Coord
+                            ReportGroup.Stats,
+                            new MapPointReportEntry(
+                                matchedOsmTree.coord,
+                                "`" + oak.Name + "` " + matchedOsmTree.OsmViewUrl + " (" + matchedOsmTreeDistance.ToString("F0") + " m)"
                             )
                         );
+                        
+                        // todo: denomination
+                        // todo: species
+                        // todo: start_date
                     }
-                    
-                    // Add found oaks to stats
+                    else
+                    {
+                        OsmNode closestUnmatchedTree = closestOsmTrees.OrderBy(t => OsmGeoTools.DistanceBetween(t.coord, oak.Coord)).First();
 
-                    report.AddEntry(
-                        ReportGroup.Stats,
-                        new MapPointReportEntry(
-                            closestOsmTree.GetAverageCoord(),
-                            "`" + oak.Name + "` " + closestOsmTree.OsmViewUrl
-                        )
-                    );
+                        double unmatchedOsmTreeDistance = OsmGeoTools.DistanceBetween(closestUnmatchedTree.coord, oak.Coord);
+
+                        const double acceptDistance = 30;
+
+                        if (unmatchedOsmTreeDistance < acceptDistance)
+                        {
+                            report.AddEntry(
+                                ReportGroup.Issues,
+                                new IssueReportEntry(
+                                    "Unmatched OSM tree " +
+                                    (closestUnmatchedTree.HasKey("name") ? "`" + closestUnmatchedTree.GetValue("name") + "` " : "") +
+                                    closestUnmatchedTree.OsmViewUrl + " found close to Glika oak `" + oak.Name + "` at " + unmatchedOsmTreeDistance.ToString("F0") + " m" +
+                                    (closestOsmTrees.Count > 1 ? " (there are " + closestOsmTrees.Count + " trees nearby)" : "") +
+                                    ", expected at " + oak.Coord.OsmUrl,
+                                    new SortEntryAsc(SortOrder.TreeFar),
+                                    oak.Coord
+                                )
+                            );
+                        }
+                    }
                 }
             }
+        }
+
+        [Pure]
+        private static bool DoesOsmTreeMatchOak(OsmNode osmTree, GlikaOak oak)
+        {
+            return osmTree.GetValue("name")?.ToLower().Contains("glika ozols") ?? false;
         }
 
 

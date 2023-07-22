@@ -10,7 +10,7 @@ namespace Osmalyzer
     {
         public override string Name => "Living Zone Speeds";
 
-        public override string Description => "The report checks that living zone have the corretc maxspeed set.";
+        public override string Description => "The report checks that living zone streets have the correct `maxspeed` set.";
 
 
         public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
@@ -94,11 +94,15 @@ namespace Osmalyzer
             {
                 float unlimitedPortion = (float)limitedLivingStreets.Count / livingStreets.Count;
 
+                OsmDataExtract maxspeedTypedLivingStreets = livingStreets.Filter(new HasValue("maxspeed:type", "LV:living_street"));
+                float maxspeedTypedPortion = (float)maxspeedTypedLivingStreets.Count / livingStreets.Count;
+
                 report.AddEntry(
                     ReportGroup.Stats,
                     new GenericReportEntry(
                         "There are a total of " + livingStreets.Count + " living street (segments), " +
-                        "of which " + limitedLivingStreets.Count + " or " + (unlimitedPortion * 100f).ToString("F1") + " % have maxspeed set."
+                        "of which " + limitedLivingStreets.Count + " or " + (unlimitedPortion * 100f).ToString("F1") + " % have maxspeed set. " +
+                        "" + maxspeedTypedLivingStreets.Count + " or " + (maxspeedTypedPortion * 100f).ToString("F1") + " % of all living streets have `maxspeed:type=LV:living_street` set."
                     )
                 );
             }

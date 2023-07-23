@@ -53,8 +53,8 @@ namespace Osmalyzer
             
             foreach (BankPoint bankPoint in points)
             {
-                const double seekDistance = 100;
-                const double acceptDistance = 30;
+                const double seekDistance = 150;
+                const double acceptDistance = 50;
 
                 
                 OsmDataExtract relevantElements = bankPoint.Type switch

@@ -196,23 +196,23 @@ namespace Osmalyzer
         [Pure]
         public OsmElement? GetClosestElementTo(OsmCoord coord)
         {
-            return GetClosestNodeToRaw(coord, null, out _);
+            return GetClosestElementToRaw(coord, null, out _);
         }
 
         [Pure]
         public OsmElement? GetClosestElementTo(OsmCoord coord, double maxDistance)
         {
-            return GetClosestNodeToRaw(coord, maxDistance, out _);
+            return GetClosestElementToRaw(coord, maxDistance, out _);
         }
 
         [Pure]
         public OsmElement? GetClosestElementTo(OsmCoord coord, double maxDistance, out double? closestDistance)
         {
-            return GetClosestNodeToRaw(coord, maxDistance, out closestDistance);
+            return GetClosestElementToRaw(coord, maxDistance, out closestDistance);
         }
 
         [Pure]
-        private OsmElement? GetClosestNodeToRaw(OsmCoord coord, double? maxDistance, out double? closestDistance)
+        private OsmElement? GetClosestElementToRaw(OsmCoord coord, double? maxDistance, out double? closestDistance)
         {
             OsmElement? bestElement = null;
             double bestDistance = 0.0;

@@ -22,23 +22,24 @@ namespace Osmalyzer
 #else
             List<Analyzer> analyzers = new List<Analyzer>()
             {
-                // new CommonBrandsAnalyzer(),
-                // new HighwaySeasonalSpeedsAnalyzer(),
-                // new LivingZoneSpeedAnalyzer(),
-                // new LVCRoadAnalyzer(),
-                // new RigasSatiksmeAnalyzer(),
-                // new LiepajasTransportsAnalyzer(),
-                // new RezeknesSatiksmeAnalyzer(),
-                // new JurmalasSatiksmeAnalyzer(),
-                // new AutotransportaDirekcijaAnalyzer(),
-                // new TrolleybusWireAnalyzer(),
-                // new ShopNetworkAnalyzer(),
-                // new MicroReservesAnalyzer(),
-                // new StreetNameAnalyzer(),
-                // new RigaDrinkingWaterAnalyzer(),
-                // new PublicTransportAccessAnalyzer(),
+                //new CommonBrandsAnalyzer(),
+                //new HighwaySeasonalSpeedsAnalyzer(),
+                //new LivingZoneSpeedAnalyzer(),
+                //new LVCRoadAnalyzer(),
+                //new RigasSatiksmeAnalyzer(),
+                //new LiepajasTransportsAnalyzer(),
+                //new RezeknesSatiksmeAnalyzer(),
+                //new JurmalasSatiksmeAnalyzer(),
+                //new AutotransportaDirekcijaAnalyzer(),
+                //new TrolleybusWireAnalyzer(),
+                //new ShopNetworkAnalyzer(),
+                //new MicroReservesAnalyzer(),
+                //new StreetNameAnalyzer(),
+                //new RigaDrinkingWaterAnalyzer(),
+                //new PublicTransportAccessAnalyzer(),
                 //new HighwaySpeedLimitAnalyzer(),
-                new GlikaOaksAnalyzer()
+                //new GlikaOaksAnalyzer(),
+                new BankLocationAnalyzer()
             };
 #endif
 

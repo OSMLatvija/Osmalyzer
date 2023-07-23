@@ -49,7 +49,7 @@ namespace Osmalyzer
                     report.AddEntry(
                         ReportGroup.Issues,
                         new IssueReportEntry(
-                            "No matching OSM tree found in " + seekDistance + " m range of " +
+                            "No OSM tree found in " + seekDistance + " m range of " +
                             "Glika oak `" + oak.Name + "` " + (oak.Id != null ? "#" + oak.Id + " " : "") + "(" + oak.StartDate + ") at " + oak.Coord.OsmUrl,
                             new SortEntryAsc(SortOrder.NoTree),
                             oak.Coord

@@ -72,7 +72,7 @@ namespace Osmalyzer
                         ReportGroup.Issues,
                         new IssueReportEntry(
                             "No OSM " + bankPoint.TypeString + " found in " + seekDistance + " m range of " +
-                            bankName + " " + bankPoint.TypeString + " `" + bankPoint.Name + "` (`" + bankPoint.Address + "`) at " + bankPoint.Coord.OsmUrl,
+                            bankName + " " + bankPoint.TypeString + " `" + bankPoint.Name + "` " + (bankPoint.Id != null ? "#" + bankPoint.Id + " " : "") + " (`" + bankPoint.Address + "`) at " + bankPoint.Coord.OsmUrl,
                             new SortEntryAsc(SortOrder.NoPoint),
                             bankPoint.Coord
                         )
@@ -94,7 +94,7 @@ namespace Osmalyzer
                                 ReportGroup.Issues,
                                 new IssueReportEntry(
                                     "Matching OSM " + bankPoint.TypeString + " " + matchedOsmPoint.OsmViewUrl + " found close to " +
-                                    bankName + " " + bankPoint.TypeString + " `" + bankPoint.Name + "` (`" + bankPoint.Address + "`), " +
+                                    bankName + " " + bankPoint.TypeString + " `" + bankPoint.Name + "` " + (bankPoint.Id != null ? "#" + bankPoint.Id + " " : "") + " (`" + bankPoint.Address + "`), " +
                                     "but it's far away (" + matchedPointDistance.ToString("F0") + " m), expected at " + bankPoint.Coord.OsmUrl,
                                     new SortEntryAsc(SortOrder.PointFar),
                                     bankPoint.Coord
@@ -106,7 +106,7 @@ namespace Osmalyzer
                             ReportGroup.Stats,
                             new MapPointReportEntry(
                                 matchedOsmPoint.GetAverageCoord(),
-                                "`" + bankPoint.Name + "` (`" + bankPoint.Address + "`) " +
+                                "`" + bankPoint.Name + "` " + (bankPoint.Id != null ? "#" + bankPoint.Id + " " : "") + " (`" + bankPoint.Address + "`) " +
                                 "matched " + matchedOsmPoint.OsmViewUrl + " " +
                                 "at " + matchedPointDistance.ToString("F0") + " m"
                             )
@@ -134,10 +134,10 @@ namespace Osmalyzer
                                     ReportGroup.Issues,
                                     new IssueReportEntry(
                                         "Potentially-matching OSM " + bankPoint.TypeString + " " + alreadyMatchedOsmPoint.OsmViewUrl + " found close to " +
-                                        bankName + " " + bankPoint.TypeString + " `" + bankPoint.Name + "` (`" + bankPoint.Address + "`) " +
+                                        bankName + " " + bankPoint.TypeString + " `" + bankPoint.Name + "` " + (bankPoint.Id != null ? "#" + bankPoint.Id + " " : "") + " (`" + bankPoint.Address + "`) " +
                                         "at " + matchedPointDistance.ToString("F0") + " m" +
                                         ", but it's already matched to another point " +
-                                        " `" + previousMatch.Name + "` (`" + previousMatch.Address + "`) " +
+                                        " `" + previousMatch.Name + "` " + (previousMatch.Id != null ? "#" + previousMatch.Id + " " : "") + " (`" + previousMatch.Address + "`) " +
                                         "at " + previousPointDistance.ToString("F0") + " m" +
                                         ", expected another at " + bankPoint.Coord.OsmUrl,
                                         new SortEntryAsc(SortOrder.PointRepeat),

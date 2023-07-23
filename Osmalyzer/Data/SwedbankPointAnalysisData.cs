@@ -41,22 +41,56 @@ namespace Osmalyzer
             
             Points = new List<BankPoint>();
             
+            List<string> names = new List<string>();
+            List<string> repeats = new List<string>();
+            
             foreach (RawItem item in rawItems.Items)
             {
                 OsmCoord coord = new OsmCoord(item.Latitude, item.Longitude);
                 
                 if (OsmGeoTools.DistanceBetween(coord, new OsmCoord(0, 0)) < 100) // point at default/0,0 - bad coord
                     continue;
-                
-                Points.Add(
-                    new BankPoint(
-                        RawTypeToPointType(item.Type),
-                        item.Name,
-                        item.StreetAddress + (item.City != null ? ", " + item.City : ""),
-                        coord
-                    )
+
+
+                BankPoint point = new BankPoint(
+                    RawTypeToPointType(item.Type),
+                    item.Name,
+                    item.StreetAddress + (item.City != null ? ", " + item.City : ""),
+                    coord
                 );
+                
+                Points.Add(point);
+                
+                
+                string combo = MakeBankPointNameCombo(point); // since we want any diffrent value to not match
+
+                if (!names.Contains(combo))
+                    names.Add(combo);
+                else if (!repeats.Contains(combo))
+                    repeats.Add(combo);
             }
+            
+            // Disambiguate same-named locations, probably planted at the same time (in the same place)
+            
+            foreach (string repeat in repeats)
+            {
+                int id = 1;
+                
+                foreach (BankPoint bankPoint in Points)
+                {
+                    if (MakeBankPointNameCombo(bankPoint) == repeat)
+                    {
+                        bankPoint.Id = id;
+                        id++;
+                    }
+                }
+            }
+        }
+            
+        [Pure]
+        private static string MakeBankPointNameCombo(BankPoint point)
+        {
+            return point.TypeString + " " + point.Name + " " + point.Address;
         }
 
         [Pure]

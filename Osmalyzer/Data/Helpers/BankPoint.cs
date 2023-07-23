@@ -12,6 +12,8 @@ namespace Osmalyzer
 
         public OsmCoord Coord { get; set; }
 
+        public int? Id { get; set; }
+
 
         public string TypeString => Type switch
         {

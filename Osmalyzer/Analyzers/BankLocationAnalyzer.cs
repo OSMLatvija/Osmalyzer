@@ -48,10 +48,13 @@ namespace Osmalyzer
             report.AddGroup(ReportGroup.Stats, "Matched POIs");
 
             const string bankName = "Swedbank";
+
+            List<(OsmNode node, BankPoint point)> matchedOsmPoints = new List<(OsmNode, BankPoint)>();
             
             foreach (BankPoint bankPoint in points)
             {
                 const double seekDistance = 100;
+                const double acceptDistance = 30;
 
                 
                 OsmDataExtract relevantElements = bankPoint.Type switch
@@ -79,13 +82,15 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    OsmNode? matchedOsmPoint = closestElements.FirstOrDefault(t => DoesOsmPointMatchBankPoint(t, bankPoint, bankName));
+                    OsmNode? matchedOsmPoint = closestElements.FirstOrDefault(t =>
+                                                                                  matchedOsmPoints.All(mp => mp.node != t) &&
+                                                                                  DoesOsmPointMatchBankPoint(t, bankPoint, bankName));
             
                     if (matchedOsmPoint != null)
                     {
                         double matchedPointDistance = OsmGeoTools.DistanceBetween(matchedOsmPoint.coord, bankPoint.Coord);
-            
-                        if (matchedPointDistance > 30)
+
+                        if (matchedPointDistance > acceptDistance)
                         {
                             report.AddEntry(
                                 ReportGroup.Issues,
@@ -109,9 +114,40 @@ namespace Osmalyzer
                             )
                         );
                         
-                        // todo: denomination
-                        // todo: species
-                        // todo: start_date
+                        matchedOsmPoints.Add((matchedOsmPoint, bankPoint));
+                        
+                        // todo: check tags
+                    }
+                    else
+                    {
+                        OsmNode? alreadyMatchedOsmPoint = closestElements.FirstOrDefault(t => DoesOsmPointMatchBankPoint(t, bankPoint, bankName));
+
+                        if (alreadyMatchedOsmPoint != null)
+                        {
+                            double matchedPointDistance = OsmGeoTools.DistanceBetween(alreadyMatchedOsmPoint.coord, bankPoint.Coord);
+
+                            if (matchedPointDistance <= acceptDistance)
+                            {
+                                BankPoint previousMatch = matchedOsmPoints.First(mp => mp.node == alreadyMatchedOsmPoint).point;
+                                
+                                double previousPointDistance = OsmGeoTools.DistanceBetween(alreadyMatchedOsmPoint.coord, previousMatch.Coord);
+
+                                report.AddEntry(
+                                    ReportGroup.Issues,
+                                    new IssueReportEntry(
+                                        "Potentially-matching OSM " + bankPoint.TypeString + " " + alreadyMatchedOsmPoint.OsmViewUrl + " found close to " +
+                                        bankName + " " + bankPoint.TypeString + " `" + bankPoint.Name + "` (`" + bankPoint.Address + "`) " +
+                                        "at " + matchedPointDistance.ToString("F0") + " m" +
+                                        ", but it's already matched to another point " +
+                                        " `" + previousMatch.Name + "` (`" + previousMatch.Address + "`) " +
+                                        "at " + previousPointDistance.ToString("F0") + " m" +
+                                        ", expected another at " + bankPoint.Coord.OsmUrl,
+                                        new SortEntryAsc(SortOrder.PointRepeat),
+                                        bankPoint.Coord
+                                    )
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -141,7 +177,8 @@ namespace Osmalyzer
         private enum SortOrder // values used for sorting
         {
             NoPoint = 0,
-            PointFar = 1
+            PointFar = 1,
+            PointRepeat = 2
         }
     }
 }

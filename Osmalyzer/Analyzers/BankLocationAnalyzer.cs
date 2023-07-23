@@ -24,13 +24,11 @@ namespace Osmalyzer
             OsmMasterData osmMasterData = osmData.MasterData;
 
             OsmDataExtract osmPoints = osmMasterData.Filter(
-                new IsNode(),
                 new HasAnyValue("amenity", "atm", "bank")
             );
 
             OsmDataExtract osmAtms = osmPoints.Filter(
-                new IsNode(),
-                new HasAnyValue("amenity", "atm")
+                new HasValue("amenity", "atm")
             );
 
             OsmDataExtract osmBanks = osmPoints.Filter(
@@ -49,11 +47,11 @@ namespace Osmalyzer
 
             const string bankName = "Swedbank";
 
-            List<(OsmNode node, BankPoint point)> matchedOsmPoints = new List<(OsmNode, BankPoint)>();
+            List<(OsmElement node, BankPoint point)> matchedOsmPoints = new List<(OsmElement, BankPoint)>();
             
             foreach (BankPoint bankPoint in points)
             {
-                const double seekDistance = 150;
+                const double seekDistance = 200;
                 const double acceptDistance = 50;
 
                 
@@ -65,7 +63,7 @@ namespace Osmalyzer
                     _                                     => throw new NotImplementedException()
                 };
 
-                List<OsmNode> closestElements = relevantElements.GetClosestNodesTo(bankPoint.Coord, seekDistance);
+                List<OsmElement> closestElements = relevantElements.GetClosestElementsTo(bankPoint.Coord, seekDistance);
 
                 
                 if (closestElements.Count == 0)
@@ -82,13 +80,13 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    OsmNode? matchedOsmPoint = closestElements.FirstOrDefault(t =>
-                                                                                  matchedOsmPoints.All(mp => mp.node != t) &&
-                                                                                  DoesOsmPointMatchBankPoint(t, bankPoint, bankName));
+                    OsmElement? matchedOsmPoint = closestElements.FirstOrDefault(t =>
+                                                                                     matchedOsmPoints.All(mp => mp.node != t) &&
+                                                                                     DoesOsmPointMatchBankPoint(t, bankPoint, bankName));
             
                     if (matchedOsmPoint != null)
                     {
-                        double matchedPointDistance = OsmGeoTools.DistanceBetween(matchedOsmPoint.coord, bankPoint.Coord);
+                        double matchedPointDistance = OsmGeoTools.DistanceBetween(matchedOsmPoint.GetAverageCoord(), bankPoint.Coord);
 
                         if (matchedPointDistance > acceptDistance)
                         {
@@ -107,7 +105,7 @@ namespace Osmalyzer
                         report.AddEntry(
                             ReportGroup.Stats,
                             new MapPointReportEntry(
-                                matchedOsmPoint.coord,
+                                matchedOsmPoint.GetAverageCoord(),
                                 "`" + bankPoint.Name + "` (`" + bankPoint.Address + "`) " +
                                 "matched " + matchedOsmPoint.OsmViewUrl + " " +
                                 "at " + matchedPointDistance.ToString("F0") + " m"
@@ -120,17 +118,17 @@ namespace Osmalyzer
                     }
                     else
                     {
-                        OsmNode? alreadyMatchedOsmPoint = closestElements.FirstOrDefault(t => DoesOsmPointMatchBankPoint(t, bankPoint, bankName));
+                        OsmElement? alreadyMatchedOsmPoint = closestElements.FirstOrDefault(t => DoesOsmPointMatchBankPoint(t, bankPoint, bankName));
 
                         if (alreadyMatchedOsmPoint != null)
                         {
-                            double matchedPointDistance = OsmGeoTools.DistanceBetween(alreadyMatchedOsmPoint.coord, bankPoint.Coord);
+                            double matchedPointDistance = OsmGeoTools.DistanceBetween(alreadyMatchedOsmPoint.GetAverageCoord(), bankPoint.Coord);
 
                             if (matchedPointDistance <= acceptDistance)
                             {
                                 BankPoint previousMatch = matchedOsmPoints.First(mp => mp.node == alreadyMatchedOsmPoint).point;
                                 
-                                double previousPointDistance = OsmGeoTools.DistanceBetween(alreadyMatchedOsmPoint.coord, previousMatch.Coord);
+                                double previousPointDistance = OsmGeoTools.DistanceBetween(alreadyMatchedOsmPoint.GetAverageCoord(), previousMatch.Coord);
 
                                 report.AddEntry(
                                     ReportGroup.Issues,
@@ -154,7 +152,7 @@ namespace Osmalyzer
         }
 
         [Pure]
-        private static bool DoesOsmPointMatchBankPoint(OsmNode osmPoint, BankPoint bankPoint, string bankName)
+        private static bool DoesOsmPointMatchBankPoint(OsmElement osmPoint, BankPoint bankPoint, string bankName)
         {
             // We are assuming the type was matched already
             

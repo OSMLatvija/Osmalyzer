@@ -273,6 +273,34 @@ namespace Osmalyzer
 
             return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList();
         }
+        
+        
+        [Pure]
+        public List<OsmElement> GetClosestElementsTo(OsmCoord coord, double maxDistance)
+        {
+            return GetClosestElementsToRaw(coord, maxDistance);
+        }
+
+        [Pure]
+        private List<OsmElement> GetClosestElementsToRaw(OsmCoord coord, double? maxDistance)
+        {
+            List<(double, OsmElement)> nodes = new List<(double, OsmElement)>(); // todo: presorted collection
+
+            foreach (OsmElement element in _elements)
+            {
+                double distance = OsmGeoTools.DistanceBetween(
+                    coord,
+                    element.GetAverageCoord() 
+                );
+
+                if (maxDistance == null || distance <= maxDistance) // within max distance
+                {
+                    nodes.Add((distance, element));
+                }
+            }
+
+            return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList();
+        }
 
         
         [Pure]

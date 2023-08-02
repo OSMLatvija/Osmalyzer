@@ -189,6 +189,22 @@ namespace Osmalyzer
                             );
                         }
                     }
+                    
+                    // Check fixme
+                    
+                    string? fixmeValue = closestOsmTap.GetValue("fixme");
+
+                    if (fixmeValue != null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.RigaIssues,
+                            new IssueReportEntry(
+                                "OSM tap has a `fixme=" + fixmeValue + "` set for tap `" + rigaTap.Name + "` - " + closestOsmTap.OsmViewUrl,
+                                new SortEntryAsc(SortOrder.Tagging),
+                                closestOsmTap.GetAverageCoord()
+                            )
+                        );
+                    }
 
                     // Add found tap to stats
                         

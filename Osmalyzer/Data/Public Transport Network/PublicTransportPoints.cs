@@ -38,15 +38,17 @@ namespace Osmalyzer
                 // drop_off_type - 0
 
                 string tripId = segments[0];
+                PublicTransportTrip? trip = trips.GetTrip(tripId);
+
                 string stopId = segments[3];
                 PublicTransportStop stop = stops.GetStop(stopId);
-                PublicTransportTrip trip = trips.GetTrip(tripId);
 
                 PublicTransportPoint newPoint = new PublicTransportPoint(trip, stop);
 
                 _points.Add(newPoint);
 
-                trip.AddPoint(newPoint);
+                if (trip != null)
+                    trip.AddPoint(newPoint);
             }
         }
     }

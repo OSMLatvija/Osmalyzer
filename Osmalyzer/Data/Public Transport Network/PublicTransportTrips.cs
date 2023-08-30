@@ -68,9 +68,12 @@ namespace Osmalyzer
 
         
         [Pure]
-        public PublicTransportTrip GetTrip(string id)
+        public PublicTransportTrip? GetTrip(string id)
         {
-            return _trips[id];
+            if (_trips.TryGetValue(id, out PublicTransportTrip? s))
+                return s;
+            
+            return null;
         }
     }
 }

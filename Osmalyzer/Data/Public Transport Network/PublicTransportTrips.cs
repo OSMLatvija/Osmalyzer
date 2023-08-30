@@ -23,7 +23,7 @@ namespace Osmalyzer
             {
                 if (i == 0) // header row
                     continue;
-            
+
                 string line = lines[i];
                 // route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id,wheelchair_accessible
                 // riga_bus_9,23274,1279,"Abrenes iela",1,169766,riga_bus_9_b-a,
@@ -41,25 +41,28 @@ namespace Osmalyzer
 
                 string tripId = segments[2];
                 string serviceId = segments[1];
-                
-                PublicTransportService service = services.GetService(serviceId);
+
+                PublicTransportService? service = services.GetService(serviceId);
 
                 PublicTransportTrip trip = new PublicTransportTrip(tripId, service);
                 _trips.Add(trip.Id, trip);
 
-                service.AddTrip(trip);
-                
-                // Add the service to the route (if it doesn't already know about it)
-                // Service may be used for several routes, i.e. different bus numbers do the same service on different days/times or something
-                // And vice-verse - add route to service (if not known)
-                
-                string routeId = segments[0];
-                PublicTransportRoute route = routes.GetRoute(routeId);
-                if (route.Services.All(s => s != service))
-                    route.AddService(service);
-                
-                if (service.Routes.All(r => r != route))
-                    service.AddRoute(route);
+                if (service != null)
+                {
+                    service.AddTrip(trip);
+
+                    // Add the service to the route (if it doesn't already know about it)
+                    // Service may be used for several routes, i.e. different bus numbers do the same service on different days/times or something
+                    // And vice-verse - add route to service (if not known)
+
+                    string routeId = segments[0];
+                    PublicTransportRoute route = routes.GetRoute(routeId);
+                    if (route.Services.All(s => s != service))
+                        route.AddService(service);
+
+                    if (service.Routes.All(r => r != route))
+                        service.AddRoute(route);
+                }
             }
         }
 

@@ -50,9 +50,12 @@ namespace Osmalyzer
 
         
         [Pure]
-        public PublicTransportService GetService(string id)
+        public PublicTransportService? GetService(string id)
         {
-            return _services[id];
+            if (_services.TryGetValue(id, out PublicTransportService? s))
+                return s;
+            
+            return null;
         }
     }
 }

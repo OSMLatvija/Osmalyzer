@@ -7,7 +7,7 @@ namespace Osmalyzer
     {
         public string Id { get; }
         
-        public PublicTransportService Service { get; }
+        public PublicTransportService? Service { get; }
 
         public IEnumerable<PublicTransportPoint> Points => _points.AsReadOnly();
         
@@ -17,7 +17,7 @@ namespace Osmalyzer
         private readonly List<PublicTransportPoint> _points = new List<PublicTransportPoint>();
 
 
-        public PublicTransportTrip(string id, PublicTransportService service)
+        public PublicTransportTrip(string id, PublicTransportService? service)
         {
             Id = id;
             Service = service;
@@ -32,7 +32,7 @@ namespace Osmalyzer
 
         public override string ToString()
         {
-            return "Trip #" + Id + " for service #" + Service.Id;
+            return "Trip #" + Id + " for " + (Service != null ? "service #" + Service.Id : "no service");
         }
     }
 }

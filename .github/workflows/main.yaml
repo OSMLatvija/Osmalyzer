@@ -46,16 +46,6 @@ jobs:
     - uses: actions/upload-pages-artifact@main
       with:
         path: output/
-    - uses: zulip/github-actions-zulip/send-message@v1.0.1
-      # if: failure()
-      with:
-        email: ${{ secrets.ZULIP_BOT_EMAIL }}
-        api-key: ${{ secrets.ZULIP_BOT_KEY }}
-        organization-url: ${{ secrets.ZULIP_ORGANIZATION_URL }}
-        to: ${{ secrets.ZULIP_STREAM }}
-        type: stream
-        topic: ${{ secrets.ZULIP_TOPIC }}
-        content: Hello from Osmalyzer workflow!
   deploy:
     needs: build
     permissions:

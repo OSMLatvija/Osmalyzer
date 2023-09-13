@@ -30,7 +30,7 @@ namespace Osmalyzer
                 //new LiepajasTransportsAnalyzer(),
                 //new RezeknesSatiksmeAnalyzer(),
                 //new JurmalasSatiksmeAnalyzer(),
-                new AutotransportaDirekcijaAnalyzer(),
+                //new AutotransportaDirekcijaAnalyzer(),
                 //new TrolleybusWireAnalyzer(),
                 //new ShopNetworkAnalyzer(),
                 //new MicroReservesAnalyzer(),
@@ -38,7 +38,7 @@ namespace Osmalyzer
                 //new RigaDrinkingWaterAnalyzer(),
                 //new PublicTransportAccessAnalyzer(),
                 //new HighwaySpeedLimitAnalyzer(),
-                //new GlikaOaksAnalyzer(),
+                new GlikaOaksAnalyzer(),
                 //new BankLocationAnalyzer()
             };
 #endif

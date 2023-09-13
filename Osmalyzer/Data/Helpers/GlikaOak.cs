@@ -1,13 +1,13 @@
 ﻿namespace Osmalyzer
 {
-    public class GlikaOak
+    public class GlikaOak : IQuickComparerDataItem
     {
         public OsmCoord Coord { get; }
-        
+
         public string Name { get; }
-        
+
         public string? Description { get; }
-        
+
         public string StartDate { get; }
 
         public int? Id { get; set; }
@@ -19,6 +19,16 @@
             Name = name;
             Description = description;
             StartDate = startDate;
+        }
+
+        
+        public string ReportString()
+        {
+            return
+                "Glika oak " +
+                "`" + Name + "` " +
+                (Id != null ? "#" + Id + " " : "") +
+                "(" + StartDate + ")";
         }
     }
 }

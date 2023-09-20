@@ -30,6 +30,15 @@ namespace Osmalyzer
             string data = File.ReadAllText(cacheBasePath + DataFileIdentifier + @".xml");
 
             
+            if (data.StartsWith("<items>")) // XML header missing
+                data = @"<?xml version=""1.0"" encoding=""UTF-8""?>" + data;
+
+
+            // Fix invalid (as far as .NET XML is concerned) lat/lon values (0 will be skipped later)
+            data = data.Replace("<latitude>null</latitude>", "<latitude>0</latitude>");
+            data = data.Replace("<longitude>null</longitude>", "<longitude>0</longitude>");
+            
+            
             using StringReader reader = new StringReader(data);
             
             XmlSerializer serializer = new XmlSerializer(typeof(RawItems));

@@ -38,8 +38,8 @@ namespace Osmalyzer
                 //new RigaDrinkingWaterAnalyzer(),
                 //new PublicTransportAccessAnalyzer(),
                 //new HighwaySpeedLimitAnalyzer(),
-                new GlikaOaksAnalyzer(),
-                //new BankLocationAnalyzer()
+                //new GlikaOaksAnalyzer(),
+                new BankLocationAnalyzer()
             };
 #endif
 

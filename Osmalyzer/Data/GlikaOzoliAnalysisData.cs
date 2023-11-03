@@ -118,7 +118,8 @@ namespace Osmalyzer
                 "FBC02D" => "autumn 2022",
                 "006064" => "spring 2022",
                 "7CB342" => "spring 2023",
-                _        => throw new Exception()
+                "C2185B" => "summer+ 2023?",
+                _        => throw new NotImplementedException("Unknown color code")
             };
         }
     }

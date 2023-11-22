@@ -74,7 +74,12 @@ namespace Osmalyzer
 
             // Road on map but not in law
 
-            report.AddGroup(ReportGroup.MappedRoadsNotFoundInLaw, "Roads  on the map, but not in the law", "There shouldn't be any roads with LVC route codes on the map if they aren't in the law.", "All roads on the map are present in the law.");
+            report.AddGroup(
+                ReportGroup.MappedRoadsNotFoundInLaw, 
+                "Roads on the map, but not in the law", 
+                "There shouldn't be any roads with LVC route codes on the map if they aren't in the law. It is possible the law hasn't yet been updated for newly-assigned codes.", 
+                "All roads on the map are present in the law."
+            );
 
             foreach (OsmGroup osmGroup in roadsByRef.groups)
             {

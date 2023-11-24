@@ -1,18 +1,17 @@
 using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+[UsedImplicitly]
+public class LatsShopsAnalysisData : ShopListAnalysisData
 {
-    [UsedImplicitly]
-    public class LatsShopsAnalysisData : ShopListAnalysisData
-    {
-        public override string Name => "LaTS Shops";
+    public override string Name => "LaTS Shops";
 
         
-        protected override string DataFileIdentifier => "shops-lats";
+    protected override string DataFileIdentifier => "shops-lats";
 
 
-        public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
+    public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
 
-        public override string ShopListUrl => "https://www.latts.lv/lats-veikali";
-    }
+    public override string ShopListUrl => "https://www.latts.lv/lats-veikali";
 }

@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public static class TagUtils
 {
-    public static class TagUtils
+    public static List<string> SplitValue(string value)
     {
-        public static List<string> SplitValue(string value)
-        {
-            string[] splits = value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        string[] splits = value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-            return splits.Select(s => s.Trim()).ToList();
+        return splits.Select(s => s.Trim()).ToList();
 
-            // todo: remove/detect duplicates
-        }
+        // todo: remove/detect duplicates
     }
 }

@@ -2,38 +2,37 @@
 using JetBrains.Annotations;
 using OsmSharp;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public class OsmNode : OsmElement
 {
-    public class OsmNode : OsmElement
+    public override OsmElementType ElementType => OsmElementType.Node;
+
+    public override string OsmViewUrl => "https://www.openstreetmap.org/node/" + Id;
+
+    [PublicAPI]
+    public readonly OsmCoord coord;
+    [PublicAPI]
+    public IReadOnlyList<OsmNode>? Ways => ways?.AsReadOnly();
+
+
+    internal List<OsmNode>? ways;
+
+
+    internal OsmNode(OsmGeo rawElement)
+        : base(rawElement)
     {
-        public override OsmElementType ElementType => OsmElementType.Node;
+        Node rawNode = (Node)rawElement;
 
-        public override string OsmViewUrl => "https://www.openstreetmap.org/node/" + Id;
-
-        [PublicAPI]
-        public readonly OsmCoord coord;
-        [PublicAPI]
-        public IReadOnlyList<OsmNode>? Ways => ways?.AsReadOnly();
-
-
-        internal List<OsmNode>? ways;
-
-
-        internal OsmNode(OsmGeo rawElement)
-            : base(rawElement)
-        {
-            Node rawNode = (Node)rawElement;
-
-            coord = new OsmCoord(
-                rawNode.Latitude!.Value,
-                rawNode.Longitude!.Value
-            );
-        }
+        coord = new OsmCoord(
+            rawNode.Latitude!.Value,
+            rawNode.Longitude!.Value
+        );
+    }
         
         
-        public override OsmCoord GetAverageCoord()
-        {
-            return coord;
-        }
+    public override OsmCoord GetAverageCoord()
+    {
+        return coord;
     }
 }

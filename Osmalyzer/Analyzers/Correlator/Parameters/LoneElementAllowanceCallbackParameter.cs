@@ -1,15 +1,14 @@
 ﻿using System;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public class LoneElementAllowanceCallbackParameter : CorrelatorParamater
 {
-    public class LoneElementAllowanceCallbackParameter : CorrelatorParamater
-    {
-        public Func<OsmElement, bool> AllowanceCallback { get; }
+    public Func<OsmElement, bool> AllowanceCallback { get; }
         
 
-        public LoneElementAllowanceCallbackParameter(Func<OsmElement, bool> allowanceCallback)
-        {
-            AllowanceCallback = allowanceCallback;
-        }
+    public LoneElementAllowanceCallbackParameter(Func<OsmElement, bool> allowanceCallback)
+    {
+        AllowanceCallback = allowanceCallback;
     }
 }

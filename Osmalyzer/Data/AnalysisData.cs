@@ -3,128 +3,127 @@ using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public abstract class AnalysisData
 {
-    public abstract class AnalysisData
+    public const string cacheBasePath = "cache/";
+        
+    public const string cacheRevisionFilePath = cacheBasePath + "cache-v2.txt"; // just has to be unique to previous one(s)
+        
+
+    public abstract string Name { get; }
+    // todo: page name not from this - some sort of internal id
+
+    public DateTime? DataDate => _dataDate;
+        
+    public DataRetrievalStatus RetrievalStatus { get; private set; }
+
+        
+    /// <summary>
+    /// Unique short ID used for file names
+    /// </summary>
+    protected abstract string DataFileIdentifier { get; }
+
+
+    private DateTime? _dataDate;
+
+
+    public void Retrieve()
     {
-        public const string cacheBasePath = "cache/";
-        
-        public const string cacheRevisionFilePath = cacheBasePath + "cache-v2.txt"; // just has to be unique to previous one(s)
-        
-
-        public abstract string Name { get; }
-        // todo: page name not from this - some sort of internal id
-
-        public DateTime? DataDate => _dataDate;
-        
-        public DataRetrievalStatus RetrievalStatus { get; private set; }
-
-        
-        /// <summary>
-        /// Unique short ID used for file names
-        /// </summary>
-        protected abstract string DataFileIdentifier { get; }
-
-
-        private DateTime? _dataDate;
-
-
-        public void Retrieve()
+        try
         {
-            try
+            if (this is ICachableAnalysisData cachableAnalysisData)
             {
-                if (this is ICachableAnalysisData cachableAnalysisData)
+                _dataDate = GetDataDateFromMetadataFile();
+
+                if (_dataDate != null)
                 {
-                    _dataDate = GetDataDateFromMetadataFile();
+                    Console.WriteLine("Getting cache date...");
+                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
 
-                    if (_dataDate != null)
+                    if (DataDate < newDataDate)
                     {
-                        Console.WriteLine("Getting cache date...");
-                        DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
-
-                        if (DataDate < newDataDate)
-                        {
-                            Console.WriteLine("Downloading (cache out of date)...");
-                            Download();
-                        }
-                        else
-                        {
-                            Console.WriteLine("Using cached files.");
-                        }
-
-                        StoreDataDate(newDataDate);
+                        Console.WriteLine("Downloading (cache out of date)...");
+                        Download();
                     }
                     else
                     {
-                        Console.WriteLine("Getting cache date...");
-                        DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
-
-                        Console.WriteLine("Downloading (not yet cached)...");
-                        Download();
-                        
-                        StoreDataDate(newDataDate);
+                        Console.WriteLine("Using cached files.");
                     }
+
+                    StoreDataDate(newDataDate);
                 }
                 else
                 {
-                    Console.WriteLine("Downloading (no cache)...");
+                    Console.WriteLine("Getting cache date...");
+                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+
+                    Console.WriteLine("Downloading (not yet cached)...");
                     Download();
+                        
+                    StoreDataDate(newDataDate);
                 }
             }
-#if !REMOTE_EXECUTION
-            catch (Exception e)
-#else
-            catch (Exception)
-#endif
+            else
             {
-                Console.WriteLine("Failed with exception!");
+                Console.WriteLine("Downloading (no cache)...");
+                Download();
+            }
+        }
+#if !REMOTE_EXECUTION
+        catch (Exception e)
+#else
+        catch (Exception)
+#endif
+        {
+            Console.WriteLine("Failed with exception!");
 
 #if !REMOTE_EXECUTION
-                Debug.WriteLine(e);
+            Debug.WriteLine(e);
 #endif
 
-                RetrievalStatus = DataRetrievalStatus.Fail;
-                return;
-            }
-
-            RetrievalStatus = DataRetrievalStatus.Ok;
+            RetrievalStatus = DataRetrievalStatus.Fail;
+            return;
         }
+
+        RetrievalStatus = DataRetrievalStatus.Ok;
+    }
 
         
-        protected abstract void Download();
+    protected abstract void Download();
 
 
-        private DateTime? GetDataDateFromMetadataFile()
-        {
-            string cachedDateFileName = CachedDateFileName();
-            
-            if (!File.Exists(cachedDateFileName))
-                return null;
-            
-            string dataDateString = File.ReadAllText(cachedDateFileName);
-            
-            return new DateTime(long.Parse(dataDateString));
-        }
-
-
-        private void StoreDataDate(DateTime newDate)
-        {
-            _dataDate = newDate;
-            
-            File.WriteAllText(CachedDateFileName(), _dataDate.Value.Ticks.ToString());
-        }
-
-        [Pure]
-        private string CachedDateFileName()
-        {
-            return cacheBasePath + DataFileIdentifier + "-cache-date.txt";
-        }
-    }
-    
-    
-    public enum DataRetrievalStatus
+    private DateTime? GetDataDateFromMetadataFile()
     {
-        Ok,
-        Fail
+        string cachedDateFileName = CachedDateFileName();
+            
+        if (!File.Exists(cachedDateFileName))
+            return null;
+            
+        string dataDateString = File.ReadAllText(cachedDateFileName);
+            
+        return new DateTime(long.Parse(dataDateString));
     }
+
+
+    private void StoreDataDate(DateTime newDate)
+    {
+        _dataDate = newDate;
+            
+        File.WriteAllText(CachedDateFileName(), _dataDate.Value.Ticks.ToString());
+    }
+
+    [Pure]
+    private string CachedDateFileName()
+    {
+        return cacheBasePath + DataFileIdentifier + "-cache-date.txt";
+    }
+}
+    
+    
+public enum DataRetrievalStatus
+{
+    Ok,
+    Fail
 }

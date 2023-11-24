@@ -2,83 +2,82 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public class Report
 {
-    public class Report
+    public string Name { get; }
+        
+    public string Description { get; }
+
+    public string? DataDates { get; }
+
+        
+    public bool NeedMap => _groups.Any(g => g.NeedMap);
+
+
+    private readonly List<ReportGroup> _groups = new List<ReportGroup>();
+
+
+    public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
     {
-        public string Name { get; }
-        
-        public string Description { get; }
+        Name = analyzer.Name;
+        Description = analyzer.Description;
 
-        public string? DataDates { get; }
+        List<ICachableAnalysisData> datasWithDate = datas.OfType<ICachableAnalysisData>().ToList();
 
-        
-        public bool NeedMap => _groups.Any(g => g.NeedMap);
-
-
-        private readonly List<ReportGroup> _groups = new List<ReportGroup>();
+        if (datasWithDate.Count > 0)
+            DataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity ? ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + ((AnalysisData)d).Name + ")" : "")));
+    }
 
 
-        public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
+    public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null)
+    {
+        ReportGroup newGroup = new ReportGroup(id, title);
+            
+        _groups.Add(newGroup);
+            
+        if (descriptionEntry != null)
+            newGroup.AddEntry(new DescriptionReportEntry(descriptionEntry));
+            
+        if (placeholderEntry != null)
+            newGroup.AddEntry(new PlaceholderReportEntry(placeholderEntry));
+    }
+
+    public void AddEntry(object groupId, ReportEntry newEntry)
+    {
+        if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
+            
+            
+        ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
+
+        group.AddEntry(newEntry);
+    }
+
+    public List<ReportGroup> CollectGroups()
+    {
+        return _groups.OrderBy(g => GetSortOrder(g.ID)).ToList();
+
+            
+        static int GetSortOrder(object value)
         {
-            Name = analyzer.Name;
-            Description = analyzer.Description;
-
-            List<ICachableAnalysisData> datasWithDate = datas.OfType<ICachableAnalysisData>().ToList();
-
-            if (datasWithDate.Count > 0)
-                DataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity ? ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + ((AnalysisData)d).Name + ")" : "")));
-        }
-
-
-        public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null)
-        {
-            ReportGroup newGroup = new ReportGroup(id, title);
-            
-            _groups.Add(newGroup);
-            
-            if (descriptionEntry != null)
-                newGroup.AddEntry(new DescriptionReportEntry(descriptionEntry));
-            
-            if (placeholderEntry != null)
-                newGroup.AddEntry(new PlaceholderReportEntry(placeholderEntry));
-        }
-
-        public void AddEntry(object groupId, ReportEntry newEntry)
-        {
-            if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
-            
-            
-            ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
-
-            group.AddEntry(newEntry);
-        }
-
-        public List<ReportGroup> CollectGroups()
-        {
-            return _groups.OrderBy(g => GetSortOrder(g.ID)).ToList();
-
-            
-            static int GetSortOrder(object value)
-            {
-                if (value is int pureValue)
-                    return pureValue;
+            if (value is int pureValue)
+                return pureValue;
                 
-                if (value.GetType().IsEnum)
-                    return (int)value;
+            if (value.GetType().IsEnum)
+                return (int)value;
 
-                return 0; // stays in the "middle"
-            }
+            return 0; // stays in the "middle"
         }
+    }
 
-        public void CancelEntries(object groupId, ReportEntryContext context)
-        {
-            if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
+    public void CancelEntries(object groupId, ReportEntryContext context)
+    {
+        if (_groups.All(g => !Equals(g.ID, groupId))) throw new InvalidOperationException("Group \"" + groupId + "\" has not been created!");
 
             
-            ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
+        ReportGroup group = _groups.First(g => Equals(g.ID, groupId));
 
-            group.CancelEntries(context);
-        }
+        group.CancelEntries(context);
     }
 }

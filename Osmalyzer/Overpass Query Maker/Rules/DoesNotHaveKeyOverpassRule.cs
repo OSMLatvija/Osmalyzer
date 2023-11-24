@@ -1,12 +1,11 @@
-﻿namespace Osmalyzer
-{
-    public class DoesNotHaveKeyOverpassRule : OverpassRule
-    {
-        public string Key { get; }
+﻿namespace Osmalyzer;
 
-        public DoesNotHaveKeyOverpassRule(string key)
-        {
-            Key = key;
-        }
+public class DoesNotHaveKeyOverpassRule : OverpassRule
+{
+    public string Key { get; }
+
+    public DoesNotHaveKeyOverpassRule(string key)
+    {
+        Key = key;
     }
 }

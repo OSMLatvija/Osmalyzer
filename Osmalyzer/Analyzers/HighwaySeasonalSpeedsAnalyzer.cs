@@ -4,121 +4,120 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+[UsedImplicitly]
+public class HighwaySeasonalSpeedsAnalyzer : Analyzer
 {
-    [UsedImplicitly]
-    public class HighwaySeasonalSpeedsAnalyzer : Analyzer
-    {
-        public override string Name => "Highway Seasonal Speeds";
+    public override string Name => "Highway Seasonal Speeds";
 
-        public override string Description => "This report finds different values for highway seasonal speeds, that is, highways that have higher summer speed limits.";
+    public override string Description => "This report finds different values for highway seasonal speeds, that is, highways that have higher summer speed limits.";
 
 
-        public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 
         
-        public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
-        {
-            // Load OSM data
+    public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
+    {
+        // Load OSM data
 
-            OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
 
-            OsmMasterData osmMasterData = osmData.MasterData;
+        OsmMasterData osmMasterData = osmData.MasterData;
             
-            OsmDataExtract speedLimitedRoads = osmMasterData.Filter(
-                new IsWay(),
-                new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service"),
-                new HasKey("maxspeed"),
-                new HasKey("maxspeed:conditional")
-            );
+        OsmDataExtract speedLimitedRoads = osmMasterData.Filter(
+            new IsWay(),
+            new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service"),
+            new HasKey("maxspeed"),
+            new HasKey("maxspeed:conditional")
+        );
             
-            // Start report file
+        // Start report file
             
-            report.AddGroup(ReportGroup.Main, "Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
+        report.AddGroup(ReportGroup.Main, "Ways with maxspeed and maxspeed:conditional: " + speedLimitedRoads.Elements.Count);
 
-            // Process
+        // Process
             
-            List<(int regular, int conditional)> limits = new List<(int regular, int conditional)>(); 
+        List<(int regular, int conditional)> limits = new List<(int regular, int conditional)>(); 
                 
-            foreach (OsmElement way in speedLimitedRoads.Elements)
+        foreach (OsmElement way in speedLimitedRoads.Elements)
+        {
+            string maxspeedStr = way.GetValue("maxspeed")!;
+
+            if (int.TryParse(maxspeedStr, out int maxspeed))
             {
-                string maxspeedStr = way.GetValue("maxspeed")!;
+                string maxspeedConditionalStr = way.GetValue("maxspeed:conditional")!;
 
-                if (int.TryParse(maxspeedStr, out int maxspeed))
+                Match match = Regex.Match(maxspeedConditionalStr, @"([0-9]+)\s*@\s*\(May 1\s*-\s*Oct 1\)");
+
+                if (match.Success)
                 {
-                    string maxspeedConditionalStr = way.GetValue("maxspeed:conditional")!;
-
-                    Match match = Regex.Match(maxspeedConditionalStr, @"([0-9]+)\s*@\s*\(May 1\s*-\s*Oct 1\)");
-
-                    if (match.Success)
-                    {
-                        int maxspeedConditional = int.Parse(match.Groups[1].ToString());
+                    int maxspeedConditional = int.Parse(match.Groups[1].ToString());
                         
-                        if (!limits.Any(l => l.regular == maxspeed && l.conditional == maxspeedConditional))
-                            limits.Add((maxspeed, maxspeedConditional));
+                    if (!limits.Any(l => l.regular == maxspeed && l.conditional == maxspeedConditional))
+                        limits.Add((maxspeed, maxspeedConditional));
 
-                        if (maxspeed == maxspeedConditional)
-                        {
-                            OsmCoord coord = way.GetAverageCoord();
-
-                            report.AddEntry(
-                                ReportGroup.Main,
-                                new IssueReportEntry(
-                                    "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
-                                    coord
-                                )
-                            );
-                        }
-                    }
-                    else
+                    if (maxspeed == maxspeedConditional)
                     {
-                        if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
-                        {
-                            OsmCoord coord = way.GetAverageCoord();
+                        OsmCoord coord = way.GetAverageCoord();
 
-                            report.AddEntry(
-                                ReportGroup.Main,
-                                new GenericReportEntry(
-                                    "Max speed does not appear to be seasonal: " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
-                                    coord
-                                )
-                            );
-                        }
+                        report.AddEntry(
+                            ReportGroup.Main,
+                            new IssueReportEntry(
+                                "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
+                                coord
+                            )
+                        );
                     }
                 }
                 else
                 {
-                    OsmCoord coord = way.GetAverageCoord();
+                    if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
+                    {
+                        OsmCoord coord = way.GetAverageCoord();
 
-                    report.AddEntry(
-                        ReportGroup.Main,
-                        new GenericReportEntry(
-                            "Maxspeed not recognized: " + maxspeedStr + " on " + way.OsmViewUrl,
-                            coord
-                        )
-                    );
+                        report.AddEntry(
+                            ReportGroup.Main,
+                            new GenericReportEntry(
+                                "Max speed does not appear to be seasonal: " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
+                                coord
+                            )
+                        );
+                    }
                 }
             }
-
-            limits.Sort();
-            
-            report.AddGroup(ReportGroup.Combos, "Combos found");
-
-            foreach ((int regular, int conditional) in limits)
+            else
             {
+                OsmCoord coord = way.GetAverageCoord();
+
                 report.AddEntry(
-                    ReportGroup.Combos,
+                    ReportGroup.Main,
                     new GenericReportEntry(
-                        "Conditional limit " + conditional + " for regular limit " + regular
+                        "Maxspeed not recognized: " + maxspeedStr + " on " + way.OsmViewUrl,
+                        coord
                     )
                 );
             }
         }
-        
-        private enum ReportGroup
+
+        limits.Sort();
+            
+        report.AddGroup(ReportGroup.Combos, "Combos found");
+
+        foreach ((int regular, int conditional) in limits)
         {
-            Main,
-            Combos
+            report.AddEntry(
+                ReportGroup.Combos,
+                new GenericReportEntry(
+                    "Conditional limit " + conditional + " for regular limit " + regular
+                )
+            );
         }
+    }
+        
+    private enum ReportGroup
+    {
+        Main,
+        Combos
     }
 }

@@ -1,18 +1,17 @@
-﻿namespace Osmalyzer
+﻿namespace Osmalyzer;
+
+public class SortEntryDesc : EntrySortingRule
 {
-    public class SortEntryDesc : EntrySortingRule
+    public int Value { get; }
+
+
+    public SortEntryDesc(int value)
     {
-        public int Value { get; }
-
-
-        public SortEntryDesc(int value)
-        {
-            Value = value;
-        }
+        Value = value;
+    }
         
-        public SortEntryDesc(object value)
-        {
-            Value = (int)value; // we will fail of course if not int or castable to int, but that's by design
-        }
+    public SortEntryDesc(object value)
+    {
+        Value = (int)value; // we will fail of course if not int or castable to int, but that's by design
     }
 }

@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public class CorrelatorReport<T> where T : ICorrelatorItem
 {
-    public class CorrelatorReport<T> where T : ICorrelatorItem
-    {
-        public Dictionary<OsmElement, T> MatchedElements { get; }
+    public Dictionary<OsmElement, T> MatchedElements { get; }
 
         
-        public CorrelatorReport(Dictionary<OsmElement, T> matchedElements)
-        {
-            MatchedElements = matchedElements;
-        }
+    public CorrelatorReport(Dictionary<OsmElement, T> matchedElements)
+    {
+        MatchedElements = matchedElements;
     }
 }

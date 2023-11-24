@@ -1,7 +1,6 @@
-﻿namespace Osmalyzer
+﻿namespace Osmalyzer;
+
+public interface IPreparableAnalysisData
 {
-    public interface IPreparableAnalysisData
-    {
-        void Prepare();
-    }
+    void Prepare();
 }

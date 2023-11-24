@@ -3,59 +3,58 @@ using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public class PublicTransportServices
 {
-    public class PublicTransportServices
+    public IEnumerable<PublicTransportService> Services => _services.Values.AsEnumerable();
+
+        
+    private readonly Dictionary<string, PublicTransportService> _services;
+
+        
+    public PublicTransportServices(string dataFileName)
     {
-        public IEnumerable<PublicTransportService> Services => _services.Values.AsEnumerable();
+        _services = new Dictionary<string, PublicTransportService>();
 
-        
-        private readonly Dictionary<string, PublicTransportService> _services;
+        string[] lines = File.ReadAllLines(dataFileName);
 
-        
-        public PublicTransportServices(string dataFileName)
+        for (int i = 0; i < lines.Length; i++)
         {
-            _services = new Dictionary<string, PublicTransportService>();
-
-            string[] lines = File.ReadAllLines(dataFileName);
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (i == 0) // header row
-                    continue;
+            if (i == 0) // header row
+                continue;
             
-                string line = lines[i];
-                // service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
-                // 24837,0,0,0,0,0,1,1,20230415,20240401
+            string line = lines[i];
+            // service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+            // 24837,0,0,0,0,0,1,1,20230415,20240401
 
-                List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
+            List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
 
-                // service_id - 24837
-                // monday - 0
-                // tuesday - 0
-                // wednesday - 0
-                // thursday - 0
-                // friday - 0
-                // saturday - 1
-                // sunday - 1
-                // start_date - 20230415
-                // end_date - 20240401
+            // service_id - 24837
+            // monday - 0
+            // tuesday - 0
+            // wednesday - 0
+            // thursday - 0
+            // friday - 0
+            // saturday - 1
+            // sunday - 1
+            // start_date - 20230415
+            // end_date - 20240401
 
-                string serviceId = segments[0];
+            string serviceId = segments[0];
 
-                PublicTransportService service = new PublicTransportService(serviceId);
-                _services.Add(service.Id, service);
-            }
+            PublicTransportService service = new PublicTransportService(serviceId);
+            _services.Add(service.Id, service);
         }
+    }
 
         
-        [Pure]
-        public PublicTransportService? GetService(string id)
-        {
-            if (_services.TryGetValue(id, out PublicTransportService? s))
-                return s;
+    [Pure]
+    public PublicTransportService? GetService(string id)
+    {
+        if (_services.TryGetValue(id, out PublicTransportService? s))
+            return s;
             
-            return null;
-        }
+        return null;
     }
 }

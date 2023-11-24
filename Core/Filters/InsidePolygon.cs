@@ -1,28 +1,27 @@
-﻿namespace Osmalyzer
+﻿namespace Osmalyzer;
+
+public class InsidePolygon : OsmFilter
 {
-    public class InsidePolygon : OsmFilter
-    {
-        public override bool ForNodesOnly => false;
-        public override bool ForWaysOnly => false;
-        public override bool ForRelationsOnly => false;
-        public override bool TaggedOnly => false;
+    public override bool ForNodesOnly => false;
+    public override bool ForWaysOnly => false;
+    public override bool ForRelationsOnly => false;
+    public override bool TaggedOnly => false;
 
 
-        private readonly OsmPolygon _polygon;
+    private readonly OsmPolygon _polygon;
         
-        private readonly OsmPolygon.RelationInclusionCheck _relationInclusionCheck;
+    private readonly OsmPolygon.RelationInclusionCheck _relationInclusionCheck;
 
 
-        public InsidePolygon(OsmPolygon polygon, OsmPolygon.RelationInclusionCheck relationInclusionCheck)
-        {
-            _polygon = polygon;
-            _relationInclusionCheck = relationInclusionCheck;
-        }
+    public InsidePolygon(OsmPolygon polygon, OsmPolygon.RelationInclusionCheck relationInclusionCheck)
+    {
+        _polygon = polygon;
+        _relationInclusionCheck = relationInclusionCheck;
+    }
 
 
-        internal override bool Matches(OsmElement element)
-        {
-            return _polygon.ContainsElement(element, _relationInclusionCheck);
-        }
+    internal override bool Matches(OsmElement element)
+    {
+        return _polygon.ContainsElement(element, _relationInclusionCheck);
     }
 }

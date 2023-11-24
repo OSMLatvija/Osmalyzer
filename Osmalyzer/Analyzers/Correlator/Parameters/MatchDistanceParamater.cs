@@ -1,13 +1,12 @@
-﻿namespace Osmalyzer
+﻿namespace Osmalyzer;
+
+public class MatchDistanceParamater : CorrelatorParamater
 {
-    public class MatchDistanceParamater : CorrelatorParamater
-    {
-        public int Distance { get; }
+    public int Distance { get; }
 
         
-        public MatchDistanceParamater(int distance)
-        {
-            Distance = distance;
-        }
+    public MatchDistanceParamater(int distance)
+    {
+        Distance = distance;
     }
 }

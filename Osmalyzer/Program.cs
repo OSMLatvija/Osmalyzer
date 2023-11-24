@@ -2,21 +2,20 @@
 using System.IO;
 using System.Reflection;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public static class Program
 {
-    public static class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
 #if REMOTE_EXECUTION
-            string executionPoint = "Remote";
+        string executionPoint = "Remote";
 #else
-            string executionPoint = "Local";
+        string executionPoint = "Local";
 #endif
-            Console.WriteLine(executionPoint + " execution (running from \"" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\", current path at \"" + Directory.GetCurrentDirectory() + "\")");
+        Console.WriteLine(executionPoint + " execution (running from \"" + Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\", current path at \"" + Directory.GetCurrentDirectory() + "\")");
 
 
-            Runner.Run();
-        }
+        Runner.Run();
     }
 }

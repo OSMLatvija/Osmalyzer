@@ -1,25 +1,24 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+/// <summary>
+/// A partial (filtered or trimmed) list of OSM data coming from a <see cref="OsmMasterData"/>.
+/// </summary>
+public class OsmDataExtract : OsmData
 {
-    /// <summary>
-    /// A partial (filtered or trimmed) list of OSM data coming from a <see cref="OsmMasterData"/>.
-    /// </summary>
-    public class OsmDataExtract : OsmData
+    [PublicAPI]
+    public OsmMasterData FullData { get; }
+
+
+    internal OsmDataExtract(OsmMasterData data, List<OsmElement> elements)
     {
-        [PublicAPI]
-        public OsmMasterData FullData { get; }
+        FullData = data;
 
+        CreateElements(null, null, null, null);
 
-        internal OsmDataExtract(OsmMasterData data, List<OsmElement> elements)
-        {
-            FullData = data;
-
-            CreateElements(null, null, null, null);
-
-            foreach (OsmElement element in elements)
-                AddElement(element);
-        }
+        foreach (OsmElement element in elements)
+            AddElement(element);
     }
 }

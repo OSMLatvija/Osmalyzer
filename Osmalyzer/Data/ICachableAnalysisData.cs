@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public interface ICachableAnalysisData
 {
-    public interface ICachableAnalysisData
-    {
-        bool DataDateHasDayGranularity { get; }
+    bool DataDateHasDayGranularity { get; }
 
         
-        DateTime RetrieveDataDate();
-    }
+    DateTime RetrieveDataDate();
 }

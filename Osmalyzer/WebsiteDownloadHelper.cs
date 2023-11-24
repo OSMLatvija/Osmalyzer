@@ -6,54 +6,53 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public static class WebsiteDownloadHelper
 {
-    public static class WebsiteDownloadHelper
+    private static readonly List<(string url, string content)> _cachedWebsites = new List<(string url, string content)>();
+        
+        
+    [MustUseReturnValue]
+    public static string Read(string url, bool canUseCache)
     {
-        private static readonly List<(string url, string content)> _cachedWebsites = new List<(string url, string content)>();
-        
-        
-        [MustUseReturnValue]
-        public static string Read(string url, bool canUseCache)
+        if (canUseCache)
         {
-            if (canUseCache)
-            {
-                (string _, string cachedContent) = _cachedWebsites.FirstOrDefault(cw => cw.url == url);
+            (string _, string cachedContent) = _cachedWebsites.FirstOrDefault(cw => cw.url == url);
 
-                if (cachedContent != null)
-                    return cachedContent;
-            }
+            if (cachedContent != null)
+                return cachedContent;
+        }
             
-            using HttpClient client = new HttpClient();
-            using HttpResponseMessage response = client.GetAsync(url).Result;
-            using HttpContent content = response.Content;
-            string result = content.ReadAsStringAsync().Result;
+        using HttpClient client = new HttpClient();
+        using HttpResponseMessage response = client.GetAsync(url).Result;
+        using HttpContent content = response.Content;
+        string result = content.ReadAsStringAsync().Result;
 
-            if (canUseCache)
-                _cachedWebsites.Add((url, result));
+        if (canUseCache)
+            _cachedWebsites.Add((url, result));
 
-            return result;
-        }
+        return result;
+    }
 
-        public static void Download(string url, string fileName)
-        {
-            using HttpClient client = new HttpClient();
-            using Task<Stream> stream = client.GetStreamAsync(url);
-            using FileStream fileStream = new FileStream(fileName, FileMode.Create);
-            stream.Result.CopyTo(fileStream);
-        }
+    public static void Download(string url, string fileName)
+    {
+        using HttpClient client = new HttpClient();
+        using Task<Stream> stream = client.GetStreamAsync(url);
+        using FileStream fileStream = new FileStream(fileName, FileMode.Create);
+        stream.Result.CopyTo(fileStream);
+    }
 
-        public static DateTime? ReadHeaderDate(string url)
-        {
-            using HttpClient client = new HttpClient();
-            using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, url)).Result;
+    public static DateTime? ReadHeaderDate(string url)
+    {
+        using HttpClient client = new HttpClient();
+        using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, url)).Result;
 
-            DateTimeOffset? lastModifedOffset = response.Content.Headers.LastModified;
+        DateTimeOffset? lastModifedOffset = response.Content.Headers.LastModified;
 
-            if (lastModifedOffset == null)
-                return null;
+        if (lastModifedOffset == null)
+            return null;
             
-            return lastModifedOffset.Value.UtcDateTime;
-        }
+        return lastModifedOffset.Value.UtcDateTime;
     }
 }

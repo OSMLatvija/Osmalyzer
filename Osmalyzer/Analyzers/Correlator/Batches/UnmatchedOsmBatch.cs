@@ -1,6 +1,5 @@
-﻿namespace Osmalyzer
+﻿namespace Osmalyzer;
+
+public class UnmatchedOsmBatch : CorrelatorBatch
 {
-    public class UnmatchedOsmBatch : CorrelatorBatch
-    {
-    }
 }

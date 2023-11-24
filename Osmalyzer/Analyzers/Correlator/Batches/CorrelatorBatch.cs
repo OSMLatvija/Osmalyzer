@@ -1,8 +1,7 @@
 using System;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public abstract class CorrelatorBatch
 {
-    public abstract class CorrelatorBatch
-    {
-    }
 }

@@ -1,6 +1,5 @@
-﻿namespace Osmalyzer
+﻿namespace Osmalyzer;
+
+public abstract class CorrelatorParamater
 {
-    public abstract class CorrelatorParamater
-    {
-    }
 }

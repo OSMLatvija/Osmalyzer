@@ -1,22 +1,21 @@
 ﻿using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+[UsedImplicitly]
+public class LiepajasTransportsAnalysisData : GTFSAnalysisData
 {
-    [UsedImplicitly]
-    public class LiepajasTransportsAnalysisData : GTFSAnalysisData
-    {
-        public override string Name => "Liepajas Sabiedriskais Transports";
+    public override string Name => "Liepajas Sabiedriskais Transports";
 
-        public override bool DataDateHasDayGranularity => true; 
+    public override bool DataDateHasDayGranularity => true; 
 
-        protected override string DataFileIdentifier => "liepajas-transports";
+    protected override string DataFileIdentifier => "liepajas-transports";
 
         
-        protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
+    protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
 
-        public override string ExtractionFolder => "GTFS-LiepTra";
+    public override string ExtractionFolder => "GTFS-LiepTra";
         
-        protected override string DataURL => @"http://www.marsruti.lv/liepaja/liepaja/gtfs.zip";
-        // todo: where could I get a direct link from them? 
-    }
+    protected override string DataURL => @"http://www.marsruti.lv/liepaja/liepaja/gtfs.zip";
+    // todo: where could I get a direct link from them? 
 }

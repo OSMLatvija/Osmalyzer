@@ -1,16 +1,15 @@
 using JetBrains.Annotations;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+/// <summary>
+/// The non-OSM data item
+/// </summary>
+public interface ICorrelatorItem
 {
-    /// <summary>
-    /// The non-OSM data item
-    /// </summary>
-    public interface ICorrelatorItem
-    {
-        public OsmCoord Coord { get; }
+    public OsmCoord Coord { get; }
 
 
-        [Pure]
-        public string ReportString();
-    }
+    [Pure]
+    public string ReportString();
 }

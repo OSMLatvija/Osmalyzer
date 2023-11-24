@@ -1,7 +1,6 @@
-﻿namespace Osmalyzer
+﻿namespace Osmalyzer;
+
+public abstract class OverpassRule
 {
-    public abstract class OverpassRule
-    {
         
-    }
 }

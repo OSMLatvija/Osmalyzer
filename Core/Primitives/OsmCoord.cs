@@ -1,64 +1,63 @@
 ﻿using System;
 
-namespace Osmalyzer
+namespace Osmalyzer;
+
+public struct OsmCoord : IEquatable<OsmCoord>
 {
-    public struct OsmCoord : IEquatable<OsmCoord>
+    public readonly double lat;
+        
+    public readonly double lon;
+
+
+    public string OsmUrl => @"https://www.openstreetmap.org/#map=19/" + lat.ToString("F5") + @"/" + lon.ToString("F5");
+
+        
+    public OsmCoord(double lat, double lon)
     {
-        public readonly double lat;
+        this.lat = lat;
+        this.lon = lon;
+    }
+
+
+    #region ==
         
-        public readonly double lon;
+    public override bool Equals(object? obj)
+    {
+        return obj is OsmCoord other && Equals(other);
+    }
 
-
-        public string OsmUrl => @"https://www.openstreetmap.org/#map=19/" + lat.ToString("F5") + @"/" + lon.ToString("F5");
-
-        
-        public OsmCoord(double lat, double lon)
-        {
-            this.lat = lat;
-            this.lon = lon;
-        }
-
-
-        #region ==
-        
-        public override bool Equals(object? obj)
-        {
-            return obj is OsmCoord other && Equals(other);
-        }
-
-        public bool Equals(OsmCoord other)
-        {
-            const double epsilon = 0.00001; // about a meter
+    public bool Equals(OsmCoord other)
+    {
+        const double epsilon = 0.00001; // about a meter
             
-            return 
-                Math.Abs(lat - other.lat) < epsilon && 
-                Math.Abs(lon - other.lon) < epsilon;
-        }
+        return 
+            Math.Abs(lat - other.lat) < epsilon && 
+            Math.Abs(lon - other.lon) < epsilon;
+    }
 
-        public override int GetHashCode()
+    public override int GetHashCode()
+    {
+        unchecked
         {
-            unchecked
-            {
-                return (lat.GetHashCode() * 397) ^ lon.GetHashCode();
-            }
+            return (lat.GetHashCode() * 397) ^ lon.GetHashCode();
         }
+    }
 
-        public static bool operator ==(OsmCoord left, OsmCoord right)
-        {
-            return left.Equals(right);
-        }
+    public static bool operator ==(OsmCoord left, OsmCoord right)
+    {
+        return left.Equals(right);
+    }
 
-        public static bool operator !=(OsmCoord left, OsmCoord right)
-        {
-            return !left.Equals(right);
-        }
+    public static bool operator !=(OsmCoord left, OsmCoord right)
+    {
+        return !left.Equals(right);
+    }
         
-        #endregion
+    #endregion
 
 
-        public override string ToString()
-        {
-            return lat.ToString("F5") + @"/" + lon.ToString("F5");
-        }
+    public override string ToString()
+    {
+        return lat.ToString("F5") + @"/" + lon.ToString("F5");
     }
 }

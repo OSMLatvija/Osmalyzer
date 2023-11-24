@@ -23,9 +23,9 @@ public class MapPointReportEntry : ReportEntry
     public void Append(MapPointReportEntry otherPoint)
     {
         if (_pointCount == 1)
-            Text = "<b>#1</b> - " + Text;
+            Text = "#1: " + Text;
                 
-        Text += "<b>#" + (_pointCount + 1) + "</b> - " + Environment.NewLine + otherPoint;
+        Text += Environment.NewLine + "#" + (_pointCount + 1) + ": " + otherPoint.Text;
 
         _pointCount++;
     }

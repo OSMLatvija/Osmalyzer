@@ -44,6 +44,8 @@ namespace Osmalyzer
             OsmToDataItemQuickComparer<DrinkingWater> dataComparer = new OsmToDataItemQuickComparer<DrinkingWater>(
                 osmTaps,
                 rigaTapsStatic,
+                new MatchDistanceQuickCompareParamater(15),
+                new MatchFarDistanceQuickCompareParamater(75),
                 new UnmatchedOsmElementAllowedByItselfCallbackQuickCompareParameter(IsUnmatchedOsmElementAllowed));
             // Note that we don't have any condition to mismatch taps, we only expect riga taps in riga
 
@@ -58,8 +60,8 @@ namespace Osmalyzer
 
             QuickCompareReport<DrinkingWater> compareReport = dataComparer.Parse(
                 report,
-                new MatchedItemQuickComparerReportEntry(15),
-                new UnmatchedItemQuickComparerReportEntry(75),
+                new MatchedItemQuickComparerReportEntry(),
+                new UnmatchedItemQuickComparerReportEntry(),
                 new UnmatchedOsmQuickComparerReportEntry(),
                 new MatchedItemButFarQuickComparerReportEntry()
             );

@@ -8,13 +8,6 @@ namespace Osmalyzer
 
     public class MatchedItemQuickComparerReportEntry : QuickComparerReportEntry
     {
-        public double Distance { get; set; }
-
-        
-        public MatchedItemQuickComparerReportEntry(double distance)
-        {
-            Distance = distance;
-        }
     }
 
     public class MatchedItemButFarQuickComparerReportEntry : QuickComparerReportEntry
@@ -23,13 +16,6 @@ namespace Osmalyzer
 
     public class UnmatchedItemQuickComparerReportEntry : QuickComparerReportEntry
     {        
-        public double Distance { get; set; }
-
-        
-        public UnmatchedItemQuickComparerReportEntry(double distance)
-        {
-            Distance = distance;
-        }
     }
 
     public class UnmatchedOsmQuickComparerReportEntry : QuickComparerReportEntry

@@ -40,11 +40,12 @@ namespace Osmalyzer
             bool reportUnmatchedItem = entries.OfType<UnmatchedItemQuickComparerReportEntry>().Any();
             bool reportUnmatchedOsm = entries.OfType<UnmatchedOsmQuickComparerReportEntry>().Any();
 
+            // Gather (optional) parameters (or set defaults)
+            
+            double matchDistance = _paramaters.OfType<MatchDistanceQuickCompareParamater>().FirstOrDefault()?.Distance ?? 15;
+            double unmatchDistance = _paramaters.OfType<MatchFarDistanceQuickCompareParamater>().FirstOrDefault()?.FarDistance ?? 75;
             Func<T, OsmElement, bool>? matchCallback = _paramaters.OfType<MatchCallbackQuickCompareParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
             Func<OsmElement, bool>? unmatchedOsmElementAllowedByItselfCallback = _paramaters.OfType<UnmatchedOsmElementAllowedByItselfCallbackQuickCompareParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
-
-            double matchDistance = reportMatchedItem ? entries.OfType<MatchedItemQuickComparerReportEntry>().First().Distance : 0;
-            double unmatchDistance = reportUnmatchedItem ? entries.OfType<UnmatchedItemQuickComparerReportEntry>().First().Distance : matchDistance;
             
             // Prepare report groups
 

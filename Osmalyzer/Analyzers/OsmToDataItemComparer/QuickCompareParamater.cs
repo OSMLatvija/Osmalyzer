@@ -6,6 +6,28 @@ namespace Osmalyzer
     {
     }
 
+    public class MatchDistanceQuickCompareParamater : QuickCompareParamater
+    {
+        public int Distance { get; }
+
+        
+        public MatchDistanceQuickCompareParamater(int distance)
+        {
+            Distance = distance;
+        }
+    }
+
+    public class MatchFarDistanceQuickCompareParamater : QuickCompareParamater
+    {        
+        public int FarDistance { get; }
+
+        
+        public MatchFarDistanceQuickCompareParamater(int farDistance)
+        {
+            FarDistance = farDistance;
+        }
+    }
+
     public class MatchCallbackQuickCompareParameter<T> : QuickCompareParamater where T : IQuickComparerDataItem
     {
         public Func<T, OsmElement, bool> MatchCallback { get; }

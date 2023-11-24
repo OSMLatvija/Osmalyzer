@@ -37,6 +37,8 @@ namespace Osmalyzer
             OsmToDataItemQuickComparer<GlikaOak> dataComparer = new OsmToDataItemQuickComparer<GlikaOak>(
                 osmTrees,
                 oaks,
+                new MatchDistanceQuickCompareParamater(15),
+                new MatchFarDistanceQuickCompareParamater(75),
                 new MatchCallbackQuickCompareParameter<GlikaOak>(DoesOsmTreeMatchOak)
             );
         
@@ -50,8 +52,8 @@ namespace Osmalyzer
 
             dataComparer.Parse(
                 report,
-                new MatchedItemQuickComparerReportEntry(15),
-                new UnmatchedItemQuickComparerReportEntry(75),
+                new MatchedItemQuickComparerReportEntry(),
+                new UnmatchedItemQuickComparerReportEntry(),
                 new MatchedItemButFarQuickComparerReportEntry()
             );
             

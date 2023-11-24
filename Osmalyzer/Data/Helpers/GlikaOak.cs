@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer
 {
-    public class GlikaOak : IQuickComparerDataItem
+    public class GlikaOak : ICorrelatorItem
     {
         public OsmCoord Coord { get; }
 

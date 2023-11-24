@@ -2,7 +2,10 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
-    public interface IQuickComparerDataItem
+    /// <summary>
+    /// The non-OSM data item
+    /// </summary>
+    public interface ICorrelatorItem
     {
         public OsmCoord Coord { get; }
 

@@ -5,19 +5,23 @@ using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
-    public class OsmToDataItemQuickComparer<T> where T : IQuickComparerDataItem
+    /// <summary>
+    /// Match OSM elements to custom data items, such as coming from some source.
+    /// Reusable generic logic for locating and matching items on the map and finding common problems. 
+    /// </summary>
+    public class Correlator<T> where T : ICorrelatorItem
     {
         private readonly OsmDataExtract _osmElements;
         
         private readonly List<T> _dataItems;
         
-        private readonly QuickCompareParamater[] _paramaters;
+        private readonly CorrelatorParamater[] _paramaters;
 
 
-        public OsmToDataItemQuickComparer(
+        public Correlator(
             OsmDataExtract osmElements, 
             List<T> dataItems, 
-            params QuickCompareParamater[] paramaters)
+            params CorrelatorParamater[] paramaters)
         {
             if (osmElements == null) throw new ArgumentNullException(nameof(osmElements));
             if (dataItems == null) throw new ArgumentNullException(nameof(dataItems));
@@ -28,28 +32,28 @@ namespace Osmalyzer
         }
 
 
-        public QuickCompareReport<T> Parse(Report report, params QuickComparerReportEntry[] entries)
+        public CorrelatorReport<T> Parse(Report report, params CorrelatorBatch[] entries)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));
             if (entries == null) throw new ArgumentNullException(nameof(entries));
             
             // See what sort of filters we have and which matching logic we will need to do (and report)
             
-            bool reportMatchedItem = entries.OfType<MatchedItemQuickComparerReportEntry>().Any();
-            bool reportMatchedItemFar = entries.OfType<MatchedItemButFarQuickComparerReportEntry>().Any();
-            bool reportUnmatchedItem = entries.OfType<UnmatchedItemQuickComparerReportEntry>().Any();
-            bool reportUnmatchedOsm = entries.OfType<UnmatchedOsmQuickComparerReportEntry>().Any();
+            bool shouldReportMatchedItem = entries.OfType<MatchedItemCBatch>().Any();
+            bool shouldReportMatchedItemFar = entries.OfType<MatchedFarItemBatch>().Any();
+            bool shouldReportUnmatchedItem = entries.OfType<UnmatchedItemBatch>().Any();
+            bool shouldReportUnmatchedOsm = entries.OfType<UnmatchedOsmBatch>().Any();
 
             // Gather (optional) parameters (or set defaults)
             
-            double matchDistance = _paramaters.OfType<MatchDistanceQuickCompareParamater>().FirstOrDefault()?.Distance ?? 15;
-            double unmatchDistance = _paramaters.OfType<MatchFarDistanceQuickCompareParamater>().FirstOrDefault()?.FarDistance ?? 75;
-            Func<T, OsmElement, bool>? matchCallback = _paramaters.OfType<MatchCallbackQuickCompareParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
-            Func<OsmElement, bool>? unmatchedOsmElementAllowedByItselfCallback = _paramaters.OfType<UnmatchedOsmElementAllowedByItselfCallbackQuickCompareParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
+            double matchDistance = _paramaters.OfType<MatchDistanceParamater>().FirstOrDefault()?.Distance ?? 15;
+            double unmatchDistance = _paramaters.OfType<MatchFarDistanceParamater>().FirstOrDefault()?.FarDistance ?? 75;
+            Func<T, OsmElement, bool>? matchCallback = _paramaters.OfType<MatchCallbackParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
+            Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceCallbackParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
             
             // Prepare report groups
 
-            if (reportUnmatchedItem || reportUnmatchedOsm || reportMatchedItemFar)
+            if (shouldReportUnmatchedItem || shouldReportUnmatchedOsm || shouldReportMatchedItemFar)
             {
                 report.AddGroup(
                     ReportGroup.Unmatched,
@@ -59,7 +63,7 @@ namespace Osmalyzer
                 );
             }
 
-            if (reportMatchedItem)
+            if (shouldReportMatchedItem)
             {
                 report.AddGroup(
                     ReportGroup.MatchedOsm, 
@@ -78,7 +82,7 @@ namespace Osmalyzer
 
                 if (closestOsmElements.Count == 0)
                 {
-                    if (reportUnmatchedItem)
+                    if (shouldReportUnmatchedItem)
                     {
                         report.AddEntry(
                             ReportGroup.Unmatched,
@@ -103,7 +107,7 @@ namespace Osmalyzer
 
                         if (matchedOsmElementDistance > matchDistance)
                         {
-                            if (reportMatchedItemFar)
+                            if (shouldReportMatchedItemFar)
                             {
                                 report.AddEntry(
                                     ReportGroup.Unmatched,
@@ -119,7 +123,7 @@ namespace Osmalyzer
                             }
                         }
 
-                        if (reportMatchedItem)
+                        if (shouldReportMatchedItem)
                         {
                             report.AddEntry(
                                 ReportGroup.MatchedOsm,
@@ -141,12 +145,12 @@ namespace Osmalyzer
                     continue;
 
                 bool allowedByItself =
-                    unmatchedOsmElementAllowedByItselfCallback != null &&
-                    unmatchedOsmElementAllowedByItselfCallback(osmElement);
+                    loneElementAllowanceCallback != null &&
+                    loneElementAllowanceCallback(osmElement);
                 
                 if (!allowedByItself)
                 {
-                    if (reportUnmatchedOsm)
+                    if (shouldReportUnmatchedOsm)
                     {
                         report.AddEntry(
                             ReportGroup.Unmatched,
@@ -163,7 +167,7 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    if (reportMatchedItem)
+                    if (shouldReportMatchedItem)
                     {
                         report.AddEntry(
                             ReportGroup.MatchedOsm,
@@ -179,7 +183,7 @@ namespace Osmalyzer
             
             // Return a report about what we parsed and found
 
-            return new QuickCompareReport<T>(matchedElements);
+            return new CorrelatorReport<T>(matchedElements);
         }
 
         

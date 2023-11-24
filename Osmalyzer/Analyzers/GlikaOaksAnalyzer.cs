@@ -34,12 +34,12 @@ namespace Osmalyzer
             
             // Prepare data comparer/correlator
 
-            OsmToDataItemQuickComparer<GlikaOak> dataComparer = new OsmToDataItemQuickComparer<GlikaOak>(
+            Correlator<GlikaOak> dataComparer = new Correlator<GlikaOak>(
                 osmTrees,
                 oaks,
-                new MatchDistanceQuickCompareParamater(15),
-                new MatchFarDistanceQuickCompareParamater(75),
-                new MatchCallbackQuickCompareParameter<GlikaOak>(DoesOsmTreeMatchOak)
+                new MatchDistanceParamater(15),
+                new MatchFarDistanceParamater(75),
+                new MatchCallbackParameter<GlikaOak>(DoesOsmTreeMatchOak)
             );
         
             [Pure]
@@ -52,9 +52,9 @@ namespace Osmalyzer
 
             dataComparer.Parse(
                 report,
-                new MatchedItemQuickComparerReportEntry(),
-                new UnmatchedItemQuickComparerReportEntry(),
-                new MatchedItemButFarQuickComparerReportEntry()
+                new MatchedItemCBatch(),
+                new UnmatchedItemBatch(),
+                new MatchedFarItemBatch()
             );
             
             // todo: denomination

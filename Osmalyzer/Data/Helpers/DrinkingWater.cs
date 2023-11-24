@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer
 {
-    public class DrinkingWater : IQuickComparerDataItem
+    public class DrinkingWater : ICorrelatorItem
     {
         public string Name { get; }
         

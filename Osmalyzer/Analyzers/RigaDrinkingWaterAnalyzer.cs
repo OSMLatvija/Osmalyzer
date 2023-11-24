@@ -41,12 +41,12 @@ namespace Osmalyzer
             
             // Prepare data comparer/correlator
 
-            OsmToDataItemQuickComparer<DrinkingWater> dataComparer = new OsmToDataItemQuickComparer<DrinkingWater>(
+            Correlator<DrinkingWater> dataComparer = new Correlator<DrinkingWater>(
                 osmTaps,
                 rigaTapsStatic,
-                new MatchDistanceQuickCompareParamater(15),
-                new MatchFarDistanceQuickCompareParamater(75),
-                new UnmatchedOsmElementAllowedByItselfCallbackQuickCompareParameter(IsUnmatchedOsmElementAllowed));
+                new MatchDistanceParamater(15),
+                new MatchFarDistanceParamater(75),
+                new LoneElementAllowanceCallbackParameter(IsUnmatchedOsmElementAllowed));
             // Note that we don't have any condition to mismatch taps, we only expect riga taps in riga
 
             bool IsUnmatchedOsmElementAllowed(OsmElement element)
@@ -58,12 +58,12 @@ namespace Osmalyzer
 
             // Parse and report primary matching and location correlation
 
-            QuickCompareReport<DrinkingWater> compareReport = dataComparer.Parse(
+            CorrelatorReport<DrinkingWater> compareReport = dataComparer.Parse(
                 report,
-                new MatchedItemQuickComparerReportEntry(),
-                new UnmatchedItemQuickComparerReportEntry(),
-                new UnmatchedOsmQuickComparerReportEntry(),
-                new MatchedItemButFarQuickComparerReportEntry()
+                new MatchedItemCBatch(),
+                new UnmatchedItemBatch(),
+                new UnmatchedOsmBatch(),
+                new MatchedFarItemBatch()
             );
 
             // Prepare additional report groups

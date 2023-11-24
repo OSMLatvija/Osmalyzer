@@ -2,12 +2,12 @@
 
 namespace Osmalyzer
 {
-    public class QuickCompareReport<T> where T : IQuickComparerDataItem
+    public class CorrelatorReport<T> where T : ICorrelatorItem
     {
         public Dictionary<OsmElement, T> MatchedElements { get; }
 
         
-        public QuickCompareReport(Dictionary<OsmElement, T> matchedElements)
+        public CorrelatorReport(Dictionary<OsmElement, T> matchedElements)
         {
             MatchedElements = matchedElements;
         }

@@ -29,4 +29,8 @@ namespace Osmalyzer
             Distance = distance;
         }
     }
+
+    public class UnmatchedOsmQuickComparerReportEntry : QuickComparerReportEntry
+    {        
+    }
 }

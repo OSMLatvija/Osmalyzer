@@ -53,6 +53,7 @@ namespace Osmalyzer
                 report,
                 new MatchedItemQuickComparerReportEntry(15),
                 new UnmatchedItemQuickComparerReportEntry(75),
+                new UnmatchedOsmQuickComparerReportEntry(),
                 new MatchedItemButFarQuickComparerReportEntry()
             );
             

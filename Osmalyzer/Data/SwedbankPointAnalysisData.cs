@@ -9,7 +9,7 @@ namespace Osmalyzer
     [UsedImplicitly]
     public class SwedbankPointAnalysisData : AnalysisData, IPreparableAnalysisData
     {
-        public override string Name => "Swebank Points";
+        public override string Name => "Swedbank Points";
 
         protected override string DataFileIdentifier => "swedbank-points";
 

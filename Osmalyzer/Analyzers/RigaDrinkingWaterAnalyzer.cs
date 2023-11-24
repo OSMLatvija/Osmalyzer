@@ -196,6 +196,37 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     )
                 );
             }
+                
+            // Check seasonal
+                
+            string? seasonalValue = osmTap.GetValue("seasonal");
+            
+            if (seasonalValue == null)
+            {
+                report.AddEntry(
+                    ReportGroup.ExtraIssues,
+                    new IssueReportEntry(
+                        "OSM tap doesn't list its `seasonal` state for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                        new SortEntryAsc(SortOrder.Tagging),
+                        osmTap.GetAverageCoord()
+                    )
+                );
+            }
+            else
+            {
+                if (seasonalValue != "yes" &&
+                    seasonalValue != "no")
+                {
+                    report.AddEntry(
+                        ReportGroup.ExtraIssues,
+                        new IssueReportEntry(
+                            "OSM tap have an unknown `seasonal=" + drinkableValue + "` value for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                            new SortEntryAsc(SortOrder.Tagging),
+                            osmTap.GetAverageCoord()
+                        )
+                    );
+                }
+            }
         }
     }
 

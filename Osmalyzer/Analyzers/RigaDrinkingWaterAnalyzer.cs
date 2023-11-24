@@ -65,7 +65,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        CorrelatorReport<DrinkingWater> compareReport = dataComparer.Parse(
+        CorrelatorReport compareReport = dataComparer.Parse(
             report,
             new MatchedItemCBatch(),
             new UnmatchedItemBatch(),
@@ -82,11 +82,31 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             "No issues found with matching OSM taps."
         );
 
-        foreach (KeyValuePair<OsmElement, DrinkingWater> match in compareReport.MatchedElements)
+        foreach (Correlation match in compareReport.Correlations)
         {
-            OsmElement osmTap = match.Key;
-            DrinkingWater rigaTap = match.Value;
+            OsmElement osmTap;
+            DrinkingWater? rigaTap;
+
+            switch (match)
+            {
+                case MatchedCorrelation<DrinkingWater> matchedCorrelation:
+                    osmTap = matchedCorrelation.OsmElement;
+                    rigaTap = matchedCorrelation.DataItem;
+                    break;
                 
+                case LoneCorrelation loneCorrelation:
+                    osmTap = loneCorrelation.OsmElement;
+                    rigaTap = null;
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(match));
+            }
+                
+            
+            // We may not have data tap, so only print label if there is one
+            string tapLabel = rigaTap != null ? " for tap `" + rigaTap.Name + "`" : "";
+
             // Check operator
             
             string? operatorValue = osmTap.GetValue("operator");
@@ -98,7 +118,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.ExtraIssues,
                     new IssueReportEntry(
-                        "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                        "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
                         osmTap.GetAverageCoord()
                     )
@@ -111,7 +131,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.ExtraIssues,
                         new IssueReportEntry(
-                            "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set for tap `" + rigaTap.Name + "`, instead `" + operatorValue + "` - " + osmTap.OsmViewUrl,
+                            "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set" + tapLabel + ", instead `" + operatorValue + "` - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
                             osmTap.GetAverageCoord()
                         )
@@ -130,7 +150,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.ExtraIssues,
                     new IssueReportEntry(
-                        "OSM tap doesn't have expected `man_made="+expectedManmade+"` set for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                        "OSM tap doesn't have expected `man_made="+expectedManmade+"` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
                         osmTap.GetAverageCoord()
                     )
@@ -143,7 +163,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.ExtraIssues,
                         new IssueReportEntry(
-                            "OSM tap doesn't have expected `man_made="+expectedManmade+"` set for tap `" + rigaTap.Name + "`, instead `" + manmadeValue + "` - " + osmTap.OsmViewUrl,
+                            "OSM tap doesn't have expected `man_made="+expectedManmade+"` set" + tapLabel + ", instead `" + manmadeValue + "` - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
                             osmTap.GetAverageCoord()
                         )
@@ -160,7 +180,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.ExtraIssues,
                     new IssueReportEntry(
-                        "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                        "OSM tap doesn't have expected `drinking_water=yes` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
                         osmTap.GetAverageCoord()
                     )
@@ -173,7 +193,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.ExtraIssues,
                         new IssueReportEntry(
-                            "OSM tap doesn't have expected `drinking_water=yes` set for tap `" + rigaTap.Name + "`, instead `" + drinkableValue + "` - " + osmTap.OsmViewUrl,
+                            "OSM tap doesn't have expected `drinking_water=yes` set" + tapLabel + ", instead `" + drinkableValue + "` - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
                             osmTap.GetAverageCoord()
                         )
@@ -190,7 +210,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.ExtraIssues,
                     new IssueReportEntry(
-                        "OSM tap has a `fixme=" + fixmeValue + "` set for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                        "OSM tap has a `fixme=" + fixmeValue + "` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
                         osmTap.GetAverageCoord()
                     )
@@ -206,7 +226,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.ExtraIssues,
                     new IssueReportEntry(
-                        "OSM tap doesn't list its `seasonal` state for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                        "OSM tap doesn't list its `seasonal` state" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
                         osmTap.GetAverageCoord()
                     )
@@ -220,7 +240,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.ExtraIssues,
                         new IssueReportEntry(
-                            "OSM tap have an unknown `seasonal=" + drinkableValue + "` value for tap `" + rigaTap.Name + "` - " + osmTap.OsmViewUrl,
+                            "OSM tap have an unknown `seasonal=" + drinkableValue + "` value" + tapLabel + " - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
                             osmTap.GetAverageCoord()
                         )

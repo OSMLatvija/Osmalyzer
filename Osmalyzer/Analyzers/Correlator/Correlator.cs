@@ -32,7 +32,7 @@ public class Correlator<T> where T : ICorrelatorItem
     }
 
 
-    public CorrelatorReport<T> Parse(Report report, params CorrelatorBatch[] entries)
+    public CorrelatorReport Parse(Report report, params CorrelatorBatch[] entries)
     {
         if (report == null) throw new ArgumentNullException(nameof(report));
         if (entries == null) throw new ArgumentNullException(nameof(entries));
@@ -77,7 +77,9 @@ public class Correlator<T> where T : ICorrelatorItem
         // Go
 
         Dictionary<OsmElement, T> matchedElements = new Dictionary<OsmElement, T>();
-            
+        
+        List<Correlation> correlations = new List<Correlation>();
+        
         foreach (T dataItem in _dataItems)
         {
             List<OsmNode> closestOsmElements = _osmElements.GetClosestNodesTo(dataItem.Coord, unmatchDistance);
@@ -104,6 +106,8 @@ public class Correlator<T> where T : ICorrelatorItem
                 if (matchedOsmElement != null)
                 {
                     matchedElements.Add(matchedOsmElement, dataItem);
+                    
+                    correlations.Add(new MatchedCorrelation<T>(matchedOsmElement, dataItem));
 
                     double matchedOsmElementDistance = OsmGeoTools.DistanceBetween(matchedOsmElement.coord, dataItem.Coord);
 
@@ -154,6 +158,8 @@ public class Correlator<T> where T : ICorrelatorItem
             {
                 if (shouldReportUnmatchedOsm)
                 {
+                    correlations.Add(new LoneCorrelation(osmElement));
+                    
                     report.AddEntry(
                         ReportGroup.Unmatched,
                         new IssueReportEntry(
@@ -186,7 +192,7 @@ public class Correlator<T> where T : ICorrelatorItem
             
         // Return a report about what we parsed and found
 
-        return new CorrelatorReport<T>(matchedElements);
+        return new CorrelatorReport(correlations);
 
         
         [Pure]

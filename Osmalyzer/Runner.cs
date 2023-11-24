@@ -35,10 +35,10 @@ namespace Osmalyzer
                 //new ShopNetworkAnalyzer(),
                 //new MicroReservesAnalyzer(),
                 //new StreetNameAnalyzer(),
-                //new RigaDrinkingWaterAnalyzer(),
+                new RigaDrinkingWaterAnalyzer(),
                 //new PublicTransportAccessAnalyzer(),
                 //new HighwaySpeedLimitAnalyzer(),
-                new GlikaOaksAnalyzer(),
+                //new GlikaOaksAnalyzer(),
                 //new BankLocationAnalyzer()
             };
 #endif

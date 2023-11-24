@@ -30,6 +30,7 @@ namespace Osmalyzer
             if (report == null) throw new ArgumentNullException(nameof(report));
             if (entries == null) throw new ArgumentNullException(nameof(entries));
             
+            // See what sort of filters we have and which matching logic we will need to do (and report)
             
             bool reportMatched = entries.OfType<MatchedQuickComparerReportEntry>().Any();
             bool reportMatchedFar = entries.OfType<MatchedButFarQuickComparerReportEntry>().Any();
@@ -46,6 +47,8 @@ namespace Osmalyzer
             if (reportMatched)
                 report.AddGroup(ReportGroup.Matched, "Matched elements");
 
+            // Go
+            
             foreach (T dataItem in _dataItems)
             {
                 List<OsmNode> closestOsmElements = _osmElements.GetClosestNodesTo(dataItem.Coord, unmatchDistance);

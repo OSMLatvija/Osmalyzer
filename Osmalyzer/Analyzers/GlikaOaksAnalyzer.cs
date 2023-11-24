@@ -46,7 +46,7 @@ namespace Osmalyzer
                 return osmTree.GetValue("name")?.ToLower().Contains("glika ozols") ?? false;
             }
             
-            // Parse and report
+            // Parse and report primary matching and location correlation
 
             dataComparer.Parse(
                 report,

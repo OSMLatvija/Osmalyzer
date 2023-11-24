@@ -50,6 +50,8 @@ public class Correlator<T> where T : ICorrelatorItem
         double unmatchDistance = _paramaters.OfType<MatchFarDistanceParamater>().FirstOrDefault()?.FarDistance ?? 75;
         Func<T, OsmElement, bool>? matchCallback = _paramaters.OfType<MatchCallbackParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
         Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceCallbackParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
+        string dataItemLabelSingular = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelSingular ?? "item";
+        string dataItemLabelPlural = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelSingular ?? "items";
 
         List<OsmElementPreviewValue> osmElementPreviewParams = _paramaters.OfType<OsmElementPreviewValue>().ToList();
 
@@ -59,8 +61,8 @@ public class Correlator<T> where T : ICorrelatorItem
         {
             report.AddGroup(
                 ReportGroup.Unmatched,
-                "Unmatched items",
-                "This lists the items and elements that could not be matched to each other.",
+                "Unmatched " + dataItemLabelPlural,
+                "This lists the " + dataItemLabelPlural + " and OSM elements that could not be matched to each other.",
                 "All elements appear to be mapped."
             );
         }
@@ -68,9 +70,9 @@ public class Correlator<T> where T : ICorrelatorItem
         if (shouldReportMatchedItem)
         {
             report.AddGroup(
-                ReportGroup.MatchedOsm, 
-                "Matched items",
-                "This displays a map of all the items that were matched to each other."
+                ReportGroup.MatchedOsm,
+                "Matched " + dataItemLabelPlural,
+                "This displays a map of all the " + dataItemLabelPlural + " that were matched to each other."
             );
         }
 
@@ -159,17 +161,17 @@ public class Correlator<T> where T : ICorrelatorItem
                 if (shouldReportUnmatchedOsm)
                 {
                     correlations.Add(new LoneCorrelation(osmElement));
-                    
+
                     report.AddEntry(
                         ReportGroup.Unmatched,
                         new IssueReportEntry(
-                            "No item found in " + unmatchDistance + " m range of OSM element " +
+                            "No " + dataItemLabelSingular + " found in " + unmatchDistance + " m range of OSM element " +
                             OsmElementReportText(osmElement),
                             new SortEntryAsc(SortOrder.NoOsmElement),
                             osmElement.GetAverageCoord()
                         )
                     );
-                        
+
                     // TODO: report closest (unmatched) data item (these could be really far, so limit distance)
                 }
             }

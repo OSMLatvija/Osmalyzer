@@ -46,6 +46,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             rigaTapsStatic,
             new MatchDistanceParamater(15),
             new MatchFarDistanceParamater(75),
+            new DataItemLabelsParamater("Riga tap", "Riga taps"),
             new LoneElementAllowanceCallbackParameter(IsUnmatchedOsmElementAllowed),
             new OsmElementPreviewValue( // add a label for (non-)seasonal
                 "seasonal", 
@@ -78,8 +79,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
         report.AddGroup(
             ReportGroup.ExtraIssues, 
             "Other problems with drinking water taps",
-            "These taps listed in Riga tap list have issues with OSM counterparts.",
-            "No issues found with matching OSM taps."
+            "These matched/found OSM elements have additional individual issues.",
+            "No issues found with matched/found OSM taps."
         );
 
         foreach (Correlation match in compareReport.Correlations)

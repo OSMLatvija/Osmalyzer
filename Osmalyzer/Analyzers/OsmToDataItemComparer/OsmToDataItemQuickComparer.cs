@@ -37,21 +37,33 @@ namespace Osmalyzer
             bool reportUnmatchedItem = entries.OfType<UnmatchedItemQuickComparerReportEntry>().Any();
             bool reportUnmatchedOsm = entries.OfType<UnmatchedOsmQuickComparerReportEntry>().Any();
 
-            if (reportUnmatchedItem && !reportMatchedItem) throw new InvalidOperationException("Can't not match if not matching"); 
-            if (reportMatchedItemFar && (!reportMatchedItem || !reportUnmatchedItem)) throw new InvalidOperationException("Can't match far if not both matching and unmatching");
-            if (reportUnmatchedOsm && (!reportMatchedItem && !reportUnmatchedItem)) throw new InvalidOperationException("Can't (un)match osm if items are not matching or unmatching");
-            
             double matchDistance = reportMatchedItem ? entries.OfType<MatchedItemQuickComparerReportEntry>().First().Distance : 0;
             double unmatchDistance = reportUnmatchedItem ? entries.OfType<UnmatchedItemQuickComparerReportEntry>().First().Distance : matchDistance;
 
-            report.AddGroup(ReportGroup.Unmatched, "Issues", null, "All elements appear to be mapped.");
+            // Prepare report groups
+
+            if (reportUnmatchedItem || reportUnmatchedOsm || reportMatchedItemFar)
+            {
+                report.AddGroup(
+                    ReportGroup.Unmatched,
+                    "Unmatched items",
+                    "This lists the items and elements that could not be matched to each other.",
+                    "All elements appear to be mapped."
+                );
+            }
 
             if (reportMatchedItem)
-                report.AddGroup(ReportGroup.MatchedOsm, "Matched elements");
-
-            Dictionary<OsmElement, T> matchedElements = new Dictionary<OsmElement, T>();
+            {
+                report.AddGroup(
+                    ReportGroup.MatchedOsm, 
+                    "Matched items",
+                    "This displays a map of all the items that were matched to each other."
+                );
+            }
 
             // Go
+
+            Dictionary<OsmElement, T> matchedElements = new Dictionary<OsmElement, T>();
             
             foreach (T dataItem in _dataItems)
             {

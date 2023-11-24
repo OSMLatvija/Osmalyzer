@@ -32,20 +32,22 @@ namespace Osmalyzer
             
             // See what sort of filters we have and which matching logic we will need to do (and report)
             
-            bool reportMatched = entries.OfType<MatchedQuickComparerReportEntry>().Any();
-            bool reportMatchedFar = entries.OfType<MatchedButFarQuickComparerReportEntry>().Any();
-            bool reportUnmatched = entries.OfType<UnmatchedQuickComparerReportEntry>().Any();
+            bool reportMatchedItem = entries.OfType<MatchedItemQuickComparerReportEntry>().Any();
+            bool reportMatchedItemFar = entries.OfType<MatchedItemButFarQuickComparerReportEntry>().Any();
+            bool reportUnmatchedItem = entries.OfType<UnmatchedItemQuickComparerReportEntry>().Any();
 
-            if (reportUnmatched && !reportMatched) throw new InvalidOperationException("Can't not match if not matching"); 
-            if (reportMatchedFar && (!reportMatched || !reportUnmatched)) throw new InvalidOperationException("Can't match far if not both matching and unmatching"); 
+            if (reportUnmatchedItem && !reportMatchedItem) throw new InvalidOperationException("Can't not match if not matching"); 
+            if (reportMatchedItemFar && (!reportMatchedItem || !reportUnmatchedItem)) throw new InvalidOperationException("Can't match far if not both matching and unmatching");
             
-            double matchDistance = reportMatched ? entries.OfType<MatchedQuickComparerReportEntry>().First().Distance : 0;
-            double unmatchDistance = reportUnmatched ? entries.OfType<UnmatchedQuickComparerReportEntry>().First().Distance : matchDistance;
+            double matchDistance = reportMatchedItem ? entries.OfType<MatchedItemQuickComparerReportEntry>().First().Distance : 0;
+            double unmatchDistance = reportUnmatchedItem ? entries.OfType<UnmatchedItemQuickComparerReportEntry>().First().Distance : matchDistance;
 
-            report.AddGroup(ReportGroup.Issues, "Issues", null, "All elements appear to be mapped.");
+            report.AddGroup(ReportGroup.UnmatchedOsm, "Issues", null, "All elements appear to be mapped.");
 
-            if (reportMatched)
-                report.AddGroup(ReportGroup.Matched, "Matched elements");
+            if (reportMatchedItem)
+                report.AddGroup(ReportGroup.MatchedOsm, "Matched elements");
+
+            Dictionary<OsmElement, T> matchedElements = new Dictionary<OsmElement, T>();
 
             // Go
             
@@ -55,10 +57,10 @@ namespace Osmalyzer
 
                 if (closestOsmElements.Count == 0)
                 {
-                    if (reportUnmatched)
+                    if (reportUnmatchedItem)
                     {
                         report.AddEntry(
-                            ReportGroup.Issues,
+                            ReportGroup.UnmatchedOsm,
                             new IssueReportEntry(
                                 "No OSM element found in " + unmatchDistance + " m range of " +
                                 dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
@@ -71,17 +73,19 @@ namespace Osmalyzer
                 else
                 {
                     OsmNode? matchedOsmElement = closestOsmElements.FirstOrDefault(t => _matchCallback(dataItem, t));
-
+                    
                     if (matchedOsmElement != null)
                     {
+                        matchedElements.Add(matchedOsmElement, dataItem);
+
                         double matchedOsmElementDistance = OsmGeoTools.DistanceBetween(matchedOsmElement.coord, dataItem.Coord);
 
                         if (matchedOsmElementDistance > matchDistance)
                         {
-                            if (reportMatchedFar)
+                            if (reportMatchedItemFar)
                             {
                                 report.AddEntry(
-                                    ReportGroup.Issues,
+                                    ReportGroup.UnmatchedOsm,
                                     new IssueReportEntry(
                                         "Matching OSM element " +
                                         (matchedOsmElement.HasKey("name") ? "`" + matchedOsmElement.GetValue("name") + "` " : "") +
@@ -95,10 +99,10 @@ namespace Osmalyzer
                             }
                         }
 
-                        if (reportMatched)
+                        if (reportMatchedItem)
                         {
                             report.AddEntry(
-                                ReportGroup.Matched,
+                                ReportGroup.MatchedOsm,
                                 new MapPointReportEntry(
                                     matchedOsmElement.coord,
                                     dataItem.ReportString() + " matched " +
@@ -109,29 +113,6 @@ namespace Osmalyzer
                             );
                         }
                     }
-                    // else
-                    // {
-                    //     OsmNode closestUnmatchedOsmElement = closestOsmElements.OrderBy(t => OsmGeoTools.DistanceBetween(t.coord, dataItem.Coord)).First();
-                    //
-                    //     double unmatchedOsmElementDistance = OsmGeoTools.DistanceBetween(closestUnmatchedOsmElement.coord, dataItem.Coord);
-                    //
-                    //     if (unmatchedOsmElementDistance < matchDistance)
-                    //     {
-                    //         report.AddEntry(
-                    //             ReportGroup.Issues,
-                    //             new IssueReportEntry(
-                    //                 "Unmatched OSM element " +
-                    //                 (closestUnmatchedOsmElement.HasKey("name") ? "`" + closestUnmatchedOsmElement.GetValue("name") + "` " : "") +
-                    //                 closestUnmatchedOsmElement.OsmViewUrl + " found close to " +
-                    //                 dataItem.ReportString() + " at " + unmatchedOsmElementDistance.ToString("F0") + " m" +
-                    //                 (closestOsmElements.Count > 1 ? " (there are " + closestOsmElements.Count + " elements nearby)" : "") +
-                    //                 ", expected at " + dataItem.Coord.OsmUrl,
-                    //                 new SortEntryAsc(SortOrder.ElementFar),
-                    //                 dataItem.Coord
-                    //             )
-                    //         );
-                    //     }
-                    // }
                 }
             }
         }
@@ -139,8 +120,8 @@ namespace Osmalyzer
         
         private enum ReportGroup
         {
-            Issues,
-            Matched
+            UnmatchedOsm,
+            MatchedOsm
         }        
         
         private enum SortOrder // values used for sorting

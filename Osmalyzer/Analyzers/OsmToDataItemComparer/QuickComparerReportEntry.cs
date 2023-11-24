@@ -4,27 +4,27 @@ namespace Osmalyzer
     {
     }
 
-    public class MatchedQuickComparerReportEntry : QuickComparerReportEntry
+    public class MatchedItemQuickComparerReportEntry : QuickComparerReportEntry
     {
         public double Distance { get; set; }
 
         
-        public MatchedQuickComparerReportEntry(double distance)
+        public MatchedItemQuickComparerReportEntry(double distance)
         {
             Distance = distance;
         }
     }
 
-    public class MatchedButFarQuickComparerReportEntry : QuickComparerReportEntry
+    public class MatchedItemButFarQuickComparerReportEntry : QuickComparerReportEntry
     {
     }
 
-    public class UnmatchedQuickComparerReportEntry : QuickComparerReportEntry
+    public class UnmatchedItemQuickComparerReportEntry : QuickComparerReportEntry
     {        
         public double Distance { get; set; }
 
         
-        public UnmatchedQuickComparerReportEntry(double distance)
+        public UnmatchedItemQuickComparerReportEntry(double distance)
         {
             Distance = distance;
         }

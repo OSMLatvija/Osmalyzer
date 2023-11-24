@@ -50,9 +50,9 @@ namespace Osmalyzer
 
             dataComparer.Parse(
                 report,
-                new MatchedQuickComparerReportEntry(15),
-                new UnmatchedQuickComparerReportEntry(75),
-                new MatchedButFarQuickComparerReportEntry()
+                new MatchedItemQuickComparerReportEntry(15),
+                new UnmatchedItemQuickComparerReportEntry(75),
+                new MatchedItemButFarQuickComparerReportEntry()
             );
             
             // todo: denomination

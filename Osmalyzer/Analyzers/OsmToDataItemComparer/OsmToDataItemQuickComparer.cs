@@ -25,7 +25,7 @@ namespace Osmalyzer
         }
 
 
-        public void Parse(Report report, params QuickComparerReportEntry[] entries)
+        public QuickCompareReport<T> Parse(Report report, params QuickComparerReportEntry[] entries)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));
             if (entries == null) throw new ArgumentNullException(nameof(entries));
@@ -158,6 +158,10 @@ namespace Osmalyzer
                     }
                 }
             }
+            
+            // Return a report about what we parsed and found
+
+            return new QuickCompareReport<T>(matchedElements);
         }
         
         

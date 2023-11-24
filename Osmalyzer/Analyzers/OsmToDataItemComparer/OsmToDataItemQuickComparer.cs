@@ -13,14 +13,11 @@ namespace Osmalyzer
         
         private readonly Func<T, OsmElement, bool> _matchCallback;
         
-        private readonly Func<OsmElement, bool>? _unmatchedOsmElementAllowedByItselfCallback;
-
 
         public OsmToDataItemQuickComparer(
             OsmDataExtract osmElements, 
             List<T> dataItems, 
-            Func<T, OsmElement, bool> matchCallback, 
-            Func<OsmElement, bool>? unmatchedOsmElementAllowedByItselfCallback = null)
+            Func<T, OsmElement, bool> matchCallback)
         {
             if (osmElements == null) throw new ArgumentNullException(nameof(osmElements));
             if (dataItems == null) throw new ArgumentNullException(nameof(dataItems));
@@ -29,7 +26,6 @@ namespace Osmalyzer
             _osmElements = osmElements;
             _dataItems = dataItems;
             _matchCallback = matchCallback;
-            _unmatchedOsmElementAllowedByItselfCallback = unmatchedOsmElementAllowedByItselfCallback;
         }
 
 
@@ -47,6 +43,7 @@ namespace Osmalyzer
 
             double matchDistance = reportMatchedItem ? entries.OfType<MatchedItemQuickComparerReportEntry>().First().Distance : 0;
             double unmatchDistance = reportUnmatchedItem ? entries.OfType<UnmatchedItemQuickComparerReportEntry>().First().Distance : matchDistance;
+            Func<OsmElement, bool>? unmatchedOsmElementAllowedByItselfCallback = reportUnmatchedOsm ? entries.OfType<UnmatchedOsmQuickComparerReportEntry>().First().AllowedByItselfCallback : null;
 
             // Prepare report groups
 
@@ -142,8 +139,8 @@ namespace Osmalyzer
                     continue;
 
                 bool allowedByItself =
-                    _unmatchedOsmElementAllowedByItselfCallback != null &&
-                    _unmatchedOsmElementAllowedByItselfCallback(osmElement);
+                    unmatchedOsmElementAllowedByItselfCallback != null &&
+                    unmatchedOsmElementAllowedByItselfCallback(osmElement);
                 
                 if (!allowedByItself)
                 {

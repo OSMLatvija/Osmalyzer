@@ -1,3 +1,5 @@
+using System;
+
 namespace Osmalyzer
 {
     public abstract class QuickComparerReportEntry
@@ -31,6 +33,13 @@ namespace Osmalyzer
     }
 
     public class UnmatchedOsmQuickComparerReportEntry : QuickComparerReportEntry
-    {        
+    {
+        public Func<OsmElement, bool>? AllowedByItselfCallback { get; }
+
+        
+        public UnmatchedOsmQuickComparerReportEntry(Func<OsmElement, bool>? allowedByItselfCallback)
+        {
+            AllowedByItselfCallback = allowedByItselfCallback;
+        }
     }
 }

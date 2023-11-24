@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace Osmalyzer
 {
@@ -109,8 +110,7 @@ namespace Osmalyzer
                                     ReportGroup.Unmatched,
                                     new IssueReportEntry(
                                         "Matching OSM element " +
-                                        (matchedOsmElement.HasKey("name") ? "`" + matchedOsmElement.GetValue("name") + "` " : "") +
-                                        matchedOsmElement.OsmViewUrl + " found close to " +
+                                        OsmElementReportText(matchedOsmElement) + " found close to " +
                                         dataItem.ReportString() + ", " +
                                         "but it's far away (" + matchedOsmElementDistance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
                                         new SortEntryAsc(SortOrder.ElementFar),
@@ -127,8 +127,7 @@ namespace Osmalyzer
                                 new MapPointReportEntry(
                                     matchedOsmElement.coord,
                                     dataItem.ReportString() + " matched " +
-                                    matchedOsmElement.OsmViewUrl + " " +
-                                    (matchedOsmElement.HasKey("name") ? "`" + matchedOsmElement.GetValue("name") + "` " : "") +
+                                    OsmElementReportText(matchedOsmElement) +
                                     " at " + matchedOsmElementDistance.ToString("F0") + " m"
                                 )
                             );
@@ -154,8 +153,7 @@ namespace Osmalyzer
                             ReportGroup.Unmatched,
                             new IssueReportEntry(
                                 "No item found in " + unmatchDistance + " m range of OSM element " +
-                                (osmElement.HasKey("name") ? "`" + osmElement.GetValue("name") + "` " : "") +
-                                osmElement.OsmViewUrl,
+                                OsmElementReportText(osmElement),
                                 new SortEntryAsc(SortOrder.NoOsmElement),
                                 osmElement.GetAverageCoord()
                             )
@@ -173,8 +171,7 @@ namespace Osmalyzer
                             new MapPointReportEntry(
                                 osmElement.GetAverageCoord(),
                                 "Matched OSM element by itself " +
-                                (osmElement.HasKey("name") ? "`" + osmElement.GetValue("name") + "` " : "") +
-                                osmElement.OsmViewUrl
+                                OsmElementReportText(osmElement)
                             )
                         );
                     }
@@ -185,8 +182,17 @@ namespace Osmalyzer
 
             return new QuickCompareReport<T>(matchedElements);
         }
+
         
-        
+        [Pure]
+        private static string OsmElementReportText(OsmElement element)
+        {
+            return 
+                (element.HasKey("name") ? "`" + element.GetValue("name") + "` " : "") + 
+                element.OsmViewUrl;
+        }
+
+
         private enum ReportGroup
         {
             Unmatched = -10, // probably before analyzer extra issues

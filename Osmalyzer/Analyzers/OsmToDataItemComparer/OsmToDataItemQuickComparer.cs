@@ -11,9 +11,15 @@ namespace Osmalyzer
         private readonly List<T> _dataItems;
         
         private readonly Func<T, OsmElement, bool> _matchCallback;
+        
+        private readonly Func<OsmElement, bool>? _unmatchedOsmElementAllowedByItselfCallback;
 
 
-        public OsmToDataItemQuickComparer(OsmDataExtract osmElements, List<T> dataItems, Func<T, OsmElement, bool> matchCallback)
+        public OsmToDataItemQuickComparer(
+            OsmDataExtract osmElements, 
+            List<T> dataItems, 
+            Func<T, OsmElement, bool> matchCallback, 
+            Func<OsmElement, bool>? unmatchedOsmElementAllowedByItselfCallback = null)
         {
             if (osmElements == null) throw new ArgumentNullException(nameof(osmElements));
             if (dataItems == null) throw new ArgumentNullException(nameof(dataItems));
@@ -22,6 +28,7 @@ namespace Osmalyzer
             _osmElements = osmElements;
             _dataItems = dataItems;
             _matchCallback = matchCallback;
+            _unmatchedOsmElementAllowedByItselfCallback = unmatchedOsmElementAllowedByItselfCallback;
         }
 
 
@@ -130,31 +137,46 @@ namespace Osmalyzer
                 }
             }
             
-            if (reportUnmatchedOsm)
+            foreach (OsmElement osmElement in _osmElements.Elements)
             {
-                foreach (OsmElement osmElement in _osmElements.Elements)
+                if (matchedElements.ContainsKey(osmElement))
+                    continue;
+
+                bool allowedByItself =
+                    _unmatchedOsmElementAllowedByItselfCallback != null &&
+                    _unmatchedOsmElementAllowedByItselfCallback(osmElement);
+                
+                if (!allowedByItself)
                 {
-                    if (matchedElements.TryGetValue(osmElement, out T? _))
+                    if (reportUnmatchedOsm)
                     {
-                        // We don't have any logic for this yet
+                        report.AddEntry(
+                            ReportGroup.Unmatched,
+                            new IssueReportEntry(
+                                "No item found in " + unmatchDistance + " m range of OSM element " +
+                                (osmElement.HasKey("name") ? "`" + osmElement.GetValue("name") + "` " : "") +
+                                osmElement.OsmViewUrl,
+                                new SortEntryAsc(SortOrder.NoOsmElement),
+                                osmElement.GetAverageCoord()
+                            )
+                        );
+                        
+                        // TODO: report closest (unmatched) data item (these could be really far, so limit distance)
                     }
-                    else
+                }
+                else
+                {
+                    if (reportMatchedItem)
                     {
-                        if (reportUnmatchedOsm)
-                        {
-                            report.AddEntry(
-                                ReportGroup.Unmatched,
-                                new IssueReportEntry(
-                                    "No item found in " + unmatchDistance + " m range of OSM element " +
-                                    (osmElement.HasKey("name") ? "`" + osmElement.GetValue("name") + "` " : "") +
-                                    osmElement.OsmViewUrl,
-                                    new SortEntryAsc(SortOrder.NoOsmElement),
-                                    osmElement.GetAverageCoord()
-                                )
-                            );
-                            
-                            // TODO: report closest (unmatched) data item (these could be really far, so limit distance)
-                        }
+                        report.AddEntry(
+                            ReportGroup.MatchedOsm,
+                            new MapPointReportEntry(
+                                osmElement.GetAverageCoord(),
+                                "Matched OSM element by itself " +
+                                (osmElement.HasKey("name") ? "`" + osmElement.GetValue("name") + "` " : "") +
+                                osmElement.OsmViewUrl
+                            )
+                        );
                     }
                 }
             }

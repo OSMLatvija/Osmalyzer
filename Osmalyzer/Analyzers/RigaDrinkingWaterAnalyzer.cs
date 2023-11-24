@@ -44,8 +44,16 @@ namespace Osmalyzer
             OsmToDataItemQuickComparer<DrinkingWater> dataComparer = new OsmToDataItemQuickComparer<DrinkingWater>(
                 osmTaps,
                 rigaTapsStatic,
-                (_, _) => true // we don't have any condition to mismatch taps, there are only riga taps
+                (_, _) => true, // we don't have any condition to mismatch taps, there are only riga taps
+                IsUnmatchedOsmElementAllowed
             );
+
+            bool IsUnmatchedOsmElementAllowed(OsmElement element)
+            {
+                // Riga tap list deletes their list during winter (rather than somehow tagging it)
+                // Since OSM does not delete elements, but rather marks them as seasonal, we can keep assume those are correct
+                return element.GetValue("seasonal") == "yes";
+            }
 
             // Parse and report primary matching and location correlation
 

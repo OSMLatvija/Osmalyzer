@@ -167,8 +167,8 @@ namespace Osmalyzer
         
         private enum ReportGroup
         {
-            Unmatched,
-            MatchedOsm
+            Unmatched = -10, // probably before analyzer extra issues
+            MatchedOsm = 100 // probably after analyzer issues
         }        
         
         private enum SortOrder // values used for sorting

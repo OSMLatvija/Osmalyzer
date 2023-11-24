@@ -56,7 +56,19 @@ namespace Osmalyzer
 
         public List<ReportGroup> CollectGroups()
         {
-            return _groups.ToList();
+            return _groups.OrderBy(g => GetSortOrder(g.ID)).ToList();
+
+            
+            static int GetSortOrder(object value)
+            {
+                if (value is int pureValue)
+                    return pureValue;
+                
+                if (value.GetType().IsEnum)
+                    return (int)value;
+
+                return 0; // stays in the "middle"
+            }
         }
 
         public void CancelEntries(object groupId, ReportEntryContext context)

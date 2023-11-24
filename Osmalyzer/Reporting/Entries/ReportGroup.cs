@@ -7,6 +7,10 @@ namespace Osmalyzer
 {
     public class ReportGroup
     {
+        /// <summary>
+        /// Unique ID for this group, so that adding entries only needs to specify this id.
+        /// This will also be used for sorting the groups if possible, so using an ordered enum would work well.  
+        /// </summary>
         public object ID { get; }
             
         public string Title { get; }

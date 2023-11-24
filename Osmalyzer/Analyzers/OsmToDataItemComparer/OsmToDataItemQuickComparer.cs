@@ -11,21 +11,20 @@ namespace Osmalyzer
         
         private readonly List<T> _dataItems;
         
-        private readonly Func<T, OsmElement, bool> _matchCallback;
-        
+        private readonly QuickCompareParamater[] _paramaters;
+
 
         public OsmToDataItemQuickComparer(
             OsmDataExtract osmElements, 
             List<T> dataItems, 
-            Func<T, OsmElement, bool> matchCallback)
+            params QuickCompareParamater[] paramaters)
         {
             if (osmElements == null) throw new ArgumentNullException(nameof(osmElements));
             if (dataItems == null) throw new ArgumentNullException(nameof(dataItems));
-            if (matchCallback == null) throw new ArgumentNullException(nameof(matchCallback));
             
             _osmElements = osmElements;
             _dataItems = dataItems;
-            _matchCallback = matchCallback;
+            _paramaters = paramaters;
         }
 
 
@@ -41,10 +40,12 @@ namespace Osmalyzer
             bool reportUnmatchedItem = entries.OfType<UnmatchedItemQuickComparerReportEntry>().Any();
             bool reportUnmatchedOsm = entries.OfType<UnmatchedOsmQuickComparerReportEntry>().Any();
 
+            Func<T, OsmElement, bool>? matchCallback = _paramaters.OfType<MatchCallbackQuickCompareParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
+            Func<OsmElement, bool>? unmatchedOsmElementAllowedByItselfCallback = _paramaters.OfType<UnmatchedOsmElementAllowedByItselfCallbackQuickCompareParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
+
             double matchDistance = reportMatchedItem ? entries.OfType<MatchedItemQuickComparerReportEntry>().First().Distance : 0;
             double unmatchDistance = reportUnmatchedItem ? entries.OfType<UnmatchedItemQuickComparerReportEntry>().First().Distance : matchDistance;
-            Func<OsmElement, bool>? unmatchedOsmElementAllowedByItselfCallback = reportUnmatchedOsm ? entries.OfType<UnmatchedOsmQuickComparerReportEntry>().First().AllowedByItselfCallback : null;
-
+            
             // Prepare report groups
 
             if (reportUnmatchedItem || reportUnmatchedOsm || reportMatchedItemFar)
@@ -91,7 +92,7 @@ namespace Osmalyzer
                 }
                 else
                 {
-                    OsmNode? matchedOsmElement = closestOsmElements.FirstOrDefault(t => _matchCallback(dataItem, t));
+                    OsmNode? matchedOsmElement = closestOsmElements.FirstOrDefault(t => matchCallback == null || matchCallback(dataItem, t));
                     
                     if (matchedOsmElement != null)
                     {

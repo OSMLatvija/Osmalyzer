@@ -37,7 +37,7 @@ namespace Osmalyzer
             OsmToDataItemQuickComparer<GlikaOak> dataComparer = new OsmToDataItemQuickComparer<GlikaOak>(
                 osmTrees,
                 oaks,
-                DoesOsmTreeMatchOak
+                new MatchCallbackQuickCompareParameter<GlikaOak>(DoesOsmTreeMatchOak)
             );
         
             [Pure]

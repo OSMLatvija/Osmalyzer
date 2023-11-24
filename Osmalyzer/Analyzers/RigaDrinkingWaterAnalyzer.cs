@@ -44,18 +44,8 @@ namespace Osmalyzer
             OsmToDataItemQuickComparer<DrinkingWater> dataComparer = new OsmToDataItemQuickComparer<DrinkingWater>(
                 osmTaps,
                 rigaTapsStatic,
-                (_, _) => true // we don't have any condition to mismatch taps, there are only riga taps
-            );
-
-            // Parse and report primary matching and location correlation
-
-            QuickCompareReport<DrinkingWater> compareReport = dataComparer.Parse(
-                report,
-                new MatchedItemQuickComparerReportEntry(15),
-                new UnmatchedItemQuickComparerReportEntry(75),
-                new UnmatchedOsmQuickComparerReportEntry(IsUnmatchedOsmElementAllowed),
-                new MatchedItemButFarQuickComparerReportEntry()
-            );
+                new UnmatchedOsmElementAllowedByItselfCallbackQuickCompareParameter(IsUnmatchedOsmElementAllowed));
+            // Note that we don't have any condition to mismatch taps, we only expect riga taps in riga
 
             bool IsUnmatchedOsmElementAllowed(OsmElement element)
             {
@@ -63,6 +53,16 @@ namespace Osmalyzer
                 // Since OSM does not delete elements, but rather marks them as seasonal, we can keep assume those are correct
                 return element.GetValue("seasonal") == "yes";
             }
+
+            // Parse and report primary matching and location correlation
+
+            QuickCompareReport<DrinkingWater> compareReport = dataComparer.Parse(
+                report,
+                new MatchedItemQuickComparerReportEntry(15),
+                new UnmatchedItemQuickComparerReportEntry(75),
+                new UnmatchedOsmQuickComparerReportEntry(),
+                new MatchedItemButFarQuickComparerReportEntry()
+            );
 
             // Prepare additional report groups
 

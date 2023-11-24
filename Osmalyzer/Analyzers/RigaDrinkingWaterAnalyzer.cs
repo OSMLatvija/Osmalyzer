@@ -46,7 +46,14 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             rigaTapsStatic,
             new MatchDistanceParamater(15),
             new MatchFarDistanceParamater(75),
-            new LoneElementAllowanceCallbackParameter(IsUnmatchedOsmElementAllowed));
+            new LoneElementAllowanceCallbackParameter(IsUnmatchedOsmElementAllowed),
+            new OsmElementPreviewValue( // add a label for (non-)seasonal
+                "seasonal", 
+                false, 
+                new OsmElementPreviewValue.PreviewLabel("yes", "seasonal tap"),
+                new OsmElementPreviewValue.PreviewLabel("yes", "non-seasonal tap")
+            )
+        );
         // Note that we don't have any condition to mismatch taps, we only expect riga taps in riga
 
         bool IsUnmatchedOsmElementAllowed(OsmElement element)

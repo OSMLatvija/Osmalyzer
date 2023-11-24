@@ -50,7 +50,9 @@ public class Correlator<T> where T : ICorrelatorItem
         double unmatchDistance = _paramaters.OfType<MatchFarDistanceParamater>().FirstOrDefault()?.FarDistance ?? 75;
         Func<T, OsmElement, bool>? matchCallback = _paramaters.OfType<MatchCallbackParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
         Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceCallbackParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
-            
+
+        List<OsmElementPreviewValue> osmElementPreviewParams = _paramaters.OfType<OsmElementPreviewValue>().ToList();
+
         // Prepare report groups
 
         if (shouldReportUnmatchedItem || shouldReportUnmatchedOsm || shouldReportMatchedItemFar)
@@ -129,7 +131,7 @@ public class Correlator<T> where T : ICorrelatorItem
                             ReportGroup.MatchedOsm,
                             new MapPointReportEntry(
                                 matchedOsmElement.coord,
-                                dataItem.ReportString() + " matched " +
+                                dataItem.ReportString() + " matched OSM element " +
                                 OsmElementReportText(matchedOsmElement) +
                                 " at " + matchedOsmElementDistance.ToString("F0") + " m"
                             )
@@ -173,8 +175,9 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.MatchedOsm,
                         new MapPointReportEntry(
                             osmElement.GetAverageCoord(),
-                            "Matched OSM element by itself " +
-                            OsmElementReportText(osmElement)
+                            "Matched OSM element " +
+                            OsmElementReportText(osmElement) + 
+                            " by itself"
                         )
                     );
                 }
@@ -184,15 +187,63 @@ public class Correlator<T> where T : ICorrelatorItem
         // Return a report about what we parsed and found
 
         return new CorrelatorReport<T>(matchedElements);
-    }
 
         
-    [Pure]
-    private static string OsmElementReportText(OsmElement element)
-    {
-        return 
-            (element.HasKey("name") ? "`" + element.GetValue("name") + "` " : "") + 
-            element.OsmViewUrl;
+        [Pure]
+        string OsmElementReportText(OsmElement element)
+        {
+            string s = "";
+            
+            // Always name
+            // todo: always?
+
+            if (element.HasKey("name"))
+                s += "`" + element.GetValue("name") + "` ";
+                
+            // Add custom labels from values as requested
+            
+            foreach (OsmElementPreviewValue previewValue in osmElementPreviewParams)
+            {
+                if (element.HasKey(previewValue.Tag))
+                {
+                    if (previewValue.Labels.Length == 0)
+                    {
+                        // Just show the value
+                        
+                        if (s != "") s += " ";
+
+                        // Just list the value
+                        if (previewValue.ShowTag)
+                            s += "`" + previewValue.Tag + "=" + element.GetValue(previewValue.Tag) + "`";
+                        else
+                            s += "`" + element.GetValue(previewValue.Tag) + "`";
+                    }
+                    else
+                    {
+                        // Only show the value for specific recognized labels
+                        
+                        OsmElementPreviewValue.PreviewLabel? label = previewValue.Labels.FirstOrDefault(l => l.Value == element.GetValue(previewValue.Tag));
+
+                        if (label != null)
+                        {
+                            if (s != "") s += " ";
+                            
+                            if (previewValue.ShowTag)
+                                 s += "`" + previewValue.Tag + "` ";
+                            
+                            s += label.Label;
+                        }
+                    }
+                }
+            }
+            
+            // Default URL stuff with ID and such
+            
+            if (s != "") s += " ";
+            s += element.OsmViewUrl;
+                
+            return s;
+        }
     }
 
 

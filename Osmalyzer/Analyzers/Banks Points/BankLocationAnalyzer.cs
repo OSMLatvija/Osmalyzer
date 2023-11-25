@@ -28,8 +28,21 @@ public abstract class BankLocationAnalyzer : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract allOsmPoints = osmMasterData.Filter(
-            new HasAnyValue("amenity", "atm", "bank")
+            new HasAnyValue("amenity", "atm", "bank"),
+            new CustomMatch(IsRelatedToBank)
         );
+        
+        [Pure]
+        bool IsRelatedToBank(OsmElement osmElement)
+        {
+            string? osmName =
+                osmElement.GetValue("operator") ??
+                osmElement.GetValue("brand") ??
+                osmElement.GetValue("name") ??
+                null;
+
+            return osmName != null && osmName.ToLower().Contains(BankName.ToLower());
+        }
 
         OsmDataExtract osmAtms = allOsmPoints.Filter(
             new HasValue("amenity", "atm")
@@ -42,7 +55,7 @@ public abstract class BankLocationAnalyzer : Analyzer
         // Get Bank data
 
         List<BankPoint> allPoints = datas.OfType<SwedbankPointAnalysisData>().First().Points;
-
+        
         List<BankAtmPoint> atmPoints = allPoints.OfType<BankAtmPoint>().ToList();
 
         List<BankBranchPoint> branchPoints = allPoints.OfType<BankBranchPoint>().ToList();
@@ -64,20 +77,8 @@ public abstract class BankLocationAnalyzer : Analyzer
                 new MatchDistanceParamater(50),
                 new MatchFarDistanceParamater(300), // some are stupidly far, like at the opposite end of a shopping center from the website's point
                 new DataItemLabelsParamater(BankName + " " + labelSignular, BankName + " " + labelPlural),
-                new MatchCallbackParameter<T>(DoesOsmPointMatchBankPoint)
+                new LoneElementAllowanceCallbackParameter(_ => false)// all our points represent a POI supposedly for this bank, none can be standalone 
             );
-
-            [Pure]
-            static bool DoesOsmPointMatchBankPoint(BankPoint point, OsmElement osmElement)
-            {
-                string? osmName =
-                    osmElement.GetValue("operator") ??
-                    osmElement.GetValue("brand") ??
-                    osmElement.GetValue("name") ??
-                    null;
-
-                return osmName != null && osmName.ToLower().Contains("swedbank");
-            }
 
             // Parse and report primary matching and location correlation
 
@@ -85,7 +86,8 @@ public abstract class BankLocationAnalyzer : Analyzer
                 report,
                 new MatchedItemBatch(),
                 new UnmatchedItemBatch(),
-                new MatchedFarItemBatch()
+                new MatchedFarItemBatch(),
+                new UnmatchedOsmBatch()
             );
         }
     }

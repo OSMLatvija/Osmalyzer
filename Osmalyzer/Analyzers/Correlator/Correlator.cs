@@ -77,7 +77,7 @@ public class Correlator<T> where T : ICorrelatorItem
             
             foreach (T dataItem in currentlyMatching)
             {
-                List<OsmNode> matchableOsmElements = _osmElements.GetClosestNodesTo(dataItem.Coord, unmatchDistance);
+                List<OsmElement> matchableOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, unmatchDistance);
 
                 if (matchCallback != null)
                     matchableOsmElements = matchableOsmElements.Where(e => matchCallback(dataItem, e)).ToList();
@@ -91,9 +91,9 @@ public class Correlator<T> where T : ICorrelatorItem
                 {
                     bool matched = false;
                     
-                    foreach (OsmNode closeElement in matchableOsmElements) // this is sorted closest first
+                    foreach (OsmElement closeElement in matchableOsmElements) // this is sorted closest first
                     {
-                        double distance = OsmGeoTools.DistanceBetween(dataItem.Coord, closeElement.coord);
+                        double distance = OsmGeoTools.DistanceBetween(dataItem.Coord, closeElement.GetAverageCoord());
                         
                         if (matchedElements.TryGetValue(closeElement, out (T, double) previous))
                         {

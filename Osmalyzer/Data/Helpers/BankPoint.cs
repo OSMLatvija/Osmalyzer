@@ -34,6 +34,7 @@ public class BankAtmPoint : BankPoint
 {
     public override string TypeString => "ATM";
     
+    
     public bool? Deposit { get; set; }
 
     

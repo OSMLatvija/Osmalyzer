@@ -281,12 +281,6 @@ public class Correlator<T> where T : ICorrelatorItem
         string OsmElementReportText(OsmElement element)
         {
             string s = "";
-            
-            // Always name
-            // todo: always?
-
-            if (element.HasKey("name"))
-                s += "`" + element.GetValue("name") + "` ";
                 
             // Add custom labels from values as requested
             

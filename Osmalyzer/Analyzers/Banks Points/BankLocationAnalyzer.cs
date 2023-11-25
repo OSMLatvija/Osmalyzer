@@ -10,7 +10,8 @@ public abstract class BankLocationAnalyzer : Analyzer
 {
     public override string Name => BankName + " Locations";
 
-    public override string Description => "This report checks that all POIs from " + BankName + " contact list are mapped.";
+    public override string Description => "This report checks that all POIs from " + BankName + " contact list are mapped. " +
+                                          "Note that the website list is not precise and the actual points can be dozens and even hundreds of meters away, such as in shopping malls.";
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(SwedbankPointAnalysisData) };
 

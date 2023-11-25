@@ -105,25 +105,9 @@ public class HtmlFileReportWriter : ReportWriter
                 if (group.PlaceholderEntry != null)
                     bodyContent += "<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>" + Environment.NewLine;
 
-            if (group.IssueEntryCount > 0)
-            {
-                bodyContent += "<ul class=\"custom-list issues-list\">" + Environment.NewLine;
-                foreach (IssueReportEntry entry in group.CollectIssueEntries())
-                    bodyContent += "<li>" + PolishLine(entry.Text) + "</li>" + Environment.NewLine;
-                bodyContent += "</ul>" + Environment.NewLine;
-            }
-
-            if (group.GenericEntryCount > 0)
-            {
-                bodyContent += "<ul class=\"custom-list notes-list\">" + Environment.NewLine;
-                foreach (GenericReportEntry entry in group.CollectGenericEntries())
-                    bodyContent += "<li>" + PolishLine(entry.Text) + "</li>" + Environment.NewLine;
-                bodyContent += "</ul>" + Environment.NewLine;
-            }
-
             if (group.MapPointEntries.Count > 0)
             {
-                bodyContent += $@"<div class=""map"" id=""map{g}"" style=""width: 800px; height: 400px;""></div>" + Environment.NewLine;
+                bodyContent += $@"<div class=""map"" id=""map{g}"" style=""width: 1200px; height: 600px;""></div>" + Environment.NewLine;
 
                 bodyContent += @"<script>" + Environment.NewLine;
 
@@ -170,6 +154,22 @@ public class HtmlFileReportWriter : ReportWriter
                 bodyContent += @"map"+g+@".fitBounds(mainMarkerGroup"+g+@".getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;
 
                 bodyContent += @"</script>" + Environment.NewLine;
+            }
+
+            if (group.IssueEntryCount > 0)
+            {
+                bodyContent += "<ul class=\"custom-list issues-list\">" + Environment.NewLine;
+                foreach (IssueReportEntry entry in group.CollectIssueEntries())
+                    bodyContent += "<li>" + PolishLine(entry.Text) + "</li>" + Environment.NewLine;
+                bodyContent += "</ul>" + Environment.NewLine;
+            }
+
+            if (group.GenericEntryCount > 0)
+            {
+                bodyContent += "<ul class=\"custom-list notes-list\">" + Environment.NewLine;
+                foreach (GenericReportEntry entry in group.CollectGenericEntries())
+                    bodyContent += "<li>" + PolishLine(entry.Text) + "</li>" + Environment.NewLine;
+                bodyContent += "</ul>" + Environment.NewLine;
             }
         }
 

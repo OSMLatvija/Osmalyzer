@@ -2,10 +2,8 @@
 
 namespace Osmalyzer;
 
-public class BankPoint : ICorrelatorItem
+public abstract class BankPoint : ICorrelatorItem
 {
-    public BankPointType Type { get; set; }
-
     public string Name { get; set; }
 
     public string Address { get; set; }
@@ -15,18 +13,11 @@ public class BankPoint : ICorrelatorItem
     public int? Id { get; set; }
 
 
-    public string TypeString => Type switch
-    {
-        BankPointType.Branch                  => "Branch",
-        BankPointType.AtmWithdrawal           => "ATM",
-        BankPointType.AtmWithdrawalAndDeposit => "ATM",
-        _                                     => throw new NotImplementedException()
-    };
+    public abstract string TypeString { get; }
 
 
-    public BankPoint(BankPointType type, string name, string address, OsmCoord coord)
+    protected BankPoint(string name, string address, OsmCoord coord)
     {
-        Type = type;
         Name = name;
         Address = address;
         Coord = coord;
@@ -39,10 +30,28 @@ public class BankPoint : ICorrelatorItem
     }
 }
 
-    
-public enum BankPointType
+public class BankAtmPoint : BankPoint
 {
-    Branch,
-    AtmWithdrawalAndDeposit,
-    AtmWithdrawal
+    public override string TypeString => "ATM";
+    
+    public bool? Deposit { get; set; }
+
+    
+    public BankAtmPoint(string name, string address, OsmCoord coord, bool? deposit)
+        : base(name, address, coord)
+    {
+        Deposit = deposit;
+    }
 }
+
+public class BankBranchPoint : BankPoint
+{
+    public override string TypeString => "branch";
+    
+    
+    public BankBranchPoint(string name, string address, OsmCoord coord)
+        : base(name, address, coord)
+    {
+    }
+}
+

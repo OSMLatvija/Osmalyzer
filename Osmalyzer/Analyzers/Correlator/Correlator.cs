@@ -202,23 +202,30 @@ public class Correlator<T> where T : ICorrelatorItem
         {
             foreach ((OsmElement? osmElement, (T? dataItem, double distance)) in matchedElements)
             {
-                if (shouldReportMatchedItem)
+                if (shouldReportMatchedItem || shouldReportMatchedItemFar)
                 {
-                    report.AddEntry(
-                        ReportGroup.CorrelationResults,
-                        new MapPointReportEntry(
-                            osmElement.GetAverageCoord(),
-                            dataItem.ReportString() + " matched OSM element " +
-                            OsmElementReportText(osmElement) +
-                            " at " + distance.ToString("F0") + " m",
-                            MapPointStyle.Okay
-                        )
-                    );
+
                 }
 
-                if (shouldReportMatchedItemFar)
+                if (!(distance > matchDistance))
                 {
-                    if (distance > matchDistance)
+                    if (shouldReportMatchedItem)
+                    {
+                        report.AddEntry(
+                            ReportGroup.CorrelationResults,
+                            new MapPointReportEntry(
+                                osmElement.GetAverageCoord(),
+                                dataItem.ReportString() + " matched OSM element " +
+                                OsmElementReportText(osmElement) +
+                                " at " + distance.ToString("F0") + " m",
+                                MapPointStyle.Okay
+                            )
+                        );
+                    }
+                }
+                else
+                {
+                    if (shouldReportMatchedItemFar)
                     {
                         report.AddEntry(
                             ReportGroup.CorrelationResults,
@@ -230,8 +237,8 @@ public class Correlator<T> where T : ICorrelatorItem
                                 "but it's far away (" + distance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
                                 MapPointStyle.Dubious
                             )
-                        );                        
-                        
+                        );
+
                         report.AddEntry(
                             ReportGroup.CorrelationResults,
                             new MapPointReportEntry(

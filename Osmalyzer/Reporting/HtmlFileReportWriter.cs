@@ -70,15 +70,13 @@ public class HtmlFileReportWriter : ReportWriter
             
             bodyContent += @"<script>" + Environment.NewLine;
 
-            AddIcon("greenCheckmarkIcon", "green_checkmark.png");
-            AddIcon("orangeCheckmarkIcon", "orange_checkmark.png");
-            AddIcon("redCrossIcon", "red_cross.png");
-            AddIcon("blueStarIcon", "blue_star.png", 12);
+            foreach (LeafletIcon leafletIcon in LeafletIcons.Icons)
+                AddIcon(leafletIcon.Name, leafletIcon.Size);
 
-            void AddIcon(string iconVarName, string iconFileName, int size = 16)
+            void AddIcon(string iconName, int size)
             {
-                bodyContent += @"var " + iconVarName + " = L.icon({" + Environment.NewLine;
-                bodyContent += @"iconUrl: 'icons/" + iconFileName + "'," + Environment.NewLine;
+                bodyContent += @"var " + iconName + " = L.icon({" + Environment.NewLine;
+                bodyContent += @"iconUrl: 'icons/" + iconName + ".png'," + Environment.NewLine;
                 bodyContent += @"iconSize:     ["+size+", "+size+"], // size of the icon" + Environment.NewLine;
                 bodyContent += @"iconAnchor:   ["+(size/2)+", "+(size/2)+"], // point of the icon which will correspond to marker's location" + Environment.NewLine;
                 bodyContent += @"popupAnchor:  [2, -"+(size+2)+"] // point from which the popup should open relative to the iconAnchor" + Environment.NewLine;
@@ -142,22 +140,8 @@ public class HtmlFileReportWriter : ReportWriter
                     string lon = mapPointEntry.Coord.lon.ToString("F6");
                     string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                     string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + IconVarName(mapPointEntry.Style) + $@"}}).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
-
-                    [Pure]
-                    static string IconVarName(MapPointStyle style)
-                    {
-                        return style switch
-                        {
-                            MapPointStyle.Okay     => "greenCheckmarkIcon",
-                            MapPointStyle.Info     => "greenCheckmarkIcon",
-                            MapPointStyle.Dubious  => "orangeCheckmarkIcon",
-                            MapPointStyle.Problem  => "redCrossIcon",
-                            MapPointStyle.Expected => "blueStarIcon",
-
-                            _ => throw new ArgumentOutOfRangeException(nameof(style), style, null)
-                        };
-                    }
+                    LeafletIcon icon = LeafletIcons.Icons.First(i => i.Styles.Contains(mapPointEntry.Style));
+                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
                 }
 
                 bodyContent += @"map.fitBounds(markerGroup.getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;

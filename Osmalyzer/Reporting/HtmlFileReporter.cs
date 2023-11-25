@@ -97,30 +97,31 @@ public class HtmlFileReporter : Reporter
 
     private void CopyIconsForLeaflet()
     {
-        CopyIcon("green_checkmark.png");
-        CopyIcon("orange_checkmark.png");
-        CopyIcon("red_cross.png");
-        CopyIcon("blue_star.png");
-    }
+        foreach (LeafletIcon leafletIcon in LeafletIcons.Icons)
+            CopyIcon(leafletIcon);
 
-    private static void CopyIcon(string iconName)
-    {
-        Assembly assembly = Assembly.GetExecutingAssembly();
-
-        const string resourcePrefix = @"Osmalyzer.Reporting.HTML_report_resources.";
-        string resourcePath = resourcePrefix + iconName;
-
-        using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
-
-        string outputFolder = ReportWriter.outputFolder + @"/icons/";
+        return;
         
-        if (!Directory.Exists(outputFolder))
-            Directory.CreateDirectory(outputFolder);  
         
-        FileStream fileStream = new FileStream(outputFolder + iconName, FileMode.Create);
-        StreamWriter streamWriter = new StreamWriter(fileStream);
-        stream.CopyTo(streamWriter.BaseStream);
-        streamWriter.Close();
-        fileStream.Close();
+        static void CopyIcon(LeafletIcon leafletIcon)
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            const string resourcePrefix = @"Osmalyzer.Reporting.HTML_report_resources.";
+            string resourcePath = resourcePrefix + leafletIcon.Name + ".png";
+
+            using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
+
+            string outputFolder = ReportWriter.outputFolder + @"/icons/";
+        
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);  
+        
+            FileStream fileStream = new FileStream(outputFolder + leafletIcon.Name + ".png", FileMode.Create);
+            StreamWriter streamWriter = new StreamWriter(fileStream);
+            stream.CopyTo(streamWriter.BaseStream);
+            streamWriter.Close();
+            fileStream.Close();
+        }
     }
 }

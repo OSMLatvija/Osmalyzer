@@ -63,7 +63,33 @@ public class HtmlFileReportWriter : ReportWriter
 
             bodyContent += "</ul>" + Environment.NewLine;
         }
+        
+        if (report.NeedMap)
+        {
+            // Define (shared) leaflet icons
+            
+            bodyContent += @"<script>" + Environment.NewLine;
 
+            AddIcon("greenCheckmarkIcon", "green_checkmark.png");
+            AddIcon("orangeCheckmarkIcon", "orange_checkmark.png");
+            AddIcon("redCrossIcon", "red_cross.png");
+
+            void AddIcon(string iconVarName, string iconFileName)
+            {
+                bodyContent += @"var " + iconVarName + " = L.icon({" + Environment.NewLine;
+                bodyContent += @"iconUrl: 'icons/" + iconFileName + "'," + Environment.NewLine;
+                //bodyContent += @"shadowUrl: 'icons/leaf-shadow.png'," + Environment.NewLine;
+                bodyContent += @"iconSize:     [16, 16], // size of the icon" + Environment.NewLine;
+                //bodyContent += @"shadowSize:   [50, 64], // size of the shadow" + Environment.NewLine;
+                bodyContent += @"iconAnchor:   [8, 8], // point of the icon which will correspond to marker's location" + Environment.NewLine;
+                //bodyContent += @"shadowAnchor: [4, 62],  // the same for the shadow" + Environment.NewLine;
+                bodyContent += @"popupAnchor:  [2, -10] // point from which the popup should open relative to the iconAnchor" + Environment.NewLine;
+                bodyContent += @"});" + Environment.NewLine;
+            }
+
+            bodyContent += @"</script>" + Environment.NewLine;
+        }
+            
         for (int g = 0; g < groups.Count; g++)
         {
             ReportGroup group = groups[g];
@@ -101,22 +127,25 @@ public class HtmlFileReportWriter : ReportWriter
                 bodyContent += $@"<div class=""map"" id=""map{g}"" style=""width: 800px; height: 400px;""></div>" + Environment.NewLine;
 
                 bodyContent += @"<script>" + Environment.NewLine;
+
                 bodyContent += @$"var map = L.map('map{g}').setView([56.906, 24.505], 7);" + Environment.NewLine;
                 bodyContent += @"L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {" + Environment.NewLine;
                 bodyContent += @"    maxZoom: 21," + Environment.NewLine;
                 bodyContent += @"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'" + Environment.NewLine;
                 bodyContent += @"}).addTo(map);" + Environment.NewLine;
                 bodyContent += @"var markerGroup = L.featureGroup().addTo(map);" + Environment.NewLine;
+                
                 foreach (MapPointReportEntry mapPointEntry in group.MapPointEntries)
                 {
                     string lat = mapPointEntry.Coord.lat.ToString("F6");
                     string lon = mapPointEntry.Coord.lon.ToString("F6");
                     string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                     string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                    bodyContent += $@"L.marker([{lat}, {lon}]).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
+                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: greenCheckmarkIcon}}).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
                 }
 
                 bodyContent += @"map.fitBounds(markerGroup.getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;
+
                 bodyContent += @"</script>" + Environment.NewLine;
             }
         }

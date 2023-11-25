@@ -1,13 +1,16 @@
-﻿green_checkmark.png
+﻿greenCheckmark.png
 https://commons.wikimedia.org/wiki/File:Eo_circle_green_white_checkmark.svg
 
-orange_checkmark.png
+orangeCheckmark.png
 https://commons.wikimedia.org/wiki/File:Eo_circle_orange_white_checkmark.svg
 
-red_cross.png
+redCross.png
 https://commons.wikimedia.org/wiki/File:Antu_application-exit.svg
 
-blue_star.png
+blueStar.png
 https://commons.wikimedia.org/wiki/File:Antu_anki.svg
+
+redQuestion.png
+https://commons.wikimedia.org/wiki/File:Blue_Question.svg
 
 Edited by https://github.com/HellMapGoesCoding

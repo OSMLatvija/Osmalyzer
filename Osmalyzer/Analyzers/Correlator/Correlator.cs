@@ -162,7 +162,7 @@ public class Correlator<T> where T : ICorrelatorItem
             "This lists the results of matching " + dataItemLabelPlural + " and OSM elements to each other."
         );
         
-        // todo: generic summary, #s
+        // todo: generic summary, #s, legend
         
         // Report results
 
@@ -190,9 +190,9 @@ public class Correlator<T> where T : ICorrelatorItem
                     ReportGroup.CorrelationResults,
                     new MapPointReportEntry(
                         osmElement.GetAverageCoord(),
-                        "No " + dataItemLabelSingular + " found in " + unmatchDistance + " m range of OSM element " +
+                        "No " + dataItemLabelSingular + " expected in " + unmatchDistance + " m range of OSM element " +
                         OsmElementReportText(osmElement),
-                        MapPointStyle.Problem
+                        MapPointStyle.Unwanted
                     )
                 );
             }

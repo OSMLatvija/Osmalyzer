@@ -9,6 +9,7 @@ public static class LeafletIcons
         new LeafletIcon("greenCheckmark", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Okay, MapPointStyle.Info),
         new LeafletIcon("orangeCheckmark", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Dubious),
         new LeafletIcon("redCross", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Problem),
+        new LeafletIcon("redQuestion", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Unwanted),
         new LeafletIcon("blueStar", 12, LeafletIcon.IconGroup.Sub, MapPointStyle.Expected)
     };
 }

@@ -212,7 +212,14 @@ public class MicroReservesAnalyzer : Analyzer
                     // todo: we have like 3000 unmatched, so this wouldn't help
                 }
                     
-                report.AddEntry(ReportGroup.Matched, new MapPointReportEntry(reserve.Coord, "Match!"));
+                report.AddEntry(
+                    ReportGroup.Matched, 
+                    new MapPointReportEntry(
+                        reserve.Coord, 
+                        "Match!",
+                        MapPointStyle.Okay
+                    )
+                );
 
                 (OsmElement _, List<Reserve> previousMatchedReserves) = matches.FirstOrDefault(m => m.osm == osmReserve);
                 if (previousMatchedReserves != null)
@@ -226,7 +233,8 @@ public class MicroReservesAnalyzer : Analyzer
                     ReportGroup.Issues,
                     new IssueReportEntry(
                         "Couldn't find an OSM element for micro-reserve " + reserve + " within " + searchDistance + " m.",
-                        reserve.Coord
+                        reserve.Coord,
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -245,7 +253,8 @@ public class MicroReservesAnalyzer : Analyzer
                     new IssueReportEntry(
                         "OSM reserve " + osmReserve.OsmViewUrl + " " +
                         "matched to multiple reserves - " + string.Join("; ", matchedReserves.Select(r => r.ToString())) + ".",
-                        osmReserve.GetAverageCoord()
+                        osmReserve.GetAverageCoord(),
+                        MapPointStyle.Dubious
                     )
                 );
             }

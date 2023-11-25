@@ -211,7 +211,8 @@ public class StreetNameAnalyzer : Analyzer
                         "Unknown name \"" + wayName + "\" on " + osmGroup.Elements.Count + " road (segments) - " +
                         ReportEntryFormattingHelper.ListElements(osmGroup.Elements),
                         new SortEntryDesc(osmGroup.Elements.Count),
-                        osmGroup.GetAverageElementCoord()
+                        osmGroup.GetAverageElementCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }

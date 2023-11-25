@@ -65,7 +65,8 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
                             ReportGroup.Main,
                             new IssueReportEntry(
                                 "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
-                                coord
+                                coord,
+                                MapPointStyle.Info
                             )
                         );
                     }
@@ -80,7 +81,8 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
                             ReportGroup.Main,
                             new GenericReportEntry(
                                 "Max speed does not appear to be seasonal: " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
-                                coord
+                                coord,
+                                MapPointStyle.Dubious
                             )
                         );
                     }
@@ -94,7 +96,8 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
                     ReportGroup.Main,
                     new GenericReportEntry(
                         "Maxspeed not recognized: " + maxspeedStr + " on " + way.OsmViewUrl,
-                        coord
+                        coord,
+                        MapPointStyle.Dubious
                     )
                 );
             }

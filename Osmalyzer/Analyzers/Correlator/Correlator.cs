@@ -187,7 +187,8 @@ public class Correlator<T> where T : ICorrelatorItem
                         "No matchable OSM element found in " + unmatchDistance + " m range of " +
                         dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
                         new SortEntryAsc(SortOrder.NoItem),
-                        dataItem.Coord
+                        dataItem.Coord,
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -203,7 +204,8 @@ public class Correlator<T> where T : ICorrelatorItem
                         "No " + dataItemLabelSingular + " found in " + unmatchDistance + " m range of OSM element " +
                         OsmElementReportText(osmElement),
                         new SortEntryAsc(SortOrder.NoOsmElement),
-                        osmElement.GetAverageCoord()
+                        osmElement.GetAverageCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -221,7 +223,8 @@ public class Correlator<T> where T : ICorrelatorItem
                             osmElement.GetAverageCoord(),
                             dataItem.ReportString() + " matched OSM element " +
                             OsmElementReportText(osmElement) +
-                            " at " + distance.ToString("F0") + " m"
+                            " at " + distance.ToString("F0") + " m",
+                            MapPointStyle.Okay
                         )
                     );
                 }
@@ -238,7 +241,8 @@ public class Correlator<T> where T : ICorrelatorItem
                                 dataItem.ReportString() + ", " +
                                 "but it's far away (" + distance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
                                 new SortEntryAsc(SortOrder.ElementFar),
-                                dataItem.Coord
+                                dataItem.Coord, 
+                                MapPointStyle.Dubious
                             )
                         );
                     }
@@ -256,7 +260,8 @@ public class Correlator<T> where T : ICorrelatorItem
                         osmElement.GetAverageCoord(),
                         "Matched OSM element " +
                         OsmElementReportText(osmElement) +
-                        " by itself"
+                        " by itself",
+                        MapPointStyle.Okay
                     )
                 );
             }

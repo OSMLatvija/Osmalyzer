@@ -12,15 +12,15 @@ public class GenericReportEntry : SortableReportEntry
     {
     }
 
-    public GenericReportEntry(string text, OsmCoord coord)
+    public GenericReportEntry(string text, OsmCoord coord, MapPointStyle style)
         : base(text, null, null)
     {
-        SubEntry = new MapPointReportEntry(coord, text);
+        SubEntry = new MapPointReportEntry(coord, text, style);
     }
         
-    public GenericReportEntry(string text, EntrySortingRule sortingRule, OsmCoord coord)
+    public GenericReportEntry(string text, EntrySortingRule sortingRule, OsmCoord coord, MapPointStyle style)
         : base(text, null, sortingRule)
     {
-        SubEntry = new MapPointReportEntry(coord, text);
+        SubEntry = new MapPointReportEntry(coord, text, style);
     }
 }

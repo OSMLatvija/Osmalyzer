@@ -141,7 +141,21 @@ public class HtmlFileReportWriter : ReportWriter
                     string lon = mapPointEntry.Coord.lon.ToString("F6");
                     string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                     string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: greenCheckmarkIcon}}).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
+                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + IconVarName(mapPointEntry.Style) + $@"}}).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
+
+                    [Pure]
+                    static string IconVarName(MapPointStyle style)
+                    {
+                        return style switch
+                        {
+                            MapPointStyle.Okay    => "greenCheckmarkIcon",
+                            MapPointStyle.Info    => "greenCheckmarkIcon",
+                            MapPointStyle.Dubious => "orangeCheckmarkIcon",
+                            MapPointStyle.Problem => "redCrossIcon",
+
+                            _ => throw new ArgumentOutOfRangeException(nameof(style), style, null)
+                        };
+                    }
                 }
 
                 bodyContent += @"map.fitBounds(markerGroup.getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;

@@ -69,7 +69,8 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
                     "`maxspeed=90`, but unpaved " +
                     (surfaces.Count > 1 ? "`surface`s " + string.Join(", ", surfaces.Select(s => "`" + s + "`")) : "`surface=" + surfaces[0] + "`") +
                     " " + ReportEntryFormattingHelper.ListElements(group.Elements, 100),
-                    group.GetAverageElementCoord()
+                    group.GetAverageElementCoord(),
+                    MapPointStyle.Problem
                 )
             );
         }
@@ -103,7 +104,8 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
                     "`maxspeed=80`, but paved " +
                     (surfaces.Count > 1 ? "`surface`s " + string.Join(", ", surfaces.Select(s => "`" + s + "`")) : "`surface=" + surfaces[0] + "`") +
                     " " + ReportEntryFormattingHelper.ListElements(group.Elements, 100),
-                    group.GetAverageElementCoord()
+                    group.GetAverageElementCoord(),
+                    MapPointStyle.Problem
                 )
             );
         }

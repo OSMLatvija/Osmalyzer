@@ -120,7 +120,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                             "OSM stop \"" + osmStopName + "\" " +
                             "but is far away at " + stopDistance.ToString("F0") + " m - " + matchedStop.OsmViewUrl + " , " +
                             "expecting around " + ptStop.Coord.OsmUrl,
-                            ptStop.Coord
+                            ptStop.Coord,
+                            MapPointStyle.Dubious
                         )
                     );
                 }
@@ -146,7 +147,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                             new IssueReportEntry(
                                 Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop nearby but is closest at " + stopDistance.ToString("F0") + " m to " +
                                 "OSM stop \"" + osmStopName + "\" - " + closestStop.OsmViewUrl,
-                                ptStop.Coord
+                                ptStop.Coord,
+                                MapPointStyle.Problem
                             )
                         );
                     }
@@ -157,7 +159,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                             new IssueReportEntry(
                                 Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop nearby but is closest at " + stopDistance.ToString("F0") + " m to unnamed " +
                                 "OSM stop - " + closestStop.OsmViewUrl,
-                                ptStop.Coord
+                                ptStop.Coord,
+                                MapPointStyle.Problem
                             )
                         );
                     }
@@ -169,7 +172,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                                 Label + " stop \"" + ptStop.Name + "\" has no matching OSM stop in range and all other stops are far away " +
                                 "(closest " + (osmStopName != null ? "\"" + osmStopName + "\"" : "unnamed") + 
                                 " at " + stopDistance.ToString("F0") + " m) -- " + ptStop.Coord.OsmUrl,
-                                ptStop.Coord
+                                ptStop.Coord,
+                                MapPointStyle.Problem
                             )
                         );
                     }
@@ -184,7 +188,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                         new IssueReportEntry(
                             "No OSM stops at all in range of " + Label + " stop \"" + ptStop.Name + "\" " +
                             "(closest " + farawayDistance.ToString("F0") + " m) - " + ptStop.Coord.OsmUrl,
-                            ptStop.Coord
+                            ptStop.Coord,
+                            MapPointStyle.Problem
                         )
                     );
                 }
@@ -265,6 +270,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                                             "was not in the matched " +
                                             "OSM route \"" + osmRoute.GetValue("name") + "\" " + osmRoute.OsmViewUrl + ".", 
                                             ptStop.Coord,
+                                            MapPointStyle.Problem,
                                             new ReportEntryContext(ptStop)
                                         )
                                     );
@@ -292,6 +298,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                                         //"trip #" + trip.Id + -- meaningless ID since many repeat it and this is first found
                                         ".", 
                                         routeStop.coord,
+                                        MapPointStyle.Problem,
                                         new ReportEntryContext(routeStop)
                                     )
                                 );
@@ -323,7 +330,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                                         "appear in both routes but did not cross-match originally " +
                                         "("+Label+" stop matched \"" + originalMatch.GetValue("name") + "\" " + originalMatch.OsmViewUrl + " " + distance.ToString("F0") + " m away)" +
                                         ".",
-                                        ptStop.Coord
+                                        ptStop.Coord,
+                                        MapPointStyle.Problem
                                     )
                                 );
                             }

@@ -121,7 +121,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     new IssueReportEntry(
                         "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord()
+                        osmTap.GetAverageCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -134,7 +135,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                         new IssueReportEntry(
                             "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set" + tapLabel + ", instead `" + operatorValue + "` - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord()
+                            osmTap.GetAverageCoord(),
+                            MapPointStyle.Problem
                         )
                     );
                 }
@@ -153,7 +155,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     new IssueReportEntry(
                         "OSM tap doesn't have expected `man_made="+expectedManmade+"` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord()
+                        osmTap.GetAverageCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -166,7 +169,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                         new IssueReportEntry(
                             "OSM tap doesn't have expected `man_made="+expectedManmade+"` set" + tapLabel + ", instead `" + manmadeValue + "` - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord()
+                            osmTap.GetAverageCoord(),
+                            MapPointStyle.Problem
                         )
                     );
                 }
@@ -183,7 +187,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     new IssueReportEntry(
                         "OSM tap doesn't have expected `drinking_water=yes` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord()
+                        osmTap.GetAverageCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -196,7 +201,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                         new IssueReportEntry(
                             "OSM tap doesn't have expected `drinking_water=yes` set" + tapLabel + ", instead `" + drinkableValue + "` - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord()
+                            osmTap.GetAverageCoord(),
+                            MapPointStyle.Problem
                         )
                     );
                 }
@@ -213,7 +219,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     new IssueReportEntry(
                         "OSM tap has a `fixme=" + fixmeValue + "` set" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord()
+                        osmTap.GetAverageCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -229,7 +236,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                     new IssueReportEntry(
                         "OSM tap doesn't list its `seasonal` state" + tapLabel + " - " + osmTap.OsmViewUrl,
                         new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord()
+                        osmTap.GetAverageCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -243,7 +251,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                         new IssueReportEntry(
                             "OSM tap have an unknown `seasonal=" + drinkableValue + "` value" + tapLabel + " - " + osmTap.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord()
+                            osmTap.GetAverageCoord(),
+                            MapPointStyle.Problem
                         )
                     );
                 }

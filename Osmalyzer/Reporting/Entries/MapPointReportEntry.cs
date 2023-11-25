@@ -8,15 +8,18 @@ namespace Osmalyzer;
 public class MapPointReportEntry : ReportEntry
 {
     public OsmCoord Coord { get; }
+    
+    public MapPointStyle Style { get; set; }
 
 
     private int _pointCount = 1;
 
 
-    public MapPointReportEntry(OsmCoord coord, string text, ReportEntryContext? context = null)
+    public MapPointReportEntry(OsmCoord coord, string text, MapPointStyle style, ReportEntryContext? context = null)
         : base(text, context)
     {
         Coord = coord;
+        Style = style;
     }
 
         
@@ -29,4 +32,12 @@ public class MapPointReportEntry : ReportEntry
 
         _pointCount++;
     }
+}
+
+public enum MapPointStyle
+{
+    Okay,
+    Dubious,
+    Problem,
+    Info
 }

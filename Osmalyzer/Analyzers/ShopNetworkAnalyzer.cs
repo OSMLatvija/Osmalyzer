@@ -85,7 +85,8 @@ public class ShopNetworkAnalyzer : Analyzer
                                 "Shop matched for " + ListedShopString(listedShop) +
                                 " as " + OsmShopString(exactMatchedShop) +
                                 " , but it's far away - " + distance.Value.ToString("F0") + " m.",
-                                listedShop.Coord
+                                listedShop.Coord,
+                                MapPointStyle.Dubious
                             )
                         );
                     }
@@ -102,7 +103,8 @@ public class ShopNetworkAnalyzer : Analyzer
                                 "No expected shop for " + ListedShopString(listedShop) +
                                 " , closest " + OsmShopString(closestMatchedShop) + 
                                 " at " + distance!.Value.ToString("F0") + " m.",
-                                listedShop.Coord
+                                listedShop.Coord,
+                                MapPointStyle.Problem
                             )
                         );
                     }
@@ -112,7 +114,8 @@ public class ShopNetworkAnalyzer : Analyzer
                             parser.Name,
                             new IssueReportEntry(
                                 "No expected shop for " + ListedShopString(listedShop) + " , and no shops nearby.",
-                                listedShop.Coord
+                                listedShop.Coord,
+                                MapPointStyle.Problem
                             )
                         );
                     }

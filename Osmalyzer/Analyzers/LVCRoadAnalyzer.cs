@@ -244,7 +244,8 @@ public class LVCRoadAnalyzer : Analyzer
                         ReportGroup.SharedRefsNotInLaw,
                         new IssueReportEntry(
                             text,
-                            coord
+                            coord,
+                            MapPointStyle.Problem
                         )
                     );
                 }
@@ -312,7 +313,8 @@ public class LVCRoadAnalyzer : Analyzer
                     ReportGroup.ExtraRelations,
                     new IssueReportEntry(
                         "The route relation `" + code + "` doesn't have a any road segment with such code - " + routeElement.OsmViewUrl,
-                        routeElement.GetAverageCoord()
+                        routeElement.GetAverageCoord(),
+                        MapPointStyle.Problem
                     )
                 );
             }
@@ -385,7 +387,8 @@ public class LVCRoadAnalyzer : Analyzer
                         "\"" + osmGroup.Value + "\" " +
                         "not recognized on " + osmGroup.Elements.Count + " road (segments) - " +
                         ReportEntryFormattingHelper.ListElements(osmGroup.Elements),
-                        coord
+                        coord,
+                        MapPointStyle.Problem
                     )
                 );
             }

@@ -65,7 +65,8 @@ public class LivingZoneSpeedAnalyzer : Analyzer
                             new IssueReportEntry(
                                 "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                                 "has an incorrect maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
-                                coord
+                                coord,
+                                MapPointStyle.Problem
                             )
                         );
                     }
@@ -79,7 +80,8 @@ public class LivingZoneSpeedAnalyzer : Analyzer
                         new IssueReportEntry(
                             "This road (segment) " + (livingStreet.HasKey("name") ? "\"" + livingStreet.GetValue("name") + "\" " : "") +
                             "has an invalid maxspeed value \"" + maxspeedStr + "\": " + livingStreet.OsmViewUrl,
-                            coord
+                            coord,
+                            MapPointStyle.Problem
                         )
                     );
                 }

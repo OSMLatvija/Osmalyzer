@@ -103,45 +103,66 @@ public class Correlator<T> where T : ICorrelatorItem
             }
             else
             {
-                OsmNode? matchedOsmElement = closestOsmElements.FirstOrDefault(t => matchCallback == null || matchCallback(dataItem, t));
-                    
-                if (matchedOsmElement != null)
+                // Filter elements to those we haven't matched with yet
+                List<OsmNode> unmatchedClosestOsmElements = closestOsmElements.Where(e => !matchedElements.ContainsKey(e)).ToList();
+
+                if (unmatchedClosestOsmElements.Count == 0)
                 {
-                    matchedElements.Add(matchedOsmElement, dataItem);
-                    
-                    correlations.Add(new MatchedCorrelation<T>(matchedOsmElement, dataItem));
-
-                    double matchedOsmElementDistance = OsmGeoTools.DistanceBetween(matchedOsmElement.coord, dataItem.Coord);
-
-                    if (matchedOsmElementDistance > matchDistance)
+                    if (shouldReportUnmatchedItem)
                     {
-                        if (shouldReportMatchedItemFar)
+                        report.AddEntry(
+                            ReportGroup.Unmatched,
+                            new IssueReportEntry(
+                                "No unmatched OSM element found in " + unmatchDistance + " m range of " +
+                                dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
+                                new SortEntryAsc(SortOrder.NoItem),
+                                dataItem.Coord
+                            )
+                        );
+                    }
+                }
+                else
+                {
+                    OsmNode? matchedOsmElement = unmatchedClosestOsmElements.FirstOrDefault(t => matchCallback == null || matchCallback(dataItem, t));
+
+                    if (matchedOsmElement != null)
+                    {
+                        matchedElements.Add(matchedOsmElement, dataItem);
+
+                        correlations.Add(new MatchedCorrelation<T>(matchedOsmElement, dataItem));
+
+                        double matchedOsmElementDistance = OsmGeoTools.DistanceBetween(matchedOsmElement.coord, dataItem.Coord);
+
+                        if (matchedOsmElementDistance > matchDistance)
+                        {
+                            if (shouldReportMatchedItemFar)
+                            {
+                                report.AddEntry(
+                                    ReportGroup.Unmatched,
+                                    new IssueReportEntry(
+                                        "Matching OSM element " +
+                                        OsmElementReportText(matchedOsmElement) + " found close to " +
+                                        dataItem.ReportString() + ", " +
+                                        "but it's far away (" + matchedOsmElementDistance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
+                                        new SortEntryAsc(SortOrder.ElementFar),
+                                        dataItem.Coord
+                                    )
+                                );
+                            }
+                        }
+
+                        if (shouldReportMatchedItem)
                         {
                             report.AddEntry(
-                                ReportGroup.Unmatched,
-                                new IssueReportEntry(
-                                    "Matching OSM element " +
-                                    OsmElementReportText(matchedOsmElement) + " found close to " +
-                                    dataItem.ReportString() + ", " +
-                                    "but it's far away (" + matchedOsmElementDistance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
-                                    new SortEntryAsc(SortOrder.ElementFar),
-                                    dataItem.Coord
+                                ReportGroup.MatchedOsm,
+                                new MapPointReportEntry(
+                                    matchedOsmElement.coord,
+                                    dataItem.ReportString() + " matched OSM element " +
+                                    OsmElementReportText(matchedOsmElement) +
+                                    " at " + matchedOsmElementDistance.ToString("F0") + " m"
                                 )
                             );
                         }
-                    }
-
-                    if (shouldReportMatchedItem)
-                    {
-                        report.AddEntry(
-                            ReportGroup.MatchedOsm,
-                            new MapPointReportEntry(
-                                matchedOsmElement.coord,
-                                dataItem.ReportString() + " matched OSM element " +
-                                OsmElementReportText(matchedOsmElement) +
-                                " at " + matchedOsmElementDistance.ToString("F0") + " m"
-                            )
-                        );
                     }
                 }
             }

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
+using JetBrains.Annotations;
 
 namespace Osmalyzer;
 
@@ -14,115 +16,52 @@ public class HtmlFileReportWriter : ReportWriter
 
     public override void Save(Report report)
     {
-        ReportFileName = report.Name + @" report.html";
+        string output = GetOutputTemplate();
+
+        if (!report.NeedMap)
+            output = StripSection(output, "MAP");
+
+        string title = HttpUtility.HtmlEncode(report.Name);
+        
+        output = ReplaceMarker(output, "TITLE", title);
+        output = ReplaceMarker(output, "DESCR_TITLE", title);
+
+        string bodyContent = BuildContent(report, title);
+        
+        output = ReplaceMarker(output, "BODY", bodyContent);
+
+        // Write
+        
+        ReportFileName = report.Name + " report.html";
             
         string fullReportFileName = outputFolder + "/" + ReportFileName;
             
-        using StreamWriter reportFile = File.CreateText(fullReportFileName);
+        File.WriteAllText(fullReportFileName, output);
+    }
 
-        // Now comes the worst way to build an HTML page :)
-            
-        reportFile.WriteLine(@"<!doctype html>");
-        reportFile.WriteLine(@"<html>");
-        reportFile.WriteLine(@"<head>");
-        reportFile.WriteLine(@"<title>" + HttpUtility.HtmlEncode(report.Name) + " report</title>");
-        reportFile.WriteLine(@"<meta name=""description"" content=""Osmalyzer " + report.Name + @" report"" />");
-        reportFile.WriteLine(@"<meta http-equiv=""Cache-Control"" content=""no-cache, no-store, must-revalidate"" />");
-        reportFile.WriteLine(@"<meta http-equiv=""Pragma"" content=""no-cache"" />");
-        reportFile.WriteLine(@"<meta http-equiv=""Expires"" content=""0"" />");
-            
-        reportFile.WriteLine(@"<style>"); // todo: stylesheets? never heard of it
-        reportFile.WriteLine(@"body {");
-        reportFile.WriteLine(@"  font-family: Arial, sans-serif;");
-        reportFile.WriteLine(@"  margin: 0;");
-        reportFile.WriteLine(@"  padding: 20px;");
-        reportFile.WriteLine(@"  background-color: #f2f2f2;");
-        reportFile.WriteLine(@"  color: #333;");
-        reportFile.WriteLine(@"  font-size: .85em;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@"h1, h2, h3 {");
-        reportFile.WriteLine(@"  color: #555;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@"a {");
-        reportFile.WriteLine(@"  color: #007bff;");
-        reportFile.WriteLine(@"  text-decoration: none;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@"a:hover {");
-        reportFile.WriteLine(@"  text-decoration: underline;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@"a:visited {");
-        reportFile.WriteLine(@"  color: #1b4b99;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@".custom-list {");
-        reportFile.WriteLine(@"  list-style-type: none;");
-        reportFile.WriteLine(@"  padding-left: 10px;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@".custom-list li:before {");
-        reportFile.WriteLine(@"  margin-right: 10px;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@".custom-list.notes-list li:before {");
-        reportFile.WriteLine(@"  content: ""🛈"";");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@".custom-list.issues-list li:before {");
-        reportFile.WriteLine(@"  content: ""⚠"";");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@".custom-list.toc-list li:before {");
-        reportFile.WriteLine(@"  content: ""§"";");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@"li {");
-        reportFile.WriteLine(@"  margin-bottom: 4px;");
-        reportFile.WriteLine(@"}");
-        reportFile.WriteLine(@".osm-link {");
-        reportFile.WriteLine(@"  font-size: .8em;");
-        reportFile.WriteLine(@"}");  
-        reportFile.WriteLine(@".osm-tag {");
-        reportFile.WriteLine(@"  font-family: 'Consolas', monospace;");
-        reportFile.WriteLine(@"  font-size: .9em;");
-        reportFile.WriteLine(@"  white-space: pre;");
-        reportFile.WriteLine(@"  background-color: #e1e1e1;");
-        reportFile.WriteLine(@"  padding: 0 2px;");
-        reportFile.WriteLine(@"}");    
-        reportFile.WriteLine(@".map {");
-        reportFile.WriteLine(@"  border: 1px solid #ccc;");
-        reportFile.WriteLine(@"}");            
-            
-        reportFile.WriteLine(@"</style>");
+    
+    [Pure]
+    private static string BuildContent(Report report, string title)
+    {
+        string bodyContent = "<h2>Report for " + title + "</h2>" + Environment.NewLine;
 
-        bool needMap = report.NeedMap;
-            
-        if (needMap)
-        {
-            reportFile.WriteLine(@"<link rel=""stylesheet"" href=""https://unpkg.com/leaflet@1.9.4/dist/leaflet.css""");
-            reportFile.WriteLine(@"    integrity=""sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=""");
-            reportFile.WriteLine(@"    crossorigin=""""/>");
-                 
-            reportFile.WriteLine(@"<script src=""https://unpkg.com/leaflet@1.9.4/dist/leaflet.js""");
-            reportFile.WriteLine(@"    integrity=""sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=""");
-            reportFile.WriteLine(@"    crossorigin=""""></script>");
-        }
-            
-        reportFile.WriteLine(@"</head>");
-        reportFile.WriteLine(@"<body>");
-            
-        reportFile.WriteLine("<h2>Report for " + HttpUtility.HtmlEncode(report.Name) + "</h2>");
+        bodyContent += "<p>" + PolishLine(report.Description) + "</p>" + Environment.NewLine;
 
-        reportFile.WriteLine("<p>" + PolishLine(report.Description) + "</p>");
-            
         List<ReportGroup> groups = report.CollectGroups();
 
         bool needTOC = groups.Count > 1 && groups.Sum(g => g.TotalEntryCount) > 30;
 
         if (needTOC)
         {
-            reportFile.WriteLine("<h3>Sections</h3>");
-            reportFile.WriteLine("<ul class=\"custom-list toc-list\">");
+            bodyContent += "<h3>Sections</h3>" + Environment.NewLine;
+            bodyContent += "<ul class=\"custom-list toc-list\">" + Environment.NewLine;
             for (int g = 0; g < groups.Count; g++)
             {
                 int importantEntryCount = groups[g].ImportantEntryCount;
-                reportFile.WriteLine(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>" + (importantEntryCount > 0 ? @" (" + importantEntryCount + ")" : "") + @"</li>");
+                bodyContent += @"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>" + (importantEntryCount > 0 ? @" (" + importantEntryCount + ")" : "") + @"</li>" + Environment.NewLine;
             }
 
-            reportFile.WriteLine("</ul>");
+            bodyContent += "</ul>" + Environment.NewLine;
         }
 
         for (int g = 0; g < groups.Count; g++)
@@ -130,67 +69,65 @@ public class HtmlFileReportWriter : ReportWriter
             ReportGroup group = groups[g];
 
             if (needTOC)
-                reportFile.WriteLine(@"<h3 id=""g" + (g + 1) + @""">" + group.Title + "</h3>");
+                bodyContent += @"<h3 id=""g" + (g + 1) + @""">" + group.Title + "</h3>" + Environment.NewLine;
             else
-                reportFile.WriteLine("<h3>" + group.Title + "</h3>");
+                bodyContent += "<h3>" + group.Title + "</h3>" + Environment.NewLine;
 
             if (group.DescriptionEntry != null)
-                reportFile.WriteLine("<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");
+                bodyContent += "<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>" + Environment.NewLine;
 
             if (!group.HaveAnyContentEntries)
                 if (group.PlaceholderEntry != null)
-                    reportFile.WriteLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
+                    bodyContent += "<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>" + Environment.NewLine;
 
             if (group.IssueEntryCount > 0)
             {
-                reportFile.WriteLine("<ul class=\"custom-list issues-list\">");
+                bodyContent += "<ul class=\"custom-list issues-list\">" + Environment.NewLine;
                 foreach (IssueReportEntry entry in group.CollectIssueEntries())
-                    reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
-                reportFile.WriteLine("</ul>");
+                    bodyContent += "<li>" + PolishLine(entry.Text) + "</li>" + Environment.NewLine;
+                bodyContent += "</ul>" + Environment.NewLine;
             }
 
             if (group.GenericEntryCount > 0)
             {
-                reportFile.WriteLine("<ul class=\"custom-list notes-list\">");
+                bodyContent += "<ul class=\"custom-list notes-list\">" + Environment.NewLine;
                 foreach (GenericReportEntry entry in group.CollectGenericEntries())
-                    reportFile.WriteLine("<li>" + PolishLine(entry.Text) + "</li>");
-                reportFile.WriteLine("</ul>");
+                    bodyContent += "<li>" + PolishLine(entry.Text) + "</li>" + Environment.NewLine;
+                bodyContent += "</ul>" + Environment.NewLine;
             }
 
             if (group.MapPointEntries.Count > 0)
             {
-                reportFile.WriteLine($@"<div class=""map"" id=""map{g}"" style=""width: 800px; height: 400px;""></div>");
+                bodyContent += $@"<div class=""map"" id=""map{g}"" style=""width: 800px; height: 400px;""></div>" + Environment.NewLine;
 
-                reportFile.WriteLine(@"<script>");
-                reportFile.WriteLine(@$"var map = L.map('map{g}').setView([56.906, 24.505], 7);");
-                reportFile.WriteLine(@"L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {");
-                reportFile.WriteLine(@"    maxZoom: 21,");
-                reportFile.WriteLine(@"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'");
-                reportFile.WriteLine(@"}).addTo(map);");
-                reportFile.WriteLine(@"var markerGroup = L.featureGroup().addTo(map);");
+                bodyContent += @"<script>" + Environment.NewLine;
+                bodyContent += @$"var map = L.map('map{g}').setView([56.906, 24.505], 7);" + Environment.NewLine;
+                bodyContent += @"L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {" + Environment.NewLine;
+                bodyContent += @"    maxZoom: 21," + Environment.NewLine;
+                bodyContent += @"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'" + Environment.NewLine;
+                bodyContent += @"}).addTo(map);" + Environment.NewLine;
+                bodyContent += @"var markerGroup = L.featureGroup().addTo(map);" + Environment.NewLine;
                 foreach (MapPointReportEntry mapPointEntry in group.MapPointEntries)
                 {
                     string lat = mapPointEntry.Coord.lat.ToString("F6");
                     string lon = mapPointEntry.Coord.lon.ToString("F6");
                     string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                     string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                    reportFile.WriteLine($@"L.marker([{lat}, {lon}]).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");");
+                    bodyContent += $@"L.marker([{lat}, {lon}]).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
                 }
-                reportFile.WriteLine(@"map.fitBounds(markerGroup.getBounds(), { maxZoom: 12, animate: false });");
-                reportFile.WriteLine(@"</script>");
+
+                bodyContent += @"map.fitBounds(markerGroup.getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;
+                bodyContent += @"</script>" + Environment.NewLine;
             }
         }
 
-        reportFile.WriteLine("<br>Data as of " + HttpUtility.HtmlEncode(report.DataDates) + ". Provided as is; mistakes possible.");
-            
-        reportFile.WriteLine(@"</body>");
-        reportFile.WriteLine(@"</html>");
-            
-        reportFile.Close();
+        bodyContent += "<br>Data as of " + HttpUtility.HtmlEncode(report.DataDates) + ". Provided as is; mistakes possible." + Environment.NewLine;
+
+        return bodyContent;
     }
 
-        
-    private string PolishLine(string line)
+    [Pure]
+    private static string PolishLine(string line)
     {
         line = HttpUtility.HtmlEncode(line);
             
@@ -207,5 +144,41 @@ public class HtmlFileReportWriter : ReportWriter
         line = line.Replace(Environment.NewLine, "<br>");
             
         return line;
+    }
+
+    [Pure]
+    private static string GetOutputTemplate()
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        
+        const string resourcePath = @"Osmalyzer.Reporting.report template.html";
+
+        using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
+        
+        using StreamReader reader = new StreamReader(stream);
+        
+        return reader.ReadToEnd();
+    }
+
+    [Pure]
+    private static string StripSection(string output, string marker)
+    {
+        string fromString = "<!--" + marker + "-->";
+        string toString = "<!--END " + marker + "-->";
+
+        int startIndex = output.IndexOf(fromString, StringComparison.Ordinal);
+        int endIndex = output.IndexOf(toString, startIndex, StringComparison.Ordinal);
+        
+        return output[.. startIndex] + output[(endIndex + toString.Length) ..];
+    }
+
+    [Pure]
+    private static string ReplaceMarker(string output, string marker, string value)
+    {
+        string markerString = "<!--" + marker + "-->";
+
+        int index = output.IndexOf(markerString, StringComparison.Ordinal);
+        
+        return output[.. index] + value + output[(index + markerString.Length) ..];
     }
 }

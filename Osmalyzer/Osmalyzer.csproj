@@ -22,7 +22,10 @@
       <PackageReference Include="SharpZipLib" Version="1.4.2" />
     </ItemGroup>
 
-
+    <ItemGroup>
+      <None Remove="Reporting\report template.html" />
+      <EmbeddedResource Include="Reporting\report template.html" />
+    </ItemGroup>
 
 
 </Project>

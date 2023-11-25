@@ -25,21 +25,22 @@ public static class Runner
             //new CommonBrandsAnalyzer(),
             //new HighwaySeasonalSpeedsAnalyzer(),
             //new LivingZoneSpeedAnalyzer(),
-            new LVCRoadAnalyzer(),
+            //new LVCRoadAnalyzer(),
             //new RigasSatiksmeAnalyzer(),
             //new LiepajasTransportsAnalyzer(),
             //new RezeknesSatiksmeAnalyzer(),
             //new JurmalasSatiksmeAnalyzer(),
             //new AutotransportaDirekcijaAnalyzer(),
             //new TrolleybusWireAnalyzer(),
-            //new ShopNetworkAnalyzer(),
             //new MicroReservesAnalyzer(),
             //new StreetNameAnalyzer(),
             //new RigaDrinkingWaterAnalyzer(),
             //new PublicTransportAccessAnalyzer(),
             //new HighwaySpeedLimitAnalyzer(),
             //new GlikaOaksAnalyzer(),
-            //new SwedbankLocationAnalyzer()
+            //new SwedbankLocationAnalyzer(),
+            new ElviShopNetworkAnalyzer(),
+            new LatsShopNetworkAnalyzer()
         };
 #endif
 

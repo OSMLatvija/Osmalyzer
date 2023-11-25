@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace Osmalyzer;
@@ -13,4 +15,12 @@ public class TopShopsAnalysisData : ShopListAnalysisData
     public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
 
     public override string ShopListUrl => "https://www.toppartika.lv/veikali/";
+
+
+    public override List<ShopData> GetShops()
+    {
+        // It's not in source, it's using google map with embedded data that I would need to somehow get
+                
+        throw new NotImplementedException();
+    }
 }

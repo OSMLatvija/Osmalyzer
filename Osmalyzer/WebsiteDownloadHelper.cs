@@ -25,7 +25,8 @@ public static class WebsiteDownloadHelper
         }
             
         using HttpClient client = new HttpClient();
-        using HttpResponseMessage response = client.GetAsync(url).Result;
+        Uri uri = new Uri(url, UriKind.Absolute);
+        using HttpResponseMessage response = client.GetAsync(uri).Result;
         using HttpContent content = response.Content;
         string result = content.ReadAsStringAsync().Result;
 
@@ -38,7 +39,8 @@ public static class WebsiteDownloadHelper
     public static void Download(string url, string fileName)
     {
         using HttpClient client = new HttpClient();
-        using Task<Stream> stream = client.GetStreamAsync(url);
+        Uri uri = new Uri(url, UriKind.Absolute);
+        using Task<Stream> stream = client.GetStreamAsync(uri);
         using FileStream fileStream = new FileStream(fileName, FileMode.Create);
         stream.Result.CopyTo(fileStream);
     }
@@ -46,7 +48,8 @@ public static class WebsiteDownloadHelper
     public static DateTime? ReadHeaderDate(string url)
     {
         using HttpClient client = new HttpClient();
-        using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, url)).Result;
+        Uri uri = new Uri(url, UriKind.Absolute);
+        using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri)).Result;
 
         DateTimeOffset? lastModifedOffset = response.Content.Headers.LastModified;
 

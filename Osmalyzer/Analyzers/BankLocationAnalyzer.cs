@@ -45,7 +45,7 @@ public class BankLocationAnalyzer : Analyzer
             osmPoints,
             points,
             new MatchDistanceParamater(50),
-            new MatchFarDistanceParamater(200),
+            new MatchFarDistanceParamater(300), // some are stupidly far, like at the opposite end of a shopping center from the website's point
             new DataItemLabelsParamater("Swedbank POI", "Swedbank POIs"),
             new MatchCallbackParameter<BankPoint>(DoesOsmPointMatchBankPoint)
         );

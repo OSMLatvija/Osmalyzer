@@ -241,7 +241,7 @@ public class Correlator<T> where T : ICorrelatorItem
                                 dataItem.ReportString() + ", " +
                                 "but it's far away (" + distance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
                                 new SortEntryAsc(SortOrder.ElementFar),
-                                dataItem.Coord, 
+                                osmElement.GetAverageCoord(), 
                                 MapPointStyle.Dubious
                             )
                         );

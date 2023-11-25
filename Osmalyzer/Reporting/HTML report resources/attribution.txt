@@ -2,7 +2,9 @@
 https://commons.wikimedia.org/wiki/File:Eo_circle_green_white_checkmark.svg
 
 orange_checkmark.png
-https://commons.wikimedia.org/wiki/File:Eo_circle_orange_checkmark.svg
+https://commons.wikimedia.org/wiki/File:Eo_circle_orange_white_checkmark.svg
 
 red_cross.png
-https://commons.wikimedia.org/wiki/File:Cross_red_circle.svg
+https://commons.wikimedia.org/wiki/File:Antu_application-exit.svg
+
+Edited by https://github.com/HellMapGoesCoding

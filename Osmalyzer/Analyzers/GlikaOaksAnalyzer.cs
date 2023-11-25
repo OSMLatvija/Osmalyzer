@@ -53,7 +53,7 @@ public class GlikaOaksAnalyzer : Analyzer
 
         dataComparer.Parse(
             report,
-            new MatchedItemCBatch(),
+            new MatchedItemBatch(),
             new UnmatchedItemBatch(),
             new MatchedFarItemBatch()
         );

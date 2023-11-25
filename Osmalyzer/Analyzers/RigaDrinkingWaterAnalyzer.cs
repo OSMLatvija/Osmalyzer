@@ -68,7 +68,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
         CorrelatorReport compareReport = dataComparer.Parse(
             report,
-            new MatchedItemCBatch(),
+            new MatchedItemBatch(),
             new UnmatchedItemBatch(),
             new UnmatchedOsmBatch(),
             new MatchedFarItemBatch()

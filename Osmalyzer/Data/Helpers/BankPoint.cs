@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class BankPoint
+public class BankPoint : ICorrelatorItem
 {
     public BankPointType Type { get; set; }
 
@@ -30,6 +30,12 @@ public class BankPoint
         Name = name;
         Address = address;
         Coord = coord;
+    }
+    
+    
+    public string ReportString()
+    {
+        return "Swedbank " + TypeString + " `" + Name + "` " + (Id != null ? "#" + Id + " " : "") + " (`" + Address + "`)";
     }
 }
 

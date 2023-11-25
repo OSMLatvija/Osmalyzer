@@ -39,7 +39,7 @@ public class Correlator<T> where T : ICorrelatorItem
             
         // See what sort of filters we have and which matching logic we will need to do (and report)
             
-        bool shouldReportMatchedItem = entries.OfType<MatchedItemCBatch>().Any();
+        bool shouldReportMatchedItem = entries.OfType<MatchedItemBatch>().Any();
         bool shouldReportMatchedItemFar = entries.OfType<MatchedFarItemBatch>().Any();
         bool shouldReportUnmatchedItem = entries.OfType<UnmatchedItemBatch>().Any();
         bool shouldReportUnmatchedOsm = entries.OfType<UnmatchedOsmBatch>().Any();

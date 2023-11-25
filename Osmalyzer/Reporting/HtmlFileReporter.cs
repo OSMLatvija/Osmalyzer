@@ -54,17 +54,32 @@ public class HtmlFileReporter : Reporter
         reportFile.WriteLine("<h3>Reports</h3>");
 
         HtmlFileReportWriter reportWriter = new HtmlFileReportWriter();
-            
-        reportFile.WriteLine("<ul>");
 
-        foreach (Report report in reports)
+        if (reports.Count > 0)
         {
-            reportWriter.Save(report);
+            reportFile.WriteLine("<ul>");
 
-            reportFile.WriteLine("<li><a href=\"" + reportWriter.ReportFileName + "\">" + HttpUtility.HtmlEncode(report.Name) + "</a></li>");
+            foreach (Report report in reports)
+            {
+                reportWriter.Save(report);
+
+                reportFile.WriteLine("<li><a href=\"" + reportWriter.ReportFileName + "\">" + HttpUtility.HtmlEncode(report.Name) + "</a></li>");
+            }
+
+            reportFile.WriteLine("</ul>");
+        }
+        else
+        {
+            reportFile.WriteLine("<p>No reports were generated.</p>");
         }
 
-        reportFile.WriteLine("</ul>");
+        if (skippedReports.Count > 0)
+        {
+            reportFile.WriteLine("<h4>Skipped</h4>");
+
+            foreach ((string report, string reason) in skippedReports)
+                reportFile.WriteLine("<li>" + HttpUtility.HtmlEncode(report) + " - " + HttpUtility.HtmlEncode(reason) + "</li>");
+        }
 
         reportFile.WriteLine("<p>Reports generated " + DateTime.UtcNow.ToString("R") + ".</p>");
 

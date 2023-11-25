@@ -25,7 +25,7 @@ public static class Runner
             //new CommonBrandsAnalyzer(),
             //new HighwaySeasonalSpeedsAnalyzer(),
             //new LivingZoneSpeedAnalyzer(),
-            //new LVCRoadAnalyzer(),
+            new LVCRoadAnalyzer(),
             //new RigasSatiksmeAnalyzer(),
             //new LiepajasTransportsAnalyzer(),
             //new RezeknesSatiksmeAnalyzer(),
@@ -39,7 +39,7 @@ public static class Runner
             //new PublicTransportAccessAnalyzer(),
             //new HighwaySpeedLimitAnalyzer(),
             //new GlikaOaksAnalyzer(),
-            new SwedbankLocationAnalyzer()
+            //new SwedbankLocationAnalyzer()
         };
 #endif
 
@@ -133,8 +133,8 @@ public static class Runner
             if (datas.Any(d => d.RetrievalStatus != DataRetrievalStatus.Ok))
             {
                 Console.WriteLine("Skipping " + analyzers[i].Name + " analyzer due to missing required data [" + (i + 1) + "/" + analyzers.Count + "].");
-                    
-                // TODO: tell reporter about failure
+
+                reporter.AddSkippedReport(analyzers[i].Name, "missing data");
                     
                 continue;
             }

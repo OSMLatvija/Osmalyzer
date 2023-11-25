@@ -7,4 +7,7 @@ https://commons.wikimedia.org/wiki/File:Eo_circle_orange_white_checkmark.svg
 red_cross.png
 https://commons.wikimedia.org/wiki/File:Antu_application-exit.svg
 
+blue_star.png
+https://commons.wikimedia.org/wiki/File:Antu_anki.svg
+
 Edited by https://github.com/HellMapGoesCoding

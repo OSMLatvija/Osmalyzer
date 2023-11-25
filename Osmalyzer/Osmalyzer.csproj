@@ -31,6 +31,8 @@
       <EmbeddedResource Include="Reporting\HTML report resources\orange_checkmark.png" />
       <None Remove="Reporting\HTML report resources\red_cross.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\red_cross.png" />
+      <None Remove="Reporting\HTML report resources\blue_star.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\blue_star.png" />
     </ItemGroup>
 
 

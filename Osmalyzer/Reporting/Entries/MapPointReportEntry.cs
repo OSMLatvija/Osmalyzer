@@ -39,5 +39,6 @@ public enum MapPointStyle
     Okay,
     Dubious,
     Problem,
-    Info
+    Info,
+    Expected
 }

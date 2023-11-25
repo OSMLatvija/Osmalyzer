@@ -73,17 +73,18 @@ public class HtmlFileReportWriter : ReportWriter
             AddIcon("greenCheckmarkIcon", "green_checkmark.png");
             AddIcon("orangeCheckmarkIcon", "orange_checkmark.png");
             AddIcon("redCrossIcon", "red_cross.png");
+            AddIcon("blueStarIcon", "blue_star.png", 12);
 
-            void AddIcon(string iconVarName, string iconFileName)
+            void AddIcon(string iconVarName, string iconFileName, int size = 16)
             {
                 bodyContent += @"var " + iconVarName + " = L.icon({" + Environment.NewLine;
                 bodyContent += @"iconUrl: 'icons/" + iconFileName + "'," + Environment.NewLine;
+                bodyContent += @"iconSize:     ["+size+", "+size+"], // size of the icon" + Environment.NewLine;
+                bodyContent += @"iconAnchor:   ["+(size/2)+", "+(size/2)+"], // point of the icon which will correspond to marker's location" + Environment.NewLine;
+                bodyContent += @"popupAnchor:  [2, -"+(size+2)+"] // point from which the popup should open relative to the iconAnchor" + Environment.NewLine;
                 //bodyContent += @"shadowUrl: 'icons/leaf-shadow.png'," + Environment.NewLine;
-                bodyContent += @"iconSize:     [16, 16], // size of the icon" + Environment.NewLine;
                 //bodyContent += @"shadowSize:   [50, 64], // size of the shadow" + Environment.NewLine;
-                bodyContent += @"iconAnchor:   [8, 8], // point of the icon which will correspond to marker's location" + Environment.NewLine;
                 //bodyContent += @"shadowAnchor: [4, 62],  // the same for the shadow" + Environment.NewLine;
-                bodyContent += @"popupAnchor:  [2, -10] // point from which the popup should open relative to the iconAnchor" + Environment.NewLine;
                 bodyContent += @"});" + Environment.NewLine;
             }
 
@@ -148,10 +149,11 @@ public class HtmlFileReportWriter : ReportWriter
                     {
                         return style switch
                         {
-                            MapPointStyle.Okay    => "greenCheckmarkIcon",
-                            MapPointStyle.Info    => "greenCheckmarkIcon",
-                            MapPointStyle.Dubious => "orangeCheckmarkIcon",
-                            MapPointStyle.Problem => "redCrossIcon",
+                            MapPointStyle.Okay     => "greenCheckmarkIcon",
+                            MapPointStyle.Info     => "greenCheckmarkIcon",
+                            MapPointStyle.Dubious  => "orangeCheckmarkIcon",
+                            MapPointStyle.Problem  => "redCrossIcon",
+                            MapPointStyle.Expected => "blueStarIcon",
 
                             _ => throw new ArgumentOutOfRangeException(nameof(style), style, null)
                         };

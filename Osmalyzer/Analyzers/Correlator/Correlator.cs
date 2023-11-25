@@ -237,12 +237,21 @@ public class Correlator<T> where T : ICorrelatorItem
                             ReportGroup.Unmatched,
                             new IssueReportEntry(
                                 "Matching OSM element " +
-                                OsmElementReportText(osmElement) + " found close to " +
+                                OsmElementReportText(osmElement) + " found around " +
                                 dataItem.ReportString() + ", " +
                                 "but it's far away (" + distance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
                                 new SortEntryAsc(SortOrder.ElementFar),
                                 osmElement.GetAverageCoord(), 
                                 MapPointStyle.Dubious
+                            )
+                        );                        
+                        
+                        report.AddEntry(
+                            ReportGroup.Unmatched,
+                            new MapPointReportEntry(
+                                dataItem.Coord,
+                                "Expected location for " + dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
+                                MapPointStyle.Expected
                             )
                         );
                     }

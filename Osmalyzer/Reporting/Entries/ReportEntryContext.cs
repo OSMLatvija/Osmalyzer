@@ -4,7 +4,7 @@ namespace Osmalyzer;
 
 /// <summary>
 /// Used to optionally identify a report entry uniquely when creating it.
-/// Useful so the entry can be referred to later without needing to track it reference, but using, for example, user's own objects.
+/// Useful so the entry can be referred to later without needing to track its reference, but using, for example, user's own objects.
 /// Used by stuff like <see cref="Report.CancelEntries"/>. 
 /// </summary>
 public class ReportEntryContext : IEquatable<ReportEntryContext>

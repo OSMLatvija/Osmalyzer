@@ -100,6 +100,7 @@ public class HtmlFileReporter : Reporter
         CopyIcon("green_checkmark.png");
         CopyIcon("orange_checkmark.png");
         CopyIcon("red_cross.png");
+        CopyIcon("blue_star.png");
     }
 
     private static void CopyIcon(string iconName)

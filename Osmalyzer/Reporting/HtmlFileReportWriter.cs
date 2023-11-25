@@ -127,12 +127,14 @@ public class HtmlFileReportWriter : ReportWriter
 
                 bodyContent += @"<script>" + Environment.NewLine;
 
-                bodyContent += @$"var map = L.map('map{g}').setView([56.906, 24.505], 7);" + Environment.NewLine;
+                bodyContent += @$"var map"+g+$@" = L.map('map{g}').setView([56.906, 24.505], 7);" + Environment.NewLine;
                 bodyContent += @"L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {" + Environment.NewLine;
                 bodyContent += @"    maxZoom: 21," + Environment.NewLine;
                 bodyContent += @"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'" + Environment.NewLine;
-                bodyContent += @"}).addTo(map);" + Environment.NewLine;
-                bodyContent += @"var markerGroup = L.featureGroup().addTo(map);" + Environment.NewLine;
+                bodyContent += @"}).addTo(map"+g+@");" + Environment.NewLine;
+                bodyContent += @"var mainMarkerGroup"+g+@" = L.featureGroup().addTo(map"+g+@");" + Environment.NewLine;
+                bodyContent += @"var subMarkerGroup"+g+@" = L.featureGroup().addTo(map"+g+@");" + Environment.NewLine;
+                bodyContent += @"map"+g+@".removeLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
                 
                 foreach (MapPointReportEntry mapPointEntry in group.MapPointEntries)
                 {
@@ -141,10 +143,31 @@ public class HtmlFileReportWriter : ReportWriter
                     string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                     string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
                     LeafletIcon icon = LeafletIcons.Icons.First(i => i.Styles.Contains(mapPointEntry.Style));
-                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(markerGroup).bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
+                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(" + StyleMarkerGroup(icon.Group) + g + $@").bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
+
+                    [Pure]
+                    static string StyleMarkerGroup(LeafletIcon.IconGroup group)
+                    {
+                        return group switch
+                        {
+                            LeafletIcon.IconGroup.Main => "mainMarkerGroup",
+                            LeafletIcon.IconGroup.Sub  => "subMarkerGroup",
+
+                            _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
+                        };
+                    }
                 }
 
-                bodyContent += @"map.fitBounds(markerGroup.getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;
+                // Hide sub icons/group when zoomed out, only show when close
+                bodyContent += @"map"+g+@".on('zoomend', function() {" + Environment.NewLine;
+                bodyContent += @"    console.log(map"+g+@");" + Environment.NewLine;
+                bodyContent += @"    console.log(map"+g+@".getZoom());" + Environment.NewLine;
+                bodyContent += @"    console.log(subMarkerGroup"+g+@");" + Environment.NewLine;
+                bodyContent += @"    if (map"+g+@".getZoom() < 14) map"+g+@".removeLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
+                bodyContent += @"    else map"+g+@".addLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
+                bodyContent += @"});" + Environment.NewLine;
+                
+                bodyContent += @"map"+g+@".fitBounds(mainMarkerGroup"+g+@".getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;
 
                 bodyContent += @"</script>" + Environment.NewLine;
             }

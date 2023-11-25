@@ -6,10 +6,10 @@ public static class LeafletIcons
 {
     public static readonly List<LeafletIcon> Icons = new List<LeafletIcon>()
     {
-        new LeafletIcon("greenCheckmark", 16, MapPointStyle.Okay, MapPointStyle.Info),
-        new LeafletIcon("orangeCheckmark", 16, MapPointStyle.Dubious),
-        new LeafletIcon("redCross", 16, MapPointStyle.Problem),
-        new LeafletIcon("blueStar", 12, MapPointStyle.Expected)
+        new LeafletIcon("greenCheckmark", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Okay, MapPointStyle.Info),
+        new LeafletIcon("orangeCheckmark", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Dubious),
+        new LeafletIcon("redCross", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Problem),
+        new LeafletIcon("blueStar", 12, LeafletIcon.IconGroup.Sub, MapPointStyle.Expected)
     };
 }
 
@@ -21,14 +21,24 @@ public class LeafletIcon
     public string Name { get; }
     
     public int Size { get; }
+
+    public IconGroup Group { get; }
     
     public MapPointStyle[] Styles { get; }
 
 
-    public LeafletIcon(string name, int size, params MapPointStyle[] styles)
+    public LeafletIcon(string name, int size, IconGroup group, params MapPointStyle[] styles)
     {
         Name = name;
         Size = size;
+        Group = group;
         Styles = styles;
+    }
+
+    
+    public enum IconGroup
+    {
+        Main,
+        Sub
     }
 }

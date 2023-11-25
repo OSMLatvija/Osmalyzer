@@ -39,7 +39,7 @@ public static class Runner
             //new PublicTransportAccessAnalyzer(),
             //new HighwaySpeedLimitAnalyzer(),
             //new GlikaOaksAnalyzer(),
-            new BankLocationAnalyzer()
+            new SwedbankLocationAnalyzer()
         };
 #endif
 

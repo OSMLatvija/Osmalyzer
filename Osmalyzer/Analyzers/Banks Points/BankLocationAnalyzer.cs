@@ -6,13 +6,16 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class BankLocationAnalyzer : Analyzer
+public abstract class BankLocationAnalyzer : Analyzer
 {
-    public override string Name => "Bank Locations";
+    public override string Name => BankName + " Locations";
 
-    public override string Description => "This report checks that all POIs from bank lists are mapped.";
+    public override string Description => "This report checks that all POIs from " + BankName + " contact list are mapped.";
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(SwedbankPointAnalysisData) };
+
+
+    protected abstract string BankName { get; }
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -59,7 +62,7 @@ public class BankLocationAnalyzer : Analyzer
                 dataPoints,
                 new MatchDistanceParamater(50),
                 new MatchFarDistanceParamater(300), // some are stupidly far, like at the opposite end of a shopping center from the website's point
-                new DataItemLabelsParamater("Swedbank " + labelSignular, "Swedbank " + labelPlural),
+                new DataItemLabelsParamater(BankName + " " + labelSignular, BankName + " " + labelPlural),
                 new MatchCallbackParameter<T>(DoesOsmPointMatchBankPoint)
             );
 

@@ -41,7 +41,8 @@ public static class Runner
             //new SwedbankLocationAnalyzer(),
             //new ElviShopNetworkAnalyzer(),
             //new LatsShopNetworkAnalyzer(),
-            new RimiShopNetworkAnalyzer(),
+            //new RimiShopNetworkAnalyzer(),
+            new MaximaShopNetworkAnalyzer(),
         };
 #endif
 

@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public abstract class BankLocationAnalyzer : Analyzer
+public abstract class BankLocationAnalyzer<T> : Analyzer where T : BankPointAnalysisData
 {
     public override string Name => BankName + " Locations";
 

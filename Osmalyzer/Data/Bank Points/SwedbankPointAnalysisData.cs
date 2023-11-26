@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class SwedbankPointAnalysisData : AnalysisData, IPreparableAnalysisData
+public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisData
 {
     public override string Name => "Swedbank Points";
 

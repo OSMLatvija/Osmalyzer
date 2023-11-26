@@ -42,6 +42,9 @@ public class Correlator<T> where T : ICorrelatorItem
         bool shouldReportMatchedItem = entries.OfType<MatchedItemBatch>().Any();
         bool shouldReportMatchedItemFar = entries.OfType<MatchedFarItemBatch>().Any();
         bool shouldReportUnmatchedItem = entries.OfType<UnmatchedItemBatch>().Any();
+        MatchedLoneOsmBatch? matchedLoneOsmBatch = entries.OfType<MatchedLoneOsmBatch>().FirstOrDefault();
+        bool shouldReportMatchedLoneOsm = matchedLoneOsmBatch != null;
+        bool reportMatchedLoneOsmAsProblem =shouldReportMatchedLoneOsm && matchedLoneOsmBatch!.AsProblem;
         bool shouldReportUnmatchedOsm = entries.OfType<UnmatchedOsmBatch>().Any();
 
         // Gather (optional) parameters (or set defaults)
@@ -302,7 +305,7 @@ public class Correlator<T> where T : ICorrelatorItem
             }
         }
         
-        if (shouldReportMatchedItem)
+        if (shouldReportMatchedLoneOsm)
         {
             if (matchedLoneElements.Count > 0)
             {
@@ -315,7 +318,7 @@ public class Correlator<T> where T : ICorrelatorItem
                             "Matched OSM element " +
                             OsmElementReportText(osmElement) +
                             " by itself",
-                            MapPointStyle.Okay
+                            reportMatchedLoneOsmAsProblem ? MapPointStyle.Unwanted : MapPointStyle.Okay
                         )
                     );
                 }

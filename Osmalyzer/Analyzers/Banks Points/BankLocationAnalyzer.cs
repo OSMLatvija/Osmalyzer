@@ -85,6 +85,7 @@ public abstract class BankLocationAnalyzer : Analyzer
             dataComparer.Parse(
                 report,
                 new MatchedItemBatch(),
+                new MatchedLoneOsmBatch(true),
                 new UnmatchedItemBatch(),
                 new MatchedFarItemBatch(),
                 new UnmatchedOsmBatch()

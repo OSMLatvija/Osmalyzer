@@ -15,47 +15,52 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
     protected override string DataFileIdentifier => "seb-points";
 
 
-    private int _pageCount;
+    private int _atmPageCount;
+    
+    private int _branchPageCount;
     
 
     protected override void Download()
     {
-        string mainContent = WebsiteDownloadHelper.ReadAsBrowser(
-            "https://www.seb.lv/atm-find",
-            true,
-            //new[] { (@"SEBConsents", @"{""version"":""2"",""consents"":{""mandatory"":true,""statistical"":false,""marketing"":false,""simplified_login"":false}}") },
-            null,
-            new WaitForElementOfClass("pager__item"), // website has internal delayed data loading shenanigans
-            new WaitForElementOfClassToBeClickable("accept-mandatory"), // wait for cookie message
-            new ClickElementOfClass("accept-mandatory"), // cookie message dismiss; can't set up cookies fast enough to clear
-            new WaitForElementOfClassToBeClickable("dismiss-location"), // wait for location request
-            new ClickElementOfClass("dismiss-location"), // location request deny
-            new ClickElementOfClass("c-input__checkmark--radiobutton", 1), // select "Klātienes apkalpošanas vietas" radio
-            new ClickElementOfClass("form-actions"), // click "Atlasīt" button
-            new WaitForTime(5000), // let the data load
-            new WaitForElementOfClass("pager__item") // make sure it re-loaded
-        );
-
-        throw new Exception();
-                    
-        _pageCount = 1;
-
-        for (int i = 0; i < _pageCount; i++)
+        _atmPageCount = 1;
+        
+        for (int i = 0; i < _atmPageCount; i++)
         {
-            string content = WebsiteDownloadHelper.ReadAsBrowser(
+            string pageContent = WebsiteDownloadHelper.ReadAsBrowser(
                 "https://www.seb.lv/atm-find?page=" + i, 
+                true,
+                null,
+                new WaitForElementOfClass("pager__item") // website has internal delayed data loading shenanigans 
+            );
+        
+            // When getting pages, parse it for the total page count from the paginator (which grows with more pages)
+            MatchCollection matches = Regex.Matches(pageContent, @"<a href=""\?page=(\d+)""");
+            _atmPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
+        
+            File.WriteAllText(
+                cacheBasePath + DataFileIdentifier + "-A" + i + @".html", 
+                pageContent
+            );
+        }        
+        
+        _branchPageCount = 1;
+
+        for (int i = 0; i < _branchPageCount; i++)
+        {
+            string pageContent = WebsiteDownloadHelper.ReadAsBrowser(
+                "https://www.seb.lv/atm-find?type_id=2&page=" + i, 
                 true,
                 null,
                 new WaitForElementOfClass("pager__item") // website has internal delayed data loading shenanigans 
             );
 
             // When getting pages, parse it for the total page count from the paginator (which grows with more pages)
-            MatchCollection matches = Regex.Matches(content, @"<a href=""\?page=(\d+)""");
-            _pageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
+            MatchCollection matches = Regex.Matches(pageContent, @"<a href=""\?type_id=2&amp;page=(\d+)""");
+            _branchPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
 
             File.WriteAllText(
-                cacheBasePath + DataFileIdentifier + "-" + i + @".html", 
-                content
+                cacheBasePath + DataFileIdentifier + "-B" + i + @".html", 
+                pageContent
             );
         }
     }
@@ -64,10 +69,10 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
     {
         Points = new List<BankPoint>();
 
-        for (int i = 0; i < _pageCount; i++)
+        for (int i = 0; i < _atmPageCount; i++)
         {
-            string pageData = File.ReadAllText(cacheBasePath + DataFileIdentifier + "-" + i + @".html");
-            
+            string pageData = File.ReadAllText(cacheBasePath + DataFileIdentifier + "-A" + i + @".html");
+
             // <div><div class="row mx-0 border-top border-secondary pt-4 pb-lg-3 c-atm-search__item">
             //
             //   <div class="col-md-6">
@@ -96,6 +101,70 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             // </div>
 
             MatchCollection entryMatches = Regex.Matches(pageData, @"(<h5.*?<a href=""https:\/\/www\.google\.com\/maps\/dir)", RegexOptions.Singleline);
+
+            foreach (Match entryMatch in entryMatches)
+            {
+                string entryContent = entryMatch.Groups[1].ToString();
+
+                string title = Regex.Match(entryContent, @"<h5 class=""mb-2"">([^<]+)<\/h5>").Groups[1].ToString();
+                string address = Regex.Match(entryContent, @"<div class=""mb-2"">([^<]+)</div>").Groups[1].ToString();
+                string typeRaw = Regex.Match(entryContent, @"</h5>\s+<div>([^<]+)<\/div>").Groups[1].ToString(); // after H5
+                Match coordMatch = Regex.Match(entryContent, @"query=([^,]+),([^""]+)");
+                double lat = double.Parse(coordMatch.Groups[1].ToString());
+                double lon = double.Parse(coordMatch.Groups[2].ToString());
+                OsmCoord coord = new OsmCoord(lat, lon);
+
+                BankPointType _ = RawTypeToPointType(typeRaw, out bool? deposit);
+
+                BankPoint point = new BankAtmPoint(title, address, coord, deposit);
+
+                Points.Add(point);
+            }
+        }
+
+        for (int i = 0; i < _branchPageCount; i++)
+        {
+            string pageData = File.ReadAllText(cacheBasePath + DataFileIdentifier + "-B" + i + @".html");
+            
+            //   <div><div class="row mx-0 border-top border-secondary pt-4 pb-lg-3 c-atm-search__item">
+            //
+            // <div class="col-md-6">            
+            //     <h5 class="mb-2">Cēsis</h5>
+            //           <div></div>
+            //       <div></div>
+            //     
+            //     <div class="mb-2"><div class="office-hours office-hours-status--closed">
+            //       <div class="office-hours__item">
+            //               <span class="office-hours__item-label" style="width: 3.6em;">P.-Tr.</span>
+            //                     <span class="office-hours__item-slots">09:00-17:00</span>
+            //                   <span><br /></span>
+            //     </div>
+            //       <div class="office-hours__item">
+            //               <span class="office-hours__item-label" style="width: 3.6em;">Ce.</span>
+            //                     <span class="office-hours__item-slots">08:30-18:30</span>
+            //                   <span><br /></span>
+            //     </div>
+            //       <div class="office-hours__item">
+            //               <span class="office-hours__item-label" style="width: 3.6em;">Pk.</span>
+            //                     <span class="office-hours__item-slots">09:00-15:00</span>
+            //                   <span><br /></span>
+            //     </div>
+            //   </div>
+            // </div>
+            //   </div>
+            //
+            //   <div class="col-md-6">
+            //     <div class="mb-2">Pils iela 4, Cēsis, Cēsu novads, LV 4101, Latvija, Cēsis</div>
+            //     <div class="d-flex flex-wrap mb-md-2 mr-n4">
+            //       <a href="https://www.google.com/maps/search/?api=1&amp;query=57.313008,25.273736" class="mr-4 mb-md-1 text-nowrap" rel="noopener nofollow" target="_blank">Apskatīt kartē</a>
+            //       <a href="https://www.google.com/maps/dir/?api=1&amp;origin=&destination=57.313008,25.273736" class="mr-4 mb-md-1 text-nowrap" rel="noopener nofollow" target="_blank">Kā nokļūt</a>
+            //     </div>
+            //   </div>
+            //
+            // </div>
+            // </div>
+
+            MatchCollection entryMatches = Regex.Matches(pageData, @"(<h5.*?<a href=""https:\/\/www\.google\.com\/maps\/dir)", RegexOptions.Singleline);
             
             foreach (Match entryMatch in entryMatches)
             {
@@ -103,21 +172,12 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
                 
                 string title = Regex.Match(entryContent, @"<h5 class=""mb-2"">([^<]+)<\/h5>").Groups[1].ToString();
                 string address = Regex.Match(entryContent, @"<div class=""mb-2"">([^<]+)</div>").Groups[1].ToString();
-                string typeRaw = Regex.Match(entryContent, @"</h5>\s+<div>([^<]+)<\/div>").Groups[1].ToString(); // after H5
-                Match coordMatch = Regex.Match(entryContent, @"query=([^,]+),([^""]+)"); // after H5
+                Match coordMatch = Regex.Match(entryContent, @"query=([^,]+),([^""]+)");
                 double lat = double.Parse(coordMatch.Groups[1].ToString());
                 double lon = double.Parse(coordMatch.Groups[2].ToString());
                 OsmCoord coord = new OsmCoord(lat, lon);
 
-                BankPointType type = RawTypeToPointType(typeRaw, out bool? deposit);
-                
-                BankPoint point = type switch
-                {
-                    BankPointType.Branch => new BankBranchPoint(title, address, coord),
-                    BankPointType.Atm    => new BankAtmPoint(title, address, coord, deposit),
-
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                BankPoint point = new BankBranchPoint(title, address, coord);
                 
                 Points.Add(point);
             }

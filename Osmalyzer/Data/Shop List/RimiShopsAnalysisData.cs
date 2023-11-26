@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class RimiShopsAnalysisData : ShopListAnalysisData
+public class RimiShopsAnalysisData : SimplePageShopListAnalysisData
 {
     public override string Name => "Rimi Shops";
 

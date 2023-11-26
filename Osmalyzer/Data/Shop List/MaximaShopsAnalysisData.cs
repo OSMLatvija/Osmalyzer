@@ -13,10 +13,30 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
 
     protected override string DataFileIdentifier => "shops-maxima";
 
-
     public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
 
-    public override string ShopListUrl => "https://www.maxima.lv/veikalu-kedes";
+    
+    protected override void Download()
+    {
+        // list at https://www.maxima.lv/veikalu-kedes
+        // json query at https://www.maxima.lv/ajax/shopsnetwork/map/getCities
+        
+        // Default POST query with all items:
+        // {
+        //     "cityId": "0",
+        //     "shopType": "",
+        //     "mapId": "1",
+        //     "shopId": "",
+        //     "language": "lv_lv",
+        //     "certificate": ""
+        // }
+
+        WebsiteDownloadHelper.DownloadPost(
+            @"https://www.maxima.lv/ajax/shopsnetwork/map/getCities",
+            new[] { ("cityId", "0"), ("shopType", ""), ("mapId", "1"), ("shopId", ""), ("language", "lv_lv"), ("certificate", "") },
+            DataFileName
+        );
+    }
 
 
     public override List<ShopData> GetShops()

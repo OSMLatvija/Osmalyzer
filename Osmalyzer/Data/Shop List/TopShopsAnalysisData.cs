@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class TopShopsAnalysisData : ShopListAnalysisData
+public class TopShopsAnalysisData : SimplePageShopListAnalysisData
 {
     public override string Name => "Top! Shops";
 

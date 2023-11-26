@@ -6,5 +6,5 @@ public class MaximaShopNetworkAnalyzer : ShopNetworkAnalyzer<MaximaShopsAnalysis
 {
     protected override string ShopName => "Maxima";
     
-    protected override List<string> ShopOsmNames => new List<string>() { ShopName, ShopName + " X", ShopName + " XX", ShopName + " XXX", ShopName + " express" };
+    protected override List<string> ShopOsmNames => new List<string>() { ShopName, ShopName + " X", ShopName + " XX", ShopName + " XXX", ShopName + " Hyper", ShopName + " express" };
 }

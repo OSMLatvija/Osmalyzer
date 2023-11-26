@@ -45,6 +45,25 @@ public static class WebsiteDownloadHelper
         stream.Result.CopyTo(fileStream);
     }
 
+    public static void DownloadPost(string url, (string, string)[] postFields, string fileName)
+    {
+        using HttpClient client = new HttpClient();
+        
+        client.DefaultRequestHeaders.Add("Accept", "application/json"); // todo: dehardcode
+
+        FormUrlEncodedContent content = new FormUrlEncodedContent(postFields.Select(f => new KeyValuePair<string, string>(f.Item1, f.Item2)));
+
+        Uri uri = new Uri(url, UriKind.Absolute);
+        HttpResponseMessage response = client.PostAsync(uri, content).Result;
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException();
+
+        string result = response.Content.ReadAsStringAsync().Result;
+        
+        File.WriteAllText(fileName, result);
+    }
+
     public static DateTime? ReadHeaderDate(string url)
     {
         using HttpClient client = new HttpClient();

@@ -5,7 +5,13 @@ namespace Osmalyzer;
 public abstract class ShopListAnalysisData : AnalysisData
 {
     public abstract string DataFileName { get; }
+    
+    
+    public abstract List<ShopData> GetShops();
+}
 
+public abstract class SimplePageShopListAnalysisData : ShopListAnalysisData
+{
     public abstract string ShopListUrl { get; }
 
 
@@ -16,7 +22,4 @@ public abstract class ShopListAnalysisData : AnalysisData
             DataFileName
         );
     }
-
-
-    public abstract List<ShopData> GetShops();
 }

@@ -26,8 +26,6 @@ public class OsmPolyAnalysisData : AnalysisData, ICachableAnalysisData
 
     protected override void Download()
     {
-            
-
         WebsiteDownloadHelper.Download(
             "https://download.geofabrik.de/europe/latvia.poly",
             cacheBasePath + DataFileIdentifier + @".poly"

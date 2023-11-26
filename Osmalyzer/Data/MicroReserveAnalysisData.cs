@@ -31,8 +31,6 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
 
     protected override void Download()
     {
-            
-
         string result = WebsiteDownloadHelper.ReadDirect("https://data.gov.lv/dati/lv/dataset/mikroliegumi", true);
 
         Match urlMatch = Regex.Match(result, @"<a class=""heading"" href=""(/dati/lv/dataset/mikroliegumi/resource/[^""]+)"" title=""mikroliegumi"">");

@@ -195,9 +195,8 @@ public static class WebsiteDownloadHelper
         //options.AddArgument("--lang=en-US");
         options.AddArgument("--disable-extensions");
         options.AddArgument("--disable-notifications");
-
-        //options.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
-        //options.AddArgument("--log-level=3");
+        options.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
+        options.AddArgument("--log-level=3");
         // it still has "ChromeDriver was started successfully." spam that I don't know how to disable
 
         _driver = new ChromeDriver(service, options);

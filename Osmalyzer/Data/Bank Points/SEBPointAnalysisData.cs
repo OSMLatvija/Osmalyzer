@@ -24,20 +24,22 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
         for (int i = 0; i < _pageCount; i++)
         {
-            string content = WebsiteDownloadHelper.Read(
+            string content = WebsiteDownloadHelper.ReadAsBrowser(
                 "https://www.seb.lv/atm-find?page=" + i, 
-                true
+                true,
+                "pager__item" // website has internal delayed data loading shenanigans 
             );
 
             if (i == 0)
             {
                 // When getting first page, parse it for the total page count
-                _pageCount = int.Parse(Regex.Matches(content, @"<a href=""\?page=(\d+)"" class="""" title="""">>").Last().Groups[1].ToString()) + 1;
+                MatchCollection matches = Regex.Matches(content, @"<a href=""\?page=(\d+)""");
+                _pageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
             }
 
             File.WriteAllText(
-                content, 
-                cacheBasePath + DataFileIdentifier + "-" + i + @".html"
+                cacheBasePath + DataFileIdentifier + "-" + i + @".html", 
+                content
             );
         }
     }
@@ -77,14 +79,57 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             // </div>
             // </div>
 
-            MatchCollection matches = Regex.Matches(pageData, @"<div class=""mb-2"">([^<]+)</div>");
-
-            foreach (Match match in matches)
+            MatchCollection entryMatches = Regex.Matches(pageData, @"(<h5.*?<a href=""https:\/\/www\.google\.com\/maps\/dir)", RegexOptions.Singleline);
+            
+            foreach (Match entryMatch in entryMatches)
             {
-                // todo:
+                string entryContent = entryMatch.Groups[1].ToString();
+                
+                string title = Regex.Match(entryContent, @"<h5 class=""mb-2"">([^<]+)<\/h5>").Groups[1].ToString();
+                string address = Regex.Match(entryContent, @"<div class=""mb-2"">([^<]+)</div>").Groups[1].ToString();
+                string typeRaw = Regex.Match(entryContent, @"</h5>\s+<div>([^<]+)<\/div>").Groups[1].ToString(); // after H5
+                Match coordMatch = Regex.Match(entryContent, @"query=([^,]+),([^""]+)"); // after H5
+                double lat = double.Parse(coordMatch.Groups[1].ToString());
+                double lon = double.Parse(coordMatch.Groups[2].ToString());
+                OsmCoord coord = new OsmCoord(lat, lon);
+
+                BankPointType type = RawTypeToPointType(typeRaw, out bool? deposit);
+                
+                BankPoint point = type switch
+                {
+                    BankPointType.Branch => new BankBranchPoint(title, address, coord),
+                    BankPointType.Atm    => new BankAtmPoint(title, address, coord, deposit),
+
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                
+                Points.Add(point);
             }
         }
+    }
+    
+    
+    [Pure]
+    private static BankPointType RawTypeToPointType(string rawType, out bool? deposit)
+    {
+        switch (rawType)
+        {
+            case "Izmaksas bankomāts":
+                deposit = false;
+                return BankPointType.Atm;
+            
+            case "Iemaksas un izmaksas bankomāts":
+                deposit = true;
+                return BankPointType.Atm;
+            
+            default:
+                throw new NotImplementedException();
+        }
+    }
 
-        throw new NotImplementedException();
+    private enum BankPointType
+    {
+        Branch,
+        Atm
     }
 }

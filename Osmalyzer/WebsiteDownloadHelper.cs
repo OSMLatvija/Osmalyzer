@@ -5,16 +5,20 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 
 namespace Osmalyzer;
 
 public static class WebsiteDownloadHelper
 {
     private static readonly List<(string url, string content)> _cachedWebsites = new List<(string url, string content)>();
-    
-        
+
+
     [MustUseReturnValue]
-    public static string Read(string url, bool canUseCache)
+    public static string ReadDirect(string url, bool canUseCache)
     {
         if (canUseCache)
         {
@@ -23,13 +27,64 @@ public static class WebsiteDownloadHelper
             if (cachedContent != null)
                 return cachedContent;
         }
-
+            
         using HttpClient client = new HttpClient();
-        
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.GetAsync(uri).Result;
         using HttpContent content = response.Content;
         string result = content.ReadAsStringAsync().Result;
+
+        if (canUseCache)
+            _cachedWebsites.Add((url, result));
+
+        return result;
+    }
+    
+    [MustUseReturnValue]
+    public static string ReadAsBrowser(string url, bool canUseCache, string? waitForElement = null)
+    {
+        if (canUseCache)
+        {
+            (string _, string cachedContent) = _cachedWebsites.FirstOrDefault(cw => cw.url == url);
+
+            if (cachedContent != null)
+                return cachedContent;
+        }
+        
+        ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+        service.SuppressInitialDiagnosticInformation = true; // "Starting ChromeDriver" spam
+        
+        ChromeOptions options = new ChromeOptions();
+        options.AddArgument("--headless");
+        options.AddArgument("--window-size=1600x1200");
+        //options.AddArgument("--lang=en-US");
+        options.AddArgument("--disable-extensions");
+        options.AddArgument("--disable-notifications");
+        
+        //options.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
+        //options.AddArgument("--log-level=3");
+        // it still has "ChromeDriver was started successfully." spam that I don't know how to disable
+
+        string result;
+
+        using IWebDriver driver = new ChromeDriver(service, options);
+        driver.Navigate().GoToUrl(url);
+        
+        if (waitForElement != null)
+        {
+            IWait<IWebDriver> wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            
+            // wait.Until(d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
+            // wait.Until(ExpectedConditions.StalenessOf(driver.FindElement(By.TagName("body"))));
+            wait.Until(ExpectedConditions.ElementExists(By.ClassName(waitForElement)));
+            
+            IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+            result = (string)jsExecutor.ExecuteScript("return document.documentElement.outerHTML;");
+        }
+        else
+        {
+            result = driver.PageSource;
+        }
 
         if (canUseCache)
             _cachedWebsites.Add((url, result));

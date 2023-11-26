@@ -19,7 +19,7 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
 
     public DateTime RetrieveDataDate()
     {
-        string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/mikroliegumi", true);
+        string result = WebsiteDownloadHelper.ReadDirect("https://data.gov.lv/dati/lv/dataset/mikroliegumi", true);
 
         Match dateMatch = Regex.Match(result, @"Datu pēdējo izmaiņu datums</th>\s*<td class=""dataset-details"">\s*(\d{4})-(\d{2})-(\d{2})");
         int newestYear = int.Parse(dateMatch.Groups[1].ToString());
@@ -33,13 +33,13 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
     {
             
 
-        string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/mikroliegumi", true);
+        string result = WebsiteDownloadHelper.ReadDirect("https://data.gov.lv/dati/lv/dataset/mikroliegumi", true);
 
         Match urlMatch = Regex.Match(result, @"<a class=""heading"" href=""(/dati/lv/dataset/mikroliegumi/resource/[^""]+)"" title=""mikroliegumi"">");
 
         string url = @"https://data.gov.lv" + urlMatch.Groups[1];
 
-        result = WebsiteDownloadHelper.Read(url, true);
+        result = WebsiteDownloadHelper.ReadDirect(url, true);
 
         urlMatch = Regex.Match(result, @"URL: <a href=""([^""]+)""");
 

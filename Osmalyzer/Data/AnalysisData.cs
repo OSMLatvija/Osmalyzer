@@ -30,8 +30,10 @@ public abstract class AnalysisData
 
     public void Retrieve()
     {
+#if REMOTE_EXECUTION
         try
         {
+#endif
             if (this is ICachableAnalysisData cachableAnalysisData)
             {
                 _dataDate = GetDataDateFromMetadataFile();
@@ -69,20 +71,18 @@ public abstract class AnalysisData
                 Console.WriteLine("Downloading (no cache)...");
                 Download();
             }
+#if REMOTE_EXECUTION
         }
         catch (Exception)
         {
+            // On remote, we continue gracefully
+
             Console.WriteLine("Failed with exception!");
 
-#if !REMOTE_EXECUTION
-            // In debug, we want to know about these
-            throw;
-#else      
-            // On remote, we continue gracefully 
             RetrievalStatus = DataRetrievalStatus.Fail;
             return;
-#endif        
         }
+#endif        
 
         RetrievalStatus = DataRetrievalStatus.Ok;
     }

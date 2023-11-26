@@ -20,6 +20,24 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
     protected override void Download()
     {
+        string mainContent = WebsiteDownloadHelper.ReadAsBrowser(
+            "https://www.seb.lv/atm-find",
+            true,
+            //new[] { (@"SEBConsents", @"{""version"":""2"",""consents"":{""mandatory"":true,""statistical"":false,""marketing"":false,""simplified_login"":false}}") },
+            null,
+            new WaitForElementOfClass("pager__item"), // website has internal delayed data loading shenanigans
+            new WaitForElementOfClassToBeClickable("accept-mandatory"), // wait for cookie message
+            new ClickElementOfClass("accept-mandatory"), // cookie message dismiss; can't set up cookies fast enough to clear
+            new WaitForElementOfClassToBeClickable("dismiss-location"), // wait for location request
+            new ClickElementOfClass("dismiss-location"), // location request deny
+            new ClickElementOfClass("c-input__checkmark--radiobutton", 1), // select "Klātienes apkalpošanas vietas" radio
+            new ClickElementOfClass("form-actions"), // click "Atlasīt" button
+            new WaitForTime(5000), // let the data load
+            new WaitForElementOfClass("pager__item") // make sure it re-loaded
+        );
+
+        throw new Exception();
+                    
         _pageCount = 1;
 
         for (int i = 0; i < _pageCount; i++)
@@ -27,6 +45,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             string content = WebsiteDownloadHelper.ReadAsBrowser(
                 "https://www.seb.lv/atm-find?page=" + i, 
                 true,
+                null,
                 new WaitForElementOfClass("pager__item") // website has internal delayed data loading shenanigans 
             );
 

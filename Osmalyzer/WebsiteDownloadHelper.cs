@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using OpenQA.Selenium;
@@ -41,7 +42,7 @@ public static class WebsiteDownloadHelper
     }
     
     [MustUseReturnValue]
-    public static string ReadAsBrowser(string url, bool canUseCache, params BrowsingAction[] browsingActions)
+    public static string ReadAsBrowser(string url, bool canUseCache, (string, string)[]? cookies, params BrowsingAction[] browsingActions)
     {
         if (canUseCache)
         {
@@ -68,7 +69,13 @@ public static class WebsiteDownloadHelper
         string result;
 
         using IWebDriver driver = new ChromeDriver(service, options);
+
         driver.Navigate().GoToUrl(url);
+
+        if (cookies != null)
+            foreach ((string name, string value) in cookies)
+                driver.Manage().Cookies.AddCookie(new Cookie(name, value));
+                //driver.Manage().Cookies.AddCookie(new Cookie(name, value, new Uri(url).Host, "", null)); -- can't set this before navigate apparently
         
         if (browsingActions.Length> 0)
         {
@@ -77,13 +84,52 @@ public static class WebsiteDownloadHelper
                 switch (browsingAction)
                 {
                     case WaitForElementOfClass waitForElementOfClass:
+                    {
                         IWait<IWebDriver> wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-
-                        // wait.Until(d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
-                        // wait.Until(ExpectedConditions.StalenessOf(driver.FindElement(By.TagName("body"))));
                         wait.Until(ExpectedConditions.ElementExists(By.ClassName(waitForElementOfClass.ClassName)));
                         break;
+                    }
+
+                    case ClickElementOfClass clickElementOfClass:
+                    {
+                        IWebElement nthElement;
+                        
+                        int attempts = 0;
+                        
+                        do
+                        {
+                            try
+                            {
+                                // todo: non multiple version
+                                nthElement = driver.FindElements(By.ClassName(clickElementOfClass.ClassName)).ElementAt(clickElementOfClass.Index);
+                                nthElement.Click();
+                                break;
+                            }
+                            catch (StaleElementReferenceException) // not even joking - this is official doc recommendation for handling this
+                            {
+                                attempts++;
+                                if (attempts == 10)
+                                    throw;
+
+                                Thread.Sleep(100);
+                            }
+                            
+                        } while (true);
+                        
+                        break;
+                    }
+
+                    case WaitForElementOfClassToBeClickable waitForElementOfClassToBeClickable:
+                    {
+                        IWait<IWebDriver> wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                        wait.Until(ExpectedConditions.ElementToBeClickable(By.ClassName(waitForElementOfClassToBeClickable.ClassName)));
+                        break;
+                    }
                     
+                    case WaitForTime waitForTime:
+                        Thread.Sleep(waitForTime.Milliseconds);
+                        break;
+
                     default:
                         throw new ArgumentOutOfRangeException(nameof(browsingAction));
                 }
@@ -160,5 +206,41 @@ public class WaitForElementOfClass : BrowsingAction
     public WaitForElementOfClass(string className)
     {
         ClassName = className;
+    }
+}
+
+public class WaitForElementOfClassToBeClickable : BrowsingAction
+{
+    public string ClassName { get; }
+
+    
+    public WaitForElementOfClassToBeClickable(string className)
+    {
+        ClassName = className;
+    }
+}
+
+public class ClickElementOfClass : BrowsingAction
+{
+    public string ClassName { get; }
+    
+    public int Index { get; }
+
+
+    public ClickElementOfClass(string className, int index = 0)
+    {
+        ClassName = className;
+        Index = index;
+    }
+}
+
+public class WaitForTime : BrowsingAction
+{
+    public int Milliseconds { get; }
+
+    
+    public WaitForTime(int milliseconds)
+    {
+        Milliseconds = milliseconds;
     }
 }

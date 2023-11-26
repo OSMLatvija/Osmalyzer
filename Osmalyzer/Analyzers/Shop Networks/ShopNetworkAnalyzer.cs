@@ -42,14 +42,14 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
             new CustomMatch(ShopNameMatches)
         );
 
-        bool ShopNameMatches(OsmElement osmElement1)
+        bool ShopNameMatches(OsmElement osmElement)
         {
             // todo: use known brand data (file)
 
             string? osmName =
-                osmElement1.GetValue("operator") ??
-                osmElement1.GetValue("brand") ??
-                osmElement1.GetValue("name") ??
+                osmElement.GetValue("operator") ??
+                osmElement.GetValue("brand") ??
+                osmElement.GetValue("name") ??
                 null;
 
             return osmName != null && ShopOsmNames.Any(sn => osmName.ToLower().Contains(sn.ToLower()));

@@ -59,7 +59,7 @@ public class Correlator<T> where T : ICorrelatorItem
 
         List<T> itemsToBeMatched = _dataItems.ToList();
 
-        Dictionary<OsmElement, (T, double)> matchedElements = new Dictionary<OsmElement, (T, double)>();
+        Dictionary<OsmElement, Match> allMatchedElements = new Dictionary<OsmElement, Match>();
         
         List<T> unmatchableItems = new List<T>();
 
@@ -94,16 +94,18 @@ public class Correlator<T> where T : ICorrelatorItem
                     foreach (OsmElement closeElement in matchableOsmElements) // this is sorted closest first
                     {
                         double distance = OsmGeoTools.DistanceBetween(dataItem.Coord, closeElement.GetAverageCoord());
+
+                        bool far = distance > matchDistance;
                         
-                        if (matchedElements.TryGetValue(closeElement, out (T, double) previous))
+                        if (allMatchedElements.TryGetValue(closeElement, out Match? previous))
                         {
-                            if (distance < previous.Item2)
+                            if (distance < previous.Distance)
                             {
                                 // We are closer than previous match, so replace us as the best match and requeue the other item
                                 
-                                matchedElements.Remove(closeElement);
-                                matchedElements.Add(closeElement, (dataItem, distance));
-                                itemsToBeMatched.Add(previous.Item1); // requeue other
+                                allMatchedElements.Remove(closeElement);
+                                allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, far));
+                                itemsToBeMatched.Add(previous.Item); // requeue other
                                 matched = true;
                                 break;
                             }
@@ -112,7 +114,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         {
                             // This element wasn't yet matched, so claim it as our best match 
                             
-                            matchedElements.Add(closeElement, (dataItem, distance));
+                            allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, far));
                             matched = true;
                             break;
                         }
@@ -136,7 +138,7 @@ public class Correlator<T> where T : ICorrelatorItem
 
         foreach (OsmElement osmElement in _osmElements.Elements)
         {
-            if (matchedElements.ContainsKey(osmElement))
+            if (allMatchedElements.ContainsKey(osmElement))
                 continue;
 
             bool allowedByItself =
@@ -162,21 +164,36 @@ public class Correlator<T> where T : ICorrelatorItem
             "This lists the results of matching " + dataItemLabelPlural + " and OSM elements to each other."
         );
         
-        // todo: generic summary, #s, legend
-        
         // Report results
+
+        report.AddEntry(
+            ReportGroup.CorrelationResults,
+            new GenericReportEntry(
+                "There are " + _dataItems.Count + " data items that could potentially match to " + _osmElements.Count + " elements."
+            )
+        );
 
         if (shouldReportUnmatchedItem)
         {
-            foreach (T dataItem in unmatchableItems)
+            if (unmatchableItems.Count > 0)
             {
+                foreach (T dataItem in unmatchableItems)
+                {
+                    report.AddEntry(
+                        ReportGroup.CorrelationResults,
+                        new MapPointReportEntry(
+                            dataItem.Coord,
+                            "No OSM element found in " + unmatchDistance + " m range of " +
+                            dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
+
                 report.AddEntry(
                     ReportGroup.CorrelationResults,
-                    new MapPointReportEntry(
-                        dataItem.Coord,
-                        "No matchable OSM element found in " + unmatchDistance + " m range of " +
-                        dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
-                        MapPointStyle.Problem
+                    new GenericReportEntry(
+                        "No OSM element found for " + unmatchableItems.Count + " data item" + (unmatchableItems.Count > 1 ? "s" : "") + ". "
                     )
                 );
             }
@@ -184,97 +201,142 @@ public class Correlator<T> where T : ICorrelatorItem
 
         if (shouldReportUnmatchedOsm)
         {
-            foreach (OsmElement osmElement in unmatchableElements)
+            if (unmatchableElements.Count > 0)
             {
+                foreach (OsmElement osmElement in unmatchableElements)
+                {
+                    report.AddEntry(
+                        ReportGroup.CorrelationResults,
+                        new MapPointReportEntry(
+                            osmElement.GetAverageCoord(),
+                            "No " + dataItemLabelSingular + " expected in " + unmatchDistance + " m range of OSM element " +
+                            OsmElementReportText(osmElement),
+                            MapPointStyle.Unwanted
+                        )
+                    );
+                }
+
                 report.AddEntry(
                     ReportGroup.CorrelationResults,
-                    new MapPointReportEntry(
-                        osmElement.GetAverageCoord(),
-                        "No " + dataItemLabelSingular + " expected in " + unmatchDistance + " m range of OSM element " +
-                        OsmElementReportText(osmElement),
-                        MapPointStyle.Unwanted
+                    new GenericReportEntry(
+                        "No data item found for " + unmatchableElements.Count + " OSM element" + (unmatchableElements.Count > 1 ? "s" : "") + ". "
                     )
                 );
             }
         }
         
-        if (shouldReportMatchedItem || shouldReportMatchedItemFar)
+        if (shouldReportMatchedItem)
         {
-            foreach ((OsmElement? osmElement, (T? dataItem, double distance)) in matchedElements)
+            List<Match> closeMatchedElements = allMatchedElements
+                                               .Where(p => !p.Value.Far)
+                                               .Select(p => p.Value)
+                                               .ToList();
+
+            if (closeMatchedElements.Count > 0)
             {
-                if (shouldReportMatchedItem || shouldReportMatchedItemFar)
-                {
-
-                }
-
-                if (!(distance > matchDistance))
+                foreach (Match match in closeMatchedElements)
                 {
                     if (shouldReportMatchedItem)
                     {
                         report.AddEntry(
                             ReportGroup.CorrelationResults,
                             new MapPointReportEntry(
-                                osmElement.GetAverageCoord(),
-                                dataItem.ReportString() + " matched OSM element " +
-                                OsmElementReportText(osmElement) +
-                                " at " + distance.ToString("F0") + " m",
+                                match.Element.GetAverageCoord(),
+                                match.Item.ReportString() + " matched OSM element " +
+                                OsmElementReportText(match.Element) +
+                                " at " + match.Distance.ToString("F0") + " m",
                                 MapPointStyle.Okay
                             )
                         );
                     }
                 }
-                else
-                {
-                    if (shouldReportMatchedItemFar)
-                    {
-                        report.AddEntry(
-                            ReportGroup.CorrelationResults,
-                            new MapPointReportEntry(
-                                osmElement.GetAverageCoord(),
-                                "Matching OSM element " +
-                                OsmElementReportText(osmElement) + " found around " +
-                                dataItem.ReportString() + ", " +
-                                "but it's far away (" + distance.ToString("F0") + " m), expected at " + dataItem.Coord.OsmUrl,
-                                MapPointStyle.Dubious
-                            )
-                        );
 
-                        report.AddEntry(
-                            ReportGroup.CorrelationResults,
-                            new MapPointReportEntry(
-                                dataItem.Coord,
-                                "Expected location for " + dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
-                                MapPointStyle.Expected
-                            )
-                        );
-                    }
+                report.AddEntry(
+                    ReportGroup.CorrelationResults,
+                    new GenericReportEntry(
+                        "Matched " + closeMatchedElements.Count + " data item" + (closeMatchedElements.Count > 1 ? "s" : "") + " to OSM element" + (closeMatchedElements.Count > 1 ? "s" : "") + ". "
+                    )
+                );
+            }
+        }
+        
+        if (shouldReportMatchedItemFar)
+        {
+            List<Match> farMatchedElements = allMatchedElements
+                                             .Where(p => p.Value.Far)
+                                             .Select(p => p.Value)
+                                             .ToList();
+
+            if (farMatchedElements.Count > 0)
+            {
+                foreach (Match match in farMatchedElements)
+                {
+                    report.AddEntry(
+                        ReportGroup.CorrelationResults,
+                        new MapPointReportEntry(
+                            match.Element.GetAverageCoord(),
+                            "Matching OSM element " +
+                            OsmElementReportText(match.Element) + " found around " +
+                            match.Item.ReportString() + ", " +
+                            "but it's far away (" + match.Distance.ToString("F0") + " m), expected at " + match.Item.Coord.OsmUrl,
+                            MapPointStyle.Dubious
+                        )
+                    );
+
+                    report.AddEntry(
+                        ReportGroup.CorrelationResults,
+                        new MapPointReportEntry(
+                            match.Item.Coord,
+                            "Expected location for " + match.Item.ReportString() + " at " + match.Item.Coord.OsmUrl,
+                            MapPointStyle.Expected
+                        )
+                    );
                 }
+
+                report.AddEntry(
+                    ReportGroup.CorrelationResults,
+                    new GenericReportEntry(
+                        "Matched over longer distance " + farMatchedElements.Count + " data item" + (farMatchedElements.Count > 1 ? "s" : "") + " to OSM element" + (farMatchedElements.Count > 1 ? "s" : "") + ". "
+                    )
+                );
             }
         }
         
         if (shouldReportMatchedItem)
         {
-            foreach (OsmElement osmElement in matchedLoneElements)
+            if (matchedLoneElements.Count > 0)
             {
+                foreach (OsmElement osmElement in matchedLoneElements)
+                {
+                    report.AddEntry(
+                        ReportGroup.CorrelationResults,
+                        new MapPointReportEntry(
+                            osmElement.GetAverageCoord(),
+                            "Matched OSM element " +
+                            OsmElementReportText(osmElement) +
+                            " by itself",
+                            MapPointStyle.Okay
+                        )
+                    );
+                }
+
                 report.AddEntry(
                     ReportGroup.CorrelationResults,
-                    new MapPointReportEntry(
-                        osmElement.GetAverageCoord(),
-                        "Matched OSM element " +
-                        OsmElementReportText(osmElement) +
-                        " by itself",
-                        MapPointStyle.Okay
+                    new GenericReportEntry(
+                        "Matched " + matchedLoneElements.Count + " lone OSM element" + (matchedLoneElements.Count > 1 ? "s" : "") + " by themselves."
                     )
                 );
             }
         }
+        
+        // todo: legend
 
         // Store the well-formatted correlated match list
         
         List<Correlation> correlations = new List<Correlation>();
 
-        foreach ((OsmElement osmElement, (T dataItem, double distance)) in matchedElements)
-            correlations.Add(new MatchedCorrelation<T>(osmElement, dataItem, distance));
+        foreach (Match match in allMatchedElements.Values)
+            correlations.Add(new MatchedCorrelation<T>(match.Element, match.Item, match.Distance, match.Far));
 
         foreach (OsmElement osmElement in matchedLoneElements)
             correlations.Add(new LoneCorrelation(osmElement));
@@ -335,6 +397,26 @@ public class Correlator<T> where T : ICorrelatorItem
         }
     }
 
+
+    private class Match
+    {
+        public T Item { get; }
+
+        public OsmElement Element { get; }
+
+        public double Distance { get; }
+
+        public bool Far { get; }
+
+        
+        public Match(T item, OsmElement element, double distance, bool far)
+        {
+            Item = item;
+            Element = element;
+            Distance = distance;
+            Far = far;
+        }
+    }
 
     private enum ReportGroup
     {

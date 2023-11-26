@@ -6,5 +6,5 @@ public class LatsShopNetworkAnalyzer : ShopNetworkAnalyzer<LatsShopsAnalysisData
 {
     protected override string ShopName => "LaTS";
 
-    protected override List<string> ShopOsmNames => new List<string>() { Name };
+    protected override List<string> ShopOsmNames => new List<string>() { ShopName };
 }

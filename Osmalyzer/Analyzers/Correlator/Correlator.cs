@@ -55,6 +55,7 @@ public class Correlator<T> where T : ICorrelatorItem
         Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceCallbackParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
         string dataItemLabelSingular = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelSingular ?? "item";
         string dataItemLabelPlural = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelPlural ?? "items";
+        double matchOriginMinReportDistance = _paramaters.OfType<MinOriginReportDistanceParamater>().FirstOrDefault()?.MinDistance ?? 20;
 
         List<OsmElementPreviewValue> osmElementPreviewParams = _paramaters.OfType<OsmElementPreviewValue>().ToList();
 
@@ -239,16 +240,25 @@ public class Correlator<T> where T : ICorrelatorItem
             {
                 foreach (Match match in closeMatchedElements)
                 {
-                    if (shouldReportMatchedItem)
+                    report.AddEntry(
+                        ReportGroup.CorrelationResults,
+                        new MapPointReportEntry(
+                            match.Element.GetAverageCoord(),
+                            match.Item.ReportString() + " matched OSM element " +
+                            OsmElementReportText(match.Element) +
+                            " at " + match.Distance.ToString("F0") + " m",
+                            MapPointStyle.CorrelatorPairMatched
+                        )
+                    );
+
+                    if (match.Distance > matchOriginMinReportDistance)
                     {
                         report.AddEntry(
                             ReportGroup.CorrelationResults,
                             new MapPointReportEntry(
-                                match.Element.GetAverageCoord(),
-                                match.Item.ReportString() + " matched OSM element " +
-                                OsmElementReportText(match.Element) +
-                                " at " + match.Distance.ToString("F0") + " m",
-                                MapPointStyle.CorrelatorPairMatched
+                                match.Item.Coord,
+                                "Expected location for " + match.Item.ReportString() + " at " + match.Item.Coord.OsmUrl,
+                                MapPointStyle.CorrelatorPairMatchedOffsetOrigin
                             )
                         );
                     }

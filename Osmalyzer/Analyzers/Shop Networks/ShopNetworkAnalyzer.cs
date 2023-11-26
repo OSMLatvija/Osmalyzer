@@ -10,8 +10,9 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
 {
     public override string Name => ShopName + " Shop Networks";
 
-    public override string Description => "This report checks that all " + ShopName + " shops listed on brand's website are found on the map. " +
-                                          "This supposes that brand shops are tagged correctly to match among multiple.";
+    public override string Description => "This report checks that all " + ShopName + " shops listed on brand's website are found on the map." + Environment.NewLine +
+                                          "This supposes that brand shops are tagged correctly to match among multiple."  + Environment.NewLine +
+                                          "Note that shop websites can and do have errors, mainly large offsets, but also missing or incorrect locations.";
 
 
     protected abstract string ShopName { get; }

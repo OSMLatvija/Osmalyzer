@@ -42,7 +42,7 @@ public static class LeafletIcons
             "blueStar", 
             12, 
             LeafletIcon.IconGroup.Sub, 
-            MapPointStyle.CorrelatorPairMatchedFarOrigin
+            MapPointStyle.CorrelatorPairMatchedOffsetOrigin, MapPointStyle.CorrelatorPairMatchedFarOrigin
         )
     };
 }

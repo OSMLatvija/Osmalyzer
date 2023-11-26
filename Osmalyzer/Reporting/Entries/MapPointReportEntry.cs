@@ -41,6 +41,7 @@ public enum MapPointStyle
     Dubious,
 
     CorrelatorPairMatched,
+    CorrelatorPairMatchedOffsetOrigin,
     CorrelatorPairMatchedFar,
     CorrelatorPairMatchedFarOrigin,
     CorrelatorItemUnmatched,

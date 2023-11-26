@@ -19,7 +19,6 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
     protected abstract List<string> ShopOsmNames { get; }
 
 
-
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
         typeof(OsmAnalysisData), 
@@ -40,12 +39,21 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
         );
         
         OsmDataExtract brandShops = osmShops.Filter(
-            new OrMatch(
-                new HasAnyValue("name", ShopOsmNames, false),
-                new HasAnyValue("operator", ShopOsmNames, false),
-                new HasAnyValue("brand", ShopOsmNames, false)
-            )
+            new CustomMatch(ShopNameMatches)
         );
+
+        bool ShopNameMatches(OsmElement osmElement1)
+        {
+            // todo: use known brand data (file)
+
+            string? osmName =
+                osmElement1.GetValue("operator") ??
+                osmElement1.GetValue("brand") ??
+                osmElement1.GetValue("name") ??
+                null;
+
+            return osmName != null && ShopOsmNames.Any(sn => osmName.ToLower().Contains(sn.ToLower()));
+        }
 
         // Load Shop data
 
@@ -58,18 +66,21 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
         Correlator<ShopData> dataComparer = new Correlator<ShopData>(
             brandShops,
             listedShops,
-            new MatchDistanceParamater(15),
-            new MatchFarDistanceParamater(75),
-            new DataItemLabelsParamater(ShopName + " shop", ShopName + " shop")
+            new MatchDistanceParamater(50),
+            new MatchFarDistanceParamater(300), // some are really far from where the data says they ought to be
+            new DataItemLabelsParamater(ShopName + " shop", ShopName + " shop"),
+            new OsmElementPreviewValue("name", false),
+            new LoneElementAllowanceCallbackParameter(_ => true)
         );
-            
+
         // Parse and report primary matching and location correlation
 
         dataComparer.Parse(
             report,
             new MatchedItemBatch(),
             new UnmatchedItemBatch(),
-            new MatchedFarItemBatch()
+            new MatchedFarItemBatch(),
+            new UnmatchedOsmBatch()
         );
     }
 }

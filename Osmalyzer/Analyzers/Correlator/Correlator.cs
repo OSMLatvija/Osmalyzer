@@ -143,14 +143,14 @@ public class Correlator<T> where T : ICorrelatorItem
                 loneElementAllowanceCallback != null &&
                 loneElementAllowanceCallback(osmElement);
 
-            if (!allowedByItself)
+            if (allowedByItself)
             {
-                unmatchableElements.Add(osmElement);
-                // TODO: find closest (unmatched) data item (these could be really far, so limit distance)
+                matchedLoneElements.Add(osmElement);
             }
             else
             {
-                matchedLoneElements.Add(osmElement);
+                unmatchableElements.Add(osmElement);
+                // TODO: find closest (unmatched) data item (these could be really far, so limit distance)
             }
         }
         

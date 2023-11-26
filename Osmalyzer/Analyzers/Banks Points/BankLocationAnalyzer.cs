@@ -67,7 +67,7 @@ public abstract class BankLocationAnalyzer : Analyzer
         Correlate(osmBranches, branchPoints, "branch", "branches");
         
 
-        void Correlate<T>(OsmDataExtract osmPoints, List<T> dataPoints, string labelSignular, string labelPlural) where T : BankPoint
+        void Correlate<T>(OsmDataExtract osmPoints, List<T> dataPoints, string labelSingular, string labelPlural) where T : BankPoint
         {
             // Prepare data comparer/correlator
 
@@ -76,7 +76,7 @@ public abstract class BankLocationAnalyzer : Analyzer
                 dataPoints,
                 new MatchDistanceParamater(50),
                 new MatchFarDistanceParamater(300), // some are stupidly far, like at the opposite end of a shopping center from the website's point
-                new DataItemLabelsParamater(BankName + " " + labelSignular, BankName + " " + labelPlural),
+                new DataItemLabelsParamater(BankName + " " + labelSingular, BankName + " " + labelPlural),
                 new LoneElementAllowanceCallbackParameter(_ => false)// all our points represent a POI supposedly for this bank, none can be standalone 
             );
 

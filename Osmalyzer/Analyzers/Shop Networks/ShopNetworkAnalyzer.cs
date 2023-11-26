@@ -38,17 +38,7 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
         OsmDataExtract osmShops = osmMasterData.Filter(
             new HasKey("shop")
         );
-
-        // Load Shop data
-
-        ShopListAnalysisData shopData = datas.OfType<ShopListAnalysisData>().First();
-
-        List<ShopData> listedShops = shopData.GetShops();
-
-        // Parse
-
-        report.AddGroup(ShopName, ShopName + " shops:");
-
+        
         OsmDataExtract brandShops = osmShops.Filter(
             new OrMatch(
                 new HasAnyValue("name", ShopOsmNames, false),
@@ -57,109 +47,29 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
             )
         );
 
-        List<(OsmElement, ShopData, double)> matchedOsmShops = new List<(OsmElement, ShopData, double)>();
+        // Load Shop data
 
-        foreach (ShopData listedShop in listedShops)
-        {
-            OsmElement? exactMatchedShop = brandShops.GetClosestElementTo(listedShop.Coord, 500, out double? distance);
+        ShopListAnalysisData shopData = datas.OfType<ShopListAnalysisData>().First();
 
-            if (exactMatchedShop != null)
-            {
-                matchedOsmShops.Add((exactMatchedShop, listedShop, distance!.Value));
+        List<ShopData> listedShops = shopData.GetShops();
 
-                if (distance > 50)
-                {
-                    report.AddEntry(
-                        ShopName,
-                        new IssueReportEntry(
-                            "Shop matched for " + ListedShopString(listedShop) +
-                            " as " + OsmShopString(exactMatchedShop) +
-                            " , but it's far away - " + distance.Value.ToString("F0") + " m.",
-                            listedShop.Coord,
-                            MapPointStyle.Dubious
-                        )
-                    );
-                }
-            }
-            else
-            {
-                OsmElement? closestMatchedShop = osmShops.GetClosestElementTo(listedShop.Coord, 200, out distance);
+        // Prepare data comparer/correlator
 
-                if (closestMatchedShop != null)
-                {
-                    report.AddEntry(
-                        ShopName,
-                        new IssueReportEntry(
-                            "No expected shop for " + ListedShopString(listedShop) +
-                            " , closest " + OsmShopString(closestMatchedShop) +
-                            " at " + distance!.Value.ToString("F0") + " m.",
-                            listedShop.Coord,
-                            MapPointStyle.Problem
-                        )
-                    );
-                }
-                else
-                {
-                    report.AddEntry(
-                        ShopName,
-                        new IssueReportEntry(
-                            "No expected shop for " + ListedShopString(listedShop) + " , and no shops nearby.",
-                            listedShop.Coord,
-                            MapPointStyle.Problem
-                        )
-                    );
-                }
-            }
-        }
-
-        IEnumerable<IGrouping<OsmElement, (OsmElement, ShopData, double)>> sameOsmShopMatches = matchedOsmShops.GroupBy(ms => ms.Item1);
-
-        foreach (IGrouping<OsmElement, (OsmElement osmShop, ShopData listedShop, double distance)> multimatch in sameOsmShopMatches)
-        {
-            if (multimatch.Count() > 1)
-            {
-                OsmElement osmShop = multimatch.First().osmShop; // any will do, they are all the same
-
-                report.AddEntry(
-                    ShopName,
-                    new IssueReportEntry(
-                        "OSM shop " + OsmShopString(osmShop) +
-                        " matched " + multimatch.Count() + " times to listed shops - " +
-                        string.Join(", ", multimatch.Select(m => ListedShopString(m.listedShop) + " (" + m.distance.ToString("F0") + " m) "))
-                    )
-                );
-            }
-        }
-
-        report.AddEntry(
-            ShopName,
-            new DescriptionReportEntry(
-                "Matching " + listedShops.Count + " shops from the " + ShopName + " website shop list ( " + shopData.ShopListUrl + " ) to OSM elements. " +
-                "Matched " + matchedOsmShops.Count + " shops."
-            )
+        Correlator<ShopData> dataComparer = new Correlator<ShopData>(
+            brandShops,
+            listedShops,
+            new MatchDistanceParamater(15),
+            new MatchFarDistanceParamater(75),
+            new DataItemLabelsParamater(ShopName + " shop", ShopName + " shop")
         );
-
-
-        // todo: match backwards
             
+        // Parse and report primary matching and location correlation
 
-        static string ListedShopString(ShopData listedShop)
-        {
-            return
-                "\"" + listedShop.Address + "\" " +
-                "found around " + listedShop.Coord.OsmUrl;
-        }
-
-        static string OsmShopString(OsmElement osmShop)
-        {
-            return 
-                (osmShop.HasKey("name") ? 
-                    "\"" + osmShop.GetValue("name") + "\"" : 
-                    "unnamed"
-                ) + " " + 
-                osmShop.OsmViewUrl;
-                    
-            // todo: brand operator whatever else we used to match
-        }
+        dataComparer.Parse(
+            report,
+            new MatchedItemBatch(),
+            new UnmatchedItemBatch(),
+            new MatchedFarItemBatch()
+        );
     }
 }

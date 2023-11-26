@@ -53,9 +53,9 @@ public class GlikaOaksAnalyzer : Analyzer
 
         dataComparer.Parse(
             report,
-            new MatchedItemBatch(),
+            new MatchedPairBatch(),
             new UnmatchedItemBatch(),
-            new MatchedFarItemBatch()
+            new MatchedFarPairBatch()
         );
             
         // todo: denomination

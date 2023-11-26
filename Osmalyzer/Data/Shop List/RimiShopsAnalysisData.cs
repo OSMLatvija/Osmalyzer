@@ -41,15 +41,11 @@ public class RimiShopsAnalysisData : SimplePageShopListAnalysisData
             string raw = match.Groups[1].ToString();
 
             // "id":159427,"url":"https:\/\/www.rimi.lv\/veikali\/rimi-dole","full_name":"Rimi Dole","business_name":"rimi dole","address_line_1":"maskavas iela 357","keywords":null,"locality":"riga","icon":"https:\/\/rimibaltic-web-res.cloudinary.com\/image\/upload\/c_fit,f_auto,h_48,q_auto,w_48\/v1\/web-cms\/fd86ab20bf713e2cd42f2fbbe6a01a9459c20b4b.png","longitude":"24.1909338","latitude":"56.90560051","most_visited":1,"display":"\u201eRimi Dole\u201c, Maskavas iela 357, R\u012bga"
-
-            raw = Regex.Unescape(raw); // the string is JSON, but it's basically the same as Regex escaping
-
-            // "id":159427,"url":"https://www.rimi.lv/veikali/rimi-dole","full_name":"Rimi Dole","business_name":"rimi dole","address_line_1":"maskavas iela 357","keywords":null,"locality":"riga","icon":"https://rimibaltic-web-res.cloudinary.com/image/upload/c_fit,f_auto,h_48,q_auto,w_48/v1/web-cms/fd86ab20bf713e2cd42f2fbbe6a01a9459c20b4b.png","longitude":"24.1909338","latitude":"56.90560051","most_visited":1,"display":"„Rimi Dole“, Maskavas iela 357, Rīga"
             
-            string display = Regex.Match(raw, @"""display"":""([^""]+)""").Groups[1].ToString();
+            string display = Regex.Unescape(Regex.Match(raw, @"""display"":""([^""]+)""").Groups[1].ToString());
             //string name = Regex.Match(raw, @"""full_name"":""([^""]+)""").Groups[1].ToString();
-            double lat = double.Parse(Regex.Match(raw, @"""latitude"":""([^""]+)""").Groups[1].ToString());
-            double lon = double.Parse(Regex.Match(raw, @"""longitude"":""([^""]+)""").Groups[1].ToString());
+            double lat = double.Parse(Regex.Unescape(Regex.Match(raw, @"""latitude"":""([^""]+)""").Groups[1].ToString()));
+            double lon = double.Parse(Regex.Unescape(Regex.Match(raw, @"""longitude"":""([^""]+)""").Groups[1].ToString()));
 
             listedShops.Add(new ShopData(display, new OsmCoord(lat, lon)));
         }

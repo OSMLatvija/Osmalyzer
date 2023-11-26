@@ -37,9 +37,14 @@ public class MapPointReportEntry : ReportEntry
 public enum MapPointStyle
 {
     Okay,
-    Dubious,
     Problem,
-    Unwanted,
-    Info,
-    Expected
+    Dubious,
+
+    CorrelatorPairMatched,
+    CorrelatorPairMatchedFar,
+    CorrelatorPairMatchedFarOrigin,
+    CorrelatorItemUnmatched,
+    CorrelatorOsmUnmatched,
+    CorrelatorLoneOsmMatched,
+    CorrelatorLoneOsmUnmatched
 }

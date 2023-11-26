@@ -188,7 +188,7 @@ public class Correlator<T> where T : ICorrelatorItem
                             dataItem.Coord,
                             "No OSM element found in " + unmatchDistance + " m range of " +
                             dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
-                            MapPointStyle.Problem
+                            MapPointStyle.CorrelatorItemUnmatched
                         )
                     );
                 }
@@ -214,7 +214,7 @@ public class Correlator<T> where T : ICorrelatorItem
                             osmElement.GetAverageCoord(),
                             "No " + dataItemLabelSingular + " expected in " + unmatchDistance + " m range of OSM element " +
                             OsmElementReportText(osmElement),
-                            MapPointStyle.Unwanted
+                            MapPointStyle.CorrelatorOsmUnmatched
                         )
                     );
                 }
@@ -248,7 +248,7 @@ public class Correlator<T> where T : ICorrelatorItem
                                 match.Item.ReportString() + " matched OSM element " +
                                 OsmElementReportText(match.Element) +
                                 " at " + match.Distance.ToString("F0") + " m",
-                                MapPointStyle.Okay
+                                MapPointStyle.CorrelatorPairMatched
                             )
                         );
                     }
@@ -282,7 +282,7 @@ public class Correlator<T> where T : ICorrelatorItem
                             OsmElementReportText(match.Element) + " found around " +
                             match.Item.ReportString() + ", " +
                             "but it's far away (" + match.Distance.ToString("F0") + " m), expected at " + match.Item.Coord.OsmUrl,
-                            MapPointStyle.Dubious
+                            MapPointStyle.CorrelatorPairMatchedFar
                         )
                     );
 
@@ -291,7 +291,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         new MapPointReportEntry(
                             match.Item.Coord,
                             "Expected location for " + match.Item.ReportString() + " at " + match.Item.Coord.OsmUrl,
-                            MapPointStyle.Expected
+                            MapPointStyle.CorrelatorPairMatchedFarOrigin
                         )
                     );
                 }
@@ -318,7 +318,7 @@ public class Correlator<T> where T : ICorrelatorItem
                             "Matched OSM element " +
                             OsmElementReportText(osmElement) +
                             " by itself",
-                            reportMatchedLoneOsmAsProblem ? MapPointStyle.Unwanted : MapPointStyle.Okay
+                            reportMatchedLoneOsmAsProblem ? MapPointStyle.CorrelatorLoneOsmUnmatched : MapPointStyle.CorrelatorLoneOsmMatched
                         )
                     );
                 }

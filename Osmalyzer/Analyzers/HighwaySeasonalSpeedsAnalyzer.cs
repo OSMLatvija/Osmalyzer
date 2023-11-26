@@ -66,7 +66,7 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
                             new IssueReportEntry(
                                 "Same limits for " + maxspeed + ": " + maxspeedConditionalStr + " on " + way.OsmViewUrl,
                                 coord,
-                                MapPointStyle.Info
+                                MapPointStyle.Problem
                             )
                         );
                     }

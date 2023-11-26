@@ -6,11 +6,44 @@ public static class LeafletIcons
 {
     public static readonly List<LeafletIcon> Icons = new List<LeafletIcon>()
     {
-        new LeafletIcon("greenCheckmark", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Okay, MapPointStyle.Info),
-        new LeafletIcon("orangeCheckmark", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Dubious),
-        new LeafletIcon("redCross", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Problem),
-        new LeafletIcon("redQuestion", 16, LeafletIcon.IconGroup.Main, MapPointStyle.Unwanted),
-        new LeafletIcon("blueStar", 12, LeafletIcon.IconGroup.Sub, MapPointStyle.Expected)
+        new LeafletIcon(
+            "greenCheckmark",
+            16,
+            LeafletIcon.IconGroup.Main,
+            MapPointStyle.Okay,
+            MapPointStyle.CorrelatorPairMatched, MapPointStyle.CorrelatorLoneOsmMatched
+        ),
+        
+        new LeafletIcon(
+            "orangeCheckmark", 
+            16, 
+            LeafletIcon.IconGroup.Main, 
+            MapPointStyle.Dubious,
+            MapPointStyle.CorrelatorPairMatchedFar
+        ),
+        
+        new LeafletIcon(
+            "redCross", 
+            16, 
+            LeafletIcon.IconGroup.Main, 
+            MapPointStyle.Problem,
+            MapPointStyle.CorrelatorItemUnmatched, MapPointStyle.CorrelatorOsmUnmatched
+        ),
+        
+        new LeafletIcon(
+            "redQuestion", 
+            16, 
+            LeafletIcon.IconGroup.Main, 
+            MapPointStyle.Okay,
+            MapPointStyle.CorrelatorLoneOsmUnmatched
+        ),
+        
+        new LeafletIcon(
+            "blueStar", 
+            12, 
+            LeafletIcon.IconGroup.Sub, 
+            MapPointStyle.CorrelatorPairMatchedFarOrigin
+        )
     };
 }
 

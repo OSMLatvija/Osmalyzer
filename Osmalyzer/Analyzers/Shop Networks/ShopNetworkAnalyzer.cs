@@ -69,7 +69,7 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
             listedShops,
             new MatchDistanceParamater(100),
             new MatchFarDistanceParamater(300), // some are really far from where the data says they ought to be
-            new DataItemLabelsParamater(ShopName + " shop", ShopName + " shop"),
+            new DataItemLabelsParamater(ShopName + " shop", ShopName + " shops"),
             new OsmElementPreviewValue("name", false),
             new LoneElementAllowanceCallbackParameter(_ => true)
         );

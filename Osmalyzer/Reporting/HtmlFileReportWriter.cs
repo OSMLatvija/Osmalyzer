@@ -58,7 +58,14 @@ public class HtmlFileReportWriter : ReportWriter
             for (int g = 0; g < groups.Count; g++)
             {
                 int importantEntryCount = groups[g].ImportantEntryCount;
-                bodyContent += @"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>" + (importantEntryCount > 0 ? @" (" + importantEntryCount + ")" : "") + @"</li>" + Environment.NewLine;
+                
+                bodyContent += @"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>";
+
+                if (importantEntryCount > 0)
+                    if (groups[g].ShowImportantEntryCount)
+                        bodyContent += @" (" + importantEntryCount + ")";
+
+                bodyContent += @"</li>" + Environment.NewLine;
             }
 
             bodyContent += "</ul>" + Environment.NewLine;

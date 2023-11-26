@@ -31,9 +31,9 @@ public class Report
     }
 
 
-    public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null)
+    public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null, bool showImportantEntryCount = true)
     {
-        ReportGroup newGroup = new ReportGroup(id, title);
+        ReportGroup newGroup = new ReportGroup(id, title, showImportantEntryCount);
             
         _groups.Add(newGroup);
             

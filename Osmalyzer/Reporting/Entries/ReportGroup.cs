@@ -14,6 +14,8 @@ public class ReportGroup
     public object ID { get; }
             
     public string Title { get; }
+    
+    public bool ShowImportantEntryCount { get; }
 
 
     public DescriptionReportEntry? DescriptionEntry { get; private set; }
@@ -57,10 +59,11 @@ public class ReportGroup
     private readonly List<MapPointReportEntry> _mapPointEntries = new List<MapPointReportEntry>();
 
 
-    public ReportGroup(object id, string title)
+    public ReportGroup(object id, string title, bool showImportantEntryCount)
     {
         ID = id;
         Title = title;
+        ShowImportantEntryCount = showImportantEntryCount;
     }
 
             

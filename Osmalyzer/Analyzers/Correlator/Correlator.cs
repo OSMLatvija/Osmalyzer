@@ -165,7 +165,9 @@ public class Correlator<T> where T : ICorrelatorItem
         report.AddGroup(
             ReportGroup.CorrelationResults,
             "Matching " + dataItemLabelPlural,
-            "This lists the results of matching " + dataItemLabelPlural + " and OSM elements to each other."
+            "This lists the results of matching " + dataItemLabelPlural + " and OSM elements to each other.",
+            null,
+            false // don't need totals - we only print summary info, all entries are on the map, the number won't mean anything to user
         );
         
         // Report results

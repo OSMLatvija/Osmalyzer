@@ -30,12 +30,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
                 "pager__item" // website has internal delayed data loading shenanigans 
             );
 
-            if (i == 0)
-            {
-                // When getting first page, parse it for the total page count
-                MatchCollection matches = Regex.Matches(content, @"<a href=""\?page=(\d+)""");
-                _pageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
-            }
+            // When getting pages, parse it for the total page count from the paginator (which grows with more pages)
+            MatchCollection matches = Regex.Matches(content, @"<a href=""\?page=(\d+)""");
+            _pageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
 
             File.WriteAllText(
                 cacheBasePath + DataFileIdentifier + "-" + i + @".html", 

@@ -17,6 +17,8 @@ public static class WebsiteDownloadHelper
 {
     private static readonly List<(string url, string content)> _cachedWebsites = new List<(string url, string content)>();
 
+    private static IWebDriver? _driver; 
+    
 
     [MustUseReturnValue]
     public static string ReadDirect(string url, bool canUseCache)
@@ -52,23 +54,9 @@ public static class WebsiteDownloadHelper
                 return cachedContent;
         }
         
-        ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-        service.SuppressInitialDiagnosticInformation = true; // "Starting ChromeDriver" spam
-        
-        ChromeOptions options = new ChromeOptions();
-        options.AddArgument("--headless");
-        options.AddArgument("--window-size=1600x1200");
-        //options.AddArgument("--lang=en-US");
-        options.AddArgument("--disable-extensions");
-        options.AddArgument("--disable-notifications");
-        
-        //options.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
-        //options.AddArgument("--log-level=3");
-        // it still has "ChromeDriver was started successfully." spam that I don't know how to disable
+        IWebDriver driver = PrepareChrome();
 
         string result;
-
-        using IWebDriver driver = new ChromeDriver(service, options);
 
         driver.Navigate().GoToUrl(url);
 
@@ -189,6 +177,32 @@ public static class WebsiteDownloadHelper
             return null;
             
         return lastModifedOffset.Value.UtcDateTime;
+    }
+
+    
+    [MustUseReturnValue]
+    private static IWebDriver PrepareChrome()
+    {
+        if (_driver != null)
+            return _driver;
+        
+        ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+        service.SuppressInitialDiagnosticInformation = true; // "Starting ChromeDriver" spam
+
+        ChromeOptions options = new ChromeOptions();
+        options.AddArgument("--headless");
+        options.AddArgument("--window-size=1600x1200");
+        //options.AddArgument("--lang=en-US");
+        options.AddArgument("--disable-extensions");
+        options.AddArgument("--disable-notifications");
+
+        //options.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
+        //options.AddArgument("--log-level=3");
+        // it still has "ChromeDriver was started successfully." spam that I don't know how to disable
+
+        _driver = new ChromeDriver(service, options);
+        
+        return _driver;
     }
 }
 

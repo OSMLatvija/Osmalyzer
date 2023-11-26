@@ -66,7 +66,7 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
         Correlator<ShopData> dataComparer = new Correlator<ShopData>(
             brandShops,
             listedShops,
-            new MatchDistanceParamater(50),
+            new MatchDistanceParamater(100),
             new MatchFarDistanceParamater(300), // some are really far from where the data says they ought to be
             new DataItemLabelsParamater(ShopName + " shop", ShopName + " shop"),
             new OsmElementPreviewValue("name", false),

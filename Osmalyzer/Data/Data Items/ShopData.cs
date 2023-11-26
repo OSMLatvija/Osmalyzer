@@ -17,7 +17,7 @@ public class ShopData : ICorrelatorItem
     public string ReportString()
     {
         return
-            "\"" + Address + "\" " +
-            "found around " + Coord.OsmUrl;
+            "`" + Address + "` " +
+            "expected at " + Coord.OsmUrl;
     }
 }

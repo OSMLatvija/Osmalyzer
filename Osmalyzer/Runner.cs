@@ -39,8 +39,9 @@ public static class Runner
             //new HighwaySpeedLimitAnalyzer(),
             //new GlikaOaksAnalyzer(),
             //new SwedbankLocationAnalyzer(),
-            new ElviShopNetworkAnalyzer(),
-            new LatsShopNetworkAnalyzer()
+            //new ElviShopNetworkAnalyzer(),
+            //new LatsShopNetworkAnalyzer(),
+            new RimiShopNetworkAnalyzer(),
         };
 #endif
 

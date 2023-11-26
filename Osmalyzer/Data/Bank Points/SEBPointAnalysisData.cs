@@ -116,7 +116,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
                 BankPointType _ = RawTypeToPointType(typeRaw, out bool? deposit);
 
-                BankPoint point = new BankAtmPoint(title, address, coord, deposit);
+                BankPoint point = new BankAtmPoint("SEB", title, address, coord, deposit);
 
                 Points.Add(point);
             }
@@ -177,7 +177,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
                 double lon = double.Parse(coordMatch.Groups[2].ToString());
                 OsmCoord coord = new OsmCoord(lat, lon);
 
-                BankPoint point = new BankBranchPoint(title, address, coord);
+                BankPoint point = new BankBranchPoint("SEB", title, address, coord);
                 
                 Points.Add(point);
             }

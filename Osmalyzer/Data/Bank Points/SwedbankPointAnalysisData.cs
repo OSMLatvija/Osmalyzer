@@ -63,8 +63,8 @@ public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnaly
             
             BankPoint point = type switch
             {
-                BankPointType.Branch => new BankBranchPoint(item.Name, address, coord),
-                BankPointType.Atm => new BankAtmPoint(item.Name, address, coord, deposit),
+                BankPointType.Branch => new BankBranchPoint("Swedbank", item.Name, address, coord),
+                BankPointType.Atm => new BankAtmPoint("Swedbank", item.Name, address, coord, deposit),
 
                 _ => throw new ArgumentOutOfRangeException()
             };

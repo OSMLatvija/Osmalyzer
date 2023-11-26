@@ -2,6 +2,8 @@
 
 public abstract class BankPoint : ICorrelatorItem
 {
+    public string BankName { get; set; }
+    
     public string Name { get; set; }
 
     public string Address { get; set; }
@@ -14,8 +16,9 @@ public abstract class BankPoint : ICorrelatorItem
     public abstract string TypeString { get; }
 
 
-    protected BankPoint(string name, string address, OsmCoord coord)
+    protected BankPoint(string bankName, string name, string address, OsmCoord coord)
     {
+        BankName = bankName;
         Name = name;
         Address = address;
         Coord = coord;
@@ -24,7 +27,7 @@ public abstract class BankPoint : ICorrelatorItem
     
     public string ReportString()
     {
-        return "Swedbank " + TypeString + " `" + Name + "` " + (Id != null ? "#" + Id + " " : "") + " (`" + Address + "`)";
+        return BankName + " " + TypeString + " `" + Name + "` " + (Id != null ? "#" + Id + " " : "") + " (`" + Address + "`)";
     }
 }
 
@@ -36,8 +39,8 @@ public class BankAtmPoint : BankPoint
     public bool? Deposit { get; set; }
 
     
-    public BankAtmPoint(string name, string address, OsmCoord coord, bool? deposit)
-        : base(name, address, coord)
+    public BankAtmPoint(string bankName, string name, string address, OsmCoord coord, bool? deposit)
+        : base(bankName, name, address, coord)
     {
         Deposit = deposit;
     }
@@ -48,8 +51,8 @@ public class BankBranchPoint : BankPoint
     public override string TypeString => "branch";
     
     
-    public BankBranchPoint(string name, string address, OsmCoord coord)
-        : base(name, address, coord)
+    public BankBranchPoint(string bankName, string name, string address, OsmCoord coord)
+        : base(bankName, name, address, coord)
     {
     }
 }

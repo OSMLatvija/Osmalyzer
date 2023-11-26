@@ -41,7 +41,7 @@ public static class WebsiteDownloadHelper
     }
     
     [MustUseReturnValue]
-    public static string ReadAsBrowser(string url, bool canUseCache, string? waitForElement = null)
+    public static string ReadAsBrowser(string url, bool canUseCache, params BrowsingAction[] browsingActions)
     {
         if (canUseCache)
         {
@@ -70,14 +70,25 @@ public static class WebsiteDownloadHelper
         using IWebDriver driver = new ChromeDriver(service, options);
         driver.Navigate().GoToUrl(url);
         
-        if (waitForElement != null)
+        if (browsingActions.Length> 0)
         {
-            IWait<IWebDriver> wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-            
-            // wait.Until(d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
-            // wait.Until(ExpectedConditions.StalenessOf(driver.FindElement(By.TagName("body"))));
-            wait.Until(ExpectedConditions.ElementExists(By.ClassName(waitForElement)));
-            
+            foreach (BrowsingAction browsingAction in browsingActions)
+            {
+                switch (browsingAction)
+                {
+                    case WaitForElementOfClass waitForElementOfClass:
+                        IWait<IWebDriver> wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+                        // wait.Until(d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
+                        // wait.Until(ExpectedConditions.StalenessOf(driver.FindElement(By.TagName("body"))));
+                        wait.Until(ExpectedConditions.ElementExists(By.ClassName(waitForElementOfClass.ClassName)));
+                        break;
+                    
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(browsingAction));
+                }
+            }
+
             IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
             result = (string)jsExecutor.ExecuteScript("return document.documentElement.outerHTML;");
         }
@@ -132,5 +143,22 @@ public static class WebsiteDownloadHelper
             return null;
             
         return lastModifedOffset.Value.UtcDateTime;
+    }
+}
+
+
+public abstract class BrowsingAction
+{
+    
+}
+
+public class WaitForElementOfClass : BrowsingAction
+{
+    public string ClassName { get; }
+
+    
+    public WaitForElementOfClass(string className)
+    {
+        ClassName = className;
     }
 }

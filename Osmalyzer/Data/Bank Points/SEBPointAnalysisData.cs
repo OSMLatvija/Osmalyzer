@@ -27,7 +27,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             string content = WebsiteDownloadHelper.ReadAsBrowser(
                 "https://www.seb.lv/atm-find?page=" + i, 
                 true,
-                "pager__item" // website has internal delayed data loading shenanigans 
+                new WaitForElementOfClass("pager__item") // website has internal delayed data loading shenanigans 
             );
 
             // When getting pages, parse it for the total page count from the paginator (which grows with more pages)

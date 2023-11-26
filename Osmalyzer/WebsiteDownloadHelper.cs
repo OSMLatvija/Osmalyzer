@@ -11,7 +11,7 @@ namespace Osmalyzer;
 public static class WebsiteDownloadHelper
 {
     private static readonly List<(string url, string content)> _cachedWebsites = new List<(string url, string content)>();
-        
+    
         
     [MustUseReturnValue]
     public static string Read(string url, bool canUseCache)
@@ -23,8 +23,9 @@ public static class WebsiteDownloadHelper
             if (cachedContent != null)
                 return cachedContent;
         }
-            
+
         using HttpClient client = new HttpClient();
+        
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.GetAsync(uri).Result;
         using HttpContent content = response.Content;

@@ -13,7 +13,7 @@ public abstract class BankLocationAnalyzer<T> : Analyzer where T : BankPointAnal
     public override string Description => "This report checks that all POIs from " + BankName + " contact list are mapped. " +
                                           "Note that the website list is not precise and the actual points can be dozens and even hundreds of meters away, such as in shopping malls.";
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(SwedbankPointAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(T) };
 
 
     protected abstract string BankName { get; }
@@ -54,7 +54,7 @@ public abstract class BankLocationAnalyzer<T> : Analyzer where T : BankPointAnal
 
         // Get Bank data
 
-        List<BankPoint> allPoints = datas.OfType<SwedbankPointAnalysisData>().First().Points;
+        List<BankPoint> allPoints = datas.OfType<BankPointAnalysisData>().First().Points;
         
         List<BankAtmPoint> atmPoints = allPoints.OfType<BankAtmPoint>().ToList();
 

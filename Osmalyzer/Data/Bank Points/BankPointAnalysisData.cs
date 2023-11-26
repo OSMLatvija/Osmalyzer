@@ -1,5 +1,8 @@
-﻿namespace Osmalyzer;
+﻿using System.Collections.Generic;
+
+namespace Osmalyzer;
 
 public abstract class BankPointAnalysisData : AnalysisData
 {
+    public List<BankPoint> Points { get; protected set; } = null!; // only null before prepared
 }

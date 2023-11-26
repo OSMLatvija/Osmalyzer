@@ -14,9 +14,6 @@ public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnaly
     protected override string DataFileIdentifier => "swedbank-points";
 
 
-    public List<BankPoint> Points { get; private set; } = null!; // only null before prepared
-
-
     protected override void Download()
     {
         WebsiteDownloadHelper.Download(

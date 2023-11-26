@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
 
@@ -71,20 +70,18 @@ public abstract class AnalysisData
                 Download();
             }
         }
-#if !REMOTE_EXECUTION
-        catch (Exception e)
-#else
         catch (Exception)
-#endif
         {
             Console.WriteLine("Failed with exception!");
 
 #if !REMOTE_EXECUTION
-            Debug.WriteLine(e);
-#endif
-
+            // In debug, we want to know about these
+            throw;
+#else      
+            // On remote, we continue gracefully 
             RetrievalStatus = DataRetrievalStatus.Fail;
             return;
+#endif        
         }
 
         RetrievalStatus = DataRetrievalStatus.Ok;

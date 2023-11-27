@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Osmalyzer;
 
-public class TopShopNetworkAnalyzer : ShopNetworkAnalyzer<LatsShopsAnalysisData>
+public class TopShopNetworkAnalyzer : ShopNetworkAnalyzer<TopShopsAnalysisData>
 {
     protected override string ShopName => "Top!";
 

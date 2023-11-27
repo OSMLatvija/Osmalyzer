@@ -43,7 +43,8 @@ public class CulturalMonumentsAnalyzer : Analyzer
             new MatchDistanceParamater(15),
             new MatchFarDistanceParamater(75),
             new DataItemLabelsParamater("monument", "monuments"),
-            new MatchCallbackParameter<CulturalMonument>(DoesOsmNodeMatchMonument)
+            new MatchCallbackParameter<CulturalMonument>(DoesOsmNodeMatchMonument),
+            new OsmElementPreviewValue("name", false)
         );
         
         [Pure]

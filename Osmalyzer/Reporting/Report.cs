@@ -24,7 +24,7 @@ public class Report
         Name = analyzer.Name;
         Description = analyzer.Description;
 
-        List<ICachableAnalysisData> datasWithDate = datas.OfType<ICachableAnalysisData>().ToList();
+        List<IDatedAnalysisData> datasWithDate = datas.OfType<IDatedAnalysisData>().ToList();
 
         if (datasWithDate.Count > 0)
             DataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity ? ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + ((AnalysisData)d).Name + ")" : "")));

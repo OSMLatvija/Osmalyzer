@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, ICachableAnalysisData
+public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnalysisData
 {
     public override string Name => "Micro Reserves";
 

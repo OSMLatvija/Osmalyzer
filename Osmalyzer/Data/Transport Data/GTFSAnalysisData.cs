@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public abstract class GTFSAnalysisData : AnalysisData, IPreparableAnalysisData, ICachableAnalysisData
+public abstract class GTFSAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnalysisData
 {
     public abstract string ExtractionFolder { get; }
 

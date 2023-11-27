@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class KuldigaRoadsAnalysisData : AnalysisData, ICachableAnalysisData, IPreparableAnalysisData
+public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData, IPreparableAnalysisData
 {
     public override string Name => "Kuldiga Roads";
 

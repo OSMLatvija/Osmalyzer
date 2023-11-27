@@ -34,7 +34,7 @@ public abstract class AnalysisData
         try
         {
 #endif
-            if (this is ICachableAnalysisData cachableAnalysisData)
+            if (this is IDatedAnalysisData cachableAnalysisData)
             {
                 _dataDate = GetDataDateFromMetadataFile();
 

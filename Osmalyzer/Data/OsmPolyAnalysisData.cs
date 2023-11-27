@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class OsmPolyAnalysisData : AnalysisData, ICachableAnalysisData
+public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
 {
     public override string Name => "OSM Poly";
 

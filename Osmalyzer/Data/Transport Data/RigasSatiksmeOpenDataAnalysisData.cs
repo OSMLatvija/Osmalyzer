@@ -9,7 +9,7 @@ namespace Osmalyzer;
 /// The data published in the open portal, once a month
 /// </summary>
 [UsedImplicitly]
-public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalysisData, ICachableAnalysisData
+public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnalysisData
 {
     public override string Name => "Rigas Satiksme";
 

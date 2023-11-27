@@ -180,7 +180,14 @@ public class HtmlFileReportWriter : ReportWriter
             }
         }
 
-        bodyContent += "<br>Data as of " + HttpUtility.HtmlEncode(report.DataDates) + ". Provided as is; mistakes possible." + Environment.NewLine;
+        bodyContent += "<h3>Source data</h3>" + Environment.NewLine;
+        
+        bodyContent += "<ul>" + Environment.NewLine;
+        foreach (AnalysisData data in report.Datas)
+            bodyContent += "<li>" + DataInfoLine(data) + "</li>" + Environment.NewLine;
+        bodyContent += "</ul>" + Environment.NewLine;
+        
+        bodyContent += "Provided as is; mistakes possible." + Environment.NewLine;
 
         return bodyContent;
     }
@@ -203,6 +210,25 @@ public class HtmlFileReportWriter : ReportWriter
         line = line.Replace(Environment.NewLine, "<br>");
             
         return line;
+    }
+
+    [Pure]
+    private static string DataInfoLine(AnalysisData data)
+    {
+        string s = HttpUtility.HtmlEncode(data.Name);
+
+        if (data is IDatedAnalysisData datedData)
+            s += " as of " +
+                 (datedData.DataDateHasDayGranularity ?
+                     data.DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") :
+                     data.DataDate!.Value.ToString("yyyy-MM-dd"));
+        else
+            s += " (undated)";
+
+        if (data.ReportWebLink != null)
+            s += @" <a href=""" + data.ReportWebLink + @""" target=\""_blank\"">Link</a>";
+
+        return s;
     }
 
     [Pure]

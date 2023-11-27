@@ -10,6 +10,9 @@ public class RimiShopsAnalysisData : SimplePageShopListAnalysisData
 {
     public override string Name => "Rimi Shops";
 
+    public override string ReportWebLink => @"https://www.rimi.lv/veikali";
+
+
     protected override string DataFileIdentifier => "shops-rimi";
 
 

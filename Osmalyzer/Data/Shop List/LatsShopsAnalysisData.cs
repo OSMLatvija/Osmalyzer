@@ -11,6 +11,8 @@ public class LatsShopsAnalysisData : SimplePageShopListAnalysisData
 {
     public override string Name => "LaTS Shops";
 
+    public override string ReportWebLink => @"https://www.latts.lv/lats-veikali";
+
         
     protected override string DataFileIdentifier => "shops-lats";
 

@@ -9,8 +9,7 @@ public class Report
     public string Name { get; }
         
     public string Description { get; }
-
-    public string? DataDates { get; }
+    public IEnumerable<AnalysisData> Datas { get; }
 
         
     public bool NeedMap => _groups.Any(g => g.NeedMap);
@@ -21,13 +20,10 @@ public class Report
 
     public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
     {
+        Datas = datas;
+
         Name = analyzer.Name;
         Description = analyzer.Description;
-
-        List<IDatedAnalysisData> datasWithDate = datas.OfType<IDatedAnalysisData>().ToList();
-
-        if (datasWithDate.Count > 0)
-            DataDates = string.Join(", ", datasWithDate.Select(d => (d.DataDateHasDayGranularity ? ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd HH:mm:ss") : ((AnalysisData)d).DataDate!.Value.ToString("yyyy-MM-dd")) + (datasWithDate.Count > 1 ? " (" + ((AnalysisData)d).Name + ")" : "")));
     }
 
 

@@ -11,6 +11,9 @@ public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnaly
 {
     public override string Name => "Swedbank Points";
 
+    public override string ReportWebLink => @"https://www.swedbank.lv/private/home/contacts/finder.xml";
+
+
     protected override string DataFileIdentifier => "swedbank-points";
 
 

@@ -9,6 +9,9 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
 {
     public override string Name => "Micro Reserves";
 
+    public override string ReportWebLink => @"https://data.gov.lv/dati/lv/dataset/mikroliegumi";
+
+
     public bool DataDateHasDayGranularity => false; // only day given on data page
 
     protected override string DataFileIdentifier => "micro-reserves";

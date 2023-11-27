@@ -12,6 +12,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 {
     public override string Name => "SEB Points";
 
+    public override string ReportWebLink => @"https://www.seb.lv/atm-find";
+    
+
     protected override string DataFileIdentifier => "seb-points";
 
 
@@ -27,7 +30,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         for (int i = 0; i < _atmPageCount; i++)
         {
             string pageContent = WebsiteBrowsingHelper.Read(
-                "https://www.seb.lv/atm-find?page=" + i, 
+                @"https://www.seb.lv/atm-find?page=" + i, 
                 true,
                 null,
                 new WaitForElementOfClass("pager__item") // website has internal delayed data loading shenanigans 
@@ -48,7 +51,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         for (int i = 0; i < _branchPageCount; i++)
         {
             string pageContent = WebsiteBrowsingHelper.Read(
-                "https://www.seb.lv/atm-find?type_id=2&page=" + i, 
+                @"https://www.seb.lv/atm-find?type_id=2&page=" + i, 
                 true,
                 null,
                 new WaitForElementOfClass("pager__item") // website has internal delayed data loading shenanigans 

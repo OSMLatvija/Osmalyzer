@@ -11,6 +11,9 @@ public class ElviShopsAnalysisData : SimplePageShopListAnalysisData
 {
     public override string Name => "Elvi Shops";
 
+    public override string ReportWebLink => @"https://elvi.lv/elvi-veikali/";
+
+
     protected override string DataFileIdentifier => "shops-elvi";
 
 

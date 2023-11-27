@@ -16,6 +16,13 @@ public abstract class AnalysisData
     public abstract string Name { get; }
     // todo: page name not from this - some sort of internal id
 
+    /// <summary>
+    /// A link for the human reading the report, so it takes them approximately to where the data lives.
+    /// In many cases, this won't be actual data like .zip files or .xml sources, because that's only parsable.
+    /// </summary>
+    public abstract string? ReportWebLink { get; }
+
+    
     public DateTime? DataDate => _dataDate;
         
     public DataRetrievalStatus RetrievalStatus { get; private set; }

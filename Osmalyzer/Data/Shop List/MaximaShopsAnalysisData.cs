@@ -10,6 +10,9 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
 {
     public override string Name => "Maxima Shops";
 
+    public override string ReportWebLink => @"https://www.maxima.lv/veikalu-kedes";
+
+
     protected override string DataFileIdentifier => "shops-maxima";
 
     public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";

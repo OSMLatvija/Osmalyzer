@@ -50,7 +50,7 @@ public class TextFileReportWriter : ReportWriter
         }
             
         reportFile.WriteLine();
-        reportFile.WriteLine((report.DataDates != null ? "Data as of " + report.DataDates + ". " : "") + "Provided as is; mistakes possible.");
+        //reportFile.WriteLine((report.DataDates != null ? "Data as of " + report.DataDates + ". " : "") + "Provided as is; mistakes possible.");
             
         reportFile.Close();
     }

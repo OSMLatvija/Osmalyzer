@@ -7,6 +7,9 @@ public class LiepajasTransportsAnalysisData : GTFSAnalysisData
 {
     public override string Name => "Liepajas Sabiedriskais Transports";
 
+    public override string ReportWebLink => @"https://www.marsruti.lv/liepaja/";
+
+
     public override bool DataDateHasDayGranularity => true; 
 
     protected override string DataFileIdentifier => "liepajas-transports";

@@ -11,6 +11,9 @@ public class RigaDrinkingWaterAnalysisData : AnalysisData, IPreparableAnalysisDa
 {
     public override string Name => "Riga Drinking Water";
 
+    public override string ReportWebLink => @"https://www.rigasudens.lv/lv/udens-brivkranu-karte";
+
+
     protected override string DataFileIdentifier => "riga-drinking-water";
 
 

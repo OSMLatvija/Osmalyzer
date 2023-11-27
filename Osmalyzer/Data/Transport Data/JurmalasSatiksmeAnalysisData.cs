@@ -7,6 +7,9 @@ public class JurmalasSatiksmeAnalysisData : GTFSAnalysisData
 {
     public override string Name => "Jurmalas Autobusu Satiksme";
 
+    public override string ReportWebLink => @"https://www.marsruti.lv/jurmala/";
+
+
     public override bool DataDateHasDayGranularity => true;
 
     protected override string DataFileIdentifier => "jurmalas-satiksme";

@@ -13,6 +13,9 @@ public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalys
 {
     public override string Name => "Rigas Satiksme";
 
+    public override string ReportWebLink => @"https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam";
+
+
     public bool DataDateHasDayGranularity => false; // only day given on data page (file itself is month only)
 
     protected override string DataFileIdentifier => "rigas-satiksme-opendata";

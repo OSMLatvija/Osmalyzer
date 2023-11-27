@@ -6,6 +6,9 @@ namespace Osmalyzer;
 public class RezeknesSatiksmeAnalysisData : GTFSAnalysisData
 {
     public override string Name => "Rezeknes Satiksme";
+
+    public override string ReportWebLink => @"https://www.marsruti.lv/rezekne/";
+
         
     public override bool DataDateHasDayGranularity => true; 
 

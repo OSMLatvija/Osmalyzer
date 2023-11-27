@@ -14,6 +14,9 @@ public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData, IPrepa
 {
     public override string Name => "Kuldiga Roads";
 
+    public override string ReportWebLink => @"https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases";
+
+
     public bool DataDateHasDayGranularity => false; // only day given on data page
 
     protected override string DataFileIdentifier => "kuldiga-roads";

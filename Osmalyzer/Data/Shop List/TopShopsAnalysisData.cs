@@ -9,6 +9,9 @@ public class TopShopsAnalysisData : SimplePageShopListAnalysisData
 {
     public override string Name => "Top! Shops";
 
+    public override string ReportWebLink => @"https://www.toppartika.lv/veikali/";
+
+
     protected override string DataFileIdentifier => "shops-top";
 
 

@@ -10,6 +10,9 @@ public class CulturalMonumentsAnalysisData : AnalysisData, IPreparableAnalysisDa
 {
     public override string Name => "Cultural Monuments";
 
+    public override string ReportWebLink => @"https://karte.mantojums.lv";
+
+
     protected override string DataFileIdentifier => "cultural-monuments";
 
 

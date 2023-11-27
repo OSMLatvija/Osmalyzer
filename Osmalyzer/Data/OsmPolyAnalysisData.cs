@@ -9,6 +9,9 @@ public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
 {
     public override string Name => "OSM Poly";
 
+    public override string ReportWebLink => @"https://download.geofabrik.de/europe/latvia.html";
+
+
     public bool DataDateHasDayGranularity => true;
 
     protected override string DataFileIdentifier => "osm-latvia-poly";

@@ -7,6 +7,9 @@ public class RoadLawAnalysisData : AnalysisData, IPreparableAnalysisData, IUndat
 {
     public override string Name => "Road Law";
 
+    public override string ReportWebLink => @"https://likumi.lv/ta/id/198589";
+
+
     protected override string DataFileIdentifier => "road-law";
         
     public RoadLaw RoadLaw { get; private set; } = null!; // only null during initialization

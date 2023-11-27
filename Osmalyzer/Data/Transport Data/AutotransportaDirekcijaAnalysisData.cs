@@ -7,6 +7,9 @@ public class AutotransportaDirekcijaAnalysisData : GTFSAnalysisData
 {
     public override string Name => "Autotransporta Direkcija";
 
+    public override string ReportWebLink => @"https://www.atd.lv/lv/sabiedrisko-transportl%C4%ABdzek%C4%BCu-kust%C4%ABba";
+
+
     public override bool DataDateHasDayGranularity => true;
 
         

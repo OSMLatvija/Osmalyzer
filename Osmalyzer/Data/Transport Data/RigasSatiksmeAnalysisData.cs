@@ -9,6 +9,9 @@ namespace Osmalyzer;
 public class RigasSatiksmeAnalysisData : GTFSAnalysisData
 {
     public override string Name => "Rigas Satiksme";
+
+    public override string ReportWebLink => @"https://saraksti.rigassatiksme.lv";
+
         
     public override bool DataDateHasDayGranularity => true; 
 

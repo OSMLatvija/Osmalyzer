@@ -14,6 +14,9 @@ public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData, IUn
 {
     public override string Name => "Glika Ozoli";
 
+    public override string ReportWebLink => @"https://www.lelb.lv/lv/?ct=glika_ozoli";
+
+
     protected override string DataFileIdentifier => "glika-ozoli";
 
 

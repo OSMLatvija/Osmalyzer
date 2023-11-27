@@ -21,8 +21,13 @@ public class ElviShopsAnalysisData : SimplePageShopListAnalysisData
 
     public override string ShopListUrl => "https://elvi.lv/elvi-veikali/";
 
+    public override IEnumerable<ShopData> Shops => _shops;
 
-    public override List<ShopData> GetShops()
+    
+    private List<ShopData> _shops = null!; // only null until prepared
+
+
+    public override void Prepare()
     {
         // value: "Kursīši, Saldus nov., Bērzu iela 1-18, LV-3890, ELVI veikals",
         // data: [
@@ -41,7 +46,7 @@ public class ElviShopsAnalysisData : SimplePageShopListAnalysisData
             @"value: ""([^""]+)"",\s*data: \[\s*\{\s*id:\s\d+,\s*link:\s\""[^""]+\"",\s*lat: (\d{2}.\d{1,15}),\s*lng:(\s\d{2}.\d{1,15})\s*"
         );
                 
-        List<ShopData> listedShops = new List<ShopData>();
+        _shops = new List<ShopData>();
                 
         foreach (Match match in matches)
         {
@@ -52,9 +57,7 @@ public class ElviShopsAnalysisData : SimplePageShopListAnalysisData
             address = Regex.Replace(address, @", ELVI veikals$", "");
             address = Regex.Replace(address, @", LV-\d{4}$", "");
 
-            listedShops.Add(new ShopData(address, new OsmCoord(lat, lon)));
+            _shops.Add(new ShopData(address, new OsmCoord(lat, lon)));
         }
-
-        return listedShops;
     }
 }

@@ -20,9 +20,14 @@ public class LatsShopsAnalysisData : SimplePageShopListAnalysisData
     public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
 
     public override string ShopListUrl => "https://www.latts.lv/lats-veikali";
+
+    public override IEnumerable<ShopData> Shops => _shops;
+
     
-    
-    public override List<ShopData> GetShops()
+    private List<ShopData> _shops = null!; // only null until prepared
+
+
+    public override void Prepare()
     {
         // markers.push({
         //     coordinates: {lat: 56.9069266, lng: 24.1982285},
@@ -44,7 +49,7 @@ public class LatsShopsAnalysisData : SimplePageShopListAnalysisData
             @"markers\.push\({\s*coordinates: {lat: (\d{2}.\d{1,8}), lng: (\d{2}.\d{1,8})},[^}]*?<p>([^<]+)</p>"
         );
                 
-        List<ShopData> listedShops = new List<ShopData>();
+        _shops = new List<ShopData>();
                 
         foreach (Match match in matches)
         {
@@ -54,9 +59,7 @@ public class LatsShopsAnalysisData : SimplePageShopListAnalysisData
                     
             address = Regex.Replace(address, @", LV-\d{4}$", "");
                     
-            listedShops.Add(new ShopData(address, new OsmCoord(lat, lon)));
+            _shops.Add(new ShopData(address, new OsmCoord(lat, lon)));
         }
-
-        return listedShops;
     }
 }

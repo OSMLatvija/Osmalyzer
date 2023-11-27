@@ -2,24 +2,13 @@ using System.Collections.Generic;
 
 namespace Osmalyzer;
 
-public abstract class ShopListAnalysisData : AnalysisData, IUndatedAnalysisData
+public abstract class ShopListAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
 {
     public abstract string DataFileName { get; }
-    
-    
-    public abstract List<ShopData> GetShops();
-}
-
-public abstract class SimplePageShopListAnalysisData : ShopListAnalysisData
-{
-    public abstract string ShopListUrl { get; }
 
 
-    protected override void Download()
-    {
-        WebsiteDownloadHelper.Download(
-            ShopListUrl, 
-            DataFileName
-        );
-    }
+    public abstract IEnumerable<ShopData> Shops { get; }
+
+
+    public abstract void Prepare();
 }

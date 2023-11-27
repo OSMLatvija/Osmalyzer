@@ -60,7 +60,7 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
 
         ShopListAnalysisData shopData = datas.OfType<ShopListAnalysisData>().First();
 
-        List<ShopData> listedShops = shopData.GetShops();
+        List<ShopData> listedShops = shopData.Shops.ToList();
 
         // Prepare data comparer/correlator
 

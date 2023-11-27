@@ -20,8 +20,13 @@ public class RimiShopsAnalysisData : SimplePageShopListAnalysisData
 
     public override string ShopListUrl => "https://www.rimi.lv/veikali";
 
+    public override IEnumerable<ShopData> Shops => _shops;
 
-    public override List<ShopData> GetShops()
+    
+    private List<ShopData> _shops = null!; // only null until prepared
+
+
+    public override void Prepare()
     {
         // APP.shops.list = [{"id":159426,"url":"https:\/\/www.rimi.lv\/veikali\/rimi-galerija-centrs","full_name":"Rimi Galerija centrs","business_name":"rimi galerija centrs","address_line_1":"audeju iela 16","keywords":null,"locality":"riga","icon":"https:\/\/rimibaltic-web-res.cloudinary.com\/image\/upload\/c_fit,f_auto,h_48,q_auto,w_48\/v1\/web-cms\/fd86ab20bf713e2cd42f2fbbe6a01a9459c20b4b.png","longitude":"24.11271384","latitude":"56.94801025","most_visited":1,"display":"\u201eRimi Galerija centrs\u201c, Aud\u0113ju iela 16, R\u012bga"},   
                 
@@ -37,7 +42,7 @@ public class RimiShopsAnalysisData : SimplePageShopListAnalysisData
             @",?\{([^\}]+?)\}"
         );
         
-        List<ShopData> listedShops = new List<ShopData>();
+        _shops = new List<ShopData>();
                 
         foreach (Match match in matches)
         {
@@ -50,9 +55,7 @@ public class RimiShopsAnalysisData : SimplePageShopListAnalysisData
             double lat = double.Parse(Regex.Unescape(Regex.Match(raw, @"""latitude"":""([^""]+)""").Groups[1].ToString()));
             double lon = double.Parse(Regex.Unescape(Regex.Match(raw, @"""longitude"":""([^""]+)""").Groups[1].ToString()));
 
-            listedShops.Add(new ShopData(display, new OsmCoord(lat, lon)));
+            _shops.Add(new ShopData(display, new OsmCoord(lat, lon)));
         }
-
-        return listedShops;
     }
 }

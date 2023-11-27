@@ -17,6 +17,11 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
 
     public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
 
+    public override IEnumerable<ShopData> Shops => _shops;
+
+    
+    private List<ShopData> _shops = null!; // only null until prepared
+
     
     protected override void Download()
     {
@@ -41,7 +46,7 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
     }
 
 
-    public override List<ShopData> GetShops()
+    public override void Prepare()
     {
         string source = File.ReadAllText(DataFileName);
         
@@ -50,7 +55,7 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
             @"\{([^\}]+)\}"
         );
         
-        List<ShopData> listedShops = new List<ShopData>();
+        _shops = new List<ShopData>();
                 
         foreach (Match match in matches)
         {
@@ -70,9 +75,7 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
             double lat = double.Parse(Regex.Unescape(Regex.Match(raw, @"""lat"":""([^""]+)""").Groups[1].ToString()));
             double lon = double.Parse(Regex.Unescape(Regex.Match(raw, @"""lng"":""([^""]+)""").Groups[1].ToString()));
 
-            listedShops.Add(new ShopData(address, new OsmCoord(lat, lon)));
+            _shops.Add(new ShopData(address, new OsmCoord(lat, lon)));
         }
-
-        return listedShops;
     }
 }

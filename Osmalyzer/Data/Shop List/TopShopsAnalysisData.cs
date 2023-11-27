@@ -19,8 +19,13 @@ public class TopShopsAnalysisData : SimplePageShopListAnalysisData
 
     public override string ShopListUrl => "https://www.toppartika.lv/veikali/";
 
+    public override IEnumerable<ShopData> Shops => _shops;
 
-    public override List<ShopData> GetShops()
+    
+    private List<ShopData> _shops = null!; // only null until prepared
+
+
+    public override void Prepare()
     {
         // It's not in source, it's using google map with embedded data that I would need to somehow get
                 

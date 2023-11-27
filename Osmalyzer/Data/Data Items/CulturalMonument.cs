@@ -4,10 +4,13 @@ public class CulturalMonument : ICorrelatorItem
 {
     public OsmCoord Coord { get; }
 
-    
-    public CulturalMonument(OsmCoord coord)
+    public string Name { get; }
+
+
+    public CulturalMonument(OsmCoord coord, string name)
     {
         Coord = coord;
+        Name = name;
     }
 
     

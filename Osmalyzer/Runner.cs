@@ -43,7 +43,8 @@ public static class Runner
             //new ElviShopNetworkAnalyzer(),
             //new LatsShopNetworkAnalyzer(),
             //new RimiShopNetworkAnalyzer(),
-            new MaximaShopNetworkAnalyzer(),
+            //new MaximaShopNetworkAnalyzer(),
+            new CulturalMonumentsAnalyzer()
         };
 #endif
 

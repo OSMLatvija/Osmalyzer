@@ -9,7 +9,9 @@ public abstract class AnalysisData
     public const string cacheBasePath = "cache/";
         
     public const string cacheRevisionFilePath = cacheBasePath + "cache-v2.txt"; // just has to be unique to previous one(s)
-        
+
+    private const int undatedDataCachingGracePeriod = 2 * 60 * 60; // sec
+
 
     public abstract string Name { get; }
     // todo: page name not from this - some sort of internal id
@@ -34,43 +36,9 @@ public abstract class AnalysisData
         try
         {
 #endif
-            if (this is IDatedAnalysisData cachableAnalysisData)
-            {
-                _dataDate = GetDataDateFromMetadataFile();
-
-                if (_dataDate != null)
-                {
-                    Console.WriteLine("Getting cache date...");
-                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
-
-                    if (DataDate < newDataDate)
-                    {
-                        Console.WriteLine("Downloading (cache out of date)...");
-                        Download();
-                    }
-                    else
-                    {
-                        Console.WriteLine("Using cached files.");
-                    }
-
-                    StoreDataDate(newDataDate);
-                }
-                else
-                {
-                    Console.WriteLine("Getting cache date...");
-                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
-
-                    Console.WriteLine("Downloading (not yet cached)...");
-                    Download();
-                        
-                    StoreDataDate(newDataDate);
-                }
-            }
-            else
-            {
-                Console.WriteLine("Downloading (no cache)...");
-                Download();
-            }
+        
+            DoRetrieve();
+        
 #if REMOTE_EXECUTION
         }
         catch (Exception)
@@ -87,10 +55,85 @@ public abstract class AnalysisData
         RetrievalStatus = DataRetrievalStatus.Ok;
     }
 
-        
+
     protected abstract void Download();
 
 
+    private void DoRetrieve()
+    {
+        switch (this)
+        {
+            case IDatedAnalysisData cachableAnalysisData:
+            {
+                _dataDate = GetDataDateFromMetadataFile();
+
+                if (_dataDate != null)
+                {
+                    Console.WriteLine("Getting dated cache date...");
+                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+
+                    if (_dataDate < newDataDate)
+                    {
+                        Console.WriteLine("Downloading (dated cache out of date)...");
+                        Download();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Using dated cached files.");
+                    }
+
+                    StoreDataDate(newDataDate);
+                }
+                else
+                {
+                    Console.WriteLine("Getting dated cache date...");
+                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+
+                    Console.WriteLine("Downloading (not yet cached with date)...");
+                    Download();
+
+                    StoreDataDate(newDataDate);
+                }
+
+                break;
+            }
+
+            case IUndatedAnalysisData:
+            {
+                _dataDate = GetDataDateFromMetadataFile();
+
+                if (_dataDate != null)
+                {
+                    if (_dataDate.Value.AddSeconds(undatedDataCachingGracePeriod) < DateTime.UtcNow)
+                    {
+                        Console.WriteLine("Downloading (undated cache out of grace period)...");
+                        Download();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Using undated cached files.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Downloading (not yet cached without date)...");
+                    Download();
+
+                    StoreDataDate(DateTime.UtcNow);
+                }
+                
+                break;
+            }
+
+            default:
+            {
+                Console.WriteLine("Downloading (non-cachable)...");
+                Download();
+                break;
+            }
+        }
+    }
+    
     private DateTime? GetDataDateFromMetadataFile()
     {
         string cachedDateFileName = CachedDateFileName();

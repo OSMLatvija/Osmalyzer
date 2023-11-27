@@ -183,23 +183,29 @@ public class Correlator<T> where T : ICorrelatorItem
         {
             if (unmatchableItems.Count > 0)
             {
-                foreach (T dataItem in unmatchableItems)
+                bool canShow = unmatchableItems.Count < 500;
+                
+                if (canShow)
                 {
-                    report.AddEntry(
-                        ReportGroup.CorrelationResults,
-                        new MapPointReportEntry(
-                            dataItem.Coord,
-                            "No OSM element found in " + unmatchDistance + " m range of " +
-                            dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
-                            MapPointStyle.CorrelatorItemUnmatched
-                        )
-                    );
+                    foreach (T dataItem in unmatchableItems)
+                    {
+                        report.AddEntry(
+                            ReportGroup.CorrelationResults,
+                            new MapPointReportEntry(
+                                dataItem.Coord,
+                                "No OSM element found in " + unmatchDistance + " m range of " +
+                                dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
+                                MapPointStyle.CorrelatorItemUnmatched
+                            )
+                        );
+                    }
                 }
 
                 report.AddEntry(
                     ReportGroup.CorrelationResults,
                     new GenericReportEntry(
-                        "No OSM element found for " + unmatchableItems.Count + " data item" + (unmatchableItems.Count > 1 ? "s" : "") + ". "
+                        "No OSM element found for " + unmatchableItems.Count + " data item" + (unmatchableItems.Count > 1 ? "s" : "") + "." +
+                        (!canShow ? "Due to the large number of points, these are not shown on the map." : "")
                     )
                 );
             }

@@ -38,6 +38,14 @@
       <EmbeddedResource Include="Reporting\HTML report resources\blueStar.png" />
       <None Remove="Reporting\HTML report resources\redQuestion.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\redQuestion.png" />
+      <None Remove="Reporting\HTML report resources\greenCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\greenCircle.png" />
+      <None Remove="Reporting\HTML report resources\redCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redCircle.png" />
+      <None Remove="Reporting\HTML report resources\redGreenCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redGreenCircle.png" />
+      <None Remove="Reporting\HTML report resources\grayCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\grayCircle.png" />
 
 
 

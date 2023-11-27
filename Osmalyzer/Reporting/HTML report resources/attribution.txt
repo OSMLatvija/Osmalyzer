@@ -13,4 +13,10 @@ https://commons.wikimedia.org/wiki/File:Antu_anki.svg
 redQuestion.png
 https://commons.wikimedia.org/wiki/File:Blue_Question.svg
 
+greenCircle.png
+redCircle.png
+redGreenCircle.png
+grayCircle.png
+Derived from above
+
 Edited by https://github.com/HellMapGoesCoding

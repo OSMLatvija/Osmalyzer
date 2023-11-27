@@ -77,7 +77,7 @@ public class HtmlFileReportWriter : ReportWriter
             
             bodyContent += @"<script>" + Environment.NewLine;
 
-            foreach (LeafletIcon leafletIcon in LeafletIcons.Icons)
+            foreach (LeafletIcon leafletIcon in EmbeddedIcons.Icons.OfType<LeafletIcon>())
                 AddIcon(leafletIcon.Name, leafletIcon.Size);
 
             void AddIcon(string iconName, int size)
@@ -135,8 +135,7 @@ public class HtmlFileReportWriter : ReportWriter
                     bodyContent += @"    disableClusteringAtZoom: 14," + Environment.NewLine;
                     bodyContent += @"    maxClusterRadius: 30," + Environment.NewLine;
                     bodyContent += @"    iconCreateFunction: function (cluster) {" + Environment.NewLine;
-                    bodyContent += @"    zoomToBoundsOnClick: false" + Environment.NewLine;
-                    bodyContent += @"        return L.divIcon({ html: '<img src=\'icons/redCross.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });" + Environment.NewLine;
+                    bodyContent += @"        return L.divIcon({ html: '<img src=\'icons/grayCircle.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });" + Environment.NewLine;
                     bodyContent += @"    }" + Environment.NewLine;
                     bodyContent += @"}).addTo(map" + g + @");" + Environment.NewLine;
                 }
@@ -154,7 +153,7 @@ public class HtmlFileReportWriter : ReportWriter
                     string lon = mapPointEntry.Coord.lon.ToString("F6");
                     string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                     string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                    LeafletIcon icon = LeafletIcons.Icons.First(i => i.Styles.Contains(mapPointEntry.Style));
+                    LeafletIcon icon = EmbeddedIcons.Icons.OfType<LeafletIcon>().First(i => i.Styles.Contains(mapPointEntry.Style));
                     bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(" + StyleMarkerGroup(icon.Group) + g + $@").bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
 
                     [Pure]

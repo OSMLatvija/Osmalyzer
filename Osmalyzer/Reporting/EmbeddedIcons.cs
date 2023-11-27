@@ -2,9 +2,9 @@
 
 namespace Osmalyzer;
 
-public static class LeafletIcons
+public static class EmbeddedIcons
 {
-    public static readonly List<LeafletIcon> Icons = new List<LeafletIcon>()
+    public static readonly List<EmbeddedIcon> Icons = new List<EmbeddedIcon>()
     {
         new LeafletIcon(
             "greenCheckmark",
@@ -43,28 +43,48 @@ public static class LeafletIcons
             12, 
             LeafletIcon.IconGroup.Sub, 
             MapPointStyle.CorrelatorPairMatchedOffsetOrigin, MapPointStyle.CorrelatorPairMatchedFarOrigin
+        ),
+        
+        new LeafletClusterIcon(
+            "grayCircle",
+            20
+        ),
+        
+        new LeafletClusterIcon(
+            "redCircle",
+            20
+        ),
+        
+        new LeafletClusterIcon(
+            "greenCircle",
+            20
+        ),
+        
+        new LeafletClusterIcon(
+            "redGreenCircle",
+            20
         )
     };
 }
 
-public class LeafletIcon
+public class LeafletClusterIcon : EmbeddedIcon
 {
-    /// <summary>
-    /// Matches the resource file name and will match Leaflet variable name
-    /// </summary>
-    public string Name { get; }
+    public LeafletClusterIcon(string name, int size)
+        : base(name, size)
+    {
+    }
+}
     
-    public int Size { get; }
-
+public class LeafletIcon : EmbeddedIcon
+{
     public IconGroup Group { get; }
     
     public MapPointStyle[] Styles { get; }
 
 
     public LeafletIcon(string name, int size, IconGroup group, params MapPointStyle[] styles)
+        : base(name, size)
     {
-        Name = name;
-        Size = size;
         Group = group;
         Styles = styles;
     }
@@ -74,5 +94,22 @@ public class LeafletIcon
     {
         Main,
         Sub
+    }
+}
+
+public class EmbeddedIcon
+{
+    /// <summary>
+    /// Matches the resource file name and will match Leaflet variable name
+    /// </summary>
+    public string Name { get; }
+
+    public int Size { get; }
+
+    
+    public EmbeddedIcon(string name, int size)
+    {
+        Name = name;
+        Size = size;
     }
 }

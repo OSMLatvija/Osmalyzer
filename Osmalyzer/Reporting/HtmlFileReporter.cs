@@ -112,18 +112,18 @@ public class HtmlFileReporter : Reporter
 
     private void CopyIconsForLeaflet()
     {
-        foreach (LeafletIcon leafletIcon in LeafletIcons.Icons)
-            CopyIcon(leafletIcon);
+        foreach (EmbeddedIcon embeddedIcon in EmbeddedIcons.Icons)
+            CopyIcon(embeddedIcon);
 
         return;
         
         
-        static void CopyIcon(LeafletIcon leafletIcon)
+        static void CopyIcon(EmbeddedIcon embeddedIcon)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
 
             const string resourcePrefix = @"Osmalyzer.Reporting.HTML_report_resources.";
-            string resourcePath = resourcePrefix + leafletIcon.Name + ".png";
+            string resourcePath = resourcePrefix + embeddedIcon.Name + ".png";
 
             using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
 
@@ -132,7 +132,7 @@ public class HtmlFileReporter : Reporter
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);  
         
-            FileStream fileStream = new FileStream(outputFolder + leafletIcon.Name + ".png", FileMode.Create);
+            FileStream fileStream = new FileStream(outputFolder + embeddedIcon.Name + ".png", FileMode.Create);
             StreamWriter streamWriter = new StreamWriter(fileStream);
             stream.CopyTo(streamWriter.BaseStream);
             streamWriter.Close();

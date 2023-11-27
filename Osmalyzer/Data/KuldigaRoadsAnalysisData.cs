@@ -24,7 +24,7 @@ public class KuldigaRoadsAnalysisData : AnalysisData, ICachableAnalysisData, IPr
 
     public DateTime RetrieveDataDate()
     {
-        string result = WebsiteDownloadHelper.ReadDirect("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
+        string result = WebsiteDownloadHelper.Read("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
 
         Match dateMatch = Regex.Match(result, @"Publicēts (\d{1,2})\.(\d{1,2})\.(\d{1,4})\s*(\d{1,2}):(\d{1,2})");
         int newestYear = int.Parse(dateMatch.Groups[3].ToString());
@@ -41,7 +41,7 @@ public class KuldigaRoadsAnalysisData : AnalysisData, ICachableAnalysisData, IPr
         if (!Directory.Exists(cacheBasePath + DataFileIdentifier))
             Directory.CreateDirectory(cacheBasePath + DataFileIdentifier);
 
-        string result = WebsiteDownloadHelper.ReadDirect("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
+        string result = WebsiteDownloadHelper.Read("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
 
         MatchCollection urlMatches = Regex.Matches(result, @"<a href=""(/images/Faili/Pasvaldiba/autoceli/[^""]+)"">");
 

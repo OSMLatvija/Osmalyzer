@@ -19,7 +19,7 @@ public class OsmAnalysisData : AnalysisData, IPreparableAnalysisData, ICachableA
 
     public DateTime RetrieveDataDate()
     {
-        string result = WebsiteDownloadHelper.ReadDirect("https://download.geofabrik.de/europe/latvia.html", true);
+        string result = WebsiteDownloadHelper.Read("https://download.geofabrik.de/europe/latvia.html", true);
                 
         Match match = Regex.Match(result, @"contains all OSM data up to ([^\.]+)\.");
         string newestDateString = match.Groups[1].ToString(); // will be something like "2023-06-12T20:21:53Z"

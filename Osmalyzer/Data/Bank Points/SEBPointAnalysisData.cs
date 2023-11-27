@@ -26,7 +26,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         
         for (int i = 0; i < _atmPageCount; i++)
         {
-            string pageContent = WebsiteDownloadHelper.ReadAsBrowser(
+            string pageContent = WebsiteBrowsingHelper.Read(
                 "https://www.seb.lv/atm-find?page=" + i, 
                 true,
                 null,
@@ -47,7 +47,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
         for (int i = 0; i < _branchPageCount; i++)
         {
-            string pageContent = WebsiteDownloadHelper.ReadAsBrowser(
+            string pageContent = WebsiteBrowsingHelper.Read(
                 "https://www.seb.lv/atm-find?type_id=2&page=" + i, 
                 true,
                 null,

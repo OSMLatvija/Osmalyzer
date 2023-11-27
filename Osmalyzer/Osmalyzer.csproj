@@ -38,6 +38,8 @@
       <None Remove="Reporting\HTML report resources\redQuestion.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\redQuestion.png" />
 
+
+
     </ItemGroup>
 
 

@@ -1,58 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using Osmalyzer;
 using SeleniumExtras.WaitHelpers;
 
-namespace Osmalyzer;
-
-public static class WebsiteDownloadHelper
+public static class WebsiteBrowsingHelper
 {
-    private static readonly List<(string url, string content)> _cachedWebsites = new List<(string url, string content)>();
-
-    private static IWebDriver? _driver; 
-    
+    private static IWebDriver? _driver;
 
     [MustUseReturnValue]
-    public static string ReadDirect(string url, bool canUseCache)
+    public static string Read(string url, bool canUseCache, (string, string)[]? cookies, params BrowsingAction[] browsingActions)
     {
         if (canUseCache)
-        {
-            (string _, string cachedContent) = _cachedWebsites.FirstOrDefault(cw => cw.url == url);
-
-            if (cachedContent != null)
-                return cachedContent;
-        }
-            
-        using HttpClient client = new HttpClient();
-        Uri uri = new Uri(url, UriKind.Absolute);
-        using HttpResponseMessage response = client.GetAsync(uri).Result;
-        using HttpContent content = response.Content;
-        string result = content.ReadAsStringAsync().Result;
-
-        if (canUseCache)
-            _cachedWebsites.Add((url, result));
-
-        return result;
-    }
-    
-    [MustUseReturnValue]
-    public static string ReadAsBrowser(string url, bool canUseCache, (string, string)[]? cookies, params BrowsingAction[] browsingActions)
-    {
-        if (canUseCache)
-        {
-            (string _, string cachedContent) = _cachedWebsites.FirstOrDefault(cw => cw.url == url);
-
-            if (cachedContent != null)
-                return cachedContent;
-        }
+            if (WebsiteCache.IsCached(url))
+                return WebsiteCache.GetCached(url);
         
         IWebDriver driver = PrepareChrome();
 
@@ -63,7 +28,7 @@ public static class WebsiteDownloadHelper
         if (cookies != null)
             foreach ((string name, string value) in cookies)
                 driver.Manage().Cookies.AddCookie(new Cookie(name, value));
-                //driver.Manage().Cookies.AddCookie(new Cookie(name, value, new Uri(url).Host, "", null)); -- can't set this before navigate apparently
+        //driver.Manage().Cookies.AddCookie(new Cookie(name, value, new Uri(url).Host, "", null)); -- can't set this before navigate apparently
         
         if (browsingActions.Length> 0)
         {
@@ -132,54 +97,12 @@ public static class WebsiteDownloadHelper
         }
 
         if (canUseCache)
-            _cachedWebsites.Add((url, result));
+            WebsiteCache.Cache(url, result);
 
         return result;
     }
-
-    public static void Download(string url, string fileName)
-    {
-        using HttpClient client = new HttpClient();
-        Uri uri = new Uri(url, UriKind.Absolute);
-        using Task<Stream> stream = client.GetStreamAsync(uri);
-        using FileStream fileStream = new FileStream(fileName, FileMode.Create);
-        stream.Result.CopyTo(fileStream);
-    }
-
-    public static void DownloadPost(string url, (string, string)[] postFields, string fileName)
-    {
-        using HttpClient client = new HttpClient();
-        
-        client.DefaultRequestHeaders.Add("Accept", "application/json"); // todo: dehardcode
-
-        FormUrlEncodedContent content = new FormUrlEncodedContent(postFields.Select(f => new KeyValuePair<string, string>(f.Item1, f.Item2)));
-
-        Uri uri = new Uri(url, UriKind.Absolute);
-        HttpResponseMessage response = client.PostAsync(uri, content).Result;
-
-        if (!response.IsSuccessStatusCode)
-            throw new HttpRequestException();
-
-        string result = response.Content.ReadAsStringAsync().Result;
-        
-        File.WriteAllText(fileName, result);
-    }
-
-    public static DateTime? ReadHeaderDate(string url)
-    {
-        using HttpClient client = new HttpClient();
-        Uri uri = new Uri(url, UriKind.Absolute);
-        using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri)).Result;
-
-        DateTimeOffset? lastModifedOffset = response.Content.Headers.LastModified;
-
-        if (lastModifedOffset == null)
-            return null;
-            
-        return lastModifedOffset.Value.UtcDateTime;
-    }
-
     
+
     [MustUseReturnValue]
     private static IWebDriver PrepareChrome()
     {
@@ -202,58 +125,5 @@ public static class WebsiteDownloadHelper
         _driver = new ChromeDriver(service, options);
         
         return _driver;
-    }
-}
-
-
-public abstract class BrowsingAction
-{
-    
-}
-
-public class WaitForElementOfClass : BrowsingAction
-{
-    public string ClassName { get; }
-
-    
-    public WaitForElementOfClass(string className)
-    {
-        ClassName = className;
-    }
-}
-
-public class WaitForElementOfClassToBeClickable : BrowsingAction
-{
-    public string ClassName { get; }
-
-    
-    public WaitForElementOfClassToBeClickable(string className)
-    {
-        ClassName = className;
-    }
-}
-
-public class ClickElementOfClass : BrowsingAction
-{
-    public string ClassName { get; }
-    
-    public int Index { get; }
-
-
-    public ClickElementOfClass(string className, int index = 0)
-    {
-        ClassName = className;
-        Index = index;
-    }
-}
-
-public class WaitForTime : BrowsingAction
-{
-    public int Milliseconds { get; }
-
-    
-    public WaitForTime(int milliseconds)
-    {
-        Milliseconds = milliseconds;
     }
 }

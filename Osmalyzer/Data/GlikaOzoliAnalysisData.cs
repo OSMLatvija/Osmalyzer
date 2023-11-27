@@ -22,7 +22,7 @@ public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData
 
     protected override void Download()
     {
-        string infoPageText = WebsiteDownloadHelper.ReadDirect("https://www.lelb.lv/lv/?ct=glika_ozoli", true);
+        string infoPageText = WebsiteDownloadHelper.Read("https://www.lelb.lv/lv/?ct=glika_ozoli", true);
             
         Match mapMatch = Regex.Match(infoPageText, @"<iframe src=""https://www\.google\.com/maps/d/embed\?mid=([a-zA-Z0-9_]+)&");
         // https://www.google.com/maps/d/viewer?mid=1wRS7q3l_ESgCVKjHm1lO_dW0o3rSJYU

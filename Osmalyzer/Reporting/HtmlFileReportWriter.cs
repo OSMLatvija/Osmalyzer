@@ -84,12 +84,12 @@ public class HtmlFileReportWriter : ReportWriter
             {
                 bodyContent += @"var " + iconName + " = L.icon({" + Environment.NewLine;
                 bodyContent += @"iconUrl: 'icons/" + iconName + ".png'," + Environment.NewLine;
-                bodyContent += @"iconSize:     ["+size+", "+size+"], // size of the icon" + Environment.NewLine;
-                bodyContent += @"iconAnchor:   ["+(size/2)+", "+(size/2)+"], // point of the icon which will correspond to marker's location" + Environment.NewLine;
-                bodyContent += @"popupAnchor:  [2, -"+(size+2)+"] // point from which the popup should open relative to the iconAnchor" + Environment.NewLine;
+                bodyContent += @"iconSize: ["+size+", "+size+"]," + Environment.NewLine; // size of the icon
+                bodyContent += @"iconAnchor: ["+(size/2)+", "+(size/2)+"]," + Environment.NewLine; // point of the icon which will correspond to marker's location
+                bodyContent += @"popupAnchor: [2, -"+(size+2)+"]" + Environment.NewLine; // point from which the popup should open relative to the iconAnchor
                 //bodyContent += @"shadowUrl: 'icons/leaf-shadow.png'," + Environment.NewLine;
-                //bodyContent += @"shadowSize:   [50, 64], // size of the shadow" + Environment.NewLine;
-                //bodyContent += @"shadowAnchor: [4, 62],  // the same for the shadow" + Environment.NewLine;
+                //bodyContent += @"shadowSize: [50, 64]," + Environment.NewLine; // size of the shadow
+                //bodyContent += @"shadowAnchor: [4, 62]," + Environment.NewLine
                 bodyContent += @"});" + Environment.NewLine;
             }
 
@@ -123,7 +123,28 @@ public class HtmlFileReportWriter : ReportWriter
                 bodyContent += @"    maxZoom: 21," + Environment.NewLine;
                 bodyContent += @"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'" + Environment.NewLine;
                 bodyContent += @"}).addTo(map"+g+@");" + Environment.NewLine;
-                bodyContent += @"var mainMarkerGroup"+g+@" = L.featureGroup().addTo(map"+g+@");" + Environment.NewLine;
+
+                bool clustered = group.MapPointEntries.Count > 100;
+                if (clustered)
+                {
+                    bodyContent += @"var mainMarkerGroup" + g + @" = L.markerClusterGroup(" + Environment.NewLine;
+                    bodyContent += @"{" + Environment.NewLine;
+                    bodyContent += @"    showCoverageOnHover: false," + Environment.NewLine;
+                    bodyContent += @"    spiderfyOnMaxZoom: false," + Environment.NewLine;
+                    bodyContent += @"    animate: false," + Environment.NewLine;
+                    bodyContent += @"    disableClusteringAtZoom: 14," + Environment.NewLine;
+                    bodyContent += @"    maxClusterRadius: 30," + Environment.NewLine;
+                    bodyContent += @"    iconCreateFunction: function (cluster) {" + Environment.NewLine;
+                    bodyContent += @"    zoomToBoundsOnClick: false" + Environment.NewLine;
+                    bodyContent += @"        return L.divIcon({ html: '<img src=\'icons/redCross.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });" + Environment.NewLine;
+                    bodyContent += @"    }" + Environment.NewLine;
+                    bodyContent += @"}).addTo(map" + g + @");" + Environment.NewLine;
+                }
+                else
+                {
+                    bodyContent += @"var mainMarkerGroup" + g + @" = L.featureGroup().addTo(map" + g + @");" + Environment.NewLine;
+                }
+
                 bodyContent += @"var subMarkerGroup"+g+@" = L.featureGroup().addTo(map"+g+@");" + Environment.NewLine;
                 bodyContent += @"map"+g+@".removeLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
                 
@@ -151,9 +172,6 @@ public class HtmlFileReportWriter : ReportWriter
 
                 // Hide sub icons/group when zoomed out, only show when close
                 bodyContent += @"map"+g+@".on('zoomend', function() {" + Environment.NewLine;
-                bodyContent += @"    console.log(map"+g+@");" + Environment.NewLine;
-                bodyContent += @"    console.log(map"+g+@".getZoom());" + Environment.NewLine;
-                bodyContent += @"    console.log(subMarkerGroup"+g+@");" + Environment.NewLine;
                 bodyContent += @"    if (map"+g+@".getZoom() < 14) map"+g+@".removeLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
                 bodyContent += @"    else map"+g+@".addLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
                 bodyContent += @"});" + Environment.NewLine;

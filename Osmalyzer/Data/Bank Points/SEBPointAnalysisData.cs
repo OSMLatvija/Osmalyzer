@@ -16,11 +16,6 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
     
 
     protected override string DataFileIdentifier => "seb-points";
-
-
-    private int _atmPageCount;
-    
-    private int _branchPageCount;
     
 
     protected override void Download()
@@ -28,9 +23,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         if (!Directory.Exists(cacheBasePath + DataFileIdentifier))
             Directory.CreateDirectory(cacheBasePath + DataFileIdentifier);
         
-        _atmPageCount = 1;
+        int atmPageCount = 1;
         
-        for (int i = 0; i < _atmPageCount; i++)
+        for (int i = 0; i < atmPageCount; i++)
         {
             string pageContent = WebsiteBrowsingHelper.Read(
                 @"https://www.seb.lv/atm-find?page=" + i, 
@@ -41,7 +36,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         
             // When getting pages, parse it for the total page count from the paginator (which grows with more pages)
             MatchCollection matches = Regex.Matches(pageContent, @"<a href=""\?page=(\d+)""");
-            _atmPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
+            atmPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
         
             File.WriteAllText(
                 cacheBasePath + DataFileIdentifier + @"\A" + i + @".html", 
@@ -49,9 +44,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             );
         }        
         
-        _branchPageCount = 1;
+        int branchPageCount = 1;
 
-        for (int i = 0; i < _branchPageCount; i++)
+        for (int i = 0; i < branchPageCount; i++)
         {
             string pageContent = WebsiteBrowsingHelper.Read(
                 @"https://www.seb.lv/atm-find?type_id=2&page=" + i, 
@@ -62,7 +57,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
             // When getting pages, parse it for the total page count from the paginator (which grows with more pages)
             MatchCollection matches = Regex.Matches(pageContent, @"<a href=""\?type_id=2&amp;page=(\d+)""");
-            _branchPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
+            branchPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
 
             File.WriteAllText(
                 cacheBasePath + DataFileIdentifier + @"\B" + i + @".html", 
@@ -75,7 +70,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
     {
         Points = new List<BankPoint>();
 
-        for (int i = 0; i < _atmPageCount; i++)
+        int atmPageCount = GetPageCount("A");
+        
+        for (int i = 0; i < atmPageCount; i++)
         {
             string pageData = File.ReadAllText(cacheBasePath + DataFileIdentifier + @"\A" + i + @".html");
 
@@ -128,7 +125,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             }
         }
 
-        for (int i = 0; i < _branchPageCount; i++)
+        int branchPageCount = GetPageCount("B");
+
+        for (int i = 0; i < branchPageCount; i++)
         {
             string pageData = File.ReadAllText(cacheBasePath + DataFileIdentifier + @"\B" + i + @".html");
             
@@ -189,8 +188,27 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             }
         }
     }
-    
-    
+
+    [Pure]
+    private int GetPageCount(string prefix)
+    {
+        // Stuff/A1.html
+        // Stuff/A2.html
+        // Stuff/A3.html
+        // to
+        // 3
+
+        return int.Parse(
+            Directory.GetFiles(cacheBasePath + DataFileIdentifier, "*.html")
+                     .Select(Path.GetFileNameWithoutExtension)
+                     .Where(f => f!.StartsWith(prefix))
+                     .OrderBy(f => f)
+                     .Last()!
+                     .Substring(1)
+        );
+    }
+
+
     [Pure]
     private static BankPointType RawTypeToPointType(string rawType, out bool? deposit)
     {

@@ -115,6 +115,8 @@ public abstract class AnalysisData
                     {
                         Console.WriteLine("Downloading (undated cache out of grace period)...");
                         Download();
+                        
+                        StoreDataDate(DateTime.UtcNow);
                     }
                     else
                     {

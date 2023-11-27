@@ -193,19 +193,19 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
     private int GetPageCount(string prefix)
     {
         // Stuff/A1.html
+        // Stuff/A10.html
+        // Stuff/A11.html
         // Stuff/A2.html
-        // Stuff/A3.html
+        // ..
+        // Stuff/A9.html
         // to
-        // 3
+        // 11
 
-        return int.Parse(
-            Directory.GetFiles(cacheBasePath + DataFileIdentifier, "*.html")
-                     .Select(Path.GetFileNameWithoutExtension)
-                     .Where(f => f!.StartsWith(prefix))
-                     .OrderBy(f => f)
-                     .Last()!
-                     .Substring(1)
-        );
+        return Directory.GetFiles(cacheBasePath + DataFileIdentifier, "*.html")
+                        .Select(Path.GetFileNameWithoutExtension)
+                        .Where(f => f!.StartsWith(prefix))
+                        .Select(f => int.Parse(f![1..]))
+                        .Max();
     }
 
 

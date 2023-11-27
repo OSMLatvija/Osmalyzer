@@ -12,7 +12,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
     public override string Description => "This report checks that all cultural monument POIs are mapped.";
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(CulturalMonumentsAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(CulturalMonumentsMapAnalysisData) };
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -33,7 +33,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
             
         // Get monument data
 
-        List<CulturalMonument> monuments = datas.OfType<CulturalMonumentsAnalysisData>().First().Monuments;
+        List<CulturalMonument> monuments = datas.OfType<CulturalMonumentsMapAnalysisData>().First().Monuments;
             
         // Prepare data comparer/correlator
 

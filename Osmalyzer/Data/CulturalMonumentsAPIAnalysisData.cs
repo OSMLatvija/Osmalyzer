@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -7,7 +6,7 @@ using Newtonsoft.Json;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CulturalMonumentsAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
+public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Cultural Monuments";
 

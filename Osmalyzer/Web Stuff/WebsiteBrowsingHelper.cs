@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
@@ -13,7 +14,7 @@ public static class WebsiteBrowsingHelper
     private static IWebDriver? _driver;
 
     [MustUseReturnValue]
-    public static string Read(string url, bool canUseCache, (string, string)[]? cookies, params BrowsingAction[] browsingActions)
+    public static string Read(string url, bool canUseCache, (string, string)[]? cookies = null, params BrowsingAction[] browsingActions)
     {
         if (canUseCache)
             if (WebsiteCache.IsCached(url))
@@ -88,6 +89,7 @@ public static class WebsiteBrowsingHelper
                 }
             }
 
+            // We cannot use page source, which is the original source we received, but the DOM can change after that - we need to grab the current page
             IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
             result = (string)jsExecutor.ExecuteScript("return document.documentElement.outerHTML;");
         }
@@ -100,6 +102,12 @@ public static class WebsiteBrowsingHelper
             WebsiteCache.Cache(url, result);
 
         return result;
+    }
+
+    public static void Download(string url, string fileName, bool canUseCache = true)
+    {
+        // Headless browsing needs a full site load, so there's no way to directly write to file, we just have to dump the results 
+        File.WriteAllText(fileName, Read(url, canUseCache, null));
     }
     
 

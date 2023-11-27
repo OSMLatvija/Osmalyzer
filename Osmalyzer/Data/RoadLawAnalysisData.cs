@@ -17,7 +17,7 @@ public class RoadLawAnalysisData : AnalysisData, IPreparableAnalysisData, IUndat
 
     protected override void Download()
     {
-        WebsiteDownloadHelper.Download(
+        WebsiteBrowsingHelper.Download( // likumi.lv seems to not like direct download/scraping
             "https://likumi.lv/ta/id/198589", 
             cacheBasePath + DataFileIdentifier + @".html"
         );

@@ -22,7 +22,10 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
 
     public DateTime RetrieveDataDate()
     {
-        string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/mikroliegumi", true);
+        string result = WebsiteBrowsingHelper.Read( // data.gov.lv seems to not like direct download/scraping
+            "https://data.gov.lv/dati/lv/dataset/mikroliegumi", 
+            true
+        );
 
         Match dateMatch = Regex.Match(result, @"Datu pēdējo izmaiņu datums</th>\s*<td class=""dataset-details"">\s*(\d{4})-(\d{2})-(\d{2})");
         int newestYear = int.Parse(dateMatch.Groups[1].ToString());
@@ -34,7 +37,10 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
 
     protected override void Download()
     {
-        string result = WebsiteDownloadHelper.Read("https://data.gov.lv/dati/lv/dataset/mikroliegumi", true);
+        string result = WebsiteBrowsingHelper.Read( // data.gov.lv seems to not like direct download/scraping
+            "https://data.gov.lv/dati/lv/dataset/mikroliegumi", 
+            true
+        );
 
         Match urlMatch = Regex.Match(result, @"<a class=""heading"" href=""(/dati/lv/dataset/mikroliegumi/resource/[^""]+)"" title=""mikroliegumi"">");
 

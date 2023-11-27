@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
 using HtmlAgilityPack;
 
 namespace Osmalyzer;
@@ -204,7 +205,7 @@ public class RoadLaw
             const string doubleNameMatchPattern = @"^([^(]+) \(([^)]+)\)$";
             const string segmentTwoMatchPattern = "^" + matchingString + @"([APV]\d+) un ([APV]\d+)$";
             const string segmentThreeMatchPattern = "^" + matchingString + @"([APV]\d+), ([APV]\d+) un ([APV]\d+)$";
-
+           
             string sanitizedNotes = Regex.Replace(notes, @"(\d+),(\d+)", @"$1.$2");
             sanitizedNotes = sanitizedNotes.TrimEnd(',');
 
@@ -315,12 +316,14 @@ public class RoadLaw
 
         if (paraNode != null)
         {
-            code = paraNode.InnerText.Trim();
+            code = paraNode.InnerText;
         }
         else
         {
-            code = cell.InnerText.Trim();
+            code = cell.InnerText;
         }
+
+        code = HttpUtility.HtmlDecode(code).Trim(); // can have stuff like &nbsp;
 
         if (code == string.Empty)
             code = null;
@@ -336,12 +339,14 @@ public class RoadLaw
 
         if (paraNode != null)
         {
-            lengthString = paraNode.InnerText.Trim();
+            lengthString = paraNode.InnerText;
         }
         else
         {
-            lengthString = cell.InnerText.Trim();
+            lengthString = cell.InnerText;
         }
+
+        lengthString = HttpUtility.HtmlDecode(lengthString).Trim(); // can have stuff like &nbsp;
 
         lengthString = lengthString.Replace(",", ".");
 
@@ -350,18 +355,16 @@ public class RoadLaw
 
     private static string? GetNotesFromNode(HtmlNode cell)
     {
-        string? notes;
-
         HtmlNode paraNode = cell.SelectSingleNode(".//p");
 
+        string? notes;
+        
         if (paraNode != null)
-        {
-            notes = paraNode.InnerText.Trim();
-        }
+            notes = paraNode.InnerText;
         else
-        {
-            notes = cell.InnerText.Trim();
-        }
+            notes = cell.InnerText;
+
+        notes = HttpUtility.HtmlDecode(notes).Trim(); // can have stuff like &nbsp;
 
         if (notes == string.Empty)
             notes = null;

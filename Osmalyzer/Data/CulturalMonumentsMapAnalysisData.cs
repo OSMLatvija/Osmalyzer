@@ -1,6 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using JetBrains.Annotations;
+using FlatGeobuf;
+using FlatGeobuf.NTS;
+using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
 
 namespace Osmalyzer;
 
@@ -36,8 +42,33 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
     {
         Monuments = new List<CulturalMonument>();
         
-        string content = File.ReadAllText(cacheBasePath + DataFileIdentifier + @".fgb");
+        // Parse the FlatGeobuf FBG file
+        
+        string filePath = cacheBasePath + DataFileIdentifier + @".fgb";
 
-        // TODO
+        AsyncFeatureEnumerator enumerator = AsyncFeatureEnumerator.Create(File.OpenRead(filePath)).Result;
+
+        Console.WriteLine(enumerator.NumFeatures);
+
+        while (enumerator.MoveNextAsync().Result)
+        {
+            IFeature feature = enumerator.Current;
+
+            Point centroid = feature.Geometry.Centroid;
+            OsmCoord coord = new OsmCoord(centroid.Y, centroid.X);
+            
+            List<string> names = feature.Attributes.GetNames().ToList();
+            
+            int nameIndex = names.IndexOf("name");
+            int monRefIndex = names.IndexOf("national_protection_number");
+            
+            object[] values = feature.Attributes.GetValues();
+            
+            string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
+            string monRefValue = values[monRefIndex].ToString()!;
+            int? monRef = monRefValue != "" ? int.Parse(monRefValue) : null; // there are some with missing id
+            
+            Monuments.Add(new CulturalMonument(coord, name, monRef));
+        }
     }
 }

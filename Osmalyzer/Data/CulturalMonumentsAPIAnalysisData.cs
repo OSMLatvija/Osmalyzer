@@ -60,10 +60,12 @@ public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysi
 
                 string name = item.name;
 
+                int id = item.protectionNumber;
+
                 OsmCoord osmCoord = new OsmCoord(56, 24);
                 // TODO: it's not in the data here, but each individual monument request
                 
-                Monuments.Add(new CulturalMonument(osmCoord, name));
+                Monuments.Add(new CulturalMonument(osmCoord, name, id));
             }
         }
     }

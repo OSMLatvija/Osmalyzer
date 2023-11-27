@@ -49,6 +49,13 @@ public class CulturalMonumentsAnalyzer : Analyzer
         [Pure]
         static bool DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
         {
+            string? osmRefStr = osmElement.GetValue("ref:LV:vkpai");
+
+            if (osmRefStr != null)
+                if (int.TryParse(osmRefStr, out int osmRef))
+                    if (osmRef == monument.ReferenceID)
+                        return true;
+
             return osmElement.GetValue("name")?.ToLower() == monument.Name;
         }
             

@@ -37,12 +37,15 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             // When getting pages, parse it for the total page count from the paginator (which grows with more pages)
             MatchCollection matches = Regex.Matches(pageContent, @"<a href=""\?page=(\d+)""");
             atmPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
-        
+            
             File.WriteAllText(
                 cacheBasePath + DataFileIdentifier + @"\A" + i + @".html", 
                 pageContent
             );
-        }        
+        }      
+
+        if (atmPageCount == 0)
+            throw new Exception("Failed to download ATM pages");  
         
         int branchPageCount = 1;
 
@@ -64,6 +67,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
                 pageContent
             );
         }
+
+        if (branchPageCount == 0)
+            throw new Exception("Failed to download branch pages");
     }
 
     public void Prepare()
@@ -201,11 +207,23 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         // to
         // 11
 
-        return Directory.GetFiles(cacheBasePath + DataFileIdentifier, "*.html")
-                        .Select(Path.GetFileNameWithoutExtension)
-                        .Where(f => f!.StartsWith(prefix))
-                        .Select(f => int.Parse(f![1..]))
-                        .Max();
+        string[] dataFiles = Directory.GetFiles(cacheBasePath + DataFileIdentifier, "*.html");
+
+        if (dataFiles.Length == 0)
+            throw new Exception("Missing all data files!");
+
+        List<string> relevantDataFiles =
+            dataFiles
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(f => f!.StartsWith(prefix))
+                .ToList()!;
+        
+        if (relevantDataFiles.Count == 0)
+            throw new Exception("Missing relevant data files!");
+        
+        return relevantDataFiles
+               .Select(f => int.Parse(f[1..]))
+               .Max();
     }
 
 

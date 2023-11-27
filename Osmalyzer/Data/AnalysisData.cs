@@ -8,7 +8,7 @@ public abstract class AnalysisData
 {
     public const string cacheBasePath = "cache/";
         
-    public const string cacheRevisionFilePath = cacheBasePath + "cache-v2.txt"; // just has to be unique to previous one(s)
+    public const string cacheRevisionFilePath = cacheBasePath + "cache-v3.txt"; // just has to be unique to previous one(s), but I'm "counting" up for consistency
 
     private const int undatedDataCachingGracePeriod = 2 * 60 * 60; // sec
 
@@ -48,11 +48,12 @@ public abstract class AnalysisData
         
 #if REMOTE_EXECUTION
         }
-        catch (Exception)
+        catch (Exception e)
         {
             // On remote, we continue gracefully
 
             Console.WriteLine("Failed with exception!");
+            Console.WriteLine(e.Message);
 
             RetrievalStatus = DataRetrievalStatus.Fail;
             return;
@@ -89,7 +90,7 @@ public abstract class AnalysisData
                         Console.WriteLine("Using dated cached files.");
                     }
 
-                    StoreDataDate(newDataDate);
+                    StoreDataDate(newDataDate); // after download in case it fails
                 }
                 else
                 {
@@ -99,7 +100,7 @@ public abstract class AnalysisData
                     Console.WriteLine("Downloading (not yet cached with date)...");
                     Download();
 
-                    StoreDataDate(newDataDate);
+                    StoreDataDate(newDataDate); // after download in case it fails
                 }
 
                 break;
@@ -116,7 +117,7 @@ public abstract class AnalysisData
                         Console.WriteLine("Downloading (undated cache out of grace period)...");
                         Download();
                         
-                        StoreDataDate(DateTime.UtcNow);
+                        StoreDataDate(DateTime.UtcNow); // after download in case it fails
                     }
                     else
                     {
@@ -128,7 +129,7 @@ public abstract class AnalysisData
                     Console.WriteLine("Downloading (not yet cached without date)...");
                     Download();
 
-                    StoreDataDate(DateTime.UtcNow);
+                    StoreDataDate(DateTime.UtcNow); // after download in case it fails
                 }
                 
                 break;
@@ -174,5 +175,7 @@ public abstract class AnalysisData
 public enum DataRetrievalStatus
 {
     Ok,
+#if REMOTE_EXECUTION
     Fail
+#endif
 }

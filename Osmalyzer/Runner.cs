@@ -22,28 +22,28 @@ public static class Runner
 #else
         List<Analyzer> analyzers = new List<Analyzer>()
         {
-            //new CommonBrandsAnalyzer(),
-            //new HighwaySeasonalSpeedsAnalyzer(),
-            //new LivingZoneSpeedAnalyzer(),
-            //new LVCRoadAnalyzer(),
-            //new RigasSatiksmeAnalyzer(),
-            //new LiepajasTransportsAnalyzer(),
-            //new RezeknesSatiksmeAnalyzer(),
-            //new JurmalasSatiksmeAnalyzer(),
-            //new AutotransportaDirekcijaAnalyzer(),
-            //new TrolleybusWireAnalyzer(),
-            //new MicroReservesAnalyzer(),
-            //new StreetNameAnalyzer(),
-            //new RigaDrinkingWaterAnalyzer(),
-            //new PublicTransportAccessAnalyzer(),
-            //new HighwaySpeedLimitAnalyzer(),
-            //new GlikaOaksAnalyzer(),
-            //new SwedbankLocationAnalyzer(),
-            //new SEBLocationAnalyzer(),
-            //new ElviShopNetworkAnalyzer(),
-            //new LatsShopNetworkAnalyzer(),
-            //new RimiShopNetworkAnalyzer(),
-            //new MaximaShopNetworkAnalyzer(),
+            new CommonBrandsAnalyzer(),
+            new HighwaySeasonalSpeedsAnalyzer(),
+            new LivingZoneSpeedAnalyzer(),
+            new LVCRoadAnalyzer(),
+            new RigasSatiksmeAnalyzer(),
+            new LiepajasTransportsAnalyzer(),
+            new RezeknesSatiksmeAnalyzer(),
+            new JurmalasSatiksmeAnalyzer(),
+            new AutotransportaDirekcijaAnalyzer(),
+            new TrolleybusWireAnalyzer(),
+            new MicroReservesAnalyzer(),
+            new StreetNameAnalyzer(),
+            new RigaDrinkingWaterAnalyzer(),
+            new PublicTransportAccessAnalyzer(),
+            new HighwaySpeedLimitAnalyzer(),
+            new GlikaOaksAnalyzer(),
+            new SwedbankLocationAnalyzer(),
+            new SEBLocationAnalyzer(),
+            new ElviShopNetworkAnalyzer(),
+            new LatsShopNetworkAnalyzer(),
+            new RimiShopNetworkAnalyzer(),
+            new MaximaShopNetworkAnalyzer(),
             new CulturalMonumentsAnalyzer()
         };
 #endif
@@ -161,14 +161,14 @@ public static class Runner
 
                 
         Stopwatch reportStopwatch = Stopwatch.StartNew();
-            
-        Console.Write("Writing reports...");
+
+        Console.WriteLine("Writing reports...");
             
         reporter.Save();
             
         reportStopwatch.Stop();
             
-        Console.WriteLine(" (" + reportStopwatch.ElapsedMilliseconds + " ms)");
+        Console.WriteLine("(" + reportStopwatch.ElapsedMilliseconds + " ms)");
 
             
         Console.WriteLine("Done.");

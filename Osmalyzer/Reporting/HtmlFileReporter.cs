@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Web;
@@ -61,7 +62,13 @@ public class HtmlFileReporter : Reporter
 
             foreach (Report report in reports)
             {
+                Console.Write("Writing report for " + report.Name + "...");
+
+                Stopwatch saveStopwatch = Stopwatch.StartNew();
+                
                 reportWriter.Save(report);
+
+                Console.WriteLine(" (" + saveStopwatch.ElapsedMilliseconds + " ms)");
 
                 reportFile.WriteLine("<li><a href=\"" + reportWriter.ReportFileName + "\">" + HttpUtility.HtmlEncode(report.Name) + "</a></li>");
             }

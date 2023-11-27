@@ -44,7 +44,8 @@ public class CulturalMonumentsAnalyzer : Analyzer
             new MatchFarDistanceParamater(75),
             new DataItemLabelsParamater("monument", "monuments"),
             new MatchCallbackParameter<CulturalMonument>(DoesOsmNodeMatchMonument),
-            new OsmElementPreviewValue("name", false)
+            new OsmElementPreviewValue("name", false),
+            new LoneElementAllowanceCallbackParameter(IsOsmMonumentAnExpectedHeritagePoi)
         );
         
         [Pure]
@@ -59,13 +60,35 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
             return osmElement.GetValue("name")?.ToLower() == monument.Name;
         }
+
+        [Pure]
+        static bool IsOsmMonumentAnExpectedHeritagePoi(OsmElement osmElement)
+        {
+            string? osmRefStr = osmElement.GetValue("ref:LV:vkpai");
+
+            if (osmRefStr != null)
+                return true;
+
+            string? herOper = osmElement.GetValue("heritage:operator");
+
+            if (herOper != null)
+            {
+                herOper = herOper.ToLower();
+
+                if (herOper.Contains("vkpai") ||
+                    herOper.Contains("valsts kultūras pieminekļu aizsardzības inspekcija"))
+                    return true;
+            }
+
+            return false;
+        }
             
         // Parse and report primary matching and location correlation
 
         dataComparer.Parse(
             report,
             new MatchedPairBatch(),
-            //new MatchedLoneOsmBatch(true), -- todo: if we can assume it's marked as such
+            new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
             new MatchedFarPairBatch(),
             new UnmatchedOsmBatch()

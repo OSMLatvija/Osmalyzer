@@ -205,7 +205,7 @@ public class Correlator<T> where T : ICorrelatorItem
                     ReportGroup.CorrelationResults,
                     new GenericReportEntry(
                         "No OSM element found for " + unmatchableItems.Count + " data item" + (unmatchableItems.Count > 1 ? "s" : "") + "." +
-                        (!canShow ? "Due to the large number of points, these are not shown on the map." : "")
+                        (!canShow ? " Due to the large number of points, these are not shown on the map." : "")
                     )
                 );
             }
@@ -344,7 +344,7 @@ public class Correlator<T> where T : ICorrelatorItem
                 report.AddEntry(
                     ReportGroup.CorrelationResults,
                     new GenericReportEntry(
-                        "Matched " + matchedLoneElements.Count + " lone OSM element" + (matchedLoneElements.Count > 1 ? "s" : "") + " by themselves."
+                        "Matched " + matchedLoneElements.Count + " lone OSM element" + (matchedLoneElements.Count > 1 ? "s" : "") + " " + (reportMatchedLoneOsmAsProblem ? " not expected" : "acceptable") + " by themselves."
                     )
                 );
             }

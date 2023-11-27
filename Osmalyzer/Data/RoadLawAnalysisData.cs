@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class RoadLawAnalysisData : AnalysisData, IPreparableAnalysisData
+public class RoadLawAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Road Law";
 

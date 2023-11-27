@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class RigaDrinkingWaterAnalysisData : AnalysisData, IPreparableAnalysisData
+public class RigaDrinkingWaterAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Riga Drinking Water";
 

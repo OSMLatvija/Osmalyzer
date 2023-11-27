@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Osmalyzer;
 
-public abstract class ShopListAnalysisData : AnalysisData
+public abstract class ShopListAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public abstract string DataFileName { get; }
     

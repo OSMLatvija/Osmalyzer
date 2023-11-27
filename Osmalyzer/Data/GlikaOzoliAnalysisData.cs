@@ -10,7 +10,7 @@ using SharpKml.Engine;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData
+public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Glika Ozoli";
 

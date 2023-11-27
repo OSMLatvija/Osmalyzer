@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CulturalMonumentsAnalysisData : AnalysisData, IPreparableAnalysisData
+public class CulturalMonumentsAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Cultural Monuments";
 

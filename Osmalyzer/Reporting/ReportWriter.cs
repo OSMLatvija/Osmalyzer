@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace Osmalyzer;
 
 public abstract class ReportWriter
@@ -6,7 +8,10 @@ public abstract class ReportWriter
     /// If child report writers create files, then they should go into this subfolder.
     /// Relevant <see cref="Reporter"/> should create/clear it.
     /// </summary>
-    public const string outputFolder = @"output";
+    private const string outputFolder = @"output";
+
+
+    public static string OutputPath => Path.GetFullPath(outputFolder);
 
         
     public abstract void Save(Report report);

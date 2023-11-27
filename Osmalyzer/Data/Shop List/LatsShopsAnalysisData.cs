@@ -17,7 +17,7 @@ public class LatsShopsAnalysisData : SimplePageShopListAnalysisData
     protected override string DataFileIdentifier => "shops-lats";
 
 
-    public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
+    public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
 
     public override string ShopListUrl => "https://www.latts.lv/lats-veikali";
 

@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.IO;
+using JetBrains.Annotations;
 
 namespace Osmalyzer;
 
@@ -15,7 +16,7 @@ public class RezeknesSatiksmeAnalysisData : GTFSAnalysisData
     protected override string DataFileIdentifier => "rezeknes-satiksme";
 
 
-    protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
+    protected override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".zip");
 
     public override string ExtractionFolder => "GTFS-RezSat";
         

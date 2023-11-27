@@ -38,7 +38,7 @@ public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData, IUn
             
         WebsiteDownloadHelper.Download(
             kmlUrl, 
-            cacheBasePath + DataFileIdentifier + @".kml"
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".kml")
         );
     }
 
@@ -46,7 +46,7 @@ public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData, IUn
     {
         Oaks = new List<GlikaOak>();
 
-        using FileStream fileStream = File.OpenRead(cacheBasePath + DataFileIdentifier + @".kml");
+        using FileStream fileStream = File.OpenRead(Path.Combine(CacheBasePath, DataFileIdentifier + @".kml"));
             
         KmlFile kmlFile = KmlFile.Load(fileStream);
 

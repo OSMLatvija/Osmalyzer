@@ -6,7 +6,7 @@ public class TextFileReportWriter : ReportWriter
 {
     public override void Save(Report report)
     {
-        string reportFileName = outputFolder + "/" + report.Name + @" report.txt";
+        string reportFileName = Path.Combine(OutputPath, report.Name + @" report.txt");
             
         using StreamWriter reportFile = File.CreateText(reportFileName);
 

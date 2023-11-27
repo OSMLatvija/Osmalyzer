@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -54,7 +55,7 @@ public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalys
             
         WebsiteDownloadHelper.Download(
             dataUrl, 
-            cacheBasePath + DataFileIdentifier + @".zip"
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".zip")
         );
     }
 
@@ -62,6 +63,9 @@ public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalys
     {
         // RS data comes in a zip file, so unzip
             
-        ZipHelper.ExtractZipFile(cacheBasePath + DataFileIdentifier + @".zip", ExtractionFolder + "/");
+        ZipHelper.ExtractZipFile(
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".zip"), 
+            ExtractionFolder
+        );
     }
 }

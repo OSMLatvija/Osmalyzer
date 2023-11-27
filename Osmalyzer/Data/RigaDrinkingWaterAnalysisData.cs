@@ -24,7 +24,7 @@ public class RigaDrinkingWaterAnalysisData : AnalysisData, IPreparableAnalysisDa
     {
         WebsiteDownloadHelper.Download(
             "https://www.rigasudens.lv/lv/udens-brivkranu-karte", 
-            cacheBasePath + DataFileIdentifier + @".html"
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".html")
         );
     }
 
@@ -32,7 +32,7 @@ public class RigaDrinkingWaterAnalysisData : AnalysisData, IPreparableAnalysisDa
     {
         DrinkingWaters = new List<DrinkingWater>();
 
-        string text = File.ReadAllText(cacheBasePath + DataFileIdentifier + @".html");
+        string text = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier + @".html"));
 
         MatchCollection matches = Regex.Matches(text, @"{""id"":""[^""]+"",""name"":""([^""]+)"",""type"":""([^""]+)"",""latitude"":""([^""]+)"",""longitude"":""([^""]+)""}");
 

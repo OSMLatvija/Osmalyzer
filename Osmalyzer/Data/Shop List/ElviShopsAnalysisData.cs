@@ -17,7 +17,7 @@ public class ElviShopsAnalysisData : SimplePageShopListAnalysisData
     protected override string DataFileIdentifier => "shops-elvi";
 
 
-    public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
+    public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
 
     public override string ShopListUrl => "https://elvi.lv/elvi-veikali/";
 

@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.IO;
+using JetBrains.Annotations;
 
 namespace Osmalyzer;
 
@@ -18,7 +19,7 @@ public class AutotransportaDirekcijaAnalysisData : GTFSAnalysisData
 
     public override string ExtractionFolder => "GTFS-ATD";
         
-    protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
+    protected override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".zip");
 
     protected override string DataURL => @"https://www.atd.lv/sites/default/files/GTFS/gtfs-latvia-lv.zip";
 }

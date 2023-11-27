@@ -21,13 +21,13 @@ public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnaly
     {
         WebsiteDownloadHelper.Download(
             "https://www.swedbank.lv/finder.xml", 
-            cacheBasePath + DataFileIdentifier + @".xml"
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".xml")
         );
     }
 
     public void Prepare()
     {
-        string data = File.ReadAllText(cacheBasePath + DataFileIdentifier + @".xml");
+        string data = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier + @".xml"));
 
             
         if (data.StartsWith("<items>")) // XML header missing

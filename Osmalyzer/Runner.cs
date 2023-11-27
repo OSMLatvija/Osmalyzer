@@ -22,28 +22,28 @@ public static class Runner
 #else
         List<Analyzer> analyzers = new List<Analyzer>()
         {
-            // new CommonBrandsAnalyzer(),
-            // new HighwaySeasonalSpeedsAnalyzer(),
-            // new LivingZoneSpeedAnalyzer(),
-            // new LVCRoadAnalyzer(),
-            // new RigasSatiksmeAnalyzer(),
-            // new LiepajasTransportsAnalyzer(),
-            // new RezeknesSatiksmeAnalyzer(),
-            // new JurmalasSatiksmeAnalyzer(),
-            // new AutotransportaDirekcijaAnalyzer(),
-            // new TrolleybusWireAnalyzer(),
-            // new MicroReservesAnalyzer(),
-            // new StreetNameAnalyzer(),
-            // new RigaDrinkingWaterAnalyzer(),
-            // new PublicTransportAccessAnalyzer(),
-            // new HighwaySpeedLimitAnalyzer(),
-            // new GlikaOaksAnalyzer(),
-            // new ElviShopNetworkAnalyzer(),
-            // new LatsShopNetworkAnalyzer(),
-            // new RimiShopNetworkAnalyzer(),
-            // new MaximaShopNetworkAnalyzer(),
-            // new CulturalMonumentsAnalyzer(),
-            // new SwedbankLocationAnalyzer(),
+            new CommonBrandsAnalyzer(),
+            new HighwaySeasonalSpeedsAnalyzer(),
+            new LivingZoneSpeedAnalyzer(),
+            new LVCRoadAnalyzer(),
+            new RigasSatiksmeAnalyzer(),
+            new LiepajasTransportsAnalyzer(),
+            new RezeknesSatiksmeAnalyzer(),
+            new JurmalasSatiksmeAnalyzer(),
+            new AutotransportaDirekcijaAnalyzer(),
+            new TrolleybusWireAnalyzer(),
+            new MicroReservesAnalyzer(),
+            new StreetNameAnalyzer(),
+            new RigaDrinkingWaterAnalyzer(),
+            new PublicTransportAccessAnalyzer(),
+            new HighwaySpeedLimitAnalyzer(),
+            new GlikaOaksAnalyzer(),
+            new ElviShopNetworkAnalyzer(),
+            new LatsShopNetworkAnalyzer(),
+            new RimiShopNetworkAnalyzer(),
+            new MaximaShopNetworkAnalyzer(),
+            new CulturalMonumentsAnalyzer(),
+            new SwedbankLocationAnalyzer(),
             new SEBLocationAnalyzer(),
         };
 #endif
@@ -74,16 +74,19 @@ public static class Runner
             
         Console.WriteLine("Retrieving data...");
 
-        if (!Directory.Exists(AnalysisData.cacheBasePath))
+        if (!Directory.Exists(AnalysisData.CacheBasePath))
         {
-            Directory.CreateDirectory(AnalysisData.cacheBasePath);
+            Directory.CreateDirectory(AnalysisData.CacheBasePath);
         }
-        else if (!File.Exists(AnalysisData.cacheRevisionFilePath))
+        else
         {
-            Console.WriteLine("Cache revision out of date, wiping...");
-            Directory.Delete(AnalysisData.cacheBasePath, true);
-            Directory.CreateDirectory(AnalysisData.cacheBasePath);
-            File.WriteAllText(AnalysisData.cacheRevisionFilePath, "hi!");
+            if (!File.Exists(AnalysisData.CacheRevisionFilePath))
+            {
+                Console.WriteLine("Cache revision out of date, wiping...");
+                Directory.Delete(AnalysisData.CacheBasePath, true);
+                Directory.CreateDirectory(AnalysisData.CacheBasePath);
+                File.WriteAllText(AnalysisData.CacheRevisionFilePath, "hi!");
+            }
         }
 
         for (int i = 0; i < requestedDatas.Count; i++)

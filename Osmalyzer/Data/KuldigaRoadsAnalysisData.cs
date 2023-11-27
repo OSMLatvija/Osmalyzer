@@ -41,8 +41,9 @@ public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData, IPrepa
 
     protected override void Download()
     {
-        if (!Directory.Exists(cacheBasePath + DataFileIdentifier))
-            Directory.CreateDirectory(cacheBasePath + DataFileIdentifier);
+        // Storing files in sub-folder because we have many
+        if (!Directory.Exists(Path.Combine(CacheBasePath, DataFileIdentifier)))
+            Directory.CreateDirectory(Path.Combine(CacheBasePath, DataFileIdentifier));
 
         string result = WebsiteDownloadHelper.Read("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
 
@@ -54,7 +55,7 @@ public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData, IPrepa
 
             WebsiteDownloadHelper.Download(
                 url,
-                cacheBasePath + DataFileIdentifier + "/" + (i + 1) + ".pdf"
+                Path.Combine(CacheBasePath, DataFileIdentifier, (i + 1) + ".pdf")
             );
         }
     }
@@ -63,7 +64,7 @@ public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData, IPrepa
     {
         RoadNames = new List<string>();
             
-        string[] files = Directory.GetFiles(cacheBasePath + DataFileIdentifier + "/", "*.pdf");
+        string[] files = Directory.GetFiles(Path.Combine(CacheBasePath, DataFileIdentifier), "*.pdf");
 
         for (int i = 0; i < files.Length; i++)
         {

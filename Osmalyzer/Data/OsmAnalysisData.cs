@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
@@ -36,12 +37,12 @@ public class OsmAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnal
             
         WebsiteDownloadHelper.Download(
             "https://download.geofabrik.de/europe/latvia-latest.osm.pbf", 
-            cacheBasePath + DataFileIdentifier + @".osm.pbf"
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".osm.pbf")
         );
     }
 
     public void Prepare()
     {
-        MasterData = new OsmMasterData(cacheBasePath + DataFileIdentifier + @".osm.pbf");
+        MasterData = new OsmMasterData(Path.Combine(CacheBasePath, DataFileIdentifier + @".osm.pbf"));
     }
 }

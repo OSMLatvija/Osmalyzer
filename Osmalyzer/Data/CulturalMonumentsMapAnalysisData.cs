@@ -27,9 +27,6 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
 
     protected override void Download()
     {
-        if (!Directory.Exists(cacheBasePath + DataFileIdentifier))
-            Directory.CreateDirectory(cacheBasePath + DataFileIdentifier);
-        
         // https://karte.mantojums.lv
         // It has MapBox renderer and fetches FBG files from backend
 
@@ -37,7 +34,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
         {
             WebsiteDownloadHelper.Download(
                 @"https://karte.mantojums.lv/fgb/zoom" + variant + @"-points.fgb",
-                cacheBasePath + DataFileIdentifier + "-" + variant + ".fgb"
+                Path.Combine(CacheBasePath, DataFileIdentifier + "-" + variant + ".fgb")
             );
         }
     }
@@ -50,7 +47,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
         
         foreach (string variant in _variants)
         {
-            string filePath = cacheBasePath + DataFileIdentifier + "-" + variant + ".fgb";
+            string filePath = Path.Combine(CacheBasePath, DataFileIdentifier + "-" + variant + ".fgb");
 
             AsyncFeatureEnumerator enumerator = AsyncFeatureEnumerator.Create(File.OpenRead(filePath)).Result;
 

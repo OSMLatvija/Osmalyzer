@@ -1,3 +1,4 @@
+using System.IO;
 using JetBrains.Annotations;
 
 namespace Osmalyzer;
@@ -18,7 +19,7 @@ public class RigasSatiksmeAnalysisData : GTFSAnalysisData
     protected override string DataFileIdentifier => "rigas-satiksme";
 
 
-    protected override string DataFileName => cacheBasePath + DataFileIdentifier + @".zip";
+    protected override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".zip");
 
     public override string ExtractionFolder => "GTFS-RigSat";
         

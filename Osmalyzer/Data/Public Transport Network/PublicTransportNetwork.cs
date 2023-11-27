@@ -20,17 +20,17 @@ public class PublicTransportNetwork
     public PublicTransportPoints Points { get; }
 
 
-    public PublicTransportNetwork(string dataFolder)
+    public PublicTransportNetwork(string dataPath)
     {
-        Stops = new PublicTransportStops(Path.Combine(dataFolder, "stops.txt"));
+        Stops = new PublicTransportStops(Path.Combine(dataPath, "stops.txt"));
             
-        Routes = new PublicTransportRoutes(Path.Combine(dataFolder, "routes.txt"));
+        Routes = new PublicTransportRoutes(Path.Combine(dataPath, "routes.txt"));
             
-        Services = new PublicTransportServices(Path.Combine(dataFolder, "calendar.txt"));
+        Services = new PublicTransportServices(Path.Combine(dataPath, "calendar.txt"));
             
-        Trips = new PublicTransportTrips(Path.Combine(dataFolder, "trips.txt"), Routes, Services);
+        Trips = new PublicTransportTrips(Path.Combine(dataPath, "trips.txt"), Routes, Services);
             
-        Points = new PublicTransportPoints(Path.Combine(dataFolder, "stop_times.txt"), Stops, Trips);
+        Points = new PublicTransportPoints(Path.Combine(dataPath, "stop_times.txt"), Stops, Trips);
 
         // Post-process
 

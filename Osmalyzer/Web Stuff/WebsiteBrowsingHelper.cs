@@ -104,7 +104,7 @@ public static class WebsiteBrowsingHelper
         return result;
     }
 
-    public static void Download(string url, string fileName, bool canUseCache = true)
+    public static void DownloadPage(string url, string fileName, bool canUseCache = true)
     {
         // Headless browsing needs a full site load, so there's no way to directly write to file, we just have to dump the results 
         File.WriteAllText(fileName, Read(url, canUseCache));

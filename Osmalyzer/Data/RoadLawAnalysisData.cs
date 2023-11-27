@@ -1,3 +1,4 @@
+using System.IO;
 using JetBrains.Annotations;
 
 namespace Osmalyzer;
@@ -17,14 +18,14 @@ public class RoadLawAnalysisData : AnalysisData, IPreparableAnalysisData, IUndat
 
     protected override void Download()
     {
-        WebsiteBrowsingHelper.Download( // likumi.lv seems to not like direct download/scraping
+        WebsiteBrowsingHelper.DownloadPage( // likumi.lv seems to not like direct download/scraping
             "https://likumi.lv/ta/id/198589", 
-            cacheBasePath + DataFileIdentifier + @".html"
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".html")
         );
     }
 
     public void Prepare()
     {
-        RoadLaw = new RoadLaw(cacheBasePath + DataFileIdentifier + @".html");
+        RoadLaw = new RoadLaw(Path.Combine(CacheBasePath, DataFileIdentifier + @".html"));
     }
 }

@@ -6,10 +6,10 @@ public class TextFileReporter : Reporter
 {
     public override void Save()
     {
-        if (Directory.Exists(ReportWriter.outputFolder))
-            Directory.Delete(ReportWriter.outputFolder, true);  
+        if (Directory.Exists(ReportWriter.OutputPath))
+            Directory.Delete(ReportWriter.OutputPath, true);  
                 
-        Directory.CreateDirectory(ReportWriter.outputFolder);
+        Directory.CreateDirectory(ReportWriter.OutputPath);
 
         ReportWriter reportWriter = new TextFileReportWriter();
 

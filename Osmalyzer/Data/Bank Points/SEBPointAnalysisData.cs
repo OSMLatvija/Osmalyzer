@@ -20,8 +20,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
     protected override void Download()
     {
-        if (!Directory.Exists(cacheBasePath + DataFileIdentifier))
-            Directory.CreateDirectory(cacheBasePath + DataFileIdentifier);
+        // Storing files in sub-folder because we have many
+        if (!Directory.Exists(Path.Combine(CacheBasePath, DataFileIdentifier)))
+            Directory.CreateDirectory(Path.Combine(CacheBasePath, DataFileIdentifier));
         
         int atmPageCount = 1;
         
@@ -37,9 +38,9 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             // When getting pages, parse it for the total page count from the paginator (which grows with more pages)
             MatchCollection matches = Regex.Matches(pageContent, @"<a href=""\?page=(\d+)""");
             atmPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
-            
+
             File.WriteAllText(
-                cacheBasePath + DataFileIdentifier + @"\A" + i + @".html", 
+                Path.Combine(CacheBasePath, DataFileIdentifier, @"A" + i + @".html"),
                 pageContent
             );
         }      
@@ -63,7 +64,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             branchPageCount = matches.Select(m => int.Parse(m.Groups[1].ToString())).Max() + 1;
 
             File.WriteAllText(
-                cacheBasePath + DataFileIdentifier + @"\B" + i + @".html", 
+                Path.Combine(CacheBasePath, DataFileIdentifier, @"B" + i + @".html"),
                 pageContent
             );
         }
@@ -80,7 +81,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         
         for (int i = 0; i < atmPageCount; i++)
         {
-            string pageData = File.ReadAllText(cacheBasePath + DataFileIdentifier + @"\A" + i + @".html");
+            string pageData = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier, @"A" + i + @".html"));
 
             // <div><div class="row mx-0 border-top border-secondary pt-4 pb-lg-3 c-atm-search__item">
             //
@@ -135,7 +136,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
         for (int i = 0; i < branchPageCount; i++)
         {
-            string pageData = File.ReadAllText(cacheBasePath + DataFileIdentifier + @"\B" + i + @".html");
+            string pageData = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier, @"B" + i + @".html"));
             
             //   <div><div class="row mx-0 border-top border-secondary pt-4 pb-lg-3 c-atm-search__item">
             //
@@ -207,7 +208,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
         // to
         // 11
 
-        string[] dataFiles = Directory.GetFiles(cacheBasePath + DataFileIdentifier, "*.html");
+        string[] dataFiles = Directory.GetFiles(Path.Combine(CacheBasePath, DataFileIdentifier), "*.html");
 
         if (dataFiles.Length == 0)
             throw new Exception("Missing all data files!");

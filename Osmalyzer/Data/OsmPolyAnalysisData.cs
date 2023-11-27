@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
@@ -31,7 +32,7 @@ public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
     {
         WebsiteDownloadHelper.Download(
             "https://download.geofabrik.de/europe/latvia.poly",
-            cacheBasePath + DataFileIdentifier + @".poly"
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".poly")
         );
     }
 }

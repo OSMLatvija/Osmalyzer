@@ -6,11 +6,16 @@ namespace Osmalyzer;
 
 public abstract class AnalysisData
 {
-    public const string cacheBasePath = "cache/";
-        
-    public const string cacheRevisionFilePath = cacheBasePath + "cache-v3.txt"; // just has to be unique to previous one(s), but I'm "counting" up for consistency
+    private const string cacheRevisionFileName = "cache-v3.txt"; // just has to be unique to previous one(s), but I'm "counting" up for consistency
+
+    private const string cacheBaseFolder = "cache";
 
     private const int undatedDataCachingGracePeriod = 2 * 60 * 60; // sec
+
+
+    public static string CacheBasePath => Path.GetFullPath(cacheBaseFolder);
+    
+    public static string CacheRevisionFilePath => Path.Combine(CacheBasePath, cacheRevisionFileName);
 
 
     public abstract string Name { get; }
@@ -32,6 +37,9 @@ public abstract class AnalysisData
     /// Unique short ID used for file names
     /// </summary>
     protected abstract string DataFileIdentifier { get; }
+
+    
+    private string CachedDateFileName => Path.Combine(CacheBasePath, DataFileIdentifier + "-cache-date.txt");
 
 
     private DateTime? _dataDate;
@@ -146,7 +154,7 @@ public abstract class AnalysisData
     
     private DateTime? GetDataDateFromMetadataFile()
     {
-        string cachedDateFileName = CachedDateFileName();
+        string cachedDateFileName = CachedDateFileName;
             
         if (!File.Exists(cachedDateFileName))
             return null;
@@ -161,13 +169,7 @@ public abstract class AnalysisData
     {
         _dataDate = newDate;
             
-        File.WriteAllText(CachedDateFileName(), _dataDate.Value.Ticks.ToString());
-    }
-
-    [Pure]
-    private string CachedDateFileName()
-    {
-        return cacheBasePath + DataFileIdentifier + "-cache-date.txt";
+        File.WriteAllText(CachedDateFileName, _dataDate.Value.Ticks.ToString());
     }
 }
     

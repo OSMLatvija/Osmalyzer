@@ -34,7 +34,7 @@ public class HtmlFileReportWriter : ReportWriter
         
         ReportFileName = report.Name + " report.html";
             
-        string fullReportFileName = outputFolder + "/" + ReportFileName;
+        string fullReportFileName = Path.Combine(OutputPath, ReportFileName);
             
         File.WriteAllText(fullReportFileName, output);
     }

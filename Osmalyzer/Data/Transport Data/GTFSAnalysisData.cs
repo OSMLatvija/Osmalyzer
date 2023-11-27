@@ -31,6 +31,9 @@ public abstract class GTFSAnalysisData : AnalysisData, IPreparableAnalysisData, 
     {
         // GTFS data comes in a zip file, so unzip
             
-        ZipHelper.ExtractZipFile(DataFileName, ExtractionFolder + "/");
+        ZipHelper.ExtractZipFile(
+            DataFileName,
+            ExtractionFolder
+        );
     }
 }

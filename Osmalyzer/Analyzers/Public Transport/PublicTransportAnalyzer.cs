@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -22,7 +23,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
         GTFSAnalysisData ptData = datas.OfType<T>().First();
 
-        PublicTransportNetwork ptNetwork = new PublicTransportNetwork(ptData.ExtractionFolder);
+        PublicTransportNetwork ptNetwork = new PublicTransportNetwork(Path.GetFullPath(ptData.ExtractionFolder));
             
         // Load OSM data
 

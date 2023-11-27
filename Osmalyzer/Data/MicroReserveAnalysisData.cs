@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
@@ -46,7 +47,10 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
 
         string url = @"https://data.gov.lv" + urlMatch.Groups[1];
 
-        result = WebsiteDownloadHelper.Read(url, true);
+        result = WebsiteBrowsingHelper.Read( // data.gov.lv seems to not like direct download/scraping
+            url, 
+            true
+        );
 
         urlMatch = Regex.Match(result, @"URL: <a href=""([^""]+)""");
 
@@ -54,7 +58,7 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
 
         WebsiteDownloadHelper.Download(
             url,
-            cacheBasePath + @"micro-reserves.zip"
+            Path.Combine(CacheBasePath, @"micro-reserves.zip")
         );
     }
 
@@ -62,6 +66,9 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
     {
         // Data comes in a zip file, so unzip
             
-        ZipHelper.ExtractZipFile(cacheBasePath + DataFileIdentifier + @".zip", ExtractionFolder + "/");
+        ZipHelper.ExtractZipFile(
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".zip"),
+            Path.GetFullPath(ExtractionFolder)
+        );
     }
 }

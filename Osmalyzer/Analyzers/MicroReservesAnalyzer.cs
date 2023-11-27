@@ -29,7 +29,7 @@ public class MicroReservesAnalyzer : Analyzer
             
         MicroReserveAnalysisData reserveData = datas.OfType<MicroReserveAnalysisData>().First();
 
-        string projectionfilePath = reserveData.ExtractionFolder + "/GIS_OZOLS_Microreserves_PUB.prj";
+        string projectionfilePath = Path.Combine(Path.GetFullPath(reserveData.ExtractionFolder), "GIS_OZOLS_Microreserves_PUB.prj");
         CoordinateSystem ourWkt = new CoordinateSystemFactory().CreateFromWkt(File.ReadAllText(projectionfilePath));
             
         GeographicCoordinateSystem wgs84 = GeographicCoordinateSystem.WGS84;
@@ -39,7 +39,7 @@ public class MicroReservesAnalyzer : Analyzer
             wgs84
         );
 
-        string shapefilePath = reserveData.ExtractionFolder + "/GIS_OZOLS_Microreserves_PUB.shp";
+        string shapefilePath = Path.Combine(Path.GetFullPath(reserveData.ExtractionFolder), "GIS_OZOLS_Microreserves_PUB.shp");
 
         using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
 
@@ -56,7 +56,7 @@ public class MicroReservesAnalyzer : Analyzer
             
         dumpFileWriter.WriteLine(string.Join("\t", dbaseHeader.Fields.Select(f => f.Type.Name)));
             
-        string xmlPath = reserveData.ExtractionFolder + "/GIS_OZOLS_Microreserves_PUB.shp.xml";
+        string xmlPath = Path.Combine(Path.GetFullPath(reserveData.ExtractionFolder), "GIS_OZOLS_Microreserves_PUB.shp.xml");
         MatchCollection fieldDescMatches = Regex.Matches(File.ReadAllText(xmlPath), @"<attrlabl Sync=""TRUE"">([^<]+)</attrlabl><attalias Sync=""TRUE"">([^<]+)</attalias>");
 
         dumpFileWriter.WriteLine(string.Join("\t", dbaseHeader.Fields.Select(f =>

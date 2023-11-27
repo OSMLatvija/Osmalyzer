@@ -9,7 +9,7 @@ public static class ZipHelper
     /// <summary>
     /// From https://github.com/icsharpcode/SharpZipLib/wiki/Unpack-a-Zip-with-full-control-over-the-operation
     /// </summary>
-    public static void ExtractZipFile(string archivePath, string outFolder)
+    public static void ExtractZipFile(string archivePath, string outPath)
     {
         using FileStream fileStream = File.OpenRead(archivePath);
             
@@ -22,7 +22,7 @@ public static class ZipHelper
 
             string entryFileName = zipEntry.Name;
 
-            string fullZipToPath = Path.Combine(outFolder, entryFileName);
+            string fullZipToPath = Path.Combine(outPath, entryFileName);
             string directoryName = Path.GetDirectoryName(fullZipToPath)!;
             if (directoryName.Length > 0)
                 Directory.CreateDirectory(directoryName);

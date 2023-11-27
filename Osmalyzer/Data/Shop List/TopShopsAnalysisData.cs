@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using JetBrains.Annotations;
 
 namespace Osmalyzer;
@@ -15,7 +16,7 @@ public class TopShopsAnalysisData : SimplePageShopListAnalysisData
     protected override string DataFileIdentifier => "shops-top";
 
 
-    public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
+    public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
 
     public override string ShopListUrl => "https://www.toppartika.lv/veikali/";
 

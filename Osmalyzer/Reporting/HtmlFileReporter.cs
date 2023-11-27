@@ -10,12 +10,12 @@ public class HtmlFileReporter : Reporter
 {
     public override void Save()
     {
-        if (Directory.Exists(ReportWriter.outputFolder))
-            Directory.Delete(ReportWriter.outputFolder, true);  
+        if (Directory.Exists(ReportWriter.OutputPath))
+            Directory.Delete(ReportWriter.OutputPath, true);  
                 
-        Directory.CreateDirectory(ReportWriter.outputFolder);
+        Directory.CreateDirectory(ReportWriter.OutputPath);
 
-        using StreamWriter reportFile = File.CreateText(ReportWriter.outputFolder + "/index.html");
+        using StreamWriter reportFile = File.CreateText(Path.Combine(ReportWriter.OutputPath, "index.html"));
             
         reportFile.WriteLine(@"<!doctype html>");
         reportFile.WriteLine(@"<html>");
@@ -134,12 +134,12 @@ public class HtmlFileReporter : Reporter
 
             using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
 
-            string outputFolder = ReportWriter.outputFolder + @"/icons/";
+            string outputPath = Path.Combine(ReportWriter.OutputPath, @"icons");
         
-            if (!Directory.Exists(outputFolder))
-                Directory.CreateDirectory(outputFolder);  
+            if (!Directory.Exists(outputPath))
+                Directory.CreateDirectory(outputPath);  
         
-            FileStream fileStream = new FileStream(outputFolder + embeddedIcon.Name + ".png", FileMode.Create);
+            FileStream fileStream = new FileStream(Path.Combine(outputPath, embeddedIcon.Name + ".png"), FileMode.Create);
             StreamWriter streamWriter = new StreamWriter(fileStream);
             stream.CopyTo(streamWriter.BaseStream);
             streamWriter.Close();

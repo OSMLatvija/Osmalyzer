@@ -15,7 +15,7 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
 
     protected override string DataFileIdentifier => "shops-maxima";
 
-    public override string DataFileName => cacheBasePath + DataFileIdentifier + @".html";
+    public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
 
     public override IEnumerable<ShopData> Shops => _shops;
 

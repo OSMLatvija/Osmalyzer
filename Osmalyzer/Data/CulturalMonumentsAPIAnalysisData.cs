@@ -21,8 +21,9 @@ public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysi
 
     protected override void Download()
     {
-        if (!Directory.Exists(cacheBasePath + DataFileIdentifier))
-            Directory.CreateDirectory(cacheBasePath + DataFileIdentifier);
+        // Storing files in sub-folder because we have several
+        if (!Directory.Exists(Path.Combine(CacheBasePath, DataFileIdentifier)))
+            Directory.CreateDirectory(Path.Combine(CacheBasePath, DataFileIdentifier));
         
         // https://api.mantojums.lv/docs/index.html
         // https://api.mantojums.lv/api/CulturalObjects?group=Monument&Page=1
@@ -34,7 +35,7 @@ public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysi
         {
             WebsiteDownloadHelper.Download(
                 "https://api.mantojums.lv/api/CulturalObjects?group=Monument&Page=" + i + @"&ShouldPage=false&ShouldLimit=false",
-                cacheBasePath + DataFileIdentifier + "/" + i  + @".json"
+                Path.Combine(CacheBasePath, DataFileIdentifier, + i  + @".json")
             );
         }
     }
@@ -43,7 +44,7 @@ public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysi
     {
         Monuments = new List<CulturalMonument>();
         
-        string[] files = Directory.GetFiles(cacheBasePath + DataFileIdentifier + "/", "*.json");
+        string[] files = Directory.GetFiles(Path.Combine(CacheBasePath, DataFileIdentifier), "*.json");
 
         for (int i = 0; i < files.Length; i++)
         {

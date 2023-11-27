@@ -40,8 +40,8 @@ public class CulturalMonumentsAnalyzer : Analyzer
         Correlator<CulturalMonument> dataComparer = new Correlator<CulturalMonument>(
             osmHeritages,
             monuments,
-            new MatchDistanceParamater(15),
-            new MatchFarDistanceParamater(75),
+            new MatchDistanceParamater(30),
+            new MatchFarDistanceParamater(300),
             new DataItemLabelsParamater("monument", "monuments"),
             new MatchCallbackParameter<CulturalMonument>(DoesOsmNodeMatchMonument),
             new OsmElementPreviewValue("name", false),

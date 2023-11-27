@@ -22,7 +22,10 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
 
 
     public List<CulturalMonument> Monuments { get; private set; } = null!; // only null before prepared
-        
+
+
+    private readonly string[] _variants = { "10", "15", "16", "20" };
+    
 
     protected override void Download()
     {
@@ -32,43 +35,49 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
         // https://karte.mantojums.lv
         // It has MapBox renderer and fetches FBG files from backend
 
-        WebsiteDownloadHelper.Download(
-            @"https://karte.mantojums.lv/fgb/zoom16-points.fgb", 
-            cacheBasePath + DataFileIdentifier + @".fgb"
-        );
+        foreach (string variant in _variants)
+        {
+            WebsiteDownloadHelper.Download(
+                @"https://karte.mantojums.lv/fgb/zoom" + variant + @"-points.fgb",
+                cacheBasePath + DataFileIdentifier + "-" + variant + ".fgb"
+            );
+        }
     }
 
     public void Prepare()
     {
         Monuments = new List<CulturalMonument>();
         
-        // Parse the FlatGeobuf FBG file
+        // Parse the FlatGeobuf FBG files
         
-        string filePath = cacheBasePath + DataFileIdentifier + @".fgb";
-
-        AsyncFeatureEnumerator enumerator = AsyncFeatureEnumerator.Create(File.OpenRead(filePath)).Result;
-
-        Console.WriteLine(enumerator.NumFeatures);
-
-        while (enumerator.MoveNextAsync().Result)
+        foreach (string variant in _variants)
         {
-            IFeature feature = enumerator.Current;
+            string filePath = cacheBasePath + DataFileIdentifier + "-" + variant + ".fgb";
 
-            Point centroid = feature.Geometry.Centroid;
-            OsmCoord coord = new OsmCoord(centroid.Y, centroid.X);
-            
-            List<string> names = feature.Attributes.GetNames().ToList();
-            
-            int nameIndex = names.IndexOf("name");
-            int monRefIndex = names.IndexOf("national_protection_number");
-            
-            object[] values = feature.Attributes.GetValues();
-            
-            string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
-            string monRefValue = values[monRefIndex].ToString()!;
-            int? monRef = monRefValue != "" ? int.Parse(monRefValue) : null; // there are some with missing id
-            
-            Monuments.Add(new CulturalMonument(coord, name, monRef));
+            AsyncFeatureEnumerator enumerator = AsyncFeatureEnumerator.Create(File.OpenRead(filePath)).Result;
+
+            while (enumerator.MoveNextAsync().Result)
+            {
+                IFeature feature = enumerator.Current;
+
+                Point centroid = feature.Geometry.Centroid;
+                OsmCoord coord = new OsmCoord(centroid.Y, centroid.X);
+
+                List<string> names = feature.Attributes.GetNames().ToList();
+
+                int nameIndex = names.IndexOf("name");
+                int monRefIndex = names.IndexOf("national_protection_number");
+
+                object[] values = feature.Attributes.GetValues();
+
+                string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
+                string monRefValue = values[monRefIndex].ToString()!;
+                int? monRef = monRefValue != "" ? int.Parse(monRefValue) : null; // there are some with missing id
+
+                // There are repeats, so keep each only once
+                if (!Monuments.Any(m => m.Name == name && m.ReferenceID == monRef))
+                    Monuments.Add(new CulturalMonument(coord, name, monRef));
+            }
         }
     }
 }

@@ -57,8 +57,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
 
         foreach (OsmRelation osmRoute in osmRoutes.Relations)
             foreach (OsmWay osmRouteWay in osmRoute.GetElementsWithRole<OsmWay>(""))
-                if (!osmRouteWays.ContainsKey(osmRouteWay.Id))
-                    osmRouteWays.Add(osmRouteWay.Id, osmRouteWay);
+                osmRouteWays.TryAdd(osmRouteWay.Id, osmRouteWay);
 
         foreach ((long _, OsmWay osmRouteWay) in osmRouteWays)
         {
@@ -74,8 +73,8 @@ public class PublicTransportAccessAnalyzer : Analyzer
             // todo: see if I missed any cases
                 
             // todo
-            string? tram = osmRouteWay.GetValue("tram");
-            string? trolleybus = osmRouteWay.GetValue("trolleybus");
+            //string? tram = osmRouteWay.GetValue("tram");
+            //string? trolleybus = osmRouteWay.GetValue("trolleybus");
 
             // What about psv by itself?
                 

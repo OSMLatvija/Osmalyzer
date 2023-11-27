@@ -6,14 +6,14 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public abstract class BankLocationAnalyzer<T> : Analyzer where T : BankPointAnalysisData
+public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankPointAnalysisData
 {
     public override string Name => BankName + " Locations";
 
     public override string Description => "This report checks that all POIs from " + BankName + " contact list are mapped. " +
                                           "Note that the website list is not precise and the actual points can be dozens and even hundreds of meters away, such as in shopping malls.";
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(T) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(TData) };
 
 
     protected abstract string BankName { get; }
@@ -67,11 +67,11 @@ public abstract class BankLocationAnalyzer<T> : Analyzer where T : BankPointAnal
         Correlate(osmBranches, branchPoints, "branch", "branches");
         
 
-        void Correlate<T>(OsmDataExtract osmPoints, List<T> dataPoints, string labelSingular, string labelPlural) where T : BankPoint
+        void Correlate<TItem>(OsmDataExtract osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : BankPoint
         {
             // Prepare data comparer/correlator
 
-            Correlator<T> dataComparer = new Correlator<T>(
+            Correlator<TItem> dataComparer = new Correlator<TItem>(
                 osmPoints,
                 dataPoints,
                 new MatchDistanceParamater(50),

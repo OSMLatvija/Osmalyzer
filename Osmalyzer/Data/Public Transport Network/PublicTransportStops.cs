@@ -47,8 +47,7 @@ public class PublicTransportStops
 
             PublicTransportStop stop = new PublicTransportStop(id, name, new OsmCoord(lat, lon));
 
-            if (!_stops.ContainsKey(stop.Id))
-                _stops.Add(stop.Id, stop);
+            _stops.TryAdd(stop.Id, stop);
             // Latvijas Autobuss has duplicates, e.g.
             // 7123k,,"Majoru stacija",,56.97155,23.79636,https://www.marsruti.lv/jurmala/index.html#stop/7123k,,
             // 7123k,,"Majori",,56.97155,23.79636,https://www.marsruti.lv/jurmala/index.html#stop/7123k,,

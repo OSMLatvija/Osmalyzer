@@ -229,7 +229,6 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
 
     private enum BankPointType
     {
-        Branch,
         Atm
     }
 }

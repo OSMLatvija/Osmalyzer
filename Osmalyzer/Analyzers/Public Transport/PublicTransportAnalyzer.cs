@@ -230,7 +230,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                     ReportGroup.NoOsmRouteMatch,
                     new IssueReportEntry(
                         Label + " " + ptRoute.CleanType + " route #" + ptRoute.Number + " \"" + ptRoute.Name + "\" did not match any OSM route. " +
-                        Label + " end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.ContainsKey(s) ? fullyMatchedStops[s].OsmViewUrl : "no matched OSM stop") + ")")) + "."
+                        Label + " end stops are " + string.Join(", ", endStops.Select(s => "\"" + s.Name + "\" (" + (fullyMatchedStops.TryGetValue(s, out OsmNode? fullyMatchedStop) ? fullyMatchedStop.OsmViewUrl : "no matched OSM stop") + ")")) + "."
                     )
                 );
             }

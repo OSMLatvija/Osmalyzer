@@ -387,7 +387,7 @@ public abstract class OsmData
     }
 
     [Pure]
-    private IEnumerable<OsmElement> ChooseCollectionForFiltering(IEnumerable<OsmFilter> filters)
+    private IEnumerable<OsmElement> ChooseCollectionForFiltering(OsmFilter[] filters)
     {
         // todo: return back a new filter list without the redundant filter we dismissed
             

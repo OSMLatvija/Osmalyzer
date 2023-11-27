@@ -51,7 +51,7 @@ public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysi
             
             dynamic content = JsonConvert.DeserializeObject(contentString)!;
 
-            int total = content.total; // e.g. 7000
+            //int total = content.total; // e.g. 7000
             int count = content.pageSize; // e.g. 30
 
             for (int k = 0; k < count; k++)

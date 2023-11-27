@@ -10,6 +10,7 @@ public static class EmbeddedIcons
             "greenCheckmark",
             16,
             LeafletIcon.IconGroup.Main,
+            ColorGroup.Green,
             MapPointStyle.Okay,
             MapPointStyle.CorrelatorPairMatched, MapPointStyle.CorrelatorLoneOsmMatched
         ),
@@ -18,6 +19,7 @@ public static class EmbeddedIcons
             "orangeCheckmark", 
             16, 
             LeafletIcon.IconGroup.Main, 
+            ColorGroup.Green,
             MapPointStyle.Dubious,
             MapPointStyle.CorrelatorPairMatchedFar
         ),
@@ -26,6 +28,7 @@ public static class EmbeddedIcons
             "redCross", 
             16, 
             LeafletIcon.IconGroup.Main, 
+            ColorGroup.Red,
             MapPointStyle.Problem,
             MapPointStyle.CorrelatorItemUnmatched, MapPointStyle.CorrelatorOsmUnmatched
         ),
@@ -34,6 +37,7 @@ public static class EmbeddedIcons
             "redQuestion", 
             16, 
             LeafletIcon.IconGroup.Main, 
+            ColorGroup.Red,
             MapPointStyle.Okay,
             MapPointStyle.CorrelatorLoneOsmUnmatched
         ),
@@ -42,6 +46,7 @@ public static class EmbeddedIcons
             "blueStar", 
             12, 
             LeafletIcon.IconGroup.Sub, 
+            ColorGroup.Other, // we don't expect it clustered in Sub group
             MapPointStyle.CorrelatorPairMatchedOffsetOrigin, MapPointStyle.CorrelatorPairMatchedFarOrigin
         ),
         
@@ -80,12 +85,15 @@ public class LeafletIcon : EmbeddedIcon
     public IconGroup Group { get; }
     
     public MapPointStyle[] Styles { get; }
+    
+    public ColorGroup ColorGroup { get; }
 
 
-    public LeafletIcon(string name, int size, IconGroup group, params MapPointStyle[] styles)
+    public LeafletIcon(string name, int size, IconGroup group, ColorGroup colorGroup, params MapPointStyle[] styles)
         : base(name, size)
     {
         Group = group;
+        ColorGroup = colorGroup;
         Styles = styles;
     }
 
@@ -95,6 +103,13 @@ public class LeafletIcon : EmbeddedIcon
         Main,
         Sub
     }
+}
+
+public enum ColorGroup
+{
+    Green,
+    Red,
+    Other
 }
 
 public class EmbeddedIcon

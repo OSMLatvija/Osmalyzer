@@ -43,6 +43,8 @@ public class HtmlFileReportWriter : ReportWriter
     [Pure]
     private static string BuildContent(Report report, string title)
     {
+        // TODO: StringBuilder
+        
         string bodyContent = "<h2>Report for " + title + "</h2>" + Environment.NewLine;
 
         bodyContent += "<p>" + PolishLine(report.Description) + "</p>" + Environment.NewLine;
@@ -127,17 +129,27 @@ public class HtmlFileReportWriter : ReportWriter
                 bool clustered = group.MapPointEntries.Count > 100;
                 if (clustered)
                 {
-                    bodyContent += @"var mainMarkerGroup" + g + @" = L.markerClusterGroup(" + Environment.NewLine;
-                    bodyContent += @"{" + Environment.NewLine;
-                    bodyContent += @"    showCoverageOnHover: false," + Environment.NewLine;
-                    bodyContent += @"    spiderfyOnMaxZoom: false," + Environment.NewLine;
-                    bodyContent += @"    animate: false," + Environment.NewLine;
-                    bodyContent += @"    disableClusteringAtZoom: 14," + Environment.NewLine;
-                    bodyContent += @"    maxClusterRadius: 30," + Environment.NewLine;
-                    bodyContent += @"    iconCreateFunction: function (cluster) {" + Environment.NewLine;
-                    bodyContent += @"        return L.divIcon({ html: '<img src=\'icons/grayCircle.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });" + Environment.NewLine;
-                    bodyContent += @"    }" + Environment.NewLine;
-                    bodyContent += @"}).addTo(map" + g + @");" + Environment.NewLine;
+                    bodyContent += @"var mainMarkerGroup" + g + @" = L.markerClusterGroup(
+{
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: false,
+    animate: false,
+    disableClusteringAtZoom: 14,
+    maxClusterRadius: 30,
+    iconCreateFunction: function (cluster) {        
+        var icon = 'grayCircle';
+        var red = false;
+        var green = false;
+        cluster.getAllChildMarkers().forEach(function (marker) {
+            if (marker.group == 'green') green = true;
+            if (marker.group == 'red') red = true;
+        });
+        if (red && green) icon = 'redGreenCircle';
+        else if (red) icon = 'redCircle';
+        else if (green) icon = 'greenCircle';
+        return L.divIcon({ html: '<img src=\'icons/'+icon+'.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });
+    }
+}).addTo(map" + g + @");" + Environment.NewLine; // TODO: de-hardcode icon to group relation, have cluster icon define this
                 }
                 else
                 {
@@ -154,7 +166,7 @@ public class HtmlFileReportWriter : ReportWriter
                     string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
                     string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
                     LeafletIcon icon = EmbeddedIcons.Icons.OfType<LeafletIcon>().First(i => i.Styles.Contains(mapPointEntry.Style));
-                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(" + StyleMarkerGroup(icon.Group) + g + $@").bindPopup(""{text} {mapUrl}"");" + Environment.NewLine;
+                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(" + StyleMarkerGroup(icon.Group) + g + $@").bindPopup(""{text} {mapUrl}"").group=""" + IconVisualColorGroup(icon.ColorGroup) + @""";" + Environment.NewLine;
 
                     [Pure]
                     static string StyleMarkerGroup(LeafletIcon.IconGroup group)
@@ -163,6 +175,19 @@ public class HtmlFileReportWriter : ReportWriter
                         {
                             LeafletIcon.IconGroup.Main => "mainMarkerGroup",
                             LeafletIcon.IconGroup.Sub  => "subMarkerGroup",
+
+                            _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
+                        };
+                    }
+                    
+                    [Pure]
+                    static string IconVisualColorGroup(ColorGroup group)
+                    {
+                        return group switch
+                        {
+                            ColorGroup.Green => "green",
+                            ColorGroup.Red   => "red",
+                            ColorGroup.Other => "none",
 
                             _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
                         };

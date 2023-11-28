@@ -6,7 +6,7 @@ using OsmSharp.Tags;
 
 namespace Osmalyzer;
 
-public abstract class OsmElement
+public abstract class OsmElement : IChunkerItem
 {
     [PublicAPI]
     public abstract OsmElementType ElementType { get; }
@@ -30,6 +30,9 @@ public abstract class OsmElement
         
     [PublicAPI]
     public IReadOnlyList<OsmRelationMember>? Relations => relations?.AsReadOnly();
+
+    
+    public (double x, double y) ChunkCoord => GetAverageCoord().ToCartesian();
 
 
     internal List<OsmRelationMember>? relations;

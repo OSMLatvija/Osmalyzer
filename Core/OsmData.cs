@@ -35,6 +35,8 @@ public abstract class OsmData
     private List<OsmRelation> _relations = null!;
     private List<OsmRelation> _relationsWithTags = null!;
 
+    private Chunker<OsmElement>? _chunker;
+
 
     [Pure]
     public OsmDataExtract Filter(params OsmFilter[] filters)
@@ -284,6 +286,19 @@ public abstract class OsmData
     [Pure]
     private List<OsmElement> GetClosestElementsToRaw(OsmCoord coord, double? maxDistance)
     {
+        // Optimized for bulk
+        
+        if (_chunker != null)
+            return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance);
+
+        if (_elements.Count > 20) // no point when overhead is likely to exceed the individual search speed-up
+        {
+            _chunker = new Chunker<OsmElement>(_elements);
+            return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance);
+        }
+
+        // Manually
+        
         List<(double, OsmElement)> nodes = new List<(double, OsmElement)>(); // todo: presorted collection
 
         foreach (OsmElement element in _elements)
@@ -299,7 +314,7 @@ public abstract class OsmData
             }
         }
 
-        return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList();
+        return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList(); // todo: this is terribly slow 
     }
 
         

@@ -55,6 +55,20 @@ public struct OsmCoord : IEquatable<OsmCoord>
         
     #endregion
 
+   
+    public (double x, double y) ToCartesian()
+    {
+        const double earthRadius = 6371000;
+
+        double latRad = lat * Math.PI / 180.0;
+        double lonRad = lon * Math.PI / 180.0;
+        
+        double x = earthRadius * Math.Cos(latRad) * Math.Cos(lonRad);
+        double y = earthRadius * Math.Cos(latRad) * Math.Sin(lonRad);
+        
+        return (x, y);
+    }
+
 
     public override string ToString()
     {

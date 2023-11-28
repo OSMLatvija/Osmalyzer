@@ -35,11 +35,6 @@ public class CulturalMonumentsAnalyzer : Analyzer
         // Get monument data
 
         List<CulturalMonument> monuments = datas.OfType<CulturalMonumentsMapAnalysisData>().First().Monuments;
-        
-        Console.WriteLine(osmHeritages.Count);
-        Console.WriteLine(monuments.Count);
-
-        throw new Exception();
             
         // Prepare data comparer/correlator
 

@@ -249,33 +249,20 @@ public abstract class OsmData
     [Pure]
     public List<OsmNode> GetClosestNodesTo(OsmCoord coord, double maxDistance)
     {
-        return GetClosestNodesToRaw(coord, maxDistance);
-    }
-
-    [Pure]
-    private List<OsmNode> GetClosestNodesToRaw(OsmCoord coord, double? maxDistance)
-    {
-        List<(double, OsmNode)> nodes = new List<(double, OsmNode)>(); // todo: presorted collection
-
-        foreach (OsmElement element in _elements)
-        {
-            if (element is not OsmNode node)
-                continue; // only care about nodes
-                
-            double distance = OsmGeoTools.DistanceBetween(
-                coord,
-                node.coord 
-            );
-
-            if (maxDistance == null || distance <= maxDistance) // within max distance
-            {
-                nodes.Add((distance, node));
-            }
-        }
-
-        return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList();
+        return GetClosestElementsTo(coord, maxDistance).OfType<OsmNode>().ToList();
     }
         
+    [Pure]
+    public List<OsmWay> GetClosestWaysTo(OsmCoord coord, double maxDistance)
+    {
+        return GetClosestElementsTo(coord, maxDistance).OfType<OsmWay>().ToList();
+    }
+        
+    [Pure]
+    public List<OsmRelation> GetClosestRelationsTo(OsmCoord coord, double maxDistance)
+    {
+        return GetClosestElementsTo(coord, maxDistance).OfType<OsmRelation>().ToList();
+    }
         
     [Pure]
     public List<OsmElement> GetClosestElementsTo(OsmCoord coord, double maxDistance)

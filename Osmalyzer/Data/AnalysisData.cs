@@ -38,7 +38,7 @@ public abstract class AnalysisData
     protected abstract string DataFileIdentifier { get; }
 
     
-    private string CachedDateFileName => Path.Combine(CacheBasePath, DataFileIdentifier + "-cache-date.txt");
+    private string CachedDateFilePath => Path.Combine(CacheBasePath, DataFileIdentifier + "-cache-date.txt");
 
 
     private DateTime? _dataDate;
@@ -153,12 +153,10 @@ public abstract class AnalysisData
     
     private DateTime? GetDataDateFromMetadataFile()
     {
-        string cachedDateFileName = CachedDateFileName;
-            
-        if (!File.Exists(cachedDateFileName))
+        if (!File.Exists(CachedDateFilePath))
             return null;
             
-        string dataDateString = File.ReadAllText(cachedDateFileName);
+        string dataDateString = File.ReadAllText(CachedDateFilePath);
             
         return new DateTime(long.Parse(dataDateString));
     }
@@ -168,7 +166,7 @@ public abstract class AnalysisData
     {
         _dataDate = newDate;
             
-        File.WriteAllText(CachedDateFileName, _dataDate.Value.Ticks.ToString());
+        File.WriteAllText(CachedDateFilePath, _dataDate.Value.Ticks.ToString());
     }
 }
     

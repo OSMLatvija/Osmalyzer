@@ -5,7 +5,7 @@ namespace Osmalyzer.Tests;
 public class Tests
 {
     [Test]
-    public void TestGetClosest()
+    public void TestGetClosestLimited()
     {
         List<TestItem> nodes = new List<TestItem>()
         {
@@ -19,6 +19,26 @@ public class Tests
         Chunker<TestItem> chunker = new Chunker<TestItem>(nodes);
 
         TestItem? closest = chunker.GetClosest((12, 3), 20);
+
+        Assert.That(closest, Is.Not.Null);
+        Assert.That(closest, Is.EqualTo(nodes[2]));
+    }    
+    
+    [Test]
+    public void TestGetClosestUnlimited()
+    {
+        List<TestItem> nodes = new List<TestItem>()
+        {
+            new TestItem(5, 5),
+            new TestItem(15, 15),
+            new TestItem(15, 5),
+            new TestItem(5, 15),
+            new TestItem(30, 30)
+        };
+        
+        Chunker<TestItem> chunker = new Chunker<TestItem>(nodes);
+
+        TestItem? closest = chunker.GetClosest((12, 3));
 
         Assert.That(closest, Is.Not.Null);
         Assert.That(closest, Is.EqualTo(nodes[2]));

@@ -10,6 +10,8 @@ namespace Osmalyzer;
 /// </summary>
 public class Chunker<T> where T : IChunkerItem
 {
+    // todo: move non-chunked logic here and let this handle element "limits" 
+    
     public int Count => _elements.Count;
 
     
@@ -79,7 +81,78 @@ public class Chunker<T> where T : IChunkerItem
         }
     }
 
+
+    public T? GetClosest((double x, double y) target, double? maxDistance)
+    {
+        return 
+            maxDistance == null ? 
+                GetClosest(target) : 
+                GetClosest(target, maxDistance.Value);
+    }
     
+    public T? GetClosest((double x, double y) target)
+    {
+        T? bestItem = default;
+        double bestDistance = double.MaxValue;
+
+        // We need to keep checking until we reach the furthest corner,
+        // that is, we need to keep our "ring" growing span by span
+        double maxPossibleDistance =
+            Math.Max(
+                Math.Max(
+                    DistanceBetween(target, (_minX, _minY)),
+                    DistanceBetween(target, (_maxX, _minY))
+                ),
+                Math.Max(
+                    DistanceBetween(target, (_minX, _maxY)),
+                    DistanceBetween(target, (_maxX, _maxY))
+                )
+            );
+        
+        int span = 0;
+
+        do
+        {
+            span++;
+            
+            // We can check the chunks that our current "circle" covers,
+            // starting at neighbouring 1 chunk away and up to all of them (and then still some until we reach corners)
+            double checkDistance = _chunkWidth * span;
+
+            IEnumerable<Chunk> chunks = GetChunksInSpan(target, span);
+
+            foreach (Chunk chunk in chunks)
+            {
+                foreach ((T item, (double, double) coord) in chunk.Elements)
+                {
+                    double distance = DistanceBetween(
+                        coord,
+                        target
+                    );
+
+                    if (distance <= checkDistance) // within the "circle" covered by the span (not the chunk rectangle - we will otherwise "cut off" the items)
+                    {
+                        if (bestItem == null ||
+                            distance < bestDistance)
+                        {
+                            bestDistance = distance;
+                            bestItem = item;
+                        }
+                    }
+                }
+            }
+            
+            if (bestItem != null) // found in current "circle", so we don't need to check further
+                break;
+
+            if (checkDistance >= maxPossibleDistance)
+                break;
+
+        } while (true);
+
+        return bestItem;
+    }
+
     public T? GetClosest((double x, double y) target, double maxDistance)
     {
         IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
@@ -138,6 +211,7 @@ public class Chunker<T> where T : IChunkerItem
         return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList(); // todo: this is terribly slow 
     }
 
+    
     [Pure]
     private IEnumerable<Chunk> GetChunksInRange((double x, double y) target, double distance)
     {
@@ -148,6 +222,34 @@ public class Chunker<T> where T : IChunkerItem
             for (int y = chFY; y <= chTY; y++)
                 if (_chunks[x, y] != null)
                     yield return _chunks[x, y]!;
+    }
+
+    [Pure]
+    private IEnumerable<Chunk> GetChunksInSpan((double x, double y) target, int span)
+    {
+        (int chX, int chY) = GetChunkIndex(target.x, target.y);
+
+        int fX = Math.Max(0, chX - span);
+        int tX = Math.Min(_size - 1, chX + span);
+        int fY = Math.Max(0, chY - span);
+        int tY = Math.Min(_size - 1, chY + span);
+        
+        for (int x = fX; x <= tX; x++)
+            for (int y = fY; y <= tY; y++)
+                if (_chunks[x, y] != null)
+                    yield return _chunks[x, y]!;
+    }
+
+    [Pure]
+    private bool DoesSpanCoverAllChunks((double x, double y) target, int span)
+    {
+        (int chX, int chY) = GetChunkIndex(target.x, target.y);
+
+        return
+            chX - span <= 0 &&
+            chY - span <= 0 &&
+            chX + span >= _size - 1 &&
+            chY + span >= _size - 1;
     }
 
 
@@ -176,6 +278,7 @@ public class Chunker<T> where T : IChunkerItem
         double dx = coord.x - target.x;
         double dy = coord.y - target.y;
         return Math.Sqrt(dx * dx + dy * dy);
+        // todo: nonsqrt version
     }
 
 

@@ -218,16 +218,13 @@ public abstract class OsmData
     {
         // Optimized for bulk
 
-        if (maxDistance != null) // cannot really optimize if we need all anyway
+        if (_elements.Count > 100) // no point when overhead is likely to exceed the individual search speed-up
         {
-            if (_elements.Count > 100) // no point when overhead is likely to exceed the individual search speed-up
-            {
-                _chunker ??= new Chunker<OsmElement>(_elements);
+            _chunker ??= new Chunker<OsmElement>(_elements);
 
-                OsmElement? closest = _chunker.GetClosest(coord.ToCartesian(), maxDistance.Value);
-                closestDistance = closest != null ? OsmGeoTools.DistanceBetween(coord, closest.GetAverageCoord()) : null;
-                return closest;
-            }
+            OsmElement? closest = _chunker.GetClosest(coord.ToCartesian(), maxDistance);
+            closestDistance = closest != null ? OsmGeoTools.DistanceBetween(coord, closest.GetAverageCoord()) : null;
+            return closest;
         }
 
         // Manually

@@ -10,6 +10,9 @@ namespace Osmalyzer;
 /// </summary>
 public class Chunker<T> where T : IChunkerItem
 {
+    public int Count => _elements.Count;
+
+    
     private readonly List<(T, (double, double))> _elements;
 
     private readonly int _size; 
@@ -76,6 +79,7 @@ public class Chunker<T> where T : IChunkerItem
         }
     }
 
+    
     [Pure]
     public List<T> GetAllClosest((double x, double y) target, double maxDistance)
     {
@@ -106,7 +110,7 @@ public class Chunker<T> where T : IChunkerItem
             }
         }
 
-        Console.WriteLine("Have " + _elements.Count + ", seeked " + count + " in " + chunkCount + " chunks, in range " + nodes.Count);
+        //Console.WriteLine("Have " + _elements.Count + ", seeked " + count + " in " + chunkCount + " chunks, in range " + nodes.Count);
         
         // TODO: PROPER SORTED INSERTION
         return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList(); // todo: this is terribly slow 

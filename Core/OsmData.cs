@@ -290,7 +290,7 @@ public abstract class OsmData
 
         if (maxDistance != null) // cannot really optimize if we need all anyway
         {
-            if (_elements.Count > 20) // no point when overhead is likely to exceed the individual search speed-up
+            if (_elements.Count > 100) // no point when overhead is likely to exceed the individual search speed-up
             {
                 _chunker ??= new Chunker<OsmElement>(_elements);
 

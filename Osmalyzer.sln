@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Osmalyzer", "Osmalyzer\Osma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreTests", "CoreTests\CoreTests.csproj", "{DD4978F6-2524-4851-96DC-E2BFE7C059C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreBenchmarks", "CoreBenchmarks\CoreBenchmarks.csproj", "{3116886B-B5BD-428B-A938-7B552DD0200F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{DD4978F6-2524-4851-96DC-E2BFE7C059C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD4978F6-2524-4851-96DC-E2BFE7C059C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD4978F6-2524-4851-96DC-E2BFE7C059C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3116886B-B5BD-428B-A938-7B552DD0200F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3116886B-B5BD-428B-A938-7B552DD0200F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3116886B-B5BD-428B-A938-7B552DD0200F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3116886B-B5BD-428B-A938-7B552DD0200F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -34,17 +34,17 @@ public static class Runner
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(),
             // new StreetNameAnalyzer(),
-            new RigaDrinkingWaterAnalyzer(),
+            // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
-            new GlikaOaksAnalyzer(),
+            // new GlikaOaksAnalyzer(),
             // new ElviShopNetworkAnalyzer(),
             // new LatsShopNetworkAnalyzer(),
             // new RimiShopNetworkAnalyzer(),
             // new MaximaShopNetworkAnalyzer(),
-            // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
+            new CulturalMonumentsAnalyzer(),
         };
 #endif
 

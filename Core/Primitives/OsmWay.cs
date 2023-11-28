@@ -8,7 +8,7 @@ public class OsmWay : OsmElement
 {
     public override OsmElementType ElementType => OsmElementType.Way;
 
-    public override string OsmViewUrl => "https://www.openstreetmap.org/way/" + Id;
+    public override string OsmViewUrl => "https://osm.org/way/" + Id;
 
     [PublicAPI]
     public IReadOnlyList<OsmNode> Nodes => nodes.AsReadOnly();

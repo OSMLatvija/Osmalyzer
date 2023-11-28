@@ -8,7 +8,7 @@ public class OsmNode : OsmElement
 {
     public override OsmElementType ElementType => OsmElementType.Node;
 
-    public override string OsmViewUrl => "https://www.openstreetmap.org/node/" + Id;
+    public override string OsmViewUrl => "https://osm.org/node/" + Id;
 
     [PublicAPI]
     public readonly OsmCoord coord;

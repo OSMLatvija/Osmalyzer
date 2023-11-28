@@ -9,7 +9,7 @@ public struct OsmCoord : IEquatable<OsmCoord>
     public readonly double lon;
 
 
-    public string OsmUrl => @"https://www.openstreetmap.org/#map=19/" + lat.ToString("F5") + @"/" + lon.ToString("F5");
+    public string OsmUrl => @"https://osm.org/#map=19/" + lat.ToString("F5") + @"/" + lon.ToString("F5");
 
         
     public OsmCoord(double lat, double lon)

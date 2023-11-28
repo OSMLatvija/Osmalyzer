@@ -9,7 +9,7 @@ public class OsmRelation : OsmElement
 {
     public override OsmElementType ElementType => OsmElementType.Relation;
 
-    public override string OsmViewUrl => "https://www.openstreetmap.org/relation/" + Id;
+    public override string OsmViewUrl => "https://osm.org/relation/" + Id;
 
     [PublicAPI]
     public IReadOnlyList<OsmRelationMember> Members => members.AsReadOnly();

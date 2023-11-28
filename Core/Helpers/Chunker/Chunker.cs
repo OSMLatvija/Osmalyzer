@@ -80,24 +80,48 @@ public class Chunker<T> where T : IChunkerItem
     }
 
     
+    public T? GetClosest((double x, double y) target, double maxDistance)
+    {
+        IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
+
+        T? bestItem = default;
+        double bestDistance = double.MaxValue;
+
+        foreach (Chunk chunk in chunks)
+        {
+            foreach ((T item, (double, double) coord) in chunk.Elements)
+            {
+                double distance = DistanceBetween(
+                    coord,
+                    target
+                );
+
+                if (distance <= maxDistance) // within max distance
+                {
+                    if (bestItem == null ||
+                        distance < bestDistance)
+                    {
+                        bestDistance = distance;
+                        bestItem = item;
+                    }
+                }
+            }
+        }
+
+        return bestItem;
+    }
+    
     [Pure]
     public List<T> GetAllClosest((double x, double y) target, double maxDistance)
     {
         IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
 
         List<(double, T)> nodes = new List<(double, T)>(); // todo: presorted collection
-
-        int count = 0;
-        int chunkCount = 0;
         
         foreach (Chunk chunk in chunks)
         {
-            chunkCount++;
-            
             foreach ((T item, (double, double) coord) in chunk.Elements)
             {
-                count++;
-                
                 double distance = DistanceBetween(
                     coord,
                     target
@@ -109,8 +133,6 @@ public class Chunker<T> where T : IChunkerItem
                 }
             }
         }
-
-        //Console.WriteLine("Have " + _elements.Count + ", seeked " + count + " in " + chunkCount + " chunks, in range " + nodes.Count);
         
         // TODO: PROPER SORTED INSERTION
         return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList(); // todo: this is terribly slow 

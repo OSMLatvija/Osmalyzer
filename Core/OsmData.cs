@@ -216,6 +216,22 @@ public abstract class OsmData
     [Pure]
     private OsmElement? GetClosestElementToRaw(OsmCoord coord, double? maxDistance, out double? closestDistance)
     {
+        // Optimized for bulk
+
+        if (maxDistance != null) // cannot really optimize if we need all anyway
+        {
+            if (_elements.Count > 100) // no point when overhead is likely to exceed the individual search speed-up
+            {
+                _chunker ??= new Chunker<OsmElement>(_elements);
+
+                OsmElement? closest = _chunker.GetClosest(coord.ToCartesian(), maxDistance.Value);
+                closestDistance = closest != null ? OsmGeoTools.DistanceBetween(coord, closest.GetAverageCoord()) : null;
+                return closest;
+            }
+        }
+
+        // Manually
+
         OsmElement? bestElement = null;
         double bestDistance = 0.0;
         closestDistance = null;

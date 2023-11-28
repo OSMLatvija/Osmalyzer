@@ -30,7 +30,7 @@ public static class Runner
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
-            // new AutotransportaDirekcijaAnalyzer(),
+            new AutotransportaDirekcijaAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(),
             // new StreetNameAnalyzer(),
@@ -44,7 +44,7 @@ public static class Runner
             // new MaximaShopNetworkAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
-            new CulturalMonumentsAnalyzer(),
+            //new CulturalMonumentsAnalyzer(),
         };
 #endif
 

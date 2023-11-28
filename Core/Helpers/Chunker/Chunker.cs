@@ -7,35 +7,32 @@ namespace Osmalyzer;
 
 /// <summary>
 /// Welcome to Chunks®, please choose your Chunks®.
+/// Provides efficient spatial lookup of items. 
 /// </summary>
 public class Chunker<T> where T : IChunkerItem
 {
-    // todo: move non-chunked logic here and let this handle element "limits" 
-    
     public int Count => _elements.Count;
 
     
     private readonly List<(T, (double, double))> _elements;
 
-    private readonly int _size; 
+    private readonly int _span; 
     
     private readonly double _minX; 
     private readonly double _minY; 
     private readonly double _maxX; 
     private readonly double _maxY; 
     
-    private readonly double _width;
-    private readonly double _height;
+    private readonly double _size;
     
-    private readonly double _chunkWidth;
-    private readonly double _chunkHeight;
+    private readonly double _chunkSize;
 
-    private readonly Chunk?[,] _chunks;
+    private Chunk?[,]? _chunks;
 
 
     public Chunker(IList<T> items, int chunkCountPerDimension = 50)
     {
-        _size = chunkCountPerDimension; 
+        _span = chunkCountPerDimension; 
 
         _elements = new List<(T, (double, double))>(items.Count);
         
@@ -59,29 +56,16 @@ public class Chunker<T> where T : IChunkerItem
         if (_minX >= _maxX) _maxX += 10f;
         if (_minY >= _maxY) _maxY += 10f;
 
-        _width = _maxX - _minX;
-        _height = _maxY - _minY;
+        _size = _maxX - _minX;
 
-        _chunkWidth = _width / _size;
-        _chunkHeight = _height / _size;
-
-        _chunks = new Chunk[_size, _size];
-
-        foreach ((T element, (double x, double y) coord) in _elements)
-        {
-            (int chX, int chY) = GetChunkIndex(coord.x, coord.y);
-
-            if (_chunks[chX, chY] == null)
-            {
-                (double fx, double fy, double tx, double ty) = GetChunkExtent(chX, chY);
-                _chunks[chX, chY] = new Chunk(fx, fy, tx, ty);
-            }
-
-            _chunks[chX, chY]!.Add(element, coord);
-        }
+        _chunkSize = _size / _span;
+        
+        // Note that we don't make chunks yet - until first lookup, we may not even need to
     }
 
 
+    [Pure]
+    [PublicAPI]
     public T? GetClosest((double x, double y) target, double? maxDistance)
     {
         return 
@@ -89,9 +73,63 @@ public class Chunker<T> where T : IChunkerItem
                 GetClosest(target) : 
                 GetClosest(target, maxDistance.Value);
     }
-    
+
+    [Pure]
+    [PublicAPI]
     public T? GetClosest((double x, double y) target)
     {
+        if (_elements.Count > 100) // no point with fewer because overhead is likely to exceed the individual search speed-up
+            return GetClosestChunked(target);
+
+        return GetClosestManually(target, null);
+    }
+
+    [Pure]
+    [PublicAPI]
+    public T? GetClosest((double x, double y) target, double maxDistance)
+    {
+        if (_elements.Count > 100) // no point with fewer because overhead is likely to exceed the individual search speed-up
+            return GetClosestChunked(target, maxDistance);
+
+        return GetClosestManually(target, maxDistance);
+    }
+
+    [Pure]
+    [PublicAPI]
+    public List<T> GetAllClosest((double x, double y) target, double? maxDistance)
+    {
+        return 
+            maxDistance == null ? 
+                GetAllClosest(target) : 
+                GetAllClosest(target, maxDistance.Value);
+    }
+
+    [Pure]
+    [PublicAPI]
+    public List<T> GetAllClosest((double x, double y) target)
+    {
+        // Without max distance, there is no point doing chunked logic - we will end up covering the entire grid anyway 
+        
+        return GetAllClosestManually(target);
+    }
+
+    [Pure]
+    [PublicAPI]
+    public List<T> GetAllClosest((double x, double y) target, double maxDistance)
+    {
+        if (_elements.Count > 100) // no point with fewer because overhead is likely to exceed the individual search speed-up
+            return GetAllClosestChunked(target, maxDistance);
+
+        return GetAllClosestManually(target, maxDistance);
+    }
+
+
+    [Pure]
+    private T? GetClosestChunked((double x, double y) target)
+    {
+        if (_chunks == null)
+            ChunkItUp();
+
         T? bestItem = default;
         double bestDistance = double.MaxValue;
 
@@ -117,7 +155,7 @@ public class Chunker<T> where T : IChunkerItem
             
             // We can check the chunks that our current "circle" covers,
             // starting at neighbouring 1 chunk away and up to all of them (and then still some until we reach corners)
-            double checkDistance = _chunkWidth * span;
+            double checkDistance = _chunkSize * span;
 
             IEnumerable<Chunk> chunks = GetChunksInSpan(target, span);
 
@@ -153,8 +191,12 @@ public class Chunker<T> where T : IChunkerItem
         return bestItem;
     }
 
-    public T? GetClosest((double x, double y) target, double maxDistance)
+    [Pure]
+    private T? GetClosestChunked((double x, double y) target, double maxDistance)
     {
+        if (_chunks == null)
+            ChunkItUp();
+        
         IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
 
         T? bestItem = default;
@@ -169,7 +211,7 @@ public class Chunker<T> where T : IChunkerItem
                     target
                 );
 
-                if (distance <= maxDistance) // within max distance
+                if (distance <= maxDistance)
                 {
                     if (bestItem == null ||
                         distance < bestDistance)
@@ -183,13 +225,39 @@ public class Chunker<T> where T : IChunkerItem
 
         return bestItem;
     }
-    
+
     [Pure]
-    public List<T> GetAllClosest((double x, double y) target, double maxDistance)
+    private T? GetClosestManually((double x, double y) target, double? maxDistance)
     {
+        T? bestElement = default;
+        double bestDistance = 0.0;
+
+        foreach ((T element, (double, double) coord) in _elements)
+        {
+            double distance = DistanceBetween(target, coord);
+
+            if (maxDistance == null || distance <= maxDistance)
+            {
+                if (bestElement == null || bestDistance > distance)
+                {
+                    bestElement = element;
+                    bestDistance = distance;
+                }
+            }
+        }
+
+        return bestElement;
+    }
+
+    [Pure]
+    private List<T> GetAllClosestChunked((double x, double y) target, double maxDistance)
+    {
+        if (_chunks == null)
+            ChunkItUp();
+        
         IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
 
-        SortedList<double, T> nodes = new SortedList<double, T>();
+        SortedList<double, T> nodes = new SortedList<double, T>(DuplicateKeyComparer.Instance);
         
         foreach (Chunk chunk in chunks)
         {
@@ -200,7 +268,7 @@ public class Chunker<T> where T : IChunkerItem
                     target
                 );
 
-                if (distance <= maxDistance) // within max distance
+                if (distance <= maxDistance)
                 {
                     nodes.Add(distance, item);
                 }
@@ -210,7 +278,64 @@ public class Chunker<T> where T : IChunkerItem
         return nodes.Values.ToList();
     }
 
-    
+    [Pure]
+    private List<T> GetAllClosestManually((double x, double y) target)
+    {
+        // This is literally just sorting...
+        // Hopefully, this doesn't really get called much
+        
+        SortedList<double, T> nodes = new SortedList<double, T>(DuplicateKeyComparer.Instance);
+        
+        foreach ((T item, (double, double) coord) in _elements)
+        {
+            double distance = DistanceBetween(
+                coord,
+                target
+            );
+
+            nodes.Add(distance, item);
+        }
+        
+        return nodes.Values.ToList();
+    }
+
+    [Pure]
+    private List<T> GetAllClosestManually((double x, double y) target, double maxDistance)
+    {
+        SortedList<double, T> nodes = new SortedList<double, T>(DuplicateKeyComparer.Instance);
+        
+        foreach ((T item, (double, double) coord) in _elements)
+        {
+            double distance = DistanceBetween(
+                coord,
+                target
+            );
+
+            if (distance <= maxDistance)
+            {
+                nodes.Add(distance, item);
+            }
+        }
+        
+        return nodes.Values.ToList();
+    }
+
+    private void ChunkItUp()
+    {
+        if (_chunks != null) throw new InvalidOperationException();
+        
+        _chunks = new Chunk[_span, _span];
+
+        foreach ((T element, (double x, double y) coord) in _elements)
+        {
+            (int chX, int chY) = GetChunkIndex(coord.x, coord.y);
+
+            _chunks[chX, chY] ??= new Chunk();
+
+            _chunks[chX, chY]!.Add(element, coord);
+        }
+    }
+
     [Pure]
     private IEnumerable<Chunk> GetChunksInRange((double x, double y) target, double distance)
     {
@@ -219,7 +344,7 @@ public class Chunker<T> where T : IChunkerItem
 
         for (int x = chFX; x <= chTX; x++)
             for (int y = chFY; y <= chTY; y++)
-                if (_chunks[x, y] != null)
+                if (_chunks![x, y] != null)
                     yield return _chunks[x, y]!;
     }
 
@@ -229,50 +354,26 @@ public class Chunker<T> where T : IChunkerItem
         (int chX, int chY) = GetChunkIndex(target.x, target.y);
 
         int fX = Math.Max(0, chX - span);
-        int tX = Math.Min(_size - 1, chX + span);
+        int tX = Math.Min(_span - 1, chX + span);
         int fY = Math.Max(0, chY - span);
-        int tY = Math.Min(_size - 1, chY + span);
+        int tY = Math.Min(_span - 1, chY + span);
         
         for (int x = fX; x <= tX; x++)
             for (int y = fY; y <= tY; y++)
-                if (_chunks[x, y] != null)
+                if (_chunks![x, y] != null)
                     yield return _chunks[x, y]!;
     }
 
     [Pure]
-    private bool DoesSpanCoverAllChunks((double x, double y) target, int span)
-    {
-        (int chX, int chY) = GetChunkIndex(target.x, target.y);
-
-        return
-            chX - span <= 0 &&
-            chY - span <= 0 &&
-            chX + span >= _size - 1 &&
-            chY + span >= _size - 1;
-    }
-
-
-    [Pure]
     private (int chX, int chY) GetChunkIndex(double x, double y)
     {
-        int xc = Math.Max(0, Math.Min(_size - 1, (int)Math.Floor((x - _minX) / _width * _size)));
-        int yc = Math.Max(0, Math.Min(_size - 1, (int)Math.Floor((y - _minY) / _height * _size)));
+        int xc = Math.Max(0, Math.Min(_span - 1, (int)Math.Floor((x - _minX) / _size * _span)));
+        int yc = Math.Max(0, Math.Min(_span - 1, (int)Math.Floor((y - _minY) / _size * _span)));
         return (xc, yc);
     }
 
     [Pure]
-    private (double fx, double fy, double tx, double ty) GetChunkExtent(int chX, int chY)
-    {
-        double fx = chX == 0 ? double.MinValue : _minX + chX * _chunkWidth;
-        double fy = chY == 0 ? double.MinValue : _minY + chY * _chunkHeight;
-        double tx = chX == _size - 1 ? double.MaxValue : fx + _chunkWidth;
-        double ty = chX == _size - 1 ? double.MaxValue : fy + _chunkHeight;
-        
-        return (fx, fy, tx, ty);
-    }
-
-    [Pure]
-    private double DistanceBetween((double x, double y) coord, (double x, double y) target)
+    private static double DistanceBetween((double x, double y) coord, (double x, double y) target)
     {
         double dx = coord.x - target.x;
         double dy = coord.y - target.y;
@@ -283,30 +384,27 @@ public class Chunker<T> where T : IChunkerItem
 
     private class Chunk
     {
-        public readonly double fromX;
-        public readonly double fromY;
-        public readonly double toX;
-        public readonly double toY;
-        
-        
         public IEnumerable<(T, (double, double))> Elements => _elements.AsEnumerable();
 
 
         private readonly List<(T, (double, double))> _elements = new List<(T, (double, double))>();
-
-        
-        public Chunk(double fromX, double fromY, double toX, double toY)
-        {
-            this.fromX = fromX;
-            this.fromY = fromY;
-            this.toX = toX;
-            this.toY = toY;
-        }
 
 
         public void Add(T element, (double, double) coord)
         {
             _elements.Add((element, coord));
         }
+    }
+
+
+    /// <summary>
+    /// Comparer for handling equal keys when we don't care in which order they sort, just that they do.
+    /// </summary>
+    private class DuplicateKeyComparer : IComparer<double>
+    {
+        public static DuplicateKeyComparer Instance { get; } = new DuplicateKeyComparer();
+        private DuplicateKeyComparer() { }
+        
+        public int Compare(double x, double y) => x < y ? -1 : 1;
     }
 }

@@ -196,18 +196,23 @@ public abstract class OsmData
     }
 
     [Pure]
+    [PublicAPI]
     public OsmElement? GetClosestElementTo(OsmCoord coord)
     {
         return GetClosestElementToRaw(coord, null, out _);
     }
 
     [Pure]
+    [PublicAPI]
     public OsmElement? GetClosestElementTo(OsmCoord coord, double maxDistance)
     {
-        return GetClosestElementToRaw(coord, maxDistance, out _);
+        _chunker ??= new Chunker<OsmElement>(_elements);
+
+        return _chunker.GetClosest(coord.ToCartesian(), maxDistance);
     }
 
     [Pure]
+    [PublicAPI]
     public OsmElement? GetClosestElementTo(OsmCoord coord, double maxDistance, out double? closestDistance)
     {
         return GetClosestElementToRaw(coord, maxDistance, out closestDistance);
@@ -216,106 +221,52 @@ public abstract class OsmData
     [Pure]
     private OsmElement? GetClosestElementToRaw(OsmCoord coord, double? maxDistance, out double? closestDistance)
     {
-        // Optimized for bulk
+        _chunker ??= new Chunker<OsmElement>(_elements);
 
-        if (_elements.Count > 100) // no point when overhead is likely to exceed the individual search speed-up
-        {
-            _chunker ??= new Chunker<OsmElement>(_elements);
-
-            OsmElement? closest = _chunker.GetClosest(coord.ToCartesian(), maxDistance);
-            closestDistance = closest != null ? OsmGeoTools.DistanceBetween(coord, closest.GetAverageCoord()) : null;
-            return closest;
-        }
-
-        // Manually
-
-        OsmElement? bestElement = null;
-        double bestDistance = 0.0;
-        closestDistance = null;
-
-        foreach (OsmElement element in _elements)
-        {
-            double distance = OsmGeoTools.DistanceBetween(
-                coord,
-                element.GetAverageCoord()
-            );
-
-            if (maxDistance == null || distance <= maxDistance) // within max distance
-            {
-                if (bestElement == null || bestDistance > distance)
-                {
-                    bestElement = element;
-                    bestDistance = distance;
-                    closestDistance = distance;
-                }
-            }
-            else if (closestDistance == null || distance <= closestDistance)
-            {
-                closestDistance = distance;
-            }
-        }
-
-        return bestElement;
+        OsmElement? closest = _chunker.GetClosest(coord.ToCartesian(), maxDistance);
+        
+        // We also need to return the actual distance
+        closestDistance = closest != null ? OsmGeoTools.DistanceBetween(coord, closest.GetAverageCoord()) : null;
+        
+        return closest;
     }
         
         
     [Pure]
+    [PublicAPI]
     public List<OsmNode> GetClosestNodesTo(OsmCoord coord, double maxDistance)
     {
         return GetClosestElementsTo(coord, maxDistance).OfType<OsmNode>().ToList();
     }
         
     [Pure]
+    [PublicAPI]
     public List<OsmWay> GetClosestWaysTo(OsmCoord coord, double maxDistance)
     {
         return GetClosestElementsTo(coord, maxDistance).OfType<OsmWay>().ToList();
     }
         
     [Pure]
+    [PublicAPI]
     public List<OsmRelation> GetClosestRelationsTo(OsmCoord coord, double maxDistance)
     {
         return GetClosestElementsTo(coord, maxDistance).OfType<OsmRelation>().ToList();
     }
         
     [Pure]
+    [PublicAPI]
     public List<OsmElement> GetClosestElementsTo(OsmCoord coord, double maxDistance)
     {
         return GetClosestElementsToRaw(coord, maxDistance);
     }
 
     [Pure]
+    [PublicAPI]
     private List<OsmElement> GetClosestElementsToRaw(OsmCoord coord, double? maxDistance)
     {
-        // Optimized for bulk
-
-        if (maxDistance != null) // cannot really optimize if we need all anyway
-        {
-            if (_elements.Count > 100) // no point when overhead is likely to exceed the individual search speed-up
-            {
-                _chunker ??= new Chunker<OsmElement>(_elements);
-
-                return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance.Value);
-            }
-        }
-
-        // Manually
+        _chunker ??= new Chunker<OsmElement>(_elements);
         
-        List<(double, OsmElement)> nodes = new List<(double, OsmElement)>(); // todo: presorted collection
-
-        foreach (OsmElement element in _elements)
-        {
-            double distance = OsmGeoTools.DistanceBetween(
-                coord,
-                element.GetAverageCoord() 
-            );
-
-            if (maxDistance == null || distance <= maxDistance) // within max distance
-            {
-                nodes.Add((distance, element));
-            }
-        }
-
-        return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList(); // todo: this is terribly slow 
+        return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance);
     }
 
         

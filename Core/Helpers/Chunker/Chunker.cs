@@ -189,7 +189,7 @@ public class Chunker<T> where T : IChunkerItem
     {
         IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
 
-        List<(double, T)> nodes = new List<(double, T)>(); // todo: presorted collection
+        SortedList<double, T> nodes = new SortedList<double, T>();
         
         foreach (Chunk chunk in chunks)
         {
@@ -202,13 +202,12 @@ public class Chunker<T> where T : IChunkerItem
 
                 if (distance <= maxDistance) // within max distance
                 {
-                    nodes.Add((distance, item));
+                    nodes.Add(distance, item);
                 }
             }
         }
         
-        // TODO: PROPER SORTED INSERTION
-        return nodes.OrderBy(n => n.Item1).Select(n => n.Item2).ToList(); // todo: this is terribly slow 
+        return nodes.Values.ToList();
     }
 
     

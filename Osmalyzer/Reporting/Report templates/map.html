@@ -1,0 +1,47 @@
+﻿<div class="map" id="map_GI_" style="width: 1200px; height: 600px;"></div>
+<script>
+    var map_GI_ = L.map('map_GI_').setView([56.906, 24.505], 7);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 21,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    }).addTo(map_GI_);
+    
+    <!--CLUSTERED-->    
+    var mainMarkerGroup_GI_ = L.markerClusterGroup(
+        {
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: false,
+            animate: false,
+            disableClusteringAtZoom: 14,
+            maxClusterRadius: 30,
+            iconCreateFunction: function (cluster) {
+                var icon = 'grayCircle';
+                var red = false;
+                var green = false;
+                cluster.getAllChildMarkers().forEach(function (marker) {
+                    if (marker.group == 'green') green = true;
+                    if (marker.group == 'red') red = true;
+                });
+                if (red && green) icon = 'redGreenCircle';
+                else if (red) icon = 'redCircle';
+                else if (green) icon = 'greenCircle';
+                return L.divIcon({ html: '<img src=\'icons/'+icon+'.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });
+            }
+        });
+    <!--END CLUSTERED-->
+    <!--UNCLUSTERED-->
+    var mainMarkerGroup_GI_ = L.featureGroup();
+    <!--END UNCLUSTERED-->
+
+    var subMarkerGroup_GI_ = L.featureGroup().addTo(map_GI_);
+    map_GI_.removeLayer(subMarkerGroup_GI_);
+    
+    <!--MARKERS-->
+    
+    mainMarkerGroup_GI_.addTo(map_GI_);
+    map_GI_.on('zoomend', function() {
+        if (map_GI_.getZoom() < 14) map_GI_.removeLayer(subMarkerGroup_GI_);
+        else map_GI_.addLayer(subMarkerGroup_GI_);
+    });
+    map_GI_.fitBounds(mainMarkerGroup_GI_.getBounds(), { maxZoom: 12, animate: false });
+</script>

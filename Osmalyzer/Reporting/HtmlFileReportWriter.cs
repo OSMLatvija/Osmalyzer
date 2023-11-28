@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -115,97 +116,7 @@ public class HtmlFileReportWriter : ReportWriter
                     bodyContent += "<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>" + Environment.NewLine;
 
             if (group.MapPointEntries.Count > 0)
-            {
-                bodyContent += $@"<div class=""map"" id=""map{g}"" style=""width: 1200px; height: 600px;""></div>" + Environment.NewLine;
-
-                bodyContent += @"<script>" + Environment.NewLine;
-
-                bodyContent += @$"var map"+g+$@" = L.map('map{g}').setView([56.906, 24.505], 7);" + Environment.NewLine;
-                bodyContent += @"L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {" + Environment.NewLine;
-                bodyContent += @"    maxZoom: 21," + Environment.NewLine;
-                bodyContent += @"    attribution: '&copy; <a href=""https://www.openstreetmap.org/copyright"">OSM</a>'" + Environment.NewLine;
-                bodyContent += @"}).addTo(map"+g+@");" + Environment.NewLine;
-
-                bool clustered = group.MapPointEntries.Count > 100;
-                if (clustered)
-                {
-                    bodyContent += @"var mainMarkerGroup" + g + @" = L.markerClusterGroup(
-{
-    showCoverageOnHover: false,
-    spiderfyOnMaxZoom: false,
-    animate: false,
-    disableClusteringAtZoom: 14,
-    maxClusterRadius: 30,
-    iconCreateFunction: function (cluster) {        
-        var icon = 'grayCircle';
-        var red = false;
-        var green = false;
-        cluster.getAllChildMarkers().forEach(function (marker) {
-            if (marker.group == 'green') green = true;
-            if (marker.group == 'red') red = true;
-        });
-        if (red && green) icon = 'redGreenCircle';
-        else if (red) icon = 'redCircle';
-        else if (green) icon = 'greenCircle';
-        return L.divIcon({ html: '<img src=\'icons/'+icon+'.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });
-    }
-});" + Environment.NewLine; // TODO: de-hardcode icon to group relation, have cluster icon define this
-                }
-                else
-                {
-                    bodyContent += @"var mainMarkerGroup" + g + @" = L.featureGroup();" + Environment.NewLine;
-                }
-
-                bodyContent += @"var subMarkerGroup"+g+@" = L.featureGroup().addTo(map"+g+@");" + Environment.NewLine;
-                bodyContent += @"map"+g+@".removeLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
-                
-                foreach (MapPointReportEntry mapPointEntry in group.MapPointEntries)
-                {
-                    string lat = mapPointEntry.Coord.lat.ToString("F6");
-                    string lon = mapPointEntry.Coord.lon.ToString("F6");
-                    string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
-                    string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                    LeafletIcon icon = EmbeddedIcons.Icons.OfType<LeafletIcon>().First(i => i.Styles.Contains(mapPointEntry.Style));
-                    bodyContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(" + StyleMarkerGroup(icon.Group) + g + $@").bindPopup(""{text} {mapUrl}"").group=""" + IconVisualColorGroup(icon.ColorGroup) + @""";" + Environment.NewLine;
-
-                    [Pure]
-                    static string StyleMarkerGroup(LeafletIcon.IconGroup group)
-                    {
-                        return group switch
-                        {
-                            LeafletIcon.IconGroup.Main => "mainMarkerGroup",
-                            LeafletIcon.IconGroup.Sub  => "subMarkerGroup",
-
-                            _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
-                        };
-                    }
-                    
-                    [Pure]
-                    static string IconVisualColorGroup(ColorGroup group)
-                    {
-                        return group switch
-                        {
-                            ColorGroup.Green => "green",
-                            ColorGroup.Red   => "red",
-                            ColorGroup.Other => "none",
-
-                            _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
-                        };
-                    }
-                }
-                
-                bodyContent += @"mainMarkerGroup"+g+@".addTo(map" + g + @");" + Environment.NewLine;
-
-                // Hide sub icons/group when zoomed out, only show when close
-                bodyContent += @"map"+g+@".on('zoomend', function() {" + Environment.NewLine;
-                bodyContent += @"    if (map"+g+@".getZoom() < 14) map"+g+@".removeLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
-                bodyContent += @"    else map"+g+@".addLayer(subMarkerGroup"+g+@");" + Environment.NewLine;
-                bodyContent += @"});" + Environment.NewLine;
-                
-                bodyContent += @"map"+g+@".fitBounds(mainMarkerGroup"+g+@".getBounds(), { maxZoom: 12, animate: false });" + Environment.NewLine;
-
-                bodyContent += @"</script>" + Environment.NewLine;
-            }
+                bodyContent += MakeMapContent(group.MapPointEntries, g);
 
             if (group.IssueEntryCount > 0)
             {
@@ -234,6 +145,77 @@ public class HtmlFileReportWriter : ReportWriter
         bodyContent += "Provided as is; mistakes possible." + Environment.NewLine;
 
         return bodyContent;
+
+        
+        [Pure]
+        string MakeMapContent(IList<MapPointReportEntry> entries, int index)
+        {
+            string mapContent = GetMapTemplate();
+
+            bool clustered = entries.Count > 100; // todo: always? per-report?
+
+            if (clustered)
+            {
+                mapContent = StripSection(mapContent, "UNCLUSTERED");
+                mapContent = StripMarkers(mapContent, "CLUSTERED");
+            }
+            else
+            {
+                mapContent = StripSection(mapContent, "CLUSTERED");
+                mapContent = StripMarkers(mapContent, "UNCLUSTERED");
+            }
+
+            string markerContent = MakeMarkerContent(entries, index);
+            
+            mapContent = ReplaceMarker(mapContent, "MARKERS", markerContent);
+            
+            mapContent = mapContent.Replace("_GI_", index.ToString());
+
+            return mapContent;
+        }
+
+        [Pure]
+        string MakeMarkerContent(IEnumerable<MapPointReportEntry> entries, int index)
+        {
+            string markerContent = ""; 
+            
+            foreach (MapPointReportEntry mapPointEntry in entries)
+            {
+                string lat = mapPointEntry.Coord.lat.ToString("F6");
+                string lon = mapPointEntry.Coord.lon.ToString("F6");
+                string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
+                string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
+                LeafletIcon icon = EmbeddedIcons.Icons.OfType<LeafletIcon>().First(i => i.Styles.Contains(mapPointEntry.Style));
+                markerContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(" + StyleMarkerGroup(icon.Group) + index + $@").bindPopup(""{text} {mapUrl}"").group=""" + IconVisualColorGroup(icon.ColorGroup) + @""";" + Environment.NewLine;
+
+                [Pure]
+                static string StyleMarkerGroup(LeafletIcon.IconGroup group)
+                {
+                    return group switch
+                    {
+                        LeafletIcon.IconGroup.Main => "mainMarkerGroup",
+                        LeafletIcon.IconGroup.Sub  => "subMarkerGroup",
+
+                        _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
+                    };
+                }
+
+                [Pure]
+                static string IconVisualColorGroup(ColorGroup group)
+                {
+                    return group switch
+                    {
+                        ColorGroup.Green => "green",
+                        ColorGroup.Red   => "red",
+                        ColorGroup.Other => "none",
+
+                        _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
+                    };
+                }
+            }
+
+            return markerContent;
+        }
     }
 
     [Pure]
@@ -280,7 +262,21 @@ public class HtmlFileReportWriter : ReportWriter
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
         
-        const string resourcePath = @"Osmalyzer.Reporting.report template.html";
+        const string resourcePath = @"Osmalyzer.Reporting.Report_templates.main.html";
+
+        using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
+        
+        using StreamReader reader = new StreamReader(stream);
+        
+        return reader.ReadToEnd();
+    }
+
+    [Pure]
+    private static string GetMapTemplate()
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        
+        const string resourcePath = @"Osmalyzer.Reporting.Report_templates.map.html";
 
         using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
         
@@ -299,6 +295,15 @@ public class HtmlFileReportWriter : ReportWriter
         int endIndex = output.IndexOf(toString, startIndex, StringComparison.Ordinal);
         
         return output[.. startIndex] + output[(endIndex + toString.Length) ..];
+    }
+
+    [Pure]
+    private static string StripMarkers(string output, string marker)
+    {
+        string fromString = "<!--" + marker + "-->" + Environment.NewLine;
+        string toString = "<!--END " + marker + "-->" + Environment.NewLine;
+        
+        return output.Replace(fromString, "").Replace(toString, "");
     }
 
     [Pure]

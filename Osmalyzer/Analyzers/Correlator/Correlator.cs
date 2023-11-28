@@ -11,7 +11,7 @@ namespace Osmalyzer;
 /// </summary>
 public class Correlator<T> where T : ICorrelatorItem
 {
-    private readonly OsmDataExtract _osmElements;
+    private readonly OsmData _osmElements;
         
     private readonly List<T> _dataItems;
         
@@ -19,7 +19,7 @@ public class Correlator<T> where T : ICorrelatorItem
 
 
     public Correlator(
-        OsmDataExtract osmElements, 
+        OsmData osmElements, 
         List<T> dataItems, 
         params CorrelatorParamater[] paramaters)
     {
@@ -67,6 +67,8 @@ public class Correlator<T> where T : ICorrelatorItem
         
         List<T> unmatchableItems = new List<T>();
 
+        int __i = 0;
+        
         do
         {
             // We run this in a loop, because finding the closest element to a data item
@@ -81,6 +83,9 @@ public class Correlator<T> where T : ICorrelatorItem
             
             foreach (T dataItem in currentlyMatching)
             {
+                Console.WriteLine("Matching " + __i + "...");
+                __i++;
+                
                 List<OsmElement> matchableOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, unmatchDistance);
 
                 if (matchCallback != null)

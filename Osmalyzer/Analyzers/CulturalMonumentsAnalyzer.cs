@@ -24,12 +24,13 @@ public class CulturalMonumentsAnalyzer : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract osmHeritages = osmMasterData.Filter(
-            new HasKey("heritage")
+            new OrMatch(
+                new HasKey("name"),
+                new HasKey("heritage"),
+                new HasKey("heritage:operator"),
+                new HasKey("ref:LV:vkpai")
+            )
         );
-        
-        // heritage=2
-        // heritage:operator=vkpai
-        // ref:LV:vkpai=*
             
         // Get monument data
 
@@ -45,30 +46,73 @@ public class CulturalMonumentsAnalyzer : Analyzer
             new DataItemLabelsParamater("monument", "monuments"),
             new MatchCallbackParameter<CulturalMonument>(DoesOsmNodeMatchMonument),
             new OsmElementPreviewValue("name", false),
-            new LoneElementAllowanceCallbackParameter(IsOsmMonumentAnExpectedHeritagePoi)
+            new LoneElementAllowanceCallbackParameter(IsOsmElementHeritagePoiByItself)
         );
         
         [Pure]
         static bool DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
         {
+            // ref:LV:vkpai
+            
             string? osmRefStr = osmElement.GetValue("ref:LV:vkpai");
 
             if (osmRefStr != null)
+            {
                 if (int.TryParse(osmRefStr, out int osmRef))
                     if (osmRef == monument.ReferenceID)
-                        return true;
+                        return true; // todo: better match
+                
+                return true;
+            }
 
-            return osmElement.GetValue("name")?.ToLower() == monument.Name;
+            // name
+            
+            if (osmElement.GetValue("name")?.ToLower() == monument.Name)
+                return true;
+            
+            // heritage
+            
+            string? heritageStr = osmElement.GetValue("heritage");
+
+            if (heritageStr != null)
+            {
+                if (int.TryParse(osmRefStr, out int osmRef))
+                    if (osmRef == 2)
+                        return true; // todo: better match
+                
+                return true;
+            }
+
+            // heritage:operator
+            
+            string? herOperStr = osmElement.GetValue("heritage:operator");
+
+            if (herOperStr != null)
+            {
+                herOperStr = herOperStr.ToLower();
+
+                if (herOperStr.Contains("vkpai") ||
+                    herOperStr.Contains("valsts kultūras pieminekļu aizsardzības inspekcija"))
+                    return true; // todo: better match
+                
+                return true;
+            }
+            
+            return false;
         }
 
         [Pure]
-        static bool IsOsmMonumentAnExpectedHeritagePoi(OsmElement osmElement)
+        static bool IsOsmElementHeritagePoiByItself(OsmElement osmElement)
         {
+            // ref:LV:vkpai
+            
             string? osmRefStr = osmElement.GetValue("ref:LV:vkpai");
 
             if (osmRefStr != null)
                 return true;
 
+            // heritage:operator
+            
             string? herOper = osmElement.GetValue("heritage:operator");
 
             if (herOper != null)

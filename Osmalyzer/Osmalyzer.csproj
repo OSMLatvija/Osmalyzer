@@ -26,6 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="Reporting\Report templates\marker.js" />
       <None Remove="Reporting\Report templates\report map template.html" />
       <EmbeddedResource Include="Reporting\Report templates\map.html" />
       <None Remove="Reporting\Report templates\report template.html" />

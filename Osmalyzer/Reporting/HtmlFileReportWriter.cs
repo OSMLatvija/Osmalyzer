@@ -165,7 +165,7 @@ public class HtmlFileReportWriter : ReportWriter
                 mapContent = StripLocators(mapContent, "UNCLUSTERED");
             }
 
-            string markerContent = MakeMarkerContent(entries, index);
+            string markerContent = MakeMarkersContent(entries, index);
             
             mapContent = ReplaceLocatorBlock(mapContent, "MARKERS", markerContent);
             
@@ -175,19 +175,43 @@ public class HtmlFileReportWriter : ReportWriter
         }
 
         [Pure]
-        string MakeMarkerContent(IEnumerable<MapPointReportEntry> entries, int index)
+        string MakeMarkersContent(IEnumerable<MapPointReportEntry> entries, int index)
         {
-            string markerContent = ""; 
+            string markersContent = ""; 
             
             foreach (MapPointReportEntry mapPointEntry in entries)
+                markersContent += MakeMarkerContent(mapPointEntry);
+
+            return markersContent;
+            
+
+            string MakeMarkerContent(MapPointReportEntry mapPointEntry)
             {
+                string markerContent = GetMarkerTemplate(); 
+
                 string lat = mapPointEntry.Coord.lat.ToString("F6");
                 string lon = mapPointEntry.Coord.lon.ToString("F6");
-                string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
-                string mapUrl = @"<a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
-                LeafletIcon icon = EmbeddedIcons.Icons.OfType<LeafletIcon>().First(i => i.Styles.Contains(mapPointEntry.Style));
-                markerContent += $@"L.marker([{lat}, {lon}], {{icon: " + icon.Name + $@"}}).addTo(" + StyleMarkerGroup(icon.Group) + index + $@").bindPopup(""{text} {mapUrl}"").group=""" + IconVisualColorGroup(icon.ColorGroup) + @""";" + Environment.NewLine;
+                markerContent = markerContent.Replace("_LAT_", lat);
+                markerContent = markerContent.Replace("_LON_", lon);
 
+                LeafletIcon icon = EmbeddedIcons.Icons.OfType<LeafletIcon>().First(i => i.Styles.Contains(mapPointEntry.Style));
+
+                string markerGroup = StyleMarkerGroup(icon.Group);
+                markerContent = markerContent.Replace("_FEATURES_", markerGroup);
+                
+                string iconName = icon.Name;
+                markerContent = markerContent.Replace("_ICON_", iconName);
+
+                string iconGroup = IconVisualColorGroup(icon.ColorGroup);
+                markerContent = markerContent.Replace("_GROUP_", iconGroup);
+
+                string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
+                text += @" <a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
+                markerContent = markerContent.Replace("_TEXT_", text);
+
+                return markerContent;
+
+                
                 [Pure]
                 static string StyleMarkerGroup(LeafletIcon.IconGroup group)
                 {
@@ -213,8 +237,6 @@ public class HtmlFileReportWriter : ReportWriter
                     };
                 }
             }
-
-            return markerContent;
         }
     }
 
@@ -277,6 +299,20 @@ public class HtmlFileReportWriter : ReportWriter
         Assembly assembly = Assembly.GetExecutingAssembly();
         
         const string resourcePath = @"Osmalyzer.Reporting.Report_templates.map.html";
+
+        using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
+        
+        using StreamReader reader = new StreamReader(stream);
+        
+        return reader.ReadToEnd();
+    }
+
+    [Pure]
+    private static string GetMarkerTemplate()
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        
+        const string resourcePath = @"Osmalyzer.Reporting.Report_templates.marker.js";
 
         using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
         

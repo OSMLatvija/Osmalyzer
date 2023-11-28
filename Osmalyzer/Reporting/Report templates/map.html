@@ -36,11 +36,11 @@
     var sg_GI_ = L.featureGroup().addTo(map_GI_);
     map_GI_.removeLayer(sg_GI_);
 
-    const markerList = [
+    const markerList_GI_ = [
 <!--MARKERS-->
     ];
 
-    markerList.forEach(data => {
+    markerList_GI_.forEach(data => {
         L.marker([data[0], data[1]], {icon: data[2]})
             .addTo(data[3])
             .bindPopup(data[5])

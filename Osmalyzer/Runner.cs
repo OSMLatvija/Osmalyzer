@@ -30,21 +30,21 @@ public static class Runner
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
-            new AutotransportaDirekcijaAnalyzer(),
+            // new AutotransportaDirekcijaAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // //new MicroReservesAnalyzer(), -- it fails from localhost, no idea why
             // new StreetNameAnalyzer(),
-            new RigaDrinkingWaterAnalyzer(),
+            // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
-            new GlikaOaksAnalyzer(),
-            new ElviShopNetworkAnalyzer(),
+            // new GlikaOaksAnalyzer(),
+            // new ElviShopNetworkAnalyzer(),
             // new LatsShopNetworkAnalyzer(),
             // new RimiShopNetworkAnalyzer(),
             // new MaximaShopNetworkAnalyzer(),
             new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
-            //new CulturalMonumentsAnalyzer(),
+            // new CulturalMonumentsAnalyzer(),
         };
 #endif
 

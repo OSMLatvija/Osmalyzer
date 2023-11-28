@@ -17,11 +17,14 @@ public static class Program
 [Orderer(SummaryOrderPolicy.Method)]
 public class ChunkerBenchmark
 {
-    [Params(30000, 100000, 300000)]
-    public int ItemCount { get; set; }
+    //[Params(30000, 100000, 300000)]
+    public int ItemCount { get; set; } = 300000;
     
-    [Params(0.00001, 0.0001, 0.001)] 
-    public double SeekDistance { get; set; }
+    [Params(5, 10, 15, 20, 25, 30, 40, 50, 75, 100)]
+    public int ChunkCount { get; set; }
+    
+    //[Params(0.00003, 0.0003, 0.003)] 
+    public double SeekDistance { get; set; } = 0.0003;
 
     public int NumberOfLookups { get; set; } = 5000;
     
@@ -33,27 +36,29 @@ public class ChunkerBenchmark
     // Each monument will lookup against OSM elements within that distance
     // So above parameters benchmark within an order of magnitude of that example
     
-    // | Method        | ItemCount | SeekDistance | Mean      | Error     | StdDev    |
-    // |-------------- |---------- |------------- |----------:|----------:|----------:|
-    // | BenchChunking | 30000     | 1E-05        |  1.686 ms | 0.0044 ms | 0.0041 ms |
-    // | BenchChunking | 30000     | 0.0001       |  1.661 ms | 0.0061 ms | 0.0057 ms |
-    // | BenchChunking | 30000     | 0.001        |  1.666 ms | 0.0063 ms | 0.0059 ms |
-    // | BenchChunking | 100000    | 1E-05        |  6.768 ms | 0.1296 ms | 0.1273 ms |
-    // | BenchChunking | 100000    | 0.0001       |  6.803 ms | 0.1308 ms | 0.1454 ms |
-    // | BenchChunking | 100000    | 0.001        |  6.729 ms | 0.1219 ms | 0.1081 ms |
-    // | BenchChunking | 300000    | 1E-05        | 29.463 ms | 0.5824 ms | 0.8536 ms |
-    // | BenchChunking | 300000    | 0.0001       | 29.740 ms | 0.5367 ms | 0.5020 ms |
-    // | BenchChunking | 300000    | 0.001        | 29.551 ms | 0.5687 ms | 0.5585 ms |
-    // | BenchLookup   | 30000     | 1E-05        |  7.401 ms | 0.1037 ms | 0.0919 ms |
-    // | BenchLookup   | 30000     | 0.0001       |  7.546 ms | 0.1148 ms | 0.1074 ms |
-    // | BenchLookup   | 30000     | 0.001        |  7.748 ms | 0.1136 ms | 0.1062 ms |
-    // | BenchLookup   | 100000    | 1E-05        | 22.936 ms | 0.4566 ms | 0.5607 ms |
-    // | BenchLookup   | 100000    | 0.0001       | 22.696 ms | 0.4511 ms | 0.4633 ms |
-    // | BenchLookup   | 100000    | 0.001        | 23.905 ms | 0.4779 ms | 0.4470 ms |
-    // | BenchLookup   | 300000    | 1E-05        | 74.889 ms | 1.0476 ms | 0.9799 ms |
-    // | BenchLookup   | 300000    | 0.0001       | 75.778 ms | 0.7185 ms | 0.6721 ms |
-    // | BenchLookup   | 300000    | 0.001        | 75.698 ms | 0.6309 ms | 0.5902 ms |
-    
+    // | Method        | ChunkCount | Mean      | Error    | StdDev   |
+    // |-------------- |----------- |----------:|---------:|---------:|
+    // | BenchChunking | 5          |  18.21 ms | 0.287 ms | 0.268 ms |
+    // | BenchChunking | 10         |  17.27 ms | 0.331 ms | 0.418 ms |
+    // | BenchChunking | 15         |  23.96 ms | 0.460 ms | 0.614 ms |
+    // | BenchChunking | 20         |  23.15 ms | 0.460 ms | 0.492 ms |
+    // | BenchChunking | 25         |  21.48 ms | 0.168 ms | 0.157 ms |
+    // | BenchChunking | 30         |  27.54 ms | 0.421 ms | 0.373 ms |
+    // | BenchChunking | 40         |  24.35 ms | 0.151 ms | 0.118 ms |
+    // | BenchChunking | 50         |  25.86 ms | 0.505 ms | 0.757 ms |
+    // | BenchChunking | 75         |  31.78 ms | 0.634 ms | 0.651 ms |
+    // | BenchChunking | 100        |  35.40 ms | 0.373 ms | 0.349 ms |
+    // | BenchLookup   | 5          | 486.46 ms | 0.996 ms | 0.931 ms |
+    // | BenchLookup   | 10         | 135.08 ms | 0.299 ms | 0.280 ms |
+    // | BenchLookup   | 15         |  76.78 ms | 1.496 ms | 1.470 ms |
+    // | BenchLookup   | 20         |  55.60 ms | 1.034 ms | 0.916 ms |
+    // | BenchLookup   | 25         |  45.50 ms | 0.311 ms | 0.291 ms |
+    // | BenchLookup   | 30         |  41.48 ms | 0.792 ms | 0.740 ms |
+    // | BenchLookup   | 40         |  36.42 ms | 0.549 ms | 0.513 ms |
+    // | BenchLookup   | 50         |  35.78 ms | 0.566 ms | 0.530 ms |
+    // | BenchLookup   | 75         |  36.61 ms | 0.453 ms | 0.424 ms |
+    // | BenchLookup   | 100        |  33.79 ms | 0.659 ms | 0.902 ms |
+
     private List<TestItem> _items = null!;
 
     
@@ -79,7 +84,7 @@ public class ChunkerBenchmark
     [Benchmark]
     public int BenchChunking()
     {
-        Chunker<TestItem> chunker = new Chunker<TestItem>(_items);
+        Chunker<TestItem> chunker = new Chunker<TestItem>(_items, ChunkCount);
 
         return chunker.Count;
     }
@@ -87,7 +92,7 @@ public class ChunkerBenchmark
     [Benchmark]
     public int BenchLookup()
     {
-        Chunker<TestItem> chunker = new Chunker<TestItem>(_items);
+        Chunker<TestItem> chunker = new Chunker<TestItem>(_items, ChunkCount);
 
         Random random = new Random(42);
 

@@ -31,8 +31,10 @@ public class Chunker<T> where T : IChunkerItem
     private readonly Chunk?[,] _chunks;
 
 
-    public Chunker(IList<T> items)
+    public Chunker(IList<T> items, int chunkCountPerDimension = 50)
     {
+        _size = chunkCountPerDimension; 
+
         _elements = new List<(T, (double, double))>(items.Count);
         
         _minX = double.MaxValue;
@@ -57,8 +59,6 @@ public class Chunker<T> where T : IChunkerItem
 
         _width = _maxX - _minX;
         _height = _maxY - _minY;
-
-        _size = 16; 
 
         _chunkWidth = _width / _size;
         _chunkHeight = _height / _size;

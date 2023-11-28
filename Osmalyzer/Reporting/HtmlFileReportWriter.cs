@@ -20,16 +20,16 @@ public class HtmlFileReportWriter : ReportWriter
         string output = GetOutputTemplate();
 
         if (!report.NeedMap)
-            output = StripSection(output, "MAP");
+            output = StripLocatorBlock(output, "MAP");
 
         string title = HttpUtility.HtmlEncode(report.Name);
         
-        output = ReplaceMarker(output, "TITLE", title);
-        output = ReplaceMarker(output, "DESCR_TITLE", title);
+        output = ReplaceLocatorBlock(output, "TITLE", title);
+        output = ReplaceLocatorBlock(output, "DESCR_TITLE", title);
 
         string bodyContent = BuildContent(report, title);
         
-        output = ReplaceMarker(output, "BODY", bodyContent);
+        output = ReplaceLocatorBlock(output, "BODY", bodyContent);
 
         // Write
         
@@ -156,18 +156,18 @@ public class HtmlFileReportWriter : ReportWriter
 
             if (clustered)
             {
-                mapContent = StripSection(mapContent, "UNCLUSTERED");
-                mapContent = StripMarkers(mapContent, "CLUSTERED");
+                mapContent = StripLocatorBlock(mapContent, "UNCLUSTERED");
+                mapContent = StripLocators(mapContent, "CLUSTERED");
             }
             else
             {
-                mapContent = StripSection(mapContent, "CLUSTERED");
-                mapContent = StripMarkers(mapContent, "UNCLUSTERED");
+                mapContent = StripLocatorBlock(mapContent, "CLUSTERED");
+                mapContent = StripLocators(mapContent, "UNCLUSTERED");
             }
 
             string markerContent = MakeMarkerContent(entries, index);
             
-            mapContent = ReplaceMarker(mapContent, "MARKERS", markerContent);
+            mapContent = ReplaceLocatorBlock(mapContent, "MARKERS", markerContent);
             
             mapContent = mapContent.Replace("_GI_", index.ToString());
 
@@ -286,10 +286,10 @@ public class HtmlFileReportWriter : ReportWriter
     }
 
     [Pure]
-    private static string StripSection(string output, string marker)
+    private static string StripLocatorBlock(string output, string locatorId)
     {
-        string fromString = "<!--" + marker + "-->";
-        string toString = "<!--END " + marker + "-->";
+        string fromString = "<!--" + locatorId + "-->";
+        string toString = "<!--END " + locatorId + "-->";
 
         int startIndex = output.IndexOf(fromString, StringComparison.Ordinal);
         int endIndex = output.IndexOf(toString, startIndex, StringComparison.Ordinal);
@@ -298,21 +298,21 @@ public class HtmlFileReportWriter : ReportWriter
     }
 
     [Pure]
-    private static string StripMarkers(string output, string marker)
+    private static string StripLocators(string output, string locatorId)
     {
-        string fromString = "<!--" + marker + "-->" + Environment.NewLine;
-        string toString = "<!--END " + marker + "-->" + Environment.NewLine;
+        string fromString = "<!--" + locatorId + "-->" + Environment.NewLine;
+        string toString = "<!--END " + locatorId + "-->" + Environment.NewLine;
         
         return output.Replace(fromString, "").Replace(toString, "");
     }
 
     [Pure]
-    private static string ReplaceMarker(string output, string marker, string value)
+    private static string ReplaceLocatorBlock(string output, string locatorId, string value)
     {
-        string markerString = "<!--" + marker + "-->";
+        string locatorString = "<!--" + locatorId + "-->";
 
-        int index = output.IndexOf(markerString, StringComparison.Ordinal);
+        int index = output.IndexOf(locatorString, StringComparison.Ordinal);
         
-        return output[.. index] + value + output[(index + markerString.Length) ..];
+        return output[.. index] + value + output[(index + locatorString.Length) ..];
     }
 }

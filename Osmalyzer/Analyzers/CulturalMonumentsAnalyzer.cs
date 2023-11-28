@@ -134,8 +134,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
-            new MatchedFarPairBatch(),
-            new UnmatchedOsmBatch()
+            new MatchedFarPairBatch()
         );
     }
 }

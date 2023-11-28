@@ -67,8 +67,6 @@ public class Correlator<T> where T : ICorrelatorItem
         
         List<T> unmatchableItems = new List<T>();
 
-        int __i = 0;
-        
         do
         {
             // We run this in a loop, because finding the closest element to a data item
@@ -83,9 +81,6 @@ public class Correlator<T> where T : ICorrelatorItem
             
             foreach (T dataItem in currentlyMatching)
             {
-                Console.WriteLine("Matching " + __i + "...");
-                __i++;
-                
                 List<OsmElement> matchableOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, unmatchDistance);
 
                 if (matchCallback != null)

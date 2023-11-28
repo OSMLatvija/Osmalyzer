@@ -287,14 +287,15 @@ public abstract class OsmData
     private List<OsmElement> GetClosestElementsToRaw(OsmCoord coord, double? maxDistance)
     {
         // Optimized for bulk
-        
-        if (_chunker != null)
-            return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance);
 
-        if (_elements.Count > 20) // no point when overhead is likely to exceed the individual search speed-up
+        if (maxDistance != null) // cannot really optimize if we need all anyway
         {
-            _chunker = new Chunker<OsmElement>(_elements);
-            return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance);
+            if (_elements.Count > 20) // no point when overhead is likely to exceed the individual search speed-up
+            {
+                _chunker ??= new Chunker<OsmElement>(_elements);
+
+                return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance.Value);
+            }
         }
 
         // Manually

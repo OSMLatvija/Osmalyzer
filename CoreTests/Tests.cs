@@ -13,7 +13,7 @@ public class Tests
             new TestItem(15, 15),
             new TestItem(15, 5),
             new TestItem(5, 15),
-            new TestItem(50, 50)
+            new TestItem(30, 30)
         };
         
         Chunker<TestItem> chunker = new Chunker<TestItem>(nodes);
@@ -28,8 +28,8 @@ public class Tests
     {
         public (double x, double y) ChunkCoord => (_x, _y);
 
-        private int _x;
-        private int _y;
+        private readonly int _x;
+        private readonly int _y;
 
         public TestItem(int x, int y)
         {

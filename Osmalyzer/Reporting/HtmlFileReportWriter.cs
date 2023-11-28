@@ -149,11 +149,11 @@ public class HtmlFileReportWriter : ReportWriter
         else if (green) icon = 'greenCircle';
         return L.divIcon({ html: '<img src=\'icons/'+icon+'.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });
     }
-}).addTo(map" + g + @");" + Environment.NewLine; // TODO: de-hardcode icon to group relation, have cluster icon define this
+});" + Environment.NewLine; // TODO: de-hardcode icon to group relation, have cluster icon define this
                 }
                 else
                 {
-                    bodyContent += @"var mainMarkerGroup" + g + @" = L.featureGroup().addTo(map" + g + @");" + Environment.NewLine;
+                    bodyContent += @"var mainMarkerGroup" + g + @" = L.featureGroup();" + Environment.NewLine;
                 }
 
                 bodyContent += @"var subMarkerGroup"+g+@" = L.featureGroup().addTo(map"+g+@");" + Environment.NewLine;
@@ -193,6 +193,8 @@ public class HtmlFileReportWriter : ReportWriter
                         };
                     }
                 }
+                
+                bodyContent += @"mainMarkerGroup"+g+@".addTo(map" + g + @");" + Environment.NewLine;
 
                 // Hide sub icons/group when zoomed out, only show when close
                 bodyContent += @"map"+g+@".on('zoomend', function() {" + Environment.NewLine;

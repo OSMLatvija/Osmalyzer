@@ -1,1 +1,1 @@
-﻿    L.marker([_LAT_, _LON_], {icon: _ICON_}).addTo(_FEATURES__GI_).bindPopup("_TEXT_").group="_GROUP_";
+﻿    [_LAT_,_LON_,_ICON_,_FEATURES__GI_,"_GROUP_","_TEXT_"],    

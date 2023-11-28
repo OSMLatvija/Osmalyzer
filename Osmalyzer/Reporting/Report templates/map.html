@@ -7,7 +7,7 @@
     }).addTo(map_GI_);
     
     <!--CLUSTERED-->    
-    var mainMarkerGroup_GI_ = L.markerClusterGroup(
+    var mg_GI_ = L.markerClusterGroup(
         {
             showCoverageOnHover: false,
             spiderfyOnMaxZoom: false,
@@ -30,18 +30,27 @@
         });
     <!--END CLUSTERED-->
     <!--UNCLUSTERED-->
-    var mainMarkerGroup_GI_ = L.featureGroup();
+    var mg_GI_ = L.featureGroup();
     <!--END UNCLUSTERED-->
 
-    var subMarkerGroup_GI_ = L.featureGroup().addTo(map_GI_);
-    map_GI_.removeLayer(subMarkerGroup_GI_);
-    
+    var sg_GI_ = L.featureGroup().addTo(map_GI_);
+    map_GI_.removeLayer(sg_GI_);
+
+    const markerList = [
 <!--MARKERS-->
-    
-    mainMarkerGroup_GI_.addTo(map_GI_);
-    map_GI_.on('zoomend', function() {
-        if (map_GI_.getZoom() < 14) map_GI_.removeLayer(subMarkerGroup_GI_);
-        else map_GI_.addLayer(subMarkerGroup_GI_);
+    ];
+
+    markerList.forEach(data => {
+        L.marker([data[0], data[1]], {icon: data[2]})
+            .addTo(data[3])
+            .bindPopup(data[5])
+            .group=data[4];
     });
-    map_GI_.fitBounds(mainMarkerGroup_GI_.getBounds(), { maxZoom: 12, animate: false });
+    
+    mg_GI_.addTo(map_GI_);
+    map_GI_.on('zoomend', function() {
+        if (map_GI_.getZoom() < 14) map_GI_.removeLayer(sg_GI_);
+        else map_GI_.addLayer(sg_GI_);
+    });
+    map_GI_.fitBounds(mg_GI_.getBounds(), { maxZoom: 12, animate: false });
 </script>

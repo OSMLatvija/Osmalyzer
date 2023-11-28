@@ -221,8 +221,8 @@ public class HtmlFileReportWriter : ReportWriter
                     
                     return group switch
                     {
-                        LeafletIcon.IconGroup.Main => "mainMarkerGroup",
-                        LeafletIcon.IconGroup.Sub  => "subMarkerGroup",
+                        LeafletIcon.IconGroup.Main => "mg",
+                        LeafletIcon.IconGroup.Sub  => "sg",
 
                         _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
                     };

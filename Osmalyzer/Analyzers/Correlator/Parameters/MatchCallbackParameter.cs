@@ -18,10 +18,10 @@ public class MatchCallbackParameter<T> : CorrelatorParamater where T : ICorrelat
 }
 
 
-public enum MatchStrength
+public enum MatchStrength // value is used for comparison
 {
-    Unmatched,
-    Weak,
-    Mediocre,
-    Strong
+    Unmatched = -1,
+    Regular = 0,
+    Good = 1,
+    Strong = 2
 }

@@ -257,7 +257,8 @@ public class RoadLaw
 
                         AppendSharedCode(singleCode);
                     }
-                    else if (EndWithStreetSuffix(trimmedEntry))
+                    else if (FuzzyAddressMatcher.EndsWithStreetNameSuffix(trimmedEntry) ||
+                             trimmedEntry == "Tilts") // hmmm
                     {
                         //string streetName = trimmedEntry;
                     }
@@ -274,25 +275,6 @@ public class RoadLaw
                     else
                     {
                         throw new Exception();
-                    }
-
-
-                    static bool EndWithStreetSuffix(string entry)
-                    {
-                        return
-                            entry == "Tilts" || // hmmm
-                            entry.EndsWith("iela") ||
-                            entry.EndsWith("bulvāris") ||
-                            entry.EndsWith("ceļš") ||
-                            entry.EndsWith("gatve") ||
-                            entry.EndsWith("šoseja") ||
-                            entry.EndsWith("tilts") ||
-                            entry.EndsWith("dambis") ||
-                            entry.EndsWith("aleja") ||
-                            entry.EndsWith("apvedceļš") ||
-                            entry.EndsWith("laukums") ||
-                            entry.EndsWith("prospekts") ||
-                            entry.EndsWith("pārvads");
                     }
                 }
             }

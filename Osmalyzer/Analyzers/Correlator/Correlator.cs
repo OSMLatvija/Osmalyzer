@@ -97,15 +97,15 @@ public class Correlator<T> where T : ICorrelatorItem
                     MatchStrength strength = 
                         matchCallback != null ? 
                             matchCallback(dataItem, osmElement) : 
-                            MatchStrength.Weak;
+                            MatchStrength.Regular;
 
                     if (strength == MatchStrength.Unmatched)
                         continue;
                     
                     double allowedDistance = strength switch
                     {
-                        MatchStrength.Weak     => unmatchDistance,
-                        MatchStrength.Mediocre => unmatchDistance + mediocreMatchExtraDistance,
+                        MatchStrength.Regular     => unmatchDistance,
+                        MatchStrength.Good => unmatchDistance + mediocreMatchExtraDistance,
                         MatchStrength.Strong   => unmatchDistance + strongMatchExtraDistance,
 
                         _ => throw new ArgumentOutOfRangeException()
@@ -133,12 +133,13 @@ public class Correlator<T> where T : ICorrelatorItem
                         
                         if (allMatchedElements.TryGetValue(closeElement, out Match? previous))
                         {
-                            if (distance < previous.Distance)
+                            if (strength > previous.MatchStrength || // stronger match always better, if if it's further away
+                                (strength == previous.MatchStrength && distance < previous.Distance)) // same-strength match only better if it's closer
                             {
                                 // We are closer than previous match, so replace us as the best match and requeue the other item
                                 
                                 allMatchedElements.Remove(closeElement);
-                                allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, far));
+                                allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far));
                                 itemsToBeMatched.Add(previous.Item); // requeue other
                                 matched = true;
                                 break;
@@ -148,7 +149,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         {
                             // This element wasn't yet matched, so claim it as our best match 
                             
-                            allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, far));
+                            allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far));
                             matched = true;
                             break;
                         }
@@ -276,7 +277,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            match.Item.ReportString() + " matched OSM element " +
+                            match.Item.ReportString() + " " + MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " at " + match.Distance.ToString("F0") + " m",
                             MapPointStyle.CorrelatorPairMatched
@@ -320,10 +321,9 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            "Matching OSM element " +
-                            OsmElementReportText(match.Element) + " found around " +
-                            match.Item.ReportString() + ", " +
-                            "but it's far away (" + match.Distance.ToString("F0") + " m), expected at " + match.Item.Coord.OsmUrl,
+                            match.Item.ReportString() + " " + MatchStrengthLabel(match.MatchStrength) + " OSM element " +
+                            OsmElementReportText(match.Element) +
+                            " but it's far away at " + match.Distance.ToString("F0") + " m",
                             MapPointStyle.CorrelatorPairMatchedFar
                         )
                     );
@@ -372,6 +372,18 @@ public class Correlator<T> where T : ICorrelatorItem
                     )
                 );
             }
+        }
+
+        string MatchStrengthLabel(MatchStrength strength)
+        {
+            return strength switch
+            {
+                MatchStrength.Regular => "matched",
+                MatchStrength.Good    => "well-matched",
+                MatchStrength.Strong  => "strongly-matched",
+
+                _ => throw new ArgumentOutOfRangeException(nameof(strength), strength, null)
+            };
         }
         
         // todo: legend
@@ -450,15 +462,18 @@ public class Correlator<T> where T : ICorrelatorItem
         public OsmElement Element { get; }
 
         public double Distance { get; }
+        
+        public MatchStrength MatchStrength { get; }
 
         public bool Far { get; }
 
         
-        public Match(T item, OsmElement element, double distance, bool far)
+        public Match(T item, OsmElement element, double distance, MatchStrength matchStrength, bool far)
         {
             Item = item;
             Element = element;
             Distance = distance;
+            MatchStrength = matchStrength;
             Far = far;
         }
     }

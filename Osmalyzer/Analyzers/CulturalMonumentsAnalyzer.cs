@@ -67,7 +67,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
                     if (osmRef == monument.ReferenceID)
                         return MatchStrength.Strong;
                 
-                return MatchStrength.Mediocre;
+                return MatchStrength.Good;
             }
             
             // heritage
@@ -78,9 +78,9 @@ public class CulturalMonumentsAnalyzer : Analyzer
             {
                 if (int.TryParse(osmRefStr, out int osmRef))
                     if (osmRef == 2)
-                        return MatchStrength.Mediocre;
+                        return MatchStrength.Good;
                 
-                return MatchStrength.Weak;
+                return MatchStrength.Regular;
             }
 
             // heritage:operator
@@ -93,9 +93,9 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
                 if (herOperStr.Contains("vkpai") ||
                     herOperStr.Contains("valsts kultūras pieminekļu aizsardzības inspekcija"))
-                    return MatchStrength.Mediocre;
+                    return MatchStrength.Good;
                 
-                return MatchStrength.Weak;
+                return MatchStrength.Regular;
             }
             
             return MatchStrength.Unmatched;

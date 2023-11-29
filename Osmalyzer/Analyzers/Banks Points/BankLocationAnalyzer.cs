@@ -74,9 +74,9 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
             Correlator<TItem> dataComparer = new Correlator<TItem>(
                 osmPoints,
                 dataPoints,
-                new MatchDistanceParamater(50),
-                new MatchFarDistanceParamater(150), // some are stupidly far, like at the opposite end of a shopping center from the website's point
-                new MatchExtraDistanceParamater(MatchStrength.Strong, 850), // allow really far for exact matches
+                new MatchDistanceParamater(100),
+                new MatchFarDistanceParamater(300), // some are stupidly far, like at the opposite end of a shopping center from the website's point
+                new MatchExtraDistanceParamater(MatchStrength.Strong, 700), // allow really far for exact matches
                 new DataItemLabelsParamater(BankName + " " + labelSingular, BankName + " " + labelPlural),
                 new LoneElementAllowanceCallbackParameter(_ => false), // all our points represent a POI supposedly for this bank, none can be standalone
                 new MatchCallbackParameter<TItem>(GetMatchStrength)
@@ -85,7 +85,10 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
             [Pure]
             MatchStrength GetMatchStrength(TItem point, OsmElement element)
             {
-                return MatchStrength.Mediocre;
+                if (FuzzyAddressMatcher.Matches(element, point.Address))
+                    return MatchStrength.Strong;
+                
+                return MatchStrength.Good;
             }
 
             // Parse and report primary matching and location correlation

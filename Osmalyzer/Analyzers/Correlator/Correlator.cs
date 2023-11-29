@@ -51,6 +51,7 @@ public class Correlator<T> where T : ICorrelatorItem
             
         double matchDistance = _paramaters.OfType<MatchDistanceParamater>().FirstOrDefault()?.Distance ?? 15;
         double unmatchDistance = _paramaters.OfType<MatchFarDistanceParamater>().FirstOrDefault()?.FarDistance ?? 75;
+        if (unmatchDistance < matchDistance) throw new InvalidOperationException();
         Func<T, OsmElement, MatchStrength>? matchCallback = _paramaters.OfType<MatchCallbackParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
         Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceCallbackParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
         string dataItemLabelSingular = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelSingular ?? "item";
@@ -59,10 +60,9 @@ public class Correlator<T> where T : ICorrelatorItem
         double mediocreMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
         double strongMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
 
-        double seekDistance = matchDistance;
-        seekDistance = Math.Max(matchDistance, seekDistance);
-        seekDistance = Math.Max(matchDistance + mediocreMatchExtraDistance, seekDistance);
-        seekDistance = Math.Max(matchDistance + strongMatchExtraDistance, seekDistance);
+        double seekDistance = unmatchDistance;
+        seekDistance = Math.Max(unmatchDistance + mediocreMatchExtraDistance, seekDistance);
+        seekDistance = Math.Max(unmatchDistance + strongMatchExtraDistance, seekDistance);
 
         List<OsmElementPreviewValue> osmElementPreviewParams = _paramaters.OfType<OsmElementPreviewValue>().ToList();
 
@@ -89,20 +89,33 @@ public class Correlator<T> where T : ICorrelatorItem
             foreach (T dataItem in currentlyMatching)
             {
                 List<OsmElement> allClosestOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, seekDistance);
-                
-                // todo: seek distance
 
-                List<(OsmElement element, MatchStrength strength)> matchableOsmElements; 
+                List<(OsmElement element, MatchStrength strength, double distance)> matchableOsmElements = new List<(OsmElement element, MatchStrength strength, double distance)>();
+
+                foreach (OsmElement osmElement in allClosestOsmElements)
+                {
+                    MatchStrength strength = 
+                        matchCallback != null ? 
+                            matchCallback(dataItem, osmElement) : 
+                            MatchStrength.Weak;
+
+                    if (strength == MatchStrength.Unmatched)
+                        continue;
                     
-                if (matchCallback != null)
-                    matchableOsmElements = allClosestOsmElements
-                                           .Select(e => (e, matchCallback(dataItem, e)))
-                                           .Where(m => m.Item2 != MatchStrength.Unmatched)
-                                           .ToList();
-                else
-                    matchableOsmElements = allClosestOsmElements
-                                           .Select(e => (e, MatchStrength.Strong))
-                                           .ToList();
+                    double allowedDistance = strength switch
+                    {
+                        MatchStrength.Weak     => unmatchDistance,
+                        MatchStrength.Mediocre => unmatchDistance + mediocreMatchExtraDistance,
+                        MatchStrength.Strong   => unmatchDistance + strongMatchExtraDistance,
+
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    double actualDistance = OsmGeoTools.DistanceBetween(dataItem.Coord, osmElement.GetAverageCoord());
+
+                    if (actualDistance <= allowedDistance)
+                        matchableOsmElements.Add((osmElement, strength, actualDistance));
+                }
                 
                 if (matchableOsmElements.Count == 0)
                 {
@@ -113,11 +126,10 @@ public class Correlator<T> where T : ICorrelatorItem
                 {
                     bool matched = false;
                     
-                    foreach ((OsmElement closeElement, MatchStrength strength) in matchableOsmElements) // this is sorted closest first
+                    foreach ((OsmElement closeElement, MatchStrength strength, double distance) in matchableOsmElements) // this is sorted closest first
                     {
-                        double distance = OsmGeoTools.DistanceBetween(dataItem.Coord, closeElement.GetAverageCoord());
-
                         bool far = distance > matchDistance;
+                        // Even with extra distance, it's still far, so reporting it that way
                         
                         if (allMatchedElements.TryGetValue(closeElement, out Match? previous))
                         {

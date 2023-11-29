@@ -76,7 +76,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
                 dataPoints,
                 new MatchDistanceParamater(50),
                 new MatchFarDistanceParamater(150), // some are stupidly far, like at the opposite end of a shopping center from the website's point
-                new MatchExtraDistanceParamater(MatchStrength.Strong, 350),
+                new MatchExtraDistanceParamater(MatchStrength.Strong, 850), // allow really far for exact matches
                 new DataItemLabelsParamater(BankName + " " + labelSingular, BankName + " " + labelPlural),
                 new LoneElementAllowanceCallbackParameter(_ => false), // all our points represent a POI supposedly for this bank, none can be standalone
                 new MatchCallbackParameter<TItem>(GetMatchStrength)

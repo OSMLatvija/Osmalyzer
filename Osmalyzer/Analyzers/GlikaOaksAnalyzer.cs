@@ -44,9 +44,19 @@ public class GlikaOaksAnalyzer : Analyzer
         );
         
         [Pure]
-        static bool DoesOsmTreeMatchOak(GlikaOak oak, OsmElement osmTree)
+        static MatchStrength DoesOsmTreeMatchOak(GlikaOak oak, OsmElement osmTree)
         {
-            return osmTree.GetValue("name")?.ToLower().Contains("glika ozols") ?? false;
+            string? name = osmTree.GetValue("name");
+
+            if (name == null)
+                return MatchStrength.Unmatched;
+
+            if (name.ToLower().Contains("glika ozols"))
+                return MatchStrength.Strong;
+            
+            // todo: other stuff? monument denomination?
+            
+            return MatchStrength.Unmatched;
         }
             
         // Parse and report primary matching and location correlation

@@ -51,7 +51,7 @@ public class Correlator<T> where T : ICorrelatorItem
             
         double matchDistance = _paramaters.OfType<MatchDistanceParamater>().FirstOrDefault()?.Distance ?? 15;
         double unmatchDistance = _paramaters.OfType<MatchFarDistanceParamater>().FirstOrDefault()?.FarDistance ?? 75;
-        Func<T, OsmElement, bool>? matchCallback = _paramaters.OfType<MatchCallbackParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
+        Func<T, OsmElement, MatchStrength>? matchCallback = _paramaters.OfType<MatchCallbackParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
         Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceCallbackParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
         string dataItemLabelSingular = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelSingular ?? "item";
         string dataItemLabelPlural = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelPlural ?? "items";
@@ -81,11 +81,20 @@ public class Correlator<T> where T : ICorrelatorItem
             
             foreach (T dataItem in currentlyMatching)
             {
-                List<OsmElement> matchableOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, unmatchDistance);
+                List<OsmElement> allClosestOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, unmatchDistance);
 
+                List<(OsmElement element, MatchStrength strength)> matchableOsmElements; 
+                    
                 if (matchCallback != null)
-                    matchableOsmElements = matchableOsmElements.Where(e => matchCallback(dataItem, e)).ToList();
-
+                    matchableOsmElements = allClosestOsmElements
+                                           .Select(e => (e, matchCallback(dataItem, e)))
+                                           .Where(m => m.Item2 != MatchStrength.Unmatched)
+                                           .ToList();
+                else
+                    matchableOsmElements = allClosestOsmElements
+                                           .Select(e => (e, MatchStrength.Strong))
+                                           .ToList();
+                
                 if (matchableOsmElements.Count == 0)
                 {
                     // Nothing in range, so purely unmatchable
@@ -95,7 +104,7 @@ public class Correlator<T> where T : ICorrelatorItem
                 {
                     bool matched = false;
                     
-                    foreach (OsmElement closeElement in matchableOsmElements) // this is sorted closest first
+                    foreach ((OsmElement closeElement, MatchStrength strength) in matchableOsmElements) // this is sorted closest first
                     {
                         double distance = OsmGeoTools.DistanceBetween(dataItem.Coord, closeElement.GetAverageCoord());
 

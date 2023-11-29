@@ -8,11 +8,20 @@ namespace Osmalyzer;
 /// </summary>
 public class MatchCallbackParameter<T> : CorrelatorParamater where T : ICorrelatorItem
 {
-    public Func<T, OsmElement, bool> MatchCallback { get; }
+    public Func<T, OsmElement, MatchStrength> MatchCallback { get; }
         
 
-    public MatchCallbackParameter(Func<T, OsmElement, bool> matchCallback)
+    public MatchCallbackParameter(Func<T, OsmElement, MatchStrength> matchCallback)
     {
         MatchCallback = matchCallback;
     }
+}
+
+
+public enum MatchStrength
+{
+    Unmatched,
+    Weak,
+    Mediocre,
+    Strong
 }

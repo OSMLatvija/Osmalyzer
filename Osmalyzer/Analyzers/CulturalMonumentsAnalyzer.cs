@@ -50,8 +50,13 @@ public class CulturalMonumentsAnalyzer : Analyzer
         );
         
         [Pure]
-        static bool DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
+        static MatchStrength DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
         {
+            // name
+            
+            if (osmElement.GetValue("name")?.ToLower() == monument.Name)
+                return MatchStrength.Strong;
+            
             // ref:LV:vkpai
             
             string? osmRefStr = osmElement.GetValue("ref:LV:vkpai");
@@ -60,15 +65,10 @@ public class CulturalMonumentsAnalyzer : Analyzer
             {
                 if (int.TryParse(osmRefStr, out int osmRef))
                     if (osmRef == monument.ReferenceID)
-                        return true; // todo: better match
+                        return MatchStrength.Strong;
                 
-                return true;
+                return MatchStrength.Mediocre;
             }
-
-            // name
-            
-            if (osmElement.GetValue("name")?.ToLower() == monument.Name)
-                return true;
             
             // heritage
             
@@ -78,9 +78,9 @@ public class CulturalMonumentsAnalyzer : Analyzer
             {
                 if (int.TryParse(osmRefStr, out int osmRef))
                     if (osmRef == 2)
-                        return true; // todo: better match
+                        return MatchStrength.Mediocre;
                 
-                return true;
+                return MatchStrength.Weak;
             }
 
             // heritage:operator
@@ -93,12 +93,12 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
                 if (herOperStr.Contains("vkpai") ||
                     herOperStr.Contains("valsts kultūras pieminekļu aizsardzības inspekcija"))
-                    return true; // todo: better match
+                    return MatchStrength.Mediocre;
                 
-                return true;
+                return MatchStrength.Weak;
             }
             
-            return false;
+            return MatchStrength.Unmatched;
         }
 
         [Pure]

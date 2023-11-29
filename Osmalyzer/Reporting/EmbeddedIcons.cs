@@ -19,7 +19,7 @@ public static class EmbeddedIcons
             "orangeCheckmark", 
             16, 
             LeafletIcon.IconGroup.Main, 
-            ColorGroup.Green,
+            ColorGroup.Orange,
             MapPointStyle.Dubious,
             MapPointStyle.CorrelatorPairMatchedFar
         ),
@@ -70,6 +70,11 @@ public static class EmbeddedIcons
         ),
         
         new LeafletClusterIcon(
+            "orangeCircle",
+            20
+        ),
+        
+        new LeafletClusterIcon(
             "greenCircle",
             20
         ),
@@ -77,7 +82,22 @@ public static class EmbeddedIcons
         new LeafletClusterIcon(
             "redGreenCircle",
             20
-        )
+        ),
+        
+        new LeafletClusterIcon(
+            "redOrangeCircle",
+            20
+        ),
+        
+        new LeafletClusterIcon(
+            "redOrangeGreenCircle",
+            20
+        ),
+        
+        new LeafletClusterIcon(
+            "orangeGreenCircle",
+            20
+        ),
     };
 }
 
@@ -117,6 +137,7 @@ public class LeafletIcon : EmbeddedIcon
 public enum ColorGroup
 {
     Green,
+    Orange,
     Red,
     Other
 }

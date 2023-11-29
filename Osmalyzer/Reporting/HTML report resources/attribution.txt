@@ -16,10 +16,6 @@ https://commons.wikimedia.org/wiki/File:Blue_Question.svg
 redExclamation.png
 https://commons.wikimedia.org/wiki/File:Breezeicons-emblems-16-vcs-locally-modified-unstaged.svg
 
-greenCircle.png
-redCircle.png
-redGreenCircle.png
-grayCircle.png
-Derived from above
+The rest are derived from above
 
 Edited by https://github.com/HellMapGoesCoding

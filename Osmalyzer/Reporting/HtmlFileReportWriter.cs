@@ -233,9 +233,10 @@ public class HtmlFileReportWriter : ReportWriter
                 {
                     return group switch
                     {
-                        ColorGroup.Green => "green",
-                        ColorGroup.Red   => "red",
-                        ColorGroup.Other => "none",
+                        ColorGroup.Green  => "green",
+                        ColorGroup.Orange => "orange",
+                        ColorGroup.Red    => "red",
+                        ColorGroup.Other  => "none",
 
                         _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
                     };

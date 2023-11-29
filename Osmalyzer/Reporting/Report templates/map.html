@@ -18,11 +18,17 @@
                 var icon = 'grayCircle';
                 var red = false;
                 var green = false;
+                var orange = false;
                 cluster.getAllChildMarkers().forEach(function (marker) {
                     if (marker.group == 'green') green = true;
                     if (marker.group == 'red') red = true;
+                    if (marker.group == 'orange') orange = true;
                 });
-                if (red && green) icon = 'redGreenCircle';
+                if (red && orange && green) icon = 'redOrangeGreenCircle';
+                else if (red && orange) icon = 'redOrangeCircle';
+                else if (orange && green) icon = 'orangeGreenCircle';
+                else if (red && green) icon = 'redGreenCircle';
+                else if (orange) icon = 'orangeCircle';
                 else if (red) icon = 'redCircle';
                 else if (green) icon = 'greenCircle';
                 return L.divIcon({ html: '<img src=\'icons/'+icon+'.png\' class=\'clusterIcon\'><span class=\'clusterText\'>' + cluster.getChildCount() + '</span>', className: 'cluster', iconSize: L.point(20, 20) });

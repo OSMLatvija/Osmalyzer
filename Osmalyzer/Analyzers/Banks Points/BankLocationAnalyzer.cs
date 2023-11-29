@@ -75,7 +75,8 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
                 osmPoints,
                 dataPoints,
                 new MatchDistanceParamater(50),
-                new MatchFarDistanceParamater(300), // some are stupidly far, like at the opposite end of a shopping center from the website's point
+                new MatchFarDistanceParamater(150), // some are stupidly far, like at the opposite end of a shopping center from the website's point
+                new MatchExtraDistanceParamater(MatchStrength.Strong, 350),
                 new DataItemLabelsParamater(BankName + " " + labelSingular, BankName + " " + labelPlural),
                 new LoneElementAllowanceCallbackParameter(_ => false), // all our points represent a POI supposedly for this bank, none can be standalone
                 new MatchCallbackParameter<TItem>(GetMatchStrength)
@@ -84,7 +85,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
             [Pure]
             MatchStrength GetMatchStrength(TItem point, OsmElement element)
             {
-                return MatchStrength.Strong;
+                return MatchStrength.Mediocre;
             }
 
             // Parse and report primary matching and location correlation

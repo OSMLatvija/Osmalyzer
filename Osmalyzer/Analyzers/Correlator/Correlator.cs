@@ -56,6 +56,13 @@ public class Correlator<T> where T : ICorrelatorItem
         string dataItemLabelSingular = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelSingular ?? "item";
         string dataItemLabelPlural = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelPlural ?? "items";
         double matchOriginMinReportDistance = _paramaters.OfType<MinOriginReportDistanceParamater>().FirstOrDefault()?.MinDistance ?? 20;
+        double mediocreMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
+        double strongMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
+
+        double seekDistance = matchDistance;
+        seekDistance = Math.Max(matchDistance, seekDistance);
+        seekDistance = Math.Max(matchDistance + mediocreMatchExtraDistance, seekDistance);
+        seekDistance = Math.Max(matchDistance + strongMatchExtraDistance, seekDistance);
 
         List<OsmElementPreviewValue> osmElementPreviewParams = _paramaters.OfType<OsmElementPreviewValue>().ToList();
 
@@ -81,7 +88,9 @@ public class Correlator<T> where T : ICorrelatorItem
             
             foreach (T dataItem in currentlyMatching)
             {
-                List<OsmElement> allClosestOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, unmatchDistance);
+                List<OsmElement> allClosestOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, seekDistance);
+                
+                // todo: seek distance
 
                 List<(OsmElement element, MatchStrength strength)> matchableOsmElements; 
                     

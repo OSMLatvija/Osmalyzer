@@ -30,11 +30,20 @@ public static class EmbeddedIcons
             LeafletIcon.IconGroup.Main, 
             ColorGroup.Red,
             MapPointStyle.Problem,
-            MapPointStyle.CorrelatorItemUnmatched, MapPointStyle.CorrelatorOsmUnmatched
+            MapPointStyle.CorrelatorItemUnmatched
         ),
         
         new LeafletIcon(
             "redQuestion", 
+            16, 
+            LeafletIcon.IconGroup.Main, 
+            ColorGroup.Red,
+            MapPointStyle.Okay,
+             MapPointStyle.CorrelatorOsmUnmatched
+        ),
+        
+        new LeafletIcon(
+            "redExclamation", 
             16, 
             LeafletIcon.IconGroup.Main, 
             ColorGroup.Red,

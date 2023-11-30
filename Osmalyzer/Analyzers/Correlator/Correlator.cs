@@ -59,7 +59,9 @@ public class Correlator<T> where T : ICorrelatorItem
         double matchOriginMinReportDistance = _paramaters.OfType<MinOriginReportDistanceParamater>().FirstOrDefault()?.MinDistance ?? 20;
         double mediocreMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
         double strongMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
-        OsmPolygon? polygon = _paramaters.OfType<FilterItemsToPolygonParamater>().FirstOrDefault()?.Polygon ?? null;
+        FilterItemsToPolygonParamater? polygonParamater = _paramaters.OfType<FilterItemsToPolygonParamater>().FirstOrDefault();
+        OsmPolygon? polygon = polygonParamater?.Polygon ?? null;
+        bool? reportOutsidePolygon = polygonParamater?.Report ?? null;
 
         double seekDistance = unmatchDistance;
         seekDistance = Math.Max(unmatchDistance + mediocreMatchExtraDistance, seekDistance);
@@ -74,13 +76,23 @@ public class Correlator<T> where T : ICorrelatorItem
         
         foreach (T item in _dataItems)
         {
-            if (!OutOfBounds(item.Coord) &&
-                (polygon == null || polygon.ContainsCoord(item.Coord)))
-                itemsToBeMatched.Add(item);
-            else
+            if (OutOfBounds(item.Coord))
+            {
                 outOfBoundsItems.Add(item);
+                continue;
+            }
 
-            
+            if (polygon != null && !polygon.ContainsCoord(item.Coord))
+            {
+                if (reportOutsidePolygon!.Value)
+                    outOfBoundsItems.Add(item);
+                continue;
+            }
+
+            itemsToBeMatched.Add(item);
+            continue;
+
+
             [Pure]
             static bool OutOfBounds(OsmCoord coord)
             {

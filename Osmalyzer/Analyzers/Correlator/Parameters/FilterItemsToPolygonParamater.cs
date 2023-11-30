@@ -3,10 +3,13 @@
 public class FilterItemsToPolygonParamater : CorrelatorParamater
 {
     public OsmPolygon Polygon { get; }
-
     
-    public FilterItemsToPolygonParamater(OsmPolygon polygon)
+    public bool Report { get; }
+
+
+    public FilterItemsToPolygonParamater(OsmPolygon polygon, bool report)
     {
         Polygon = polygon;
+        Report = report;
     }
 }

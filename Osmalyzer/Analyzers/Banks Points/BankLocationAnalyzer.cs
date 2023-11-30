@@ -74,7 +74,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
             Correlator<TItem> dataComparer = new Correlator<TItem>(
                 osmPoints,
                 dataPoints,
-                new FilterItemsToPolygonParamater(BoundaryHelper.GetLatviaPolygon(osmData.MasterData)),
+                new FilterItemsToPolygonParamater(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), false),
                 new MatchDistanceParamater(100),
                 new MatchFarDistanceParamater(300), // some are stupidly far, like at the opposite end of a shopping center from the website's point
                 new MatchExtraDistanceParamater(MatchStrength.Strong, 700), // allow really far for exact matches

@@ -47,13 +47,22 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
         {
             // todo: use known brand data (file)
 
-            string? osmName =
-                osmElement.GetValue("operator") ??
-                osmElement.GetValue("brand") ??
-                osmElement.GetValue("name") ??
-                null;
+            string? osmName = osmElement.GetValue("name");
 
-            return osmName != null && ShopOsmNames.Any(sn => osmName.ToLower().Contains(sn.ToLower()));
+            if (osmName != null && ShopOsmNames.Any(sn => osmName.ToLower().Contains(sn.ToLower())))
+                return true;
+
+            string? osmOperator = osmElement.GetValue("operator");
+
+            if (osmOperator != null && ShopOsmNames.Any(sn => osmOperator.ToLower().Contains(sn.ToLower())))
+                return true;
+
+            string? osmBrand = osmElement.GetValue("brand");
+
+            if (osmBrand != null && ShopOsmNames.Any(sn => osmBrand.ToLower().Contains(sn.ToLower())))
+                return true;
+            
+            return false;
         }
 
         // Load Shop data

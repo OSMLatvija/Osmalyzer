@@ -48,7 +48,7 @@
     markerList_GI_.forEach(data => {
         L.marker([data[0], data[1]], {icon: data[2]})
             .addTo(data[3])
-            .bindPopup(data[5])
+            .bindPopup(data[5], { maxWidth : 560 })
             .group=data[4];
     });
     

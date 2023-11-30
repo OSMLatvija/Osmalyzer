@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// Shown on a map
@@ -9,7 +7,7 @@ public class MapPointReportEntry : ReportEntry
 {
     public OsmCoord Coord { get; }
     
-    public MapPointStyle Style { get; set; }
+    public MapPointStyle Style { get; }
 
 
     public MapPointReportEntry(OsmCoord coord, string text, MapPointStyle style, ReportEntryContext? context = null)

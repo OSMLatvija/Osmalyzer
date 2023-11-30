@@ -12,10 +12,8 @@ namespace Osmalyzer;
 public class ImportedResolution : Resolution
 {
     private ImportedResolution(Resolvable problem, DateTime timestamp, string comment)
+        : base(problem, timestamp, comment)
     {
-        Problem = problem;
-        Timestamp = timestamp;
-        Comment = comment;
     }
     
     

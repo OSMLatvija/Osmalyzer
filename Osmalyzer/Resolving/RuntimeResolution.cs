@@ -10,10 +10,8 @@ namespace Osmalyzer;
 public class RuntimeResolution : Resolution
 {
     public RuntimeResolution(Resolvable problem, DateTime timestamp, string comment)
+        : base(problem, timestamp, comment)
     {
-        Problem = problem;
-        Timestamp = timestamp;
-        Comment = comment;
     }
     
 

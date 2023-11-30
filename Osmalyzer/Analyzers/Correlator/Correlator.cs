@@ -216,7 +216,7 @@ public class Correlator<T> where T : ICorrelatorItem
         report.AddGroup(
             ReportGroup.CorrelationResults,
             "Matching " + dataItemLabelPlural,
-            "This lists the results of matching " + dataItemLabelPlural + " and OSM elements to each other.",
+            "This lists the results of matching " + dataItemLabelPlural + " (data items) and OSM elements to each other.",
             null,
             false // don't need totals - we only print summary info, all entries are on the map, the number won't mean anything to user
         );
@@ -240,8 +240,9 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             dataItem.Coord,
-                            "No OSM element found in " + unmatchDistance + " m range of " +
-                            dataItem.ReportString() + " at " + dataItem.Coord.OsmUrl,
+                            "No OSM element found in " + unmatchDistance + " m range of " + 
+                            dataItemLabelSingular + " " + dataItem.ReportString() + 
+                            " at " + dataItem.Coord.OsmUrl,
                             MapPointStyle.CorrelatorItemUnmatched
                         )
                     );
@@ -297,7 +298,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            match.Item.ReportString() + " " + 
+                            Capitalize(dataItemLabelSingular) + " " + match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " at " + match.Distance.ToString("F0") + " m",
@@ -311,8 +312,8 @@ public class Correlator<T> where T : ICorrelatorItem
                             ReportGroup.CorrelationResults,
                             new MapPointReportEntry(
                                 match.Item.Coord,
-                                "Expected location for " +
-                                match.Item.ReportString() + 
+                                "Expected location for " + 
+                                dataItemLabelSingular + " " + match.Item.ReportString() + 
                                 " at " + match.Item.Coord.OsmUrl + ", " +
                                 " instead matched " +
                                 OsmElementReportText(match.Element) +
@@ -347,7 +348,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            match.Item.ReportString() + " " + 
+                            Capitalize(dataItemLabelSingular) + " " + match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " but it's far away at " + match.Distance.ToString("F0") + " m",
@@ -360,9 +361,9 @@ public class Correlator<T> where T : ICorrelatorItem
                         new MapPointReportEntry(
                             match.Item.Coord,
                             "Expected location for " + 
-                            match.Item.ReportString() + 
+                            dataItemLabelSingular + " " + match.Item.ReportString() + 
                             " at " + match.Item.Coord.OsmUrl + ", " +
-                            " instead matched " +
+                            " but matched " +
                             OsmElementReportText(match.Element) +
                             " at " + match.Distance.ToString("F0") + " m",
                             MapPointStyle.CorrelatorPairMatchedFarOrigin
@@ -411,8 +412,8 @@ public class Correlator<T> where T : ICorrelatorItem
             report.AddEntry(
                 ReportGroup.CorrelationResults,
                 new IssueReportEntry(
-                    "Not matching data item " +
-                    dataItem.ReportString() +
+                    "Not matching " + 
+                    dataItemLabelSingular + " " + dataItem.ReportString() +
                     " outside Latvia bounds at " + dataItem.Coord.OsmUrl
                 )
             );
@@ -495,6 +496,12 @@ public class Correlator<T> where T : ICorrelatorItem
             s += element.OsmViewUrl;
                 
             return s;
+        }
+        
+        [Pure]
+        string Capitalize(string text)
+        {
+            return text[0].ToString().ToUpper() + (text.Length > 1 ? text[1..] : "");
         }
     }
 

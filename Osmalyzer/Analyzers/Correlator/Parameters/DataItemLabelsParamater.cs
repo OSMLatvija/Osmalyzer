@@ -7,6 +7,10 @@ public class DataItemLabelsParamater : CorrelatorParamater
     public string LabelPlural { get; }
 
     
+    /// <summary>
+    /// 
+    /// Sentence capitalization (of first letter) is not needed. 
+    /// </summary>
     public DataItemLabelsParamater(string labelSingular, string labelPlural)
     {
         LabelSingular = labelSingular;

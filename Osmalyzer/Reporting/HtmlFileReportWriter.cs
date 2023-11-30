@@ -154,7 +154,7 @@ public class HtmlFileReportWriter : ReportWriter
         {
             string mapContent = GetMapTemplate();
 
-            bool clustered = entries.Count > 100; // todo: always? per-report?
+            bool clustered = true; // entries.Count > 100; // todo: per-report? - it works really well, so not sure when not to use
 
             if (clustered)
             {

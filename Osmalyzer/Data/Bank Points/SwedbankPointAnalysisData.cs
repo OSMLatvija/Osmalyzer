@@ -56,9 +56,6 @@ public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnaly
         foreach (RawItem item in rawItems.Items)
         {
             OsmCoord coord = new OsmCoord(item.Latitude, item.Longitude);
-                
-            if (OsmGeoTools.DistanceBetween(coord, new OsmCoord(0, 0)) < 100) // point at default/0,0 - bad coord
-                continue;
 
             BankPointType type = RawTypeToPointType(item.Type, out bool? deposit);
 

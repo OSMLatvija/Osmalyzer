@@ -68,7 +68,27 @@ public class Correlator<T> where T : ICorrelatorItem
 
         // Match from data item perspective (i.e. find best OSM element to fit each)
 
-        List<T> itemsToBeMatched = _dataItems.ToList();
+        List<T> itemsToBeMatched = new List<T>();
+        List<T> outOfBoundsItems = new List<T>();
+        
+        foreach (T item in _dataItems)
+        {
+            if (!OutOfBounds(item.Coord))
+                itemsToBeMatched.Add(item);
+            else
+                outOfBoundsItems.Add(item);
+
+            
+            [Pure]
+            static bool OutOfBounds(OsmCoord coord)
+            {
+                return
+                    coord.lat < 55.0 ||
+                    coord.lat > 59.0 ||
+                    coord.lon < 20.0 ||
+                    coord.lon > 29.0;
+            }
+        }
 
         Dictionary<OsmElement, Match> allMatchedElements = new Dictionary<OsmElement, Match>();
         
@@ -384,6 +404,18 @@ public class Correlator<T> where T : ICorrelatorItem
                     )
                 );
             }
+        }
+        
+        foreach (T dataItem in outOfBoundsItems)
+        {
+            report.AddEntry(
+                ReportGroup.CorrelationResults,
+                new IssueReportEntry(
+                    "Not matching data item " +
+                    dataItem.ReportString() +
+                    " outside Latvia bounds at " + dataItem.Coord.OsmUrl
+                )
+            );
         }
 
         string MatchStrengthLabel(MatchStrength strength)

@@ -17,7 +17,6 @@ public class ShopData : ICorrelatorItem
     public string ReportString()
     {
         return
-            "`" + Address + "` " +
-            "expected at " + Coord.OsmUrl;
+            "`" + Address + "`";
     }
 }

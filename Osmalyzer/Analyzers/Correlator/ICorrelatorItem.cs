@@ -10,6 +10,10 @@ public interface ICorrelatorItem
     public OsmCoord Coord { get; }
 
 
+    /// <summary>
+    /// User-readable unique description of this item, such as its key values.
+    /// This shouldn't include the <see cref="Coord"/>, as that will be reported as needed depending on the actual issue. 
+    /// </summary>
     [Pure]
     public string ReportString();
 }

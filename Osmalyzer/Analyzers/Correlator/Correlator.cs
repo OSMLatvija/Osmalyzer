@@ -76,16 +76,16 @@ public class Correlator<T> where T : ICorrelatorItem
         
         foreach (T item in _dataItems)
         {
-            if (OutOfBounds(item.Coord))
-            {
-                outOfBoundsItems.Add(item);
-                continue;
-            }
-
             if (polygon != null && !polygon.ContainsCoord(item.Coord))
             {
                 if (reportOutsidePolygon!.Value)
                     outOfBoundsItems.Add(item);
+                continue;
+            }
+            
+            if (OutOfBounds(item.Coord))
+            {
+                outOfBoundsItems.Add(item);
                 continue;
             }
 

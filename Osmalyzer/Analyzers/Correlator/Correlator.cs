@@ -277,7 +277,8 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            match.Item.ReportString() + " " + MatchStrengthLabel(match.MatchStrength) + " OSM element " +
+                            match.Item.ReportString() + " " + 
+                            MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " at " + match.Distance.ToString("F0") + " m",
                             MapPointStyle.CorrelatorPairMatched
@@ -290,7 +291,12 @@ public class Correlator<T> where T : ICorrelatorItem
                             ReportGroup.CorrelationResults,
                             new MapPointReportEntry(
                                 match.Item.Coord,
-                                "Expected location for " + match.Item.ReportString() + " at " + match.Item.Coord.OsmUrl,
+                                "Expected location for " +
+                                match.Item.ReportString() + 
+                                " at " + match.Item.Coord.OsmUrl + ", " +
+                                " instead matched " +
+                                OsmElementReportText(match.Element) +
+                                " at " + match.Distance.ToString("F0") + " m",
                                 MapPointStyle.CorrelatorPairMatchedOffsetOrigin
                             )
                         );
@@ -321,7 +327,8 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            match.Item.ReportString() + " " + MatchStrengthLabel(match.MatchStrength) + " OSM element " +
+                            match.Item.ReportString() + " " + 
+                            MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " but it's far away at " + match.Distance.ToString("F0") + " m",
                             MapPointStyle.CorrelatorPairMatchedFar
@@ -332,7 +339,12 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Item.Coord,
-                            "Expected location for " + match.Item.ReportString() + " at " + match.Item.Coord.OsmUrl,
+                            "Expected location for " + 
+                            match.Item.ReportString() + 
+                            " at " + match.Item.Coord.OsmUrl + ", " +
+                            " instead matched " +
+                            OsmElementReportText(match.Element) +
+                            " at " + match.Distance.ToString("F0") + " m",
                             MapPointStyle.CorrelatorPairMatchedFarOrigin
                         )
                     );

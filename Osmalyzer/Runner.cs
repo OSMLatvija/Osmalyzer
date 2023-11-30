@@ -38,13 +38,14 @@ public static class Runner
             // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
             // new GlikaOaksAnalyzer(),
-            new ElviShopNetworkAnalyzer(),
+            // new ElviShopNetworkAnalyzer(),
             // new LatsShopNetworkAnalyzer(),
             // new RimiShopNetworkAnalyzer(),
             // new MaximaShopNetworkAnalyzer(),
-            new SwedbankLocationAnalyzer(),
-            // new SEBLocationAnalyzer(),
             // new CulturalMonumentsAnalyzer(),
+            // new SwedbankLocationAnalyzer(),
+            // new SEBLocationAnalyzer(),
+            new CitadeleLocationAnalyzer(),
         };
 #endif
 

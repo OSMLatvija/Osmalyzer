@@ -80,12 +80,8 @@ public class ReportGroup
                 break;
                     
             case MapPointReportEntry mpe:
-                MapPointReportEntry? existingPoint = _mapPointEntries.FirstOrDefault(e => e.Coord == mpe.Coord);
-
-                if (existingPoint != null)
-                    existingPoint.Append(mpe);
-                else
-                    _mapPointEntries.Add(mpe);
+                _mapPointEntries.Add(mpe);
+                // Map Leaflet clustering will handle/spiderfy multiple nodes at the same location
                 break;
 
             case PlaceholderReportEntry pe:

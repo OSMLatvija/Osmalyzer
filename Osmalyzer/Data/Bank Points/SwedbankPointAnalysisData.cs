@@ -90,7 +90,7 @@ public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnaly
             {
                 if (MakeBankPointNameCombo(bankPoint) == repeat)
                 {
-                    bankPoint.Id = id;
+                    bankPoint.DisambiguationId = id;
                     id++;
                 }
             }

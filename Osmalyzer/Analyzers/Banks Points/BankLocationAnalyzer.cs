@@ -86,7 +86,8 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
             [Pure]
             MatchStrength GetMatchStrength(TItem point, OsmElement element)
             {
-                if (FuzzyAddressMatcher.Matches(element, point.Address))
+                if (point.Address != null &&
+                    FuzzyAddressMatcher.Matches(element, point.Address))
                     return MatchStrength.Strong;
                 
                 return MatchStrength.Good;

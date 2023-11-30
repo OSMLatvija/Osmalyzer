@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Web;
 using JetBrains.Annotations;
 
 namespace Osmalyzer;
@@ -74,20 +75,22 @@ public class CitadelePointAnalysisData : BankPointAnalysisData, IPreparableAnaly
                 double.Parse(Regex.Match(matchText, @"data-longitude=""([^""]+)""").Groups[1].ToString().Trim()) // data-longitude="23.851042"
             );
 
-            string name = Regex.Match(matchText, @"<a href=""#place[^""]+"">([^<]+)<\/a>", RegexOptions.Singleline).Groups[1].ToString().Trim();
+            string name = HttpUtility.HtmlDecode(Regex.Match(matchText, @"<a href=""#place[^""]+"">([^<]+)<\/a>", RegexOptions.Singleline).Groups[1].ToString().Trim());
             // <a href="#place309">
             // Veikals  ERMITAŽAS
             // </a>            
             
-            string address = Regex.Match(matchText, @"<p class=""address"">([^<]+)<\/p>", RegexOptions.Singleline).Groups[1].ToString().Trim();
+            string? address = HttpUtility.HtmlDecode(Regex.Match(matchText, @"<p class=""address"">([^<]+)<\/p>", RegexOptions.Singleline).Groups[1].ToString().Trim());
+            if (address == "")
+                address = null;
             // <p class="address">
             // Republikas laukums 2a, Rīga
             // </p>            
 
             BankPoint point = type switch
             {
-                BankPointType.Branch => new BankBranchPoint("Swedbank", name, address, coord),
-                BankPointType.Atm    => new BankAtmPoint("Swedbank", name, address, coord, deposit),
+                BankPointType.Branch => new BankBranchPoint("Citadele", name, address, coord),
+                BankPointType.Atm    => new BankAtmPoint("Citadele", name, address, coord, deposit),
 
                 _ => throw new ArgumentOutOfRangeException()
             };
@@ -95,6 +98,7 @@ public class CitadelePointAnalysisData : BankPointAnalysisData, IPreparableAnaly
             Points.Add(point);
         }
     }
+    
     
     [Pure]
     private static BankPointType RawTypeToPointType(string rawType, string rawExtras, out bool? deposit)
@@ -114,6 +118,7 @@ public class CitadelePointAnalysisData : BankPointAnalysisData, IPreparableAnaly
         }
     }
 
+    
     private enum BankPointType
     {
         Atm,

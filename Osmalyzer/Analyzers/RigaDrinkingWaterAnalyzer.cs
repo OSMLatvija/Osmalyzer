@@ -44,8 +44,6 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
         Correlator<DrinkingWater> dataComparer = new Correlator<DrinkingWater>(
             osmTaps,
             rigaTapsStatic,
-            new MatchDistanceParamater(15),
-            new MatchFarDistanceParamater(75),
             new DataItemLabelsParamater("Riga tap", "Riga taps"),
             new LoneElementAllowanceCallbackParameter(IsUnmatchedOsmElementAllowed),
             new OsmElementPreviewValue( // add a label for (non-)seasonal

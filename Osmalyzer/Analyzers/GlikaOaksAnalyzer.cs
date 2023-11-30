@@ -37,26 +37,29 @@ public class GlikaOaksAnalyzer : Analyzer
         Correlator<GlikaOak> dataComparer = new Correlator<GlikaOak>(
             osmTrees,
             oaks,
-            new MatchDistanceParamater(15),
-            new MatchFarDistanceParamater(75),
+            new MatchFarDistanceParamater(300), // some are poorly-placed
             new DataItemLabelsParamater("Glika oak", "Glika oaks"),
-            new MatchCallbackParameter<GlikaOak>(DoesOsmTreeMatchOak)
+            new MatchCallbackParameter<GlikaOak>(DoesOsmTreeMatchOak),
+            new LoneElementAllowanceCallbackParameter(DoesTreeAppearToBeGlika)
         );
         
         [Pure]
         static MatchStrength DoesOsmTreeMatchOak(GlikaOak oak, OsmElement osmTree)
         {
-            string? name = osmTree.GetValue("name");
-
-            if (name == null)
-                return MatchStrength.Unmatched;
-
-            if (name.ToLower().Contains("glika ozols"))
-                return MatchStrength.Strong;
-            
+            return 
+                DoesTreeAppearToBeGlika(osmTree) ?
+                    MatchStrength.Strong :
+                    MatchStrength.Unmatched;
             // todo: other stuff? monument denomination?
             
-            return MatchStrength.Unmatched;
+        }
+
+        [Pure]
+        static bool DoesTreeAppearToBeGlika(OsmElement osmTree)
+        {
+            string? name = osmTree.GetValue("name");
+
+            return name != null && name.ToLower().Contains("glika ozols");
         }
             
         // Parse and report primary matching and location correlation
@@ -65,7 +68,8 @@ public class GlikaOaksAnalyzer : Analyzer
             report,
             new MatchedPairBatch(),
             new UnmatchedItemBatch(),
-            new MatchedFarPairBatch()
+            new MatchedFarPairBatch(),
+            new MatchedLoneOsmBatch(true)
         );
             
         // todo: denomination

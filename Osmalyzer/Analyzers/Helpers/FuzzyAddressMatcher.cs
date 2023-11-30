@@ -67,6 +67,7 @@ public static class FuzzyAddressMatcher
         }
 
         // TODO: "Kr.Barona"
+        // TODO: "A. Deglava iela"
         
         // Number
         

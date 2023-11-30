@@ -104,10 +104,10 @@ public static class WebsiteBrowsingHelper
         return result;
     }
 
-    public static void DownloadPage(string url, string fileName, bool canUseCache = true)
+    public static void DownloadPage(string url, string fileName, bool canUseCache = true, params BrowsingAction[] browsingActions)
     {
         // Headless browsing needs a full site load, so there's no way to directly write to file, we just have to dump the results 
-        File.WriteAllText(fileName, Read(url, canUseCache));
+        File.WriteAllText(fileName, Read(url, canUseCache, null, browsingActions));
     }
     
 
@@ -122,6 +122,7 @@ public static class WebsiteBrowsingHelper
 
         ChromeOptions options = new ChromeOptions();
         options.AddArgument("--headless");
+        //options.AddArgument("--enable-javascript");
         options.AddArgument("--window-size=1600x1200");
         //options.AddArgument("--lang=en-US");
         options.AddArgument("--disable-extensions");

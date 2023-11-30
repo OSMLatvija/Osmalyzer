@@ -45,7 +45,8 @@ public static class Runner
             // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
-            new CitadeleLocationAnalyzer(),
+            //new CitadeleLocationAnalyzer(),
+            new LuminorLocationAnalyzer(),
         };
 #endif
 

@@ -59,6 +59,7 @@ public class Correlator<T> where T : ICorrelatorItem
         double matchOriginMinReportDistance = _paramaters.OfType<MinOriginReportDistanceParamater>().FirstOrDefault()?.MinDistance ?? 20;
         double mediocreMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
         double strongMatchExtraDistance = _paramaters.OfType<MatchExtraDistanceParamater>().FirstOrDefault(p => p.Strength == MatchStrength.Strong)?.ExtraDistance ?? 0;
+        OsmPolygon? polygon = _paramaters.OfType<FilterItemsToPolygonParamater>().FirstOrDefault()?.Polygon ?? null;
 
         double seekDistance = unmatchDistance;
         seekDistance = Math.Max(unmatchDistance + mediocreMatchExtraDistance, seekDistance);
@@ -73,7 +74,8 @@ public class Correlator<T> where T : ICorrelatorItem
         
         foreach (T item in _dataItems)
         {
-            if (!OutOfBounds(item.Coord))
+            if (!OutOfBounds(item.Coord) &&
+                (polygon == null || polygon.ContainsCoord(item.Coord)))
                 itemsToBeMatched.Add(item);
             else
                 outOfBoundsItems.Add(item);

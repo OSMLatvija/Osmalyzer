@@ -34,7 +34,7 @@ public static class Runner
             // new TrolleybusWireAnalyzer(),
             // //new MicroReservesAnalyzer(), -- it fails from localhost, no idea why
             // new StreetNameAnalyzer(),
-            new RigaDrinkingWaterAnalyzer(),
+            // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
             // new GlikaOaksAnalyzer(),
@@ -44,6 +44,7 @@ public static class Runner
             // new MaximaShopNetworkAnalyzer(),
             // new MegoShopNetworkAnalyzer(),
             // new AibeShopNetworkAnalyzer(),
+            new VeskoShopNetworkAnalyzer(),
             // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),

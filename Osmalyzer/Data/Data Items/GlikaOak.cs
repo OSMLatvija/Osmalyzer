@@ -25,7 +25,6 @@ public class GlikaOak : ICorrelatorItem
     public string ReportString()
     {
         return
-            "Glika oak " +
             "`" + Name + "` " +
             (Id != null ? "#" + Id + " " : "") +
             "(" + StartDate + ")";

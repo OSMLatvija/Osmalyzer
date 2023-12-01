@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class ElviShopsAnalysisData : SimplePageShopListAnalysisData
+public class ElviShopsAnalysisData : ShopListAnalysisData
 {
     public override string Name => "Elvi Shops";
 
@@ -19,13 +19,19 @@ public class ElviShopsAnalysisData : SimplePageShopListAnalysisData
 
     public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
 
-    public override string ShopListUrl => "https://elvi.lv/elvi-veikali/";
-
     public override IEnumerable<ShopData> Shops => _shops;
 
     
     private List<ShopData> _shops = null!; // only null until prepared
 
+
+    protected override void Download()
+    {
+        WebsiteDownloadHelper.Download(
+            "https://elvi.lv/elvi-veikali/", 
+            DataFileName
+        );
+    }
 
     public override void Prepare()
     {

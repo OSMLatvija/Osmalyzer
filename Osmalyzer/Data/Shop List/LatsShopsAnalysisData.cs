@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -54,6 +55,9 @@ public class LatsShopsAnalysisData : ShopListAnalysisData
             source, 
             @"markers\.push\({\s*coordinates: {lat: (\d{2}.\d{1,8}), lng: (\d{2}.\d{1,8})},[^}]*?<p>([^<]+)</p>"
         );
+        
+        if (matches.Count == 0)
+            throw new Exception("Did not match any items on webpage");
                 
         _shops = new List<ShopData>();
                 

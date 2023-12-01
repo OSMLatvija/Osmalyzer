@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -47,6 +48,9 @@ public class RimiShopsAnalysisData : ShopListAnalysisData
             listMatch.Groups[1].ToString(), 
             @",?\{([^\}]+?)\}"
         );
+        
+        if (matches.Count == 0)
+            throw new Exception("Did not match any items on webpage");
         
         _shops = new List<ShopData>();
                 

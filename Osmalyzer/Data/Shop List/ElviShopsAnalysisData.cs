@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -51,6 +52,9 @@ public class ElviShopsAnalysisData : ShopListAnalysisData
             source, 
             @"value: ""([^""]+)"",\s*data: \[\s*\{\s*id:\s\d+,\s*link:\s\""[^""]+\"",\s*lat: (\d{2}.\d{1,15}),\s*lng:(\s\d{2}.\d{1,15})\s*"
         );
+        
+        if (matches.Count == 0)
+            throw new Exception("Did not match any items on webpage");
                 
         _shops = new List<ShopData>();
                 

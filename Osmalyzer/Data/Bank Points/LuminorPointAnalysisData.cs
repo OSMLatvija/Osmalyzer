@@ -11,7 +11,7 @@ public class LuminorPointAnalysisData : BankPointAnalysisData, IPreparableAnalys
 {
     public override string Name => "Luminor Points";
 
-    public override string ReportWebLink => @"";
+    public override string ReportWebLink => @"https://www.luminor.lv/lv/musu-tikls";
 
 
     protected override string DataFileIdentifier => "luminor-points";

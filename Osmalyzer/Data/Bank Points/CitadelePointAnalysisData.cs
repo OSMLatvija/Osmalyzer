@@ -12,7 +12,7 @@ public class CitadelePointAnalysisData : BankPointAnalysisData, IPreparableAnaly
 {
     public override string Name => "Citadele Points";
 
-    public override string ReportWebLink => @"";
+    public override string ReportWebLink => @"https://www.citadele.lv/lv/contacts";
 
 
     protected override string DataFileIdentifier => "citadele-points";

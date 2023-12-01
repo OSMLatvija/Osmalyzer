@@ -5,7 +5,7 @@ namespace Osmalyzer;
 /// <summary>
 /// The non-OSM data item
 /// </summary>
-public interface ICorrelatorItem
+public interface IDataItem
 {
     public OsmCoord Coord { get; }
 

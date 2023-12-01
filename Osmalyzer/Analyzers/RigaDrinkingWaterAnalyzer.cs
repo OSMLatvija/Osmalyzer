@@ -64,7 +64,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        CorrelatorReport compareReport = dataComparer.Parse(
+        CorrelatorReport correlatorReport = dataComparer.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(false),
@@ -73,200 +73,19 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             new MatchedFarPairBatch()
         );
 
-        // Prepare additional report groups
+        // Validate additional issues
 
-        report.AddGroup(
-            ReportGroup.ExtraIssues, 
-            "Other problems with drinking water taps",
-            "These matched/found OSM elements have additional individual issues.",
-            "No issues found with matched/found OSM taps."
+        Validator<DrinkingWater> validator = new Validator<DrinkingWater>(
+            correlatorReport
         );
 
-        foreach (Correlation match in compareReport.Correlations)
-        {
-            OsmElement osmTap;
-            DrinkingWater? rigaTap;
-
-            switch (match)
-            {
-                case MatchedCorrelation<DrinkingWater> matchedCorrelation:
-                    osmTap = matchedCorrelation.OsmElement;
-                    rigaTap = matchedCorrelation.DataItem;
-                    break;
-                
-                case LoneCorrelation loneCorrelation:
-                    osmTap = loneCorrelation.OsmElement;
-                    rigaTap = null;
-                    break;
-                
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(match));
-            }
-                
-            
-            // We may not have data tap, so only print label if there is one
-            string tapLabel = rigaTap != null ? " for " + rigaTap.ReportString() : "";
-
-            // Check operator
-            
-            string? operatorValue = osmTap.GetValue("operator");
-            
-            const string expectedOperator = "Rīgas ūdens";
-            
-            if (operatorValue == null)
-            {
-                report.AddEntry(
-                    ReportGroup.ExtraIssues,
-                    new IssueReportEntry(
-                        "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set" + tapLabel + " - " + osmTap.OsmViewUrl,
-                        new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord(),
-                        MapPointStyle.Problem
-                    )
-                );
-            }
-            else
-            {
-                if (operatorValue != expectedOperator)
-                {
-                    report.AddEntry(
-                        ReportGroup.ExtraIssues,
-                        new IssueReportEntry(
-                            "OSM tap doesn't have expected `oparator=" + expectedOperator + "` set" + tapLabel + ", instead `" + operatorValue + "` - " + osmTap.OsmViewUrl,
-                            new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord(),
-                            MapPointStyle.Problem
-                        )
-                    );
-                }
-            }
-                
-            // Check type
-               
-            const string expectedManmade = "water_tap";
-            
-            string? manmadeValue = osmTap.GetValue("man_made");
-            
-            if (manmadeValue == null)
-            {
-                report.AddEntry(
-                    ReportGroup.ExtraIssues,
-                    new IssueReportEntry(
-                        "OSM tap doesn't have expected `man_made="+expectedManmade+"` set" + tapLabel + " - " + osmTap.OsmViewUrl,
-                        new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord(),
-                        MapPointStyle.Problem
-                    )
-                );
-            }
-            else
-            {
-                if (manmadeValue != expectedManmade)
-                {
-                    report.AddEntry(
-                        ReportGroup.ExtraIssues,
-                        new IssueReportEntry(
-                            "OSM tap doesn't have expected `man_made="+expectedManmade+"` set" + tapLabel + ", instead `" + manmadeValue + "` - " + osmTap.OsmViewUrl,
-                            new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord(),
-                            MapPointStyle.Problem
-                        )
-                    );
-                }
-            }
-                
-            // Check drinkable
-                
-            string? drinkableValue = osmTap.GetValue("drinking_water");
-            
-            if (drinkableValue == null)
-            {
-                report.AddEntry(
-                    ReportGroup.ExtraIssues,
-                    new IssueReportEntry(
-                        "OSM tap doesn't have expected `drinking_water=yes` set" + tapLabel + " - " + osmTap.OsmViewUrl,
-                        new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord(),
-                        MapPointStyle.Problem
-                    )
-                );
-            }
-            else
-            {
-                if (drinkableValue != "yes")
-                {
-                    report.AddEntry(
-                        ReportGroup.ExtraIssues,
-                        new IssueReportEntry(
-                            "OSM tap doesn't have expected `drinking_water=yes` set" + tapLabel + ", instead `" + drinkableValue + "` - " + osmTap.OsmViewUrl,
-                            new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord(),
-                            MapPointStyle.Problem
-                        )
-                    );
-                }
-            }
-                
-            // Check fixme
-                
-            string? fixmeValue = osmTap.GetValue("fixme");
-            
-            if (fixmeValue != null)
-            {
-                report.AddEntry(
-                    ReportGroup.ExtraIssues,
-                    new IssueReportEntry(
-                        "OSM tap has a `fixme=" + fixmeValue + "` set" + tapLabel + " - " + osmTap.OsmViewUrl,
-                        new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord(),
-                        MapPointStyle.Problem
-                    )
-                );
-            }
-                
-            // Check seasonal
-                
-            string? seasonalValue = osmTap.GetValue("seasonal");
-            
-            if (seasonalValue == null)
-            {
-                report.AddEntry(
-                    ReportGroup.ExtraIssues,
-                    new IssueReportEntry(
-                        "OSM tap doesn't list its `seasonal` state" + tapLabel + " - " + osmTap.OsmViewUrl,
-                        new SortEntryAsc(SortOrder.Tagging),
-                        osmTap.GetAverageCoord(),
-                        MapPointStyle.Problem
-                    )
-                );
-            }
-            else
-            {
-                if (seasonalValue != "yes" &&
-                    seasonalValue != "no")
-                {
-                    report.AddEntry(
-                        ReportGroup.ExtraIssues,
-                        new IssueReportEntry(
-                            "OSM tap have an unknown `seasonal=" + drinkableValue + "` value" + tapLabel + " - " + osmTap.OsmViewUrl,
-                            new SortEntryAsc(SortOrder.Tagging),
-                            osmTap.GetAverageCoord(),
-                            MapPointStyle.Problem
-                        )
-                    );
-                }
-            }
-        }
-    }
-
-
-    private enum ReportGroup
-    {
-        ExtraIssues
-    }
-
-    private enum SortOrder // values used for sorting
-    {
-        Tagging = 0
+        validator.Validate(
+            report,
+            new ValidateElementHasValue("operator", "Rīgas ūdens"),
+            new ValidateElementHasValue("man_made", "water_tap"),
+            new ValidateElementHasValue("drinking_water", "yes"),
+            new ValidateElementHasValue("seasonal", "yes", "no"),
+            new ValidateElementFixme()
+        );
     }
 }

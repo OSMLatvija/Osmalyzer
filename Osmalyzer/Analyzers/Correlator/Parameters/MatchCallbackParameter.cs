@@ -6,7 +6,7 @@ namespace Osmalyzer;
 /// The rule(s) by which to match data items to OSM elements.
 /// If this is not speicfied, then any closest match by distance is accepted.
 /// </summary>
-public class MatchCallbackParameter<T> : CorrelatorParamater where T : ICorrelatorItem
+public class MatchCallbackParameter<T> : CorrelatorParamater where T : IDataItem
 {
     public Func<T, OsmElement, MatchStrength> MatchCallback { get; }
         

@@ -9,7 +9,7 @@ namespace Osmalyzer;
 /// Match OSM elements to custom data items, such as coming from some source.
 /// Reusable generic logic for locating and matching items on the map and finding common problems. 
 /// </summary>
-public class Correlator<T> where T : ICorrelatorItem
+public class Correlator<T> where T : IDataItem
 {
     private readonly OsmData _osmElements;
         
@@ -539,6 +539,6 @@ public class Correlator<T> where T : ICorrelatorItem
 
     private enum ReportGroup
     {
-        CorrelationResults = -10 // probably before analyzer extra issues
+        CorrelationResults = -10 // before validation and probably before analyzer extra issues
     }
 }

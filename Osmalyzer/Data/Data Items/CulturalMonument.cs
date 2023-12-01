@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class CulturalMonument : ICorrelatorItem
+public class CulturalMonument : IDataItem
 {
     public OsmCoord Coord { get; }
 

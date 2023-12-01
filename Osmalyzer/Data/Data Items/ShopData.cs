@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class ShopData : ICorrelatorItem
+public class ShopData : IDataItem
 {
     public string ShopName { get; }
 

@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public abstract class BankPoint : ICorrelatorItem
+public abstract class BankPoint : IDataItem
 {
     public string BankName { get; set; }
     

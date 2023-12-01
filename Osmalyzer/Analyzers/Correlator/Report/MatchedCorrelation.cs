@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class MatchedCorrelation<T> : Correlation where T : ICorrelatorItem
+public class MatchedCorrelation<T> : Correlation where T : IDataItem
 {
     public OsmElement OsmElement { get; set; }
 

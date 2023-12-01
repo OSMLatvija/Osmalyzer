@@ -19,6 +19,9 @@ public class CulturalMonument : ICorrelatorItem
     
     public string ReportString()
     {
-        return "#" + (ReferenceID?.ToString() ?? "?") + " \"" + Name + "\" " + Coord.OsmUrl;
+        return 
+            "Cultural monument " +
+            "#" + (ReferenceID?.ToString() ?? "?") + 
+            " \"" + Name + "\" ";
     }
 }

@@ -20,6 +20,7 @@ public class DrinkingWater : ICorrelatorItem
     public string ReportString()
     {
         return
+            "Riga tap " +
             "`" + Name + "`";
     }
 

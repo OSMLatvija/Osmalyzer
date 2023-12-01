@@ -255,7 +255,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         new MapPointReportEntry(
                             dataItem.Coord,
                             "No OSM element found in " + unmatchDistance + " m range of " + 
-                            dataItemLabelSingular + " " + dataItem.ReportString() + 
+                            dataItem.ReportString() + 
                             " at " + dataItem.Coord.OsmUrl,
                             MapPointStyle.CorrelatorItemUnmatched
                         )
@@ -312,7 +312,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            Capitalize(dataItemLabelSingular) + " " + match.Item.ReportString() + " " + 
+                            match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " at " + match.Distance.ToString("F0") + " m",
@@ -327,7 +327,7 @@ public class Correlator<T> where T : ICorrelatorItem
                             new MapPointReportEntry(
                                 match.Item.Coord,
                                 "Expected location for " + 
-                                dataItemLabelSingular + " " + match.Item.ReportString() + 
+                                match.Item.ReportString() + 
                                 " at " + match.Item.Coord.OsmUrl + ", " +
                                 " instead matched " +
                                 OsmElementReportText(match.Element) +
@@ -362,7 +362,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
                             match.Element.GetAverageCoord(),
-                            Capitalize(dataItemLabelSingular) + " " + match.Item.ReportString() + " " + 
+                            match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " but it's far away at " + match.Distance.ToString("F0") + " m",
@@ -375,7 +375,7 @@ public class Correlator<T> where T : ICorrelatorItem
                         new MapPointReportEntry(
                             match.Item.Coord,
                             "Expected location for " + 
-                            dataItemLabelSingular + " " + match.Item.ReportString() + 
+                            match.Item.ReportString() + 
                             " at " + match.Item.Coord.OsmUrl + ", " +
                             " but matched " +
                             OsmElementReportText(match.Element) +
@@ -427,7 +427,7 @@ public class Correlator<T> where T : ICorrelatorItem
                 ReportGroup.CorrelationResults,
                 new IssueReportEntry(
                     "Not matching " + 
-                    dataItemLabelSingular + " " + dataItem.ReportString() +
+                    dataItem.ReportString() +
                     " outside Latvia bounds at " + dataItem.Coord.OsmUrl
                 )
             );
@@ -510,12 +510,6 @@ public class Correlator<T> where T : ICorrelatorItem
             s += element.OsmViewUrl;
                 
             return s;
-        }
-        
-        [Pure]
-        string Capitalize(string text)
-        {
-            return text[0].ToString().ToUpper() + (text.Length > 1 ? text[1..] : "");
         }
     }
 

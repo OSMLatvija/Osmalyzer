@@ -78,10 +78,23 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
             listedShops,
             new MatchDistanceParamater(100),
             new MatchFarDistanceParamater(300), // some are really far from where the data says they ought to be
+            new MatchExtraDistanceParamater(MatchStrength.Strong, 700), // allow really far for exact matches
             new DataItemLabelsParamater(ShopName + " shop", ShopName + " shops"),
             new OsmElementPreviewValue("name", false),
-            new LoneElementAllowanceCallbackParameter(_ => true)
+            new LoneElementAllowanceCallbackParameter(_ => true),
+            new MatchCallbackParameter<ShopData>(GetMatchStrength)
         );
+        
+        // todo: report closest potential (brand-untagged) shop when not matching anything?
+
+        [Pure]
+        MatchStrength GetMatchStrength(ShopData point, OsmElement element)
+        {
+            if (FuzzyAddressMatcher.Matches(element, point.Address))
+                return MatchStrength.Strong;
+                
+            return MatchStrength.Good;
+        }
 
         // Parse and report primary matching and location correlation
 

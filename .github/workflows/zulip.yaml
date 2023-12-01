@@ -7,7 +7,7 @@ on:
 
 jobs:
   zulip:
-    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    if: ${{ github.event.workflow_run.conclusion != 'success' && github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest
     steps:
     - uses: zulip/github-actions-zulip/send-message@v1.0.1

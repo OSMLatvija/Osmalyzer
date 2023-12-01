@@ -2,7 +2,7 @@
 
 Parsing OSM data in Latvia against various data sources.
 
-[![Sample output](readme preview map.jpg)](https://osmlatvija.github.io/Osmalyzer/Swedbank%20Locations%20report.html)   
+[![Sample output](readme%20preview%20map.jpg)](https://osmlatvija.github.io/Osmalyzer/Swedbank%20Locations%20report.html)   
 
 The output is available at https://osmlatvija.github.io/Osmalyzer/ as a static webpage (JS required).
 

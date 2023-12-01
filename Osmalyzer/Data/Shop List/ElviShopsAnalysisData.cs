@@ -63,7 +63,13 @@ public class ElviShopsAnalysisData : ShopListAnalysisData
             address = Regex.Replace(address, @", ELVI veikals$", "");
             address = Regex.Replace(address, @", LV-\d{4}$", "");
 
-            _shops.Add(new ShopData(address, new OsmCoord(lat, lon)));
+            _shops.Add(
+                new ShopData(
+                    "Elvi", 
+                    address,
+                    new OsmCoord(lat, lon)
+                )
+            );
         }
     }
 }

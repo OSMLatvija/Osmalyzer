@@ -61,7 +61,13 @@ public class RimiShopsAnalysisData : ShopListAnalysisData
             double lat = double.Parse(Regex.Unescape(Regex.Match(raw, @"""latitude"":""([^""]+)""").Groups[1].ToString()));
             double lon = double.Parse(Regex.Unescape(Regex.Match(raw, @"""longitude"":""([^""]+)""").Groups[1].ToString()));
 
-            _shops.Add(new ShopData(display, new OsmCoord(lat, lon)));
+            _shops.Add(
+                new ShopData(
+                    "Rimi", 
+                    display, 
+                    new OsmCoord(lat, lon)
+                )
+            );
         }
     }
 }

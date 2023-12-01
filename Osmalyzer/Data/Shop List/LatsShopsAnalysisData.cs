@@ -65,7 +65,13 @@ public class LatsShopsAnalysisData : ShopListAnalysisData
                     
             address = Regex.Replace(address, @", LV-\d{4}$", "");
                     
-            _shops.Add(new ShopData(address, new OsmCoord(lat, lon)));
+            _shops.Add(
+                new ShopData(
+                    "LaTS",
+                    address, 
+                    new OsmCoord(lat, lon)
+                )
+            );
         }
     }
 }

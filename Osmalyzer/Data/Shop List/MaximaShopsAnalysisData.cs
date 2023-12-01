@@ -75,7 +75,13 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
             double lat = double.Parse(Regex.Unescape(Regex.Match(raw, @"""lat"":""([^""]+)""").Groups[1].ToString()));
             double lon = double.Parse(Regex.Unescape(Regex.Match(raw, @"""lng"":""([^""]+)""").Groups[1].ToString()));
 
-            _shops.Add(new ShopData(address, new OsmCoord(lat, lon)));
+            _shops.Add(
+                new ShopData(
+                    "Maxima", // todo: X XX XXX variant?
+                    address, 
+                    new OsmCoord(lat, lon)
+                )
+            );
         }
     }
 }

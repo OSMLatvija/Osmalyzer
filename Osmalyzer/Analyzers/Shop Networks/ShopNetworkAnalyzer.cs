@@ -36,7 +36,7 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
         OsmMasterData osmMasterData = osmData.MasterData;
                 
         OsmDataExtract osmShops = osmMasterData.Filter(
-            new HasKey("shop")
+            new HasAnyValue("shop", "yes", "supermarket", "grocery", "convenience")
         );
         
         OsmDataExtract brandShops = osmShops.Filter(

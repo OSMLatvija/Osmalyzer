@@ -105,7 +105,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
                 
             
             // We may not have data tap, so only print label if there is one
-            string tapLabel = rigaTap != null ? " for tap `" + rigaTap.Name + "`" : "";
+            string tapLabel = rigaTap != null ? " for tap `" + rigaTap.ReportString() + "`" : "";
 
             // Check operator
             

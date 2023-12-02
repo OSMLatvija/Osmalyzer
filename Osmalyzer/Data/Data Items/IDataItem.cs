@@ -12,7 +12,7 @@ public interface IDataItem
 
     /// <summary>
     /// User-readable unique description of this item, such as its key values.
-    /// This should include the previx label describing what sort of item this is - reports won't assume best label.
+    /// This should include the prefix label describing what sort of item this is - reports won't assume best label.
     /// This shouldn't include the <see cref="Coord"/>, as that will be reported as needed depending on the actual issue. 
     /// </summary>
     [Pure]

@@ -47,12 +47,13 @@ public static class Runner
             // new VeskoShopNetworkAnalyzer(),
             // new SparShopNetworkAnalyzer(),
             // new CitroShopNetworkAnalyzer(),
-            new TopShopNetworkAnalyzer(),
+            // new TopShopNetworkAnalyzer(),
             // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
+            new CourthouseAnalyzer()
         };
 #endif
 

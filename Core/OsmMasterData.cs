@@ -48,11 +48,11 @@ public class OsmMasterData : OsmData
         {
             rawElements.Add(geo);
 
-            switch (geo)
+            switch (geo.Type)
             {
-                case Node:     nodeCount++; break;
-                case Way:      wayCount++; break;
-                case Relation: relationCount++; break;
+                case OsmGeoType.Node:     nodeCount++; break;
+                case OsmGeoType.Way:      wayCount++; break;
+                case OsmGeoType.Relation: relationCount++; break;
             }
         }
 

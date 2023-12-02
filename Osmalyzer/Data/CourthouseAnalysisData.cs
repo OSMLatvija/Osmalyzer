@@ -63,9 +63,9 @@ public class CourthouseAnalysisData : AnalysisData, IPreparableAnalysisData, IUn
                 double lat = double.Parse(match.Groups[1].ToString());
                 double lon = double.Parse(match.Groups[2].ToString());
 
-                string name = match.Groups[3].ToString();
+                string name = match.Groups[3].ToString().Trim();
 
-                string address = match.Groups[4].ToString();
+                string address = match.Groups[4].ToString().Trim();
 
                 _courthouses.Add(
                     new CourthouseData(

@@ -17,7 +17,7 @@ public class CitroShopsAnalysisData : ShopListAnalysisData
     protected override string DataFileIdentifier => "shops-citro";
 
 
-    public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
+    public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
 
     public override IEnumerable<ShopData> Shops => _shops;
 

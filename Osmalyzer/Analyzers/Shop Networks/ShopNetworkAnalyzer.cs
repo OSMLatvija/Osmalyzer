@@ -92,8 +92,9 @@ public abstract class ShopNetworkAnalyzer<T> : Analyzer where T : ShopListAnalys
         [Pure]
         MatchStrength GetMatchStrength(ShopData point, OsmElement element)
         {
-            if (FuzzyAddressMatcher.Matches(element, point.Address))
-                return MatchStrength.Strong;
+            if (point.Address != null)
+                if (FuzzyAddressMatcher.Matches(element, point.Address))
+                    return MatchStrength.Strong;
                 
             return MatchStrength.Good;
         }

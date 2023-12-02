@@ -16,7 +16,7 @@ public class SparShopsAnalysisData : ShopListAnalysisData
     protected override string DataFileIdentifier => "shops-spar";
 
 
-    public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
+    public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
     public override IEnumerable<ShopData> Shops => _shops;
 

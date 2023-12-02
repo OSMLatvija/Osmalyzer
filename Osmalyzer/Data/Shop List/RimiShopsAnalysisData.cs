@@ -17,7 +17,7 @@ public class RimiShopsAnalysisData : ShopListAnalysisData
     protected override string DataFileIdentifier => "shops-rimi";
 
 
-    public override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
+    public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
 
     public override IEnumerable<ShopData> Shops => _shops;
 

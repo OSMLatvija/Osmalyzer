@@ -4,12 +4,12 @@ public class ShopData : IDataItem
 {
     public string ShopName { get; }
 
-    public string Address { get; }
+    public string? Address { get; }
     
     public OsmCoord Coord { get; }
 
 
-    public ShopData(string shopName, string address, OsmCoord coord)
+    public ShopData(string shopName, string? address, OsmCoord coord)
     {
         Address = address;
         Coord = coord;
@@ -20,7 +20,7 @@ public class ShopData : IDataItem
     public string ReportString()
     {
         return
-            ShopName + " shop " +
-            "`" + Address + "`";
+            ShopName + " shop" +
+            (Address != null ? " `" + Address + "`" : "");
     }
 }

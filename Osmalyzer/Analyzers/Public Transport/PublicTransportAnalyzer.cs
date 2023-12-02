@@ -10,6 +10,10 @@ namespace Osmalyzer;
 public abstract class PublicTransportAnalyzer<T> : Analyzer
     where T : GTFSAnalysisData, new()
 {
+    public override string Description => "This checks the public transport route issues for " + Name;
+
+    public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
+    
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(T) };
 
 

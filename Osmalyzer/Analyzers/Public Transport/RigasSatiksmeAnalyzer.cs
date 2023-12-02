@@ -7,8 +7,6 @@ public class RigasSatiksmeAnalyzer : PublicTransportAnalyzer<RigasSatiksmeAnalys
 {
     public override string Name => "Rigas Satiksme";
 
-    public override string Description => "This checks the public transport route issues for " + Name;
-
         
     protected override string Label => "RS";
 }

@@ -13,6 +13,8 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
     public override string Description => "This report checks that all POIs from " + BankName + " contact list are mapped. " +
                                           "Note that the website list is not precise and the actual points can be dozens and even hundreds of meters away, such as in shopping malls.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Bank;
+
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(TData) };
 
 

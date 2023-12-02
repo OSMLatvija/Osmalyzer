@@ -12,6 +12,8 @@ public class TrolleybusWireAnalyzer : Analyzer
 
     public override string Description => "This report checks that trolleybus wires tags are set for all ways that have trolleybus routes.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
+
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 

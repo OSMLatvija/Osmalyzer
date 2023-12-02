@@ -12,6 +12,8 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
     public override string Description => "This report checks that drinking water taps for Riga are mapped and their tagging is correct. They are all expected to be free-standing drinkable water taps (brīvkrāni) operated by Rīgas ūdens.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RigaDrinkingWaterAnalysisData) };
         

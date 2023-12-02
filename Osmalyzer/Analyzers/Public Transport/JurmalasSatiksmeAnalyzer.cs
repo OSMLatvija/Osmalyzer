@@ -7,8 +7,6 @@ public class JurmalasSatiksmeAnalyzer : PublicTransportAnalyzer<JurmalasSatiksme
 {
     public override string Name => "Jurmalas Autobusu Satiksme";
 
-    public override string Description => "This checks the public transport route issues for " + Name;
-
         
     protected override string Label => "JS";
 }

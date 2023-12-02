@@ -13,6 +13,8 @@ public class LVCRoadAnalyzer : Analyzer
 
     public override string Description => "This report checks LVC route roads for issues.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Road;
+
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
 

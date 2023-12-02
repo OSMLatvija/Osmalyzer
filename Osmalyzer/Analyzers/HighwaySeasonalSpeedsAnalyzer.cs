@@ -13,6 +13,8 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
 
     public override string Description => "This report finds different values for highway seasonal speeds, that is, highways that have higher summer speed limits.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Road;
+
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 

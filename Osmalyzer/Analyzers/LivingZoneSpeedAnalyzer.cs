@@ -12,6 +12,8 @@ public class LivingZoneSpeedAnalyzer : Analyzer
 
     public override string Description => "The report checks that living zone streets have the correct `maxspeed` set.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Road;
+
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
 

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Web;
 
@@ -17,6 +19,8 @@ public class HtmlFileReporter : Reporter
 
         using StreamWriter reportFile = File.CreateText(Path.Combine(ReportWriter.OutputPath, "index.html"));
             
+        // TODO: TEMPLATE
+        
         reportFile.WriteLine(@"<!doctype html>");
         reportFile.WriteLine(@"<html>");
         reportFile.WriteLine(@"<head>");
@@ -58,22 +62,29 @@ public class HtmlFileReporter : Reporter
 
         if (reports.Count > 0)
         {
-            reportFile.WriteLine("<ul>");
+            List<(AnalyzerGroup Key, List<Report>)> groupedReports = GetGroupedReports(reports);
 
-            foreach (Report report in reports)
+            foreach ((AnalyzerGroup group, List<Report> reportsInGroup) in groupedReports)
             {
-                Console.Write("Writing report for " + report.Name + "...");
+                reportFile.WriteLine("<h4>" + HttpUtility.HtmlEncode(group.Title) + "</h4>");
 
-                Stopwatch saveStopwatch = Stopwatch.StartNew();
-                
-                reportWriter.Save(report);
+                reportFile.WriteLine("<ul>");
 
-                Console.WriteLine(" (" + saveStopwatch.ElapsedMilliseconds + " ms)");
+                foreach (Report report in reportsInGroup)
+                {
+                    Console.Write("Writing report for " + report.Name + "...");
 
-                reportFile.WriteLine("<li><a href=\"" + reportWriter.ReportFileName + "\">" + HttpUtility.HtmlEncode(report.Name) + "</a></li>");
+                    Stopwatch saveStopwatch = Stopwatch.StartNew();
+
+                    reportWriter.Save(report);
+
+                    Console.WriteLine(" (" + saveStopwatch.ElapsedMilliseconds + " ms)");
+
+                    reportFile.WriteLine("<li><a href=\"" + reportWriter.ReportFileName + "\">" + HttpUtility.HtmlEncode(report.Name) + "</a></li>");
+                }
+
+                reportFile.WriteLine("</ul>");
             }
-
-            reportFile.WriteLine("</ul>");
         }
         else
         {
@@ -116,6 +127,14 @@ public class HtmlFileReporter : Reporter
         CopyIconsForLeaflet();
     }
 
+
+    private List<(AnalyzerGroup Key, List<Report>)> GetGroupedReports(IEnumerable<Report> ungroupedReports)
+    {
+        return ungroupedReports
+               .GroupBy(r => r.Analyzer.Group)
+               .Select(gr => (gr.Key, gr.OrderBy(g => g.Name).ToList()))
+               .ToList();
+    }
 
     private void CopyIconsForLeaflet()
     {

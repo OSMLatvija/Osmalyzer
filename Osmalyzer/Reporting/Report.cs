@@ -6,9 +6,12 @@ namespace Osmalyzer;
 
 public class Report
 {
+    public Analyzer Analyzer { get; }
+
     public string Name { get; }
         
     public string Description { get; }
+
     public IEnumerable<AnalysisData> Datas { get; }
 
         
@@ -20,6 +23,7 @@ public class Report
 
     public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
     {
+        Analyzer = analyzer;
         Datas = datas;
 
         Name = analyzer.Name;

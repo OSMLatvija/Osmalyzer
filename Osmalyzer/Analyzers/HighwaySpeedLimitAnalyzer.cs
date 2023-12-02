@@ -12,6 +12,8 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
 
     public override string Description => "This report checks that various speed limits are correct. This doesn't check living zones, see separate report.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Road;
+
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
         
 

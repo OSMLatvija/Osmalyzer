@@ -14,6 +14,8 @@ public class CommonBrandsAnalyzer : Analyzer
 
     public override string Description => "This report lists the most common brand names and name variations for common amenity/shop/misc POIs.";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
         

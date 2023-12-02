@@ -18,6 +18,8 @@ public class MicroReservesAnalyzer : Analyzer
 
     public override string Description => "This report checks that excepted microreserves are mapped";
 
+    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+
     public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(MicroReserveAnalysisData) };
         
 

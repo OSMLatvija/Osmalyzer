@@ -52,7 +52,7 @@ public static class Runner
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
-            // new LuminorLocationAnalyzer(),
+            new LuminorLocationAnalyzer(),
             new CourthouseAnalyzer()
         };
 #endif

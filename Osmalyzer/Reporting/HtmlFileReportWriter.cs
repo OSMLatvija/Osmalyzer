@@ -347,8 +347,9 @@ public class HtmlFileReportWriter : ReportWriter
         return output.Replace(fromString, "").Replace(toString, "");
     }
 
+    
     [Pure]
-    private static string ReplaceLocatorBlock(string output, string locatorId, string value)
+    public static string ReplaceLocatorBlock(string output, string locatorId, string value)
     {
         string locatorString = "<!--" + locatorId + "-->";
 

@@ -61,6 +61,8 @@
       <EmbeddedResource Include="Reporting\HTML report resources\orangeGreenCircle.png" />
       <None Remove="Reporting\HTML report resources\orangeCircle.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\orangeCircle.png" />
+      <None Remove="Reporting\Report templates\index.html" />
+      <EmbeddedResource Include="Reporting\Report templates\index.html" />
     </ItemGroup>
 
 

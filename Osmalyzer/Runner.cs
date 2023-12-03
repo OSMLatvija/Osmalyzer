@@ -48,12 +48,12 @@ public static class Runner
             // new SparShopNetworkAnalyzer(),
             // new CitroShopNetworkAnalyzer(),
             // new TopShopNetworkAnalyzer(),
-            // new CulturalMonumentsAnalyzer(),
+            new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
-            new LuminorLocationAnalyzer(),
-            new CourthouseAnalyzer()
+            // new LuminorLocationAnalyzer(),
+            // new CourthouseAnalyzer()
         };
 #endif
 

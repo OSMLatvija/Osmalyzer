@@ -21,7 +21,7 @@ public class CulturalMonument : IDataItem
     {
         return 
             "Cultural monument " +
-            "#" + (ReferenceID?.ToString() ?? "?") + 
+            (ReferenceID != null ? "https://mantojums.lv/cultural-objects/" + ReferenceID : "#???") + 
             " \"" + Name + "\" ";
     }
 }

@@ -250,6 +250,8 @@ public class HtmlFileReportWriter : ReportWriter
     {
         line = HttpUtility.HtmlEncode(line);
             
+        // URLs
+        
         line = Regex.Replace(line, @"(https://osm.org/node/(\d+))", @"<a href=""$1"" class=""osm-link"">Node $2</a>");
         line = Regex.Replace(line, @"(https://osm.org/way/(\d+))", @"<a href=""$1"" class=""osm-link"">Way $2</a>");
         line = Regex.Replace(line, @"(https://osm.org/relation/(\d+))", @"<a href=""$1"" class=""osm-link"">Rel $2</a>");
@@ -258,6 +260,10 @@ public class HtmlFileReportWriter : ReportWriter
             
         line = Regex.Replace(line, @"(https://overpass-turbo.eu/\?Q=[a-zA-Z0-9%\-_\.!*()+]+)", @"<a href=""$1"">Query</a>");
 
+        line = Regex.Replace(line, @"(https://mantojums.lv/cultural-objects/(\d+))", @"<a href=""$1"">#$2</a>");
+
+        // Other syntax
+        
         line = Regex.Replace(line, @"`([^`]+)`", @"<code class=""osm-tag"">$1</code>");
 
         line = line.Replace(Environment.NewLine, "<br>");

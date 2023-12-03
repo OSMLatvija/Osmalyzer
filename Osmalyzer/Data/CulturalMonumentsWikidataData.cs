@@ -11,8 +11,11 @@ public class CulturalMonumentsWikidataData : AnalysisData
 {
     public override string Name => "Cultural Monuments Wikidata";
 
-    public override string ReportWebLink => @"https://www.wikidata.org/wiki/Property:P2494";
+    public override string ReportWebLink => @"https://www.wikidata.org/wiki/Property:P" + PropertyID;
 
+
+    public long PropertyID => 2494;
+    
 
     protected override string DataFileIdentifier => "cultural-monuments-wikidata";
 
@@ -22,7 +25,7 @@ public class CulturalMonumentsWikidataData : AnalysisData
 
     protected override void Download()
     {
-        Items = Wikidata.FetchItemsWithProperty(2494);
+        Items = Wikidata.FetchItemsWithProperty(PropertyID);
         // todo: cache, would need fetch and parse
     }
 
@@ -34,7 +37,7 @@ public class CulturalMonumentsWikidataData : AnalysisData
             if (monument.ReferenceID != null)
             {
                 string refIdStr = monument.ReferenceID.Value.ToString();
-                WikidataItem? wikidataItem = Items.FirstOrDefault(i => i[2494] == refIdStr);
+                WikidataItem? wikidataItem = Items.FirstOrDefault(i => i[PropertyID] == refIdStr);
 
                 if (wikidataItem != null)
                     monument.WikidataItem = wikidataItem;

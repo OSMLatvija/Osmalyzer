@@ -45,7 +45,8 @@ public class CulturalMonumentsAnalyzer : Analyzer
             
         // Assign Wikidata to monument data
 
-        datas.OfType<CulturalMonumentsWikidataData>().First().Assign(monuments);
+        CulturalMonumentsWikidataData wikidataData = datas.OfType<CulturalMonumentsWikidataData>().First();
+        wikidataData.Assign(monuments);
         
         // Prepare data comparer/correlator
 
@@ -61,7 +62,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
         );
         
         [Pure]
-        static MatchStrength DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
+        MatchStrength DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
         {
             // name
             
@@ -109,11 +110,27 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 return MatchStrength.Regular;
             }
             
+            // Wikidata ID
+
+            if (monument.WikidataItem != null)
+            {
+                string? wikidataStr = osmElement.GetValue("wikidata");
+
+                if (wikidataStr != null && wikidataStr.Length > 1)
+                {
+                    if (long.TryParse(wikidataStr, out long wikidataID))
+                    {
+                        if (wikidataID.ToString() == monument.WikidataItem[wikidataData.PropertyID])
+                            return MatchStrength.Strong;
+                    }
+                }
+            }
+
             return MatchStrength.Unmatched;
         }
 
         [Pure]
-        static bool IsOsmElementHeritagePoiByItself(OsmElement osmElement)
+        bool IsOsmElementHeritagePoiByItself(OsmElement osmElement)
         {
             // ref:LV:vkpai
             
@@ -133,6 +150,22 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 if (herOper.Contains("vkpai") ||
                     herOper.Contains("valsts kultūras pieminekļu aizsardzības inspekcija"))
                     return true;
+            }
+            
+            // Wikidata ID
+            // If our wikidata item was loaded as a wikidata item with cultural heritage ID, then we must be one
+
+            string? wikidataStr = osmElement.GetValue("wikidata");
+
+            if (wikidataStr != null && wikidataStr.Length > 1)
+            {
+                if (long.TryParse(wikidataStr, out long wikidataID))
+                {
+                    string wikidataIDAsStr = wikidataID.ToString();
+
+                    if (wikidataData.Items.Any(i => i[wikidataData.PropertyID] == wikidataIDAsStr))
+                        return true;
+                }
             }
 
             return false;

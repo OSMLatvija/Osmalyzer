@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
+
+namespace Osmalyzer;
 
 public class CulturalMonument : IDataItem
 {
@@ -7,6 +9,8 @@ public class CulturalMonument : IDataItem
     public string Name { get; }
     
     public int? ReferenceID { get; }
+    
+    public WikidataItem? WikidataItem { get; set; }
 
 
     public CulturalMonument(OsmCoord coord, string name, int? referenceId)
@@ -23,6 +27,7 @@ public class CulturalMonument : IDataItem
             "Cultural monument " +
             (ReferenceID != null ? "https://mantojums.lv/" + ReferenceID : "#???") + 
             // https://mantojums.lv/cultural-objects/### for system ID and https://mantojums.lv/### for reference ID
-            " \"" + Name + "\" ";
+            " \"" + Name + "\" " +
+            (WikidataItem != null ? " " + WikidataItem.WikidataUrl : "");
     }
 }

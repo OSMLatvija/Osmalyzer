@@ -14,7 +14,12 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(CulturalMonumentsMapAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>()
+    {
+        typeof(OsmAnalysisData),
+        typeof(CulturalMonumentsMapAnalysisData),
+        typeof(CulturalMonumentsWikidataData)
+    };
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -38,6 +43,10 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
         List<CulturalMonument> monuments = datas.OfType<CulturalMonumentsMapAnalysisData>().First().Monuments;
             
+        // Assign Wikidata to monument data
+
+        datas.OfType<CulturalMonumentsWikidataData>().First().Assign(monuments);
+        
         // Prepare data comparer/correlator
 
         Correlator<CulturalMonument> dataComparer = new Correlator<CulturalMonument>(

@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreBenchmarks", "CoreBench
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OsmalyzerTests", "OsmalyzerTests\OsmalyzerTests.csproj", "{71E9874A-DA2F-4EB9-804E-8936109E71C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikidataSharp", "WikidataSharp\WikidataSharp.csproj", "{57A171F8-5A73-4568-B740-ABE7483AD28B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikidataSharpTests", "WikidataSharpTests\WikidataSharpTests.csproj", "{98AC519F-97E7-47F8-B934-4D6F71A68306}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,13 @@ Global
 		{71E9874A-DA2F-4EB9-804E-8936109E71C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71E9874A-DA2F-4EB9-804E-8936109E71C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71E9874A-DA2F-4EB9-804E-8936109E71C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57A171F8-5A73-4568-B740-ABE7483AD28B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57A171F8-5A73-4568-B740-ABE7483AD28B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57A171F8-5A73-4568-B740-ABE7483AD28B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57A171F8-5A73-4568-B740-ABE7483AD28B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98AC519F-97E7-47F8-B934-4D6F71A68306}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98AC519F-97E7-47F8-B934-4D6F71A68306}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98AC519F-97E7-47F8-B934-4D6F71A68306}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98AC519F-97E7-47F8-B934-4D6F71A68306}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

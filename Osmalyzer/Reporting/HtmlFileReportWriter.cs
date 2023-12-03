@@ -252,15 +252,15 @@ public class HtmlFileReportWriter : ReportWriter
             
         // URLs
         
-        line = Regex.Replace(line, @"(https://osm.org/node/(\d+))", @"<a href=""$1"" class=""osm-link"">Node $2</a>");
-        line = Regex.Replace(line, @"(https://osm.org/way/(\d+))", @"<a href=""$1"" class=""osm-link"">Way $2</a>");
-        line = Regex.Replace(line, @"(https://osm.org/relation/(\d+))", @"<a href=""$1"" class=""osm-link"">Rel $2</a>");
-        line = Regex.Replace(line, @"(https://osm.org/changeset/(\d+))", @"<a href=""$1"" class=""osm-link"">Changeset $2</a>");
-        line = Regex.Replace(line, @"(https://osm.org/#map=\d{1,2}/(-?\d{1,3}\.\d+)/(-?\d{1,3}\.\d+))", @"<a href=""$1"" class=""osm-link"">Location $2, $3</a>");
+        line = Regex.Replace(line, @"(https://osm.org/node/(\d+))", @"<a href=""$1"" class=""osm-link"" target=\""_blank\"">Node $2</a>");
+        line = Regex.Replace(line, @"(https://osm.org/way/(\d+))", @"<a href=""$1"" class=""osm-link"" target=\""_blank\"">Way $2</a>");
+        line = Regex.Replace(line, @"(https://osm.org/relation/(\d+))", @"<a href=""$1"" class=""osm-link"" target=\""_blank\"">Rel $2</a>");
+        line = Regex.Replace(line, @"(https://osm.org/changeset/(\d+))", @"<a href=""$1"" class=""osm-link"" target=\""_blank\"">Changeset $2</a>");
+        line = Regex.Replace(line, @"(https://osm.org/#map=\d{1,2}/(-?\d{1,3}\.\d+)/(-?\d{1,3}\.\d+))", @"<a href=""$1"" class=""osm-link"" target=\""_blank\"">Location $2, $3</a>");
             
-        line = Regex.Replace(line, @"(https://overpass-turbo.eu/\?Q=[a-zA-Z0-9%\-_\.!*()+]+)", @"<a href=""$1"">Query</a>");
+        line = Regex.Replace(line, @"(https://overpass-turbo.eu/\?Q=[a-zA-Z0-9%\-_\.!*()+]+)", @"<a href=""$1"" target=\""_blank\"">Query</a>");
 
-        line = Regex.Replace(line, @"(https://mantojums.lv/cultural-objects/(\d+))", @"<a href=""$1"">#$2</a>");
+        line = Regex.Replace(line, @"(https://mantojums.lv/cultural-objects/(\d+))", @"<a href=""$1"" target=\""_blank\"">#$2</a>");
 
         // Other syntax
         

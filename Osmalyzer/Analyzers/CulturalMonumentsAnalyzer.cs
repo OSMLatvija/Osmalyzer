@@ -10,7 +10,9 @@ public class CulturalMonumentsAnalyzer : Analyzer
 {
     public override string Name => "Cultural Monuments";
 
-    public override string Description => "This report checks that all cultural monument POIs are mapped.";
+    public override string Description => "This report checks that all the hsitorical national cultural monuments are mapped." + Environment.NewLine +
+                                          "The registry is maintained by VKPAI (Valsts kultūras pieminekļu aizsardzības inspekcija) and the coordinates are usually very precise (although the actual geometry strongly depends on what it represents - it can be individual points, area, even approximate site)." + Environment.NewLine +
+                                          "Note that all sorts of combinations bewteen OSM and heritage entries are possible, such as many elements being a single heritage site or a single element containing multiple (often-unmapped) heritage objects - determining this usually requires manual review.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 

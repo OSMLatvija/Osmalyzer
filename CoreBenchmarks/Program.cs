@@ -120,7 +120,7 @@ public class ChunkerBenchmark
     [Benchmark]
     public int BenchChunking()
     {
-        Chunker<TestItem> chunker = new Chunker<TestItem>(_items, ChunkCount);
+        Chunker<TestItem> chunker = new Chunker<TestItem>(_items, true, ChunkCount);
 
         return chunker.Count;
     }
@@ -128,7 +128,7 @@ public class ChunkerBenchmark
     [Benchmark]
     public int BenchLookup()
     {
-        Chunker<TestItem> chunker = new Chunker<TestItem>(_items, ChunkCount);
+        Chunker<TestItem> chunker = new Chunker<TestItem>(_items, true, ChunkCount);
 
         Random random = new Random(42);
 

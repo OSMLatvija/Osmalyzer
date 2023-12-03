@@ -30,7 +30,7 @@ public class Chunker<T> where T : IChunkerItem
     private Chunk?[,]? _chunks;
 
 
-    public Chunker(IList<T> items, int chunkCountPerDimension = 50)
+    public Chunker(IList<T> items, bool alwaysChunk = false, int chunkCountPerDimension = 50)
     {
         _span = chunkCountPerDimension; 
 
@@ -60,7 +60,8 @@ public class Chunker<T> where T : IChunkerItem
 
         _chunkSize = _size / _span;
         
-        // Note that we don't make chunks yet - until first lookup, we may not even need to
+        if (alwaysChunk) // By default, we don't make chunks yet - until first lookup, we may not even need to
+            ChunkItUp();
     }
 
 
@@ -78,7 +79,7 @@ public class Chunker<T> where T : IChunkerItem
     [PublicAPI]
     public T? GetClosest((double x, double y) target)
     {
-        if (_elements.Count > 100) // no point with fewer because overhead is likely to exceed the individual search speed-up
+        if (_elements.Count > 100 || _chunks != null) // no point with fewer because overhead is likely to exceed the individual search speed-up (unless we already chunked it up)
             return GetClosestChunked(target);
 
         return GetClosestManually(target, null);
@@ -88,7 +89,7 @@ public class Chunker<T> where T : IChunkerItem
     [PublicAPI]
     public T? GetClosest((double x, double y) target, double maxDistance)
     {
-        if (_elements.Count > 100) // no point with fewer because overhead is likely to exceed the individual search speed-up
+        if (_elements.Count > 100 || _chunks != null) // no point with fewer because overhead is likely to exceed the individual search speed-up (unless we already chunked it up)
             return GetClosestChunked(target, maxDistance);
 
         return GetClosestManually(target, maxDistance);
@@ -117,7 +118,7 @@ public class Chunker<T> where T : IChunkerItem
     [PublicAPI]
     public List<T> GetAllClosest((double x, double y) target, double maxDistance)
     {
-        if (_elements.Count > 100) // no point with fewer because overhead is likely to exceed the individual search speed-up
+        if (_elements.Count > 100 || _chunks != null) // no point with fewer because overhead is likely to exceed the individual search speed-up (unless we already chunked it up)
             return GetAllClosestChunked(target, maxDistance);
 
         return GetAllClosestManually(target, maxDistance);

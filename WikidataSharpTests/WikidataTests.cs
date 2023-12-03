@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace WikidataSharp.Tests;
 
-public class Tests
+public class WikidataTests
 {
     [Test]
     public void Test()

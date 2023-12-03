@@ -2,10 +2,11 @@ using NUnit.Framework;
 
 namespace Osmalyzer.Tests;
 
-public class Tests
+public class ChunkerTests
 {
-    [Test]
-    public void TestGetClosestLimited()
+    [TestCase(true)]
+    [TestCase(false)]
+    public void TestGetClosestLimited(bool chunked)
     {
         List<TestItem> nodes = new List<TestItem>()
         {
@@ -16,7 +17,7 @@ public class Tests
             new TestItem(30, 30)
         };
         
-        Chunker<TestItem> chunker = new Chunker<TestItem>(nodes);
+        Chunker<TestItem> chunker = new Chunker<TestItem>(nodes, chunked);
 
         TestItem? closest = chunker.GetClosest((12, 3), 20);
 
@@ -24,8 +25,9 @@ public class Tests
         Assert.That(closest, Is.EqualTo(nodes[2]));
     }    
     
-    [Test]
-    public void TestGetClosestUnlimited()
+    [TestCase(true)]
+    [TestCase(false)]
+    public void TestGetClosestUnlimited(bool chunked)
     {
         List<TestItem> nodes = new List<TestItem>()
         {
@@ -36,7 +38,7 @@ public class Tests
             new TestItem(30, 30)
         };
         
-        Chunker<TestItem> chunker = new Chunker<TestItem>(nodes);
+        Chunker<TestItem> chunker = new Chunker<TestItem>(nodes, chunked);
 
         TestItem? closest = chunker.GetClosest((12, 3));
 
@@ -44,8 +46,9 @@ public class Tests
         Assert.That(closest, Is.EqualTo(nodes[2]));
     }    
     
-    [Test]
-    public void TestGetAllClosest()
+    [TestCase(true)]
+    [TestCase(false)]
+    public void TestGetAllClosest(bool chunked)
     {
         List<TestItem> nodes = new List<TestItem>()
         {
@@ -56,7 +59,7 @@ public class Tests
             new TestItem(30, 30)
         };
         
-        Chunker<TestItem> chunker = new Chunker<TestItem>(nodes);
+        Chunker<TestItem> chunker = new Chunker<TestItem>(nodes, chunked);
 
         List<TestItem> closest = chunker.GetAllClosest((6, 8), 20);
 

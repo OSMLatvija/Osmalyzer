@@ -11,6 +11,7 @@ public class WikidataItem
     public IEnumerable<WikidataStatement> Statements => _statements;
 
 
+    [PublicAPI]
     public string WikidataUrl => @"https://www.wikidata.org/entity/Q" + ID;
     
 

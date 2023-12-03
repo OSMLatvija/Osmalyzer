@@ -44,11 +44,11 @@ public class HtmlFileReportWriter : ReportWriter
     [Pure]
     private static string BuildContent(Report report, string title)
     {
-        StringBuilder stringBuilder = new StringBuilder(); 
+        StringBuilder str = new StringBuilder(); 
         
-        stringBuilder.AppendLine("<h2>Report for " + title + "</h2>");
+        str.AppendLine("<h2>Report for " + title + "</h2>");
 
-        stringBuilder.AppendLine("<p>" + PolishLine(report.Description) + "</p>");
+        str.AppendLine("<p>" + PolishLine(report.Description) + "</p>");
 
         List<ReportGroup> groups = report.CollectGroups();
 
@@ -56,29 +56,29 @@ public class HtmlFileReportWriter : ReportWriter
 
         if (needTOC)
         {
-            stringBuilder.AppendLine("<h3>Sections</h3>");
-            stringBuilder.AppendLine("<ul class=\"custom-list toc-list\">");
+            str.AppendLine("<h3>Sections</h3>");
+            str.AppendLine("<ul class=\"custom-list toc-list\">");
             for (int g = 0; g < groups.Count; g++)
             {
                 int importantEntryCount = groups[g].ImportantEntryCount;
                 
-                stringBuilder.Append(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>");
+                str.Append(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>");
 
                 if (importantEntryCount > 0)
                     if (groups[g].ShowImportantEntryCount)
-                        stringBuilder.Append(@" (" + importantEntryCount + ")");
+                        str.Append(@" (" + importantEntryCount + ")");
 
-                stringBuilder.AppendLine(@"</li>");
+                str.AppendLine(@"</li>");
             }
 
-            stringBuilder.AppendLine("</ul>");
+            str.AppendLine("</ul>");
         }
         
         if (report.NeedMap)
         {
             // Define (shared) leaflet icons
             
-            stringBuilder.AppendLine(@"<script>");
+            str.AppendLine(@"<script>");
 
             foreach (LeafletIcon leafletIcon in EmbeddedIcons.Icons.OfType<LeafletIcon>())
                 AddIcon(leafletIcon.Name, leafletIcon.Size);
@@ -87,18 +87,18 @@ public class HtmlFileReportWriter : ReportWriter
             {
                 // todo: to template
                 
-                stringBuilder.AppendLine(@"var " + iconName + " = L.icon({");
-                stringBuilder.AppendLine(@"iconUrl: 'icons/" + iconName + ".png',");
-                stringBuilder.AppendLine(@"iconSize: ["+size+", "+size+"],"); // size of the icon
-                stringBuilder.AppendLine(@"iconAnchor: ["+(size/2)+", "+(size/2)+"],"); // point of the icon which will correspond to marker's location
-                stringBuilder.AppendLine(@"popupAnchor: [2, -"+(size+2)+"]"); // point from which the popup should open relative to the iconAnchor
+                str.AppendLine(@"var " + iconName + " = L.icon({");
+                str.AppendLine(@"iconUrl: 'icons/" + iconName + ".png',");
+                str.AppendLine(@"iconSize: ["+size+", "+size+"],"); // size of the icon
+                str.AppendLine(@"iconAnchor: ["+(size/2)+", "+(size/2)+"],"); // point of the icon which will correspond to marker's location
+                str.AppendLine(@"popupAnchor: [2, -"+(size+2)+"]"); // point from which the popup should open relative to the iconAnchor
                 //stringBuilder.AppendLine(@"shadowUrl: 'icons/leaf-shadow.png',");
                 //stringBuilder.AppendLine(@"shadowSize: [50, 64],"); // size of the shadow
                 //stringBuilder.AppendLine(@"shadowAnchor: [4, 62]," + Environment.NewLine
-                stringBuilder.AppendLine(@"});");
+                str.AppendLine(@"});");
             }
 
-            stringBuilder.AppendLine(@"</script>");
+            str.AppendLine(@"</script>");
         }
             
         for (int g = 0; g < groups.Count; g++)
@@ -106,47 +106,47 @@ public class HtmlFileReportWriter : ReportWriter
             ReportGroup group = groups[g];
 
             if (needTOC)
-                stringBuilder.AppendLine(@"<h3 id=""g" + (g + 1) + @""">" + group.Title + "</h3>");
+                str.AppendLine(@"<h3 id=""g" + (g + 1) + @""">" + group.Title + "</h3>");
             else
-                stringBuilder.AppendLine("<h3>" + group.Title + "</h3>");
+                str.AppendLine("<h3>" + group.Title + "</h3>");
 
             if (group.DescriptionEntry != null)
-                stringBuilder.AppendLine("<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");
+                str.AppendLine("<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");
 
             if (!group.HaveAnyContentEntries)
                 if (group.PlaceholderEntry != null)
-                    stringBuilder.AppendLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
+                    str.AppendLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
 
             if (group.MapPointEntries.Count > 0)
-                stringBuilder.AppendLine(MakeMapContent(group.MapPointEntries, g));
+                str.AppendLine(MakeMapContent(group.MapPointEntries, g));
 
             if (group.IssueEntryCount > 0)
             {
-                stringBuilder.AppendLine("<ul class=\"custom-list issues-list\">");
+                str.AppendLine("<ul class=\"custom-list issues-list\">");
                 foreach (IssueReportEntry entry in group.CollectIssueEntries())
-                    stringBuilder.AppendLine("<li>" + PolishLine(entry.Text) + "</li>");
-                stringBuilder.AppendLine("</ul>");
+                    str.AppendLine("<li>" + PolishLine(entry.Text) + "</li>");
+                str.AppendLine("</ul>");
             }
 
             if (group.GenericEntryCount > 0)
             {
-                stringBuilder.AppendLine("<ul class=\"custom-list notes-list\">");
+                str.AppendLine("<ul class=\"custom-list notes-list\">");
                 foreach (GenericReportEntry entry in group.CollectGenericEntries())
-                    stringBuilder.AppendLine("<li>" + PolishLine(entry.Text) + "</li>");
-                stringBuilder.AppendLine("</ul>");
+                    str.AppendLine("<li>" + PolishLine(entry.Text) + "</li>");
+                str.AppendLine("</ul>");
             }
         }
 
-        stringBuilder.AppendLine("<h3>Source data</h3>");
+        str.AppendLine("<h3>Source data</h3>");
         
-        stringBuilder.AppendLine("<ul>");
+        str.AppendLine("<ul>");
         foreach (AnalysisData data in report.Datas)
-            stringBuilder.AppendLine("<li>" + DataInfoLine(data) + "</li>");
-        stringBuilder.AppendLine("</ul>");
+            str.AppendLine("<li>" + DataInfoLine(data) + "</li>");
+        str.AppendLine("</ul>");
         
-        stringBuilder.AppendLine("Provided as is; mistakes possible.");
+        str.AppendLine("Provided as is; mistakes possible.");
 
-        return stringBuilder.ToString();
+        return str.ToString();
 
         
         [Pure]
@@ -179,12 +179,12 @@ public class HtmlFileReportWriter : ReportWriter
         [Pure]
         string MakeMarkersContent(IEnumerable<MapPointReportEntry> entries)
         {
-            string markersContent = ""; 
+            StringBuilder markerStr = new StringBuilder(); 
             
             foreach (MapPointReportEntry mapPointEntry in entries)
-                markersContent += MakeMarkerContent(mapPointEntry);
+                markerStr.Append(MakeMarkerContent(mapPointEntry));
 
-            return markersContent;
+            return markerStr.ToString();
             
 
             string MakeMarkerContent(MapPointReportEntry mapPointEntry)

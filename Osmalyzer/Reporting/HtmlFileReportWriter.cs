@@ -208,7 +208,12 @@ public class HtmlFileReportWriter : ReportWriter
                 markerContent = markerContent.Replace("_GROUP_", iconGroup);
 
                 string text = PolishLine(mapPointEntry.Text).Replace("\"", "\\\"");
-                text += @" <a href=\""" + mapPointEntry.Coord.OsmUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
+
+                // Add map location link, if there wasn't one explicitly already
+                string coordUrl = mapPointEntry.Coord.OsmUrl;
+                if (!text.Contains(coordUrl))
+                    text += @" <a href=\""" + coordUrl + @"\"" target=\""_blank\"" title=\""Open map at this location\"">🔗</a>";
+
                 markerContent = markerContent.Replace("_TEXT_", text);
 
                 return markerContent;

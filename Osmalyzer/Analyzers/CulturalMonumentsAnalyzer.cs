@@ -37,7 +37,8 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 new HasKey("name"),
                 new HasKey("heritage"),
                 new HasKey("heritage:operator"),
-                new HasKey("ref:LV:vkpai")
+                new HasKey("ref:LV:vkpai"),
+                new HasKey("wikidata")
             )
         );
             

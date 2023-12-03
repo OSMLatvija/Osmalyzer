@@ -21,7 +21,8 @@ public class CulturalMonument : IDataItem
     {
         return 
             "Cultural monument " +
-            (ReferenceID != null ? "https://mantojums.lv/cultural-objects/" + ReferenceID : "#???") + 
+            (ReferenceID != null ? "https://mantojums.lv/" + ReferenceID : "#???") + 
+            // https://mantojums.lv/cultural-objects/### for system ID and https://mantojums.lv/### for reference ID
             " \"" + Name + "\" ";
     }
 }

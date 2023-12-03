@@ -62,6 +62,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
 
                 int nameIndex = names.IndexOf("name");
                 int monRefIndex = names.IndexOf("national_protection_number");
+                // the third one is "id" but it's not the system ID, it's some different ID for map stuff 
 
                 object[] values = feature.Attributes.GetValues();
 

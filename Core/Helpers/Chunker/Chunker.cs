@@ -131,7 +131,7 @@ public class Chunker<T> where T : IChunkerItem
             ChunkItUp();
 
         T? bestItem = default;
-        double bestDistance = double.MaxValue;
+        double bestDistanceSqr = double.MaxValue;
 
         // We need to keep checking until we reach the furthest corner,
         // that is, we need to keep our "ring" growing span by span
@@ -156,6 +156,7 @@ public class Chunker<T> where T : IChunkerItem
             // We can check the chunks that our current "circle" covers,
             // starting at neighbouring 1 chunk away and up to all of them (and then still some until we reach corners)
             double checkDistance = _chunkSize * span;
+            double checkDistanceSqr = checkDistance * checkDistance;
 
             IEnumerable<Chunk> chunks = GetChunksInSpan(target, span);
 
@@ -163,17 +164,17 @@ public class Chunker<T> where T : IChunkerItem
             {
                 foreach ((T item, (double, double) coord) in chunk.Elements)
                 {
-                    double distance = DistanceBetween(
+                    double distanceSqr = DistanceBetweenSqr(
                         coord,
                         target
                     );
 
-                    if (distance <= checkDistance) // within the "circle" covered by the span (not the chunk rectangle - we will otherwise "cut off" the items)
+                    if (distanceSqr <= checkDistanceSqr) // within the "circle" covered by the span (not the chunk rectangle - we will otherwise "cut off" the items)
                     {
                         if (bestItem == null ||
-                            distance < bestDistance)
+                            distanceSqr < bestDistanceSqr)
                         {
-                            bestDistance = distance;
+                            bestDistanceSqr = distanceSqr;
                             bestItem = item;
                         }
                     }
@@ -196,27 +197,29 @@ public class Chunker<T> where T : IChunkerItem
     {
         if (_chunks == null)
             ChunkItUp();
+
+        double maxDistanceSqr = maxDistance * maxDistance;
         
         IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
 
         T? bestItem = default;
-        double bestDistance = double.MaxValue;
+        double bestDistanceSqr = double.MaxValue;
 
         foreach (Chunk chunk in chunks)
         {
             foreach ((T item, (double, double) coord) in chunk.Elements)
             {
-                double distance = DistanceBetween(
+                double distanceSqr = DistanceBetweenSqr(
                     coord,
                     target
                 );
 
-                if (distance <= maxDistance)
+                if (distanceSqr <= maxDistanceSqr)
                 {
                     if (bestItem == null ||
-                        distance < bestDistance)
+                        distanceSqr < bestDistanceSqr)
                     {
-                        bestDistance = distance;
+                        bestDistanceSqr = distanceSqr;
                         bestItem = item;
                     }
                 }
@@ -229,19 +232,21 @@ public class Chunker<T> where T : IChunkerItem
     [Pure]
     private T? GetClosestManually((double x, double y) target, double? maxDistance)
     {
+        double? maxDistanceSqr = maxDistance * maxDistance;
+
         T? bestElement = default;
-        double bestDistance = 0.0;
+        double bestDistanceSqr = 0.0;
 
         foreach ((T element, (double, double) coord) in _elements)
         {
-            double distance = DistanceBetween(target, coord);
+            double distanceSqr = DistanceBetweenSqr(target, coord);
 
-            if (maxDistance == null || distance <= maxDistance)
+            if (maxDistanceSqr == null || distanceSqr <= maxDistanceSqr)
             {
-                if (bestElement == null || bestDistance > distance)
+                if (bestElement == null || bestDistanceSqr > distanceSqr)
                 {
                     bestElement = element;
-                    bestDistance = distance;
+                    bestDistanceSqr = distanceSqr;
                 }
             }
         }
@@ -254,7 +259,9 @@ public class Chunker<T> where T : IChunkerItem
     {
         if (_chunks == null)
             ChunkItUp();
-        
+     
+        double maxDistanceSqr = maxDistance * maxDistance;
+
         IEnumerable<Chunk> chunks = GetChunksInRange(target, maxDistance);
 
         SortedList<double, T> nodes = new SortedList<double, T>(DuplicateKeyComparer.Instance);
@@ -263,14 +270,14 @@ public class Chunker<T> where T : IChunkerItem
         {
             foreach ((T item, (double, double) coord) in chunk.Elements)
             {
-                double distance = DistanceBetween(
+                double distanceSqr = DistanceBetween(
                     coord,
                     target
                 );
 
-                if (distance <= maxDistance)
+                if (distanceSqr <= maxDistanceSqr)
                 {
-                    nodes.Add(distance, item);
+                    nodes.Add(Math.Sqrt(distanceSqr), item);
                 }
             }
         }
@@ -288,7 +295,7 @@ public class Chunker<T> where T : IChunkerItem
         
         foreach ((T item, (double, double) coord) in _elements)
         {
-            double distance = DistanceBetween(
+            double distance = DistanceBetween( // no point using Sqr version as we need the Sqrt right away anyway
                 coord,
                 target
             );
@@ -302,18 +309,20 @@ public class Chunker<T> where T : IChunkerItem
     [Pure]
     private List<T> GetAllClosestManually((double x, double y) target, double maxDistance)
     {
+        double maxDistanceSqr = maxDistance * maxDistance;
+
         SortedList<double, T> nodes = new SortedList<double, T>(DuplicateKeyComparer.Instance);
         
         foreach ((T item, (double, double) coord) in _elements)
         {
-            double distance = DistanceBetween(
+            double distanceSqr = DistanceBetweenSqr(
                 coord,
                 target
             );
 
-            if (distance <= maxDistance)
+            if (distanceSqr <= maxDistanceSqr)
             {
-                nodes.Add(distance, item);
+                nodes.Add(Math.Sqrt(distanceSqr), item);
             }
         }
         
@@ -373,12 +382,19 @@ public class Chunker<T> where T : IChunkerItem
     }
 
     [Pure]
+    private static double DistanceBetweenSqr((double x, double y) coord, (double x, double y) target)
+    {
+        double dx = coord.x - target.x;
+        double dy = coord.y - target.y;
+        return dx * dx + dy * dy;
+    }
+
+    [Pure]
     private static double DistanceBetween((double x, double y) coord, (double x, double y) target)
     {
         double dx = coord.x - target.x;
         double dy = coord.y - target.y;
         return Math.Sqrt(dx * dx + dy * dy);
-        // todo: nonsqrt version
     }
 
 

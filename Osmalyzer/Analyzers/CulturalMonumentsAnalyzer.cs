@@ -33,13 +33,13 @@ public class CulturalMonumentsAnalyzer : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract osmHeritages = osmMasterData.Filter(
-            new OrMatch(
-                new HasKey("name"),
-                new HasKey("old_name"),
-                new HasKey("heritage"),
-                new HasKey("heritage:operator"),
-                new HasKey("ref:LV:vkpai"),
-                new HasKey("wikidata")
+            new HasAnyKey(
+                "name",
+                "old_name",
+                "heritage",
+                "heritage:operator",
+                "ref:LV:vkpai",
+                "wikidata"
             )
         );
             

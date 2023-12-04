@@ -11,10 +11,12 @@ public class HasAnyKey : OsmFilter
     public override bool TaggedOnly => true;
 
 
-    private readonly List<string> _tags;
+    private readonly string[] _tags;
 
 
-    public HasAnyKey(List<string> tags)
+    public HasAnyKey(IEnumerable<string> tags) : this(tags.ToArray()) { }
+        
+    public HasAnyKey(params string[] tags)
     {
         _tags = tags;
     }

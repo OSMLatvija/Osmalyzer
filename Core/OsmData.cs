@@ -34,6 +34,7 @@ public abstract class OsmData
     private List<OsmWay> _waysWithTags = null!;
     private List<OsmRelation> _relations = null!;
     private List<OsmRelation> _relationsWithTags = null!;
+    private List<OsmElement> _elementsWithTags = null!;
 
     private Chunker<OsmElement>? _chunker;
 
@@ -319,32 +320,38 @@ public abstract class OsmData
         _nodesWithTags = new List<OsmNode>();
         _waysWithTags = new List<OsmWay>();
         _relationsWithTags = new List<OsmRelation>();
+        _elementsWithTags = new List<OsmElement>();
     }
 
     protected void AddElement(OsmElement newElement)
     {
         _elements.Add(newElement);
 
+        bool hasAnyTags = newElement.HasAnyTags;
+        
+        if (hasAnyTags)
+            _elementsWithTags.Add(newElement);
+        
         switch (newElement)
         {
             case OsmNode node:
                 _nodes.Add(node);
                     
-                if (newElement.HasAnyTags)
+                if (hasAnyTags)
                     _nodesWithTags.Add(node);
                 break;
 
             case OsmWay way:
                 _ways.Add(way);
                     
-                if (newElement.HasAnyTags)
+                if (hasAnyTags)
                     _waysWithTags.Add(way);
                 break;
                 
             case OsmRelation relation:
                 _relations.Add(relation);
                     
-                if (newElement.HasAnyTags)
+                if (hasAnyTags)
                     _relationsWithTags.Add(relation);
                 break;
 
@@ -383,6 +390,9 @@ public abstract class OsmData
 
             return _relations;
         }
+        
+        if (filters.Any(f => f.TaggedOnly))
+            return _elementsWithTags;
 
         return _elements;
     }

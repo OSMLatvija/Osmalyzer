@@ -69,11 +69,9 @@ public class CulturalMonumentsAnalyzer : Analyzer
         MatchStrength DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
         {
             // name
-            
-            if (osmElement.GetValue("name")?.ToLower() == monument.Name)
-                return MatchStrength.Strong;
-            
-            if (osmElement.GetValue("old_name")?.ToLower() == monument.Name)
+           
+            if (FuzzyNameMatcher.Matches(osmElement, "name", monument.Name) ||
+                FuzzyNameMatcher.Matches(osmElement, "old_name", monument.Name))
                 return MatchStrength.Strong;
             
             // ref:LV:vkpai

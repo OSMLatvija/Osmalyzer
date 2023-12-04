@@ -19,9 +19,9 @@ public class Validator<T> where T : IDataItem
     {
         report.AddGroup(
             ReportGroup.ValidationResults, 
-            "Other problems with drinking water taps",
-            "These matched/found OSM elements have additional individual issues.",
-            "No issues found with matched/found OSM taps."
+            "Other issues",
+            "These matched/found OSM elements and/or data items have additional individual (known) issues.",
+            "No (known) issues found with matched/found OSM elements and/or data items."
         );
         
         foreach (Correlation match in _correlatorReport.Correlations)
@@ -54,8 +54,17 @@ public class Validator<T> where T : IDataItem
             {
                 switch (rule)
                 {
-                    case ValidateElementFixme:                    CheckElementFixme(); break;
-                    case ValidateElementHasValue elementHasValue: CheckElementHasValue(elementHasValue); break;
+                    case ValidateElementFixme:
+                        CheckElementFixme();
+                        break;
+                    
+                    case ValidateElementHasValue elementHasValue:
+                        CheckElementHasValue(elementHasValue);
+                        break;
+                    
+                    case ValidateElementHasAcceptableValue elementHasAcceptableValue:
+                        CheckElementHasAcceptableValue(elementHasAcceptableValue);
+                        break;
 
                     default:
                         throw new NotImplementedException();
@@ -108,6 +117,27 @@ public class Validator<T> where T : IDataItem
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
                                 "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Values) + " set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(SortOrder.Tagging),
+                                osmElement.GetAverageCoord(),
+                                MapPointStyle.Problem
+                            )
+                        );
+                    }
+                }
+            }
+
+            void CheckElementHasAcceptableValue(ValidateElementHasAcceptableValue rule)
+            {
+                string? value = osmElement.GetValue(rule.Tag);
+
+                if (value != null)
+                {
+                    if (!rule.Check(value))
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                "OSM element doesn't have a " + rule.ValueLabel + " set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(SortOrder.Tagging),
                                 osmElement.GetAverageCoord(),
                                 MapPointStyle.Problem

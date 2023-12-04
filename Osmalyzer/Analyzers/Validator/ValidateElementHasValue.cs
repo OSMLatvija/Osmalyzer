@@ -1,5 +1,9 @@
 ﻿namespace Osmalyzer;
 
+/// <summary>
+/// For one or few values.
+/// Value is expected.
+/// </summary>
 public class ValidateElementHasValue : ValidationRule
 {
     public string Tag { get; }

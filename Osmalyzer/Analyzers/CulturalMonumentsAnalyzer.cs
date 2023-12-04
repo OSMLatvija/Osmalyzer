@@ -180,12 +180,29 @@ public class CulturalMonumentsAnalyzer : Analyzer
             
         // Parse and report primary matching and location correlation
 
-        dataComparer.Parse(
+        CorrelatorReport correlatorReport = dataComparer.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
             new MatchedFarPairBatch()
         );
+
+        // Validate additional issues
+
+        Validator<CulturalMonument> validator = new Validator<CulturalMonument>(
+            correlatorReport
+        );
+
+        validator.Validate(
+            report,
+            new ValidateElementHasAcceptableValue("ref:LV:vkpai", IsKnownMonumentRefID, "known monument ID")
+        );
+        
+        [Pure]
+        bool IsKnownMonumentRefID(string id)
+        {
+            return monuments.Any(m => m.ReferenceID != null && m.ReferenceID.ToString() == id);
+        }
     }
 }

@@ -271,7 +271,7 @@ public class Chunker<T> where T : IChunkerItem
         {
             foreach ((T item, (double, double) coord) in chunk.Elements)
             {
-                double distanceSqr = DistanceBetween(
+                double distanceSqr = DistanceBetweenSqr(
                     coord,
                     target
                 );

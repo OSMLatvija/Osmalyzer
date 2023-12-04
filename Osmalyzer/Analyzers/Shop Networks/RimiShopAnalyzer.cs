@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class RimiShopNetworkAnalyzer : ShopNetworkAnalyzer<RimiShopsAnalysisData>
+public class RimiShopAnalyzer : ShopAnalyzer<RimiShopsAnalysisData>
 {
     protected override string ShopName => "Rimi";
     

@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class MaximaShopNetworkAnalyzer : ShopNetworkAnalyzer<MaximaShopsAnalysisData>
+public class MaximaShopAnalyzer : ShopAnalyzer<MaximaShopsAnalysisData>
 {
     protected override string ShopName => "Maxima";
     

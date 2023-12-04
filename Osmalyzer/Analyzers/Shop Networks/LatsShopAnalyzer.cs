@@ -2,9 +2,9 @@
 
 namespace Osmalyzer;
 
-public class SparShopNetworkAnalyzer : ShopNetworkAnalyzer<SparShopsAnalysisData>
+public class LatsShopAnalyzer : ShopAnalyzer<LatsShopsAnalysisData>
 {
-    protected override string ShopName => "Spar";
-    
+    protected override string ShopName => "LaTS";
+
     protected override List<string> ShopOsmNames => new List<string>() { ShopName };
 }

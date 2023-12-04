@@ -2,9 +2,9 @@
 
 namespace Osmalyzer;
 
-public class VeskoShopNetworkAnalyzer : ShopNetworkAnalyzer<VeskoShopsAnalysisData>
+public class MegoShopAnalyzer : ShopAnalyzer<MegoShopsAnalysisData>
 {
-    protected override string ShopName => "Vesko";
+    protected override string ShopName => "Mego";
     
     protected override List<string> ShopOsmNames => new List<string>() { ShopName };
 }

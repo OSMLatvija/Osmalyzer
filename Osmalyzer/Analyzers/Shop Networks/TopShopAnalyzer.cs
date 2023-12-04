@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class TopShopNetworkAnalyzer : ShopNetworkAnalyzer<TopShopsAnalysisData>
+public class TopShopAnalyzer : ShopAnalyzer<TopShopsAnalysisData>
 {
     protected override string ShopName => "Top!";
 

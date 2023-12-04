@@ -35,6 +35,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
         OsmDataExtract osmHeritages = osmMasterData.Filter(
             new OrMatch(
                 new HasKey("name"),
+                new HasKey("old_name"),
                 new HasKey("heritage"),
                 new HasKey("heritage:operator"),
                 new HasKey("ref:LV:vkpai"),
@@ -70,6 +71,9 @@ public class CulturalMonumentsAnalyzer : Analyzer
             // name
             
             if (osmElement.GetValue("name")?.ToLower() == monument.Name)
+                return MatchStrength.Strong;
+            
+            if (osmElement.GetValue("old_name")?.ToLower() == monument.Name)
                 return MatchStrength.Strong;
             
             // ref:LV:vkpai

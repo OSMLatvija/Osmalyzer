@@ -33,13 +33,19 @@ public class CulturalMonumentsAnalyzer : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract osmHeritages = osmMasterData.Filter(
-            new HasAnyKey(
-                "name",
-                "old_name",
-                "heritage",
-                "heritage:operator",
-                "ref:LV:vkpai",
-                "wikidata"
+            new OrMatch(
+                new HasAnyKey( // any of the heritage keys automatically "pass" the element, even if it's a weird type
+                    "heritage",
+                    "heritage:operator",
+                    "ref:LV:vkpai"
+                ),
+                new HasAnyKey( // common targets, but not something we rarely to never expect
+                    "building",
+                    "ruins",
+                    "historic",
+                    "man_made",
+                    "landuse"
+                )
             )
         );
             

@@ -68,7 +68,8 @@ public class CourthouseAnalyzer : Analyzer
 
             if (name != null)
             {
-                if (!name.ToLower().Contains("zemesgrāmat")) // e.g. "Ogres Rajona Tiesas Zemesgrāmatu nodaļa"
+                if (!name.ToLower().Contains("zemesgrāmat") && // e.g. "Ogres Rajona Tiesas Zemesgrāmatu nodaļa"
+                    !name.ToLower().Contains("bāriņties")) // e.g. "Daugavpils pilsētas Bāriņtiesa"
                 {
                     if (name.ToLower().Contains("rajona tiesa") ||
                         name.ToLower().Contains("apgabaltiesa") ||

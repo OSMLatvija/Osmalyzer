@@ -65,6 +65,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
             monuments,
             new MatchDistanceParamater(30),
             new MatchFarDistanceParamater(300),
+            new MatchExtraDistanceParamater(MatchStrength.Strong, 1200), // some POIs are like neghbourhoods and large areas
             new DataItemLabelsParamater("monument", "monuments"),
             new MatchCallbackParameter<CulturalMonument>(DoesOsmNodeMatchMonument),
             new OsmElementPreviewValue("name", false),

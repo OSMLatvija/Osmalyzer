@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
 namespace Osmalyzer;
@@ -48,11 +51,59 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 )
             )
         );
-            
+        
         // Get monument data
 
         List<CulturalMonument> monuments = datas.OfType<CulturalMonumentsMapAnalysisData>().First().Monuments;
+        
+        // Known/ignored names
+        
+#if !REMOTE_EXECUTION
+        
+        string ignoredNameFileName = @"data/cultural monument ignored names.tsv";
+
+        if (!File.Exists(ignoredNameFileName))
+            ignoredNameFileName = @"../../../../" + ignoredNameFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
             
+        string[] ignoredNames = File.ReadAllLines(ignoredNameFileName, Encoding.UTF8);
+        
+        string knownNameFileName = @"data/cultural monument known names.tsv";
+
+        if (!File.Exists(knownNameFileName))
+            knownNameFileName = @"../../../../" + knownNameFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
+            
+        string[] knownNames = File.ReadAllLines(knownNameFileName, Encoding.UTF8);
+
+        List<string> ignoredMatch = new List<string>() { "name\tignored matches" };
+        List<string> knownMatch = new List<string>() { "name\tknown matches" };
+        List<string> conflictMatch = new List<string>() { "name\tknown matches\tignored matches" };
+        List<string> unknownMatch = new List<string>() { "name" };
+
+        foreach (CulturalMonument monument in monuments)
+        {
+            List<string> ignoredMatches = ignoredNames.Where(inm => Regex.IsMatch(monument.Name, inm, RegexOptions.IgnoreCase)).ToList();
+            bool ignored = ignoredMatches.Any();
+
+            List<string> knownMatches = knownNames.Where(inm => Regex.IsMatch(monument.Name, inm, RegexOptions.IgnoreCase)).ToList();
+            bool known = knownMatches.Any();
+            
+            if (ignored && known)
+                conflictMatch.Add(monument.Name + "\t" + string.Join("; ", knownMatches.Select(m => "\"" + m + "\"")) + "\t" + string.Join("; ", ignoredMatches.Select(m => "\"" + m + "\"")));
+            else if (ignored)
+                ignoredMatch.Add(monument.Name + "\t" + string.Join("; ", ignoredMatches.Select(m => "\"" + m + "\"")));
+            else if (known)
+                knownMatch.Add(monument.Name + "\t" + string.Join("; ", knownMatches.Select(m => "\"" + m + "\"")));
+            else
+                unknownMatch.Add(monument.Name);
+        }
+        
+        File.WriteAllLines("cmdump-ignored.txt", ignoredMatch);
+        File.WriteAllLines("cmdump-known.txt", knownMatch);
+        File.WriteAllLines("cmdump-conflict.txt", conflictMatch);
+        File.WriteAllLines("cmdump-unknown.txt", unknownMatch);
+           
+#endif
+        
         // Assign Wikidata to monument data
 
         CulturalMonumentsWikidataData wikidataData = datas.OfType<CulturalMonumentsWikidataData>().First();

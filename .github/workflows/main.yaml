@@ -49,6 +49,8 @@ jobs:
     - uses: actions/upload-pages-artifact@main
       with:
         path: output/
+        
+  # Upload artifact (i.e. generated static website) to GitHub Pages
   deploy:
     needs: build
     permissions:

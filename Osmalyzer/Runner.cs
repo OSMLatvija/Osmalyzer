@@ -32,7 +32,7 @@ public static class Runner
             // new JurmalasSatiksmeAnalyzer(),
             // new AutotransportaDirekcijaAnalyzer(),
             // new TrolleybusWireAnalyzer(),
-            // //new MicroReservesAnalyzer(), -- it fails from localhost, no idea why
+            new MicroReservesAnalyzer(), // -- it fails from localhost, no idea why
             // new StreetNameAnalyzer(),
             // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),
@@ -48,7 +48,7 @@ public static class Runner
             // new SparShopAnalyzer(),
             // new CitroShopAnalyzer(),
             // new TopShopAnalyzer(),
-            new CulturalMonumentsAnalyzer(),
+            // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),

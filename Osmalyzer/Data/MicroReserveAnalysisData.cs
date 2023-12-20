@@ -70,5 +70,22 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
             Path.Combine(CacheBasePath, DataFileIdentifier + @".zip"),
             Path.GetFullPath(ExtractionFolder)
         );
+        
+        // Make sure the files are in root and not in subfolder, as the data start being suddenly (e.g. "Mikroliegumi_20.12.2023")
+        
+        string[] subfolders = Directory.GetDirectories(ExtractionFolder);
+        
+        if (subfolders.Length == 1)
+        {
+            string[] subfolderFiles = Directory.GetFiles(subfolders[0]);
+            
+            foreach (string file in subfolderFiles)
+            {
+                string destination = Path.Combine(ExtractionFolder, Path.GetFileName(file));
+                File.Move(file, destination);
+            }
+
+            Directory.Delete(subfolders[0]);
+        }
     }
 }

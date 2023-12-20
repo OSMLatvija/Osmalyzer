@@ -53,9 +53,13 @@ jobs:
   # Upload artifact (i.e. generated static website) to GitHub Pages
   deploy:
     needs: build
+    
     permissions:
       pages: write
       id-token: write
+      actions: read
+      
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/deploy-pages@v1
+      - uses: actions/deploy-pages@v4

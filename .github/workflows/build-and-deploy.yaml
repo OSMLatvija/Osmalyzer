@@ -4,7 +4,7 @@ on:
     branches:
     - main
   schedule:
-    - cron: '0 22 * * *' # daily at 22:00 - Geofabrik updates OSM dump daily sometime after 21:00
+    - cron: '0 9 * * *' # daily at 09:00 - approximately some time after Geofabrik's OSM daily dump becomes available
 
 jobs:
   build:

@@ -68,7 +68,7 @@ public class RimiShopsAnalysisData : ShopListAnalysisData
             _shops.Add(
                 new ShopData(
                     "Rimi", 
-                    display, 
+                    !string.IsNullOrWhiteSpace(display) ? display : null, 
                     new OsmCoord(lat, lon)
                 )
             );

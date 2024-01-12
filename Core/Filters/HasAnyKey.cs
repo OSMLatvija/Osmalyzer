@@ -24,6 +24,10 @@ public class HasAnyKey : OsmFilter
 
     internal override bool Matches(OsmElement element)
     {
+        if (_tags.Length == 0)
+            if (element.HasAnyTags)
+                return true;
+        
         return _tags.Any(element.HasKey);
     }
 }

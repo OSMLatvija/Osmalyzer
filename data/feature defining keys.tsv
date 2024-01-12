@@ -6,6 +6,7 @@ highway	good	exact	nwr
 addr:	strippable	prefix	nwr
 old_addr:	strippable	prefix	nwr
 ref:LV:addr	strippable	exact	nwr
+type	good	exact	r	relation with a type is fine
 landuse	good	exact	nwr
 natural	good	exact	nwr
 power	good	exact	nwr
@@ -15,7 +16,7 @@ barrier	good	exact	nwr
 leisure	good	exact	nwr
 crossing	good	exact	nwr	like crossing=no
 railway	good	exact	nwr
-railway:historic	good	prefix	nwr
+railway:historic	good	exact	nwr
 man_made	good	exact	nwr
 shop	good	exact	nwr
 water	good	exact	nwr
@@ -46,7 +47,6 @@ aeroway	good	exact	nwr
 aerialway	good	exact	nwr
 noexit	good	exact	nwr
 traffic_sign	good	exact	nwr
-type	good	exact	r	TODO - I don't care about type, I care about tags
 military	good	exact	nwr
 playground	good	exact	nwr
 area:	good	prefix	nwr
@@ -76,3 +76,8 @@ xmas:feature	good	exact	nwr
 allotments	good	exact	nwr	individual allotments=plot
 healthcare	good	exact	nwr	healthcare=laboratory
 pipeline	good	exact	nwr	not pipeline itself but something like pipeline=valve
+cycleway	good	exact	n	cycleway=asl
+junction	good	exact	nwr	junction=yes
+maxspeed	good	exact	n	max speed signs as nodes on road, but not alone on ways
+whitewater	good	exact	nwr
+raceway	good	exact	n	raceway=start/finish

@@ -3,7 +3,9 @@ note	editorial	exact	nwr
 fixme	editorial	exact	nwr
 building	good	exact	nwr
 highway	good	exact	nwr
-addr:	good	prefix	nwr
+addr:	strippable	prefix	nwr
+old_addr:	strippable	prefix	nwr
+ref:LV:addr	strippable	exact	nwr
 landuse	good	exact	nwr
 natural	good	exact	nwr
 power	good	exact	nwr
@@ -67,7 +69,10 @@ cemetery	good	exact	nwr	cemetery=sector
 airmark	good	exact	nwr	airmark=beacon
 craft	good	exact	nwr
 golf	good	exact	nwr
+disc_golf	good	exact	nwr
 club	good	exact	nwr
 telecom	good	exact	nwr
 xmas:feature	good	exact	nwr
 allotments	good	exact	nwr	individual allotments=plot
+healthcare	good	exact	nwr	healthcare=laboratory
+pipeline	good	exact	nwr	not pipeline itself but something like pipeline=valve

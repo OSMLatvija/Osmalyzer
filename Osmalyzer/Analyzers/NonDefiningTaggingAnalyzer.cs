@@ -54,10 +54,11 @@ public class NonDefiningTaggingAnalyzer : Analyzer
         {
             return str switch
             {
-                "good"      => MatchStrength.MatchedAsGood,
-                "poor"      => MatchStrength.MatchedAsPoor,
-                "editorial" => MatchStrength.MatchedAsEditorial,
-                _           => throw new NotImplementedException()
+                "good"       => MatchStrength.MatchedAsGood,
+                "poor"       => MatchStrength.MatchedAsPoor,
+                "editorial"  => MatchStrength.MatchedAsEditorial,
+                "strippable" => MatchStrength.Strippable,
+                _            => throw new NotImplementedException()
             };
         }
         
@@ -165,36 +166,31 @@ public class NonDefiningTaggingAnalyzer : Analyzer
         );
         
         // Parse
+        
+        Dictionary<MatchStrength, int> matchCounts = new Dictionary<MatchStrength, int>(); // outer for performance
+        MatchStrength[] strengths = (MatchStrength[])Enum.GetValues(typeof(MatchStrength));
+        foreach (MatchStrength matchStrength in strengths)
+            matchCounts.Add(matchStrength, 0); // preload values for performance
 
         foreach (OsmElement element in osmElements.Elements)
         {
             if (element.HasAnyTags)
             {
-                bool matchAsBad = false;
-                bool matchedAsPoor = false;
-                bool matchedAsEditorial = false;
+                foreach (MatchStrength matchStrength in strengths)
+                    matchCounts[matchStrength] = 0;
                 
                 foreach (string key in element.AllKeys!)
                 {
+                    MatchStrength matchStrength = MatchStrength.NotMatched;
+
                     foreach (DefiningKey definingKey in definingKeys)
                     {
-                        MatchStrength matchStrength = Match(definingKey, key, element);
-
-                        if (matchStrength != MatchStrength.NotMatched)
-                        {
-                            if (matchStrength == MatchStrength.MatchedAsGood)
-                                matchAsBad = true;
-                            else if (matchStrength == MatchStrength.MatchedAsPoor)
-                                matchedAsPoor = true;
-                            else if (matchStrength == MatchStrength.MatchedAsEditorial)
-                                matchedAsEditorial = true;
-
+                        matchStrength = Match(definingKey, key, element);
+                        if (matchStrength != MatchStrength.NotMatched) // this will only match ocne, but we don't expect defining tags to have multiple matches
                             break;
-                        }
                     }
 
-                    if (matchAsBad)
-                        break;
+                    matchCounts[matchStrength]++;
                 }
                 
                 [Pure]
@@ -221,10 +217,10 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     return definingKey.Strength;
                 }
 
-                if (!matchAsBad && !matchedAsPoor && matchedAsEditorial) // defining key not found, but it's something needed/used for OSM internal mapping
-                    continue;
+                if (matchCounts[MatchStrength.MatchedAsGood] > 0)
+                    continue; // strongly-matched tags, so this represents a feature - nothing to report 
 
-                if (!matchAsBad && matchedAsPoor) // defining key not found, however commonly poorly tagged key found
+                if (matchCounts[MatchStrength.MatchedAsPoor] > 0) // defining keys not found, however commonly poorly-tagged and semi-acceptable keys found
                 {
                     if (!latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.Fuzzy)) // expensive check, so only doing it before potentially reporting
                         continue;
@@ -243,8 +239,10 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     continue;
                 }
 
-                if (matchAsBad) // defining key found
-                    continue;
+                if (matchCounts[MatchStrength.NotMatched] == 0)
+                    continue; // all the other tags (since there are no good or poor) are editorial (like fixme) or strippable when alone (like addr:)
+                
+                // At this point we have tags that were not matched
                 
                 if (!latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.Fuzzy)) // expensive check, so only doing it before potentially reporting
                     continue;
@@ -257,6 +255,8 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                         MapPointStyle.Problem
                     )
                 );
+                
+                // todo: actually list which tag were the bad/unmatched ones
             }
         }
     }
@@ -268,7 +268,8 @@ public class NonDefiningTaggingAnalyzer : Analyzer
         MatchedAsGood,
         NotMatched,
         MatchedAsPoor,
-        MatchedAsEditorial
+        MatchedAsEditorial,
+        Strippable
     }
 
     private enum MatchMethod

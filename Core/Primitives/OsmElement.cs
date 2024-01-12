@@ -20,6 +20,9 @@ public abstract class OsmElement : IChunkerItem
 
         
     [PublicAPI]
+    public int KeyCount => _tags?.Count ?? 0;
+        
+    [PublicAPI]
     public IEnumerable<string>? AllKeys => _tags?.Keys;
         
     [PublicAPI]

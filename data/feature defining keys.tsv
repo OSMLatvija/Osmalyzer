@@ -80,4 +80,5 @@ cycleway	good	exact	n	cycleway=asl
 junction	good	exact	nwr	junction=yes
 maxspeed	good	exact	n	max speed signs as nodes on road, but not alone on ways
 whitewater	good	exact	nwr
+canoe	good	exact	nwr
 raceway	good	exact	n	raceway=start/finish

@@ -98,7 +98,8 @@ public class NonDefiningTaggingAnalyzer : Analyzer
             ReportGroup.NonDefining,
             new DescriptionReportEntry(
                 "These elements/features more than likely need a proper main tag, because the tags they have were't recognized as something that defines them as a feature in OSM sense (see below for tag list). " +
-                "This data is not necessarilly incorrect as such, but possibly only incorrectly tagged for OSM."
+                "This data is not necessarily incorrect as such, but possibly only incorrectly tagged for OSM. " +
+                "As there are many obscure tags on OSM, make sure to actually check that they are actually wrong."
             )
         );
 
@@ -247,11 +248,13 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                 if (!latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.Fuzzy)) // expensive check, so only doing it before potentially reporting
                     continue;
 
+                string keys = string.Join(", ", element.AllKeys!.Select(k => "`" + k + "`"));
                 report.AddEntry(
                     ReportGroup.NonDefining,
                     new IssueReportEntry(
-                        "Element only has non-defining keys " + string.Join(", ", element.AllKeys!.Select(k => "`" + k + "`")) + " for " + element.OsmViewUrl,
-                        element.GetAverageCoord(), 
+                        "Element only has non-defining keys " + keys + " for " + element.OsmViewUrl,
+                        new SortEntryAsc(keys), 
+                        element.GetAverageCoord(),
                         MapPointStyle.Problem
                     )
                 );

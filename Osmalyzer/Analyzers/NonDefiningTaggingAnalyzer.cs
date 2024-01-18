@@ -162,7 +162,16 @@ public class NonDefiningTaggingAnalyzer : Analyzer
         report.AddEntry(
             ReportGroup.PoorlyDefining,
             new DescriptionReportEntry(
-                "These should likely be done better, but are commonly used like that."
+                "These should likely be done better, but are commonly used like that. These are listed in a separate section, because there are too many elements with these keys to manually review above."
+            )
+        );
+
+        report.AddEntry(
+            ReportGroup.PoorlyDefining,
+            new GenericReportEntry(
+                "These tags are considered to poorly define a feature (although technically valid by itself): " + 
+                string.Join(", ", definingKeys.Where(dk => dk.Strength == MatchStrength.MatchedAsPoor).Select(dk => "`" + dk.Key + "`" + DefiningKeyQualifiers(dk)))
+                // todo: comment?
             )
         );
         
@@ -172,6 +181,8 @@ public class NonDefiningTaggingAnalyzer : Analyzer
         MatchStrength[] strengths = (MatchStrength[])Enum.GetValues(typeof(MatchStrength));
         foreach (MatchStrength matchStrength in strengths)
             matchCounts.Add(matchStrength, 0); // preload values for performance
+        
+        Dictionary<string, int> totalPoorMatchCounts = new Dictionary<string, int>();
 
         foreach (OsmElement element in osmElements.Elements)
         {
@@ -179,29 +190,34 @@ public class NonDefiningTaggingAnalyzer : Analyzer
             {
                 foreach (MatchStrength matchStrength in strengths)
                     matchCounts[matchStrength] = 0;
+
+                List<Match> matches = new List<Match>();
                 
                 foreach (string key in element.AllKeys!)
                 {
-                    MatchStrength matchStrength = MatchStrength.NotMatched;
+                    Match? match = null;
 
                     foreach (DefiningKey definingKey in definingKeys)
                     {
-                        matchStrength = Match(definingKey, key, element);
-                        if (matchStrength != MatchStrength.NotMatched) // this will only match ocne, but we don't expect defining tags to have multiple matches
+                        match = Match(definingKey, key, element);
+                        if (match != null) // this will only match ocne, but we don't expect defining tags to have multiple matches
                             break;
                     }
-
-                    matchCounts[matchStrength]++;
+                    
+                    if (match != null)
+                        matches.Add(match);
+                    
+                    matchCounts[match?.Strength ?? MatchStrength.NotMatched]++;
                 }
-                
+
                 [Pure]
-                static MatchStrength Match(DefiningKey definingKey, string key, OsmElement element)
+                static Match? Match(DefiningKey definingKey, string key, OsmElement element)
                 {
                     switch (element)
                     {
-                        case OsmNode:     if (!definingKey.Targets.HasFlag(MatchTargets.Nodes))     return MatchStrength.NotMatched; break;
-                        case OsmRelation: if (!definingKey.Targets.HasFlag(MatchTargets.Relations)) return MatchStrength.NotMatched; break;
-                        case OsmWay:      if (!definingKey.Targets.HasFlag(MatchTargets.Ways))      return MatchStrength.NotMatched; break;
+                        case OsmNode:     if (!definingKey.Targets.HasFlag(MatchTargets.Nodes))     return null; break;
+                        case OsmRelation: if (!definingKey.Targets.HasFlag(MatchTargets.Relations)) return null; break;
+                        case OsmWay:      if (!definingKey.Targets.HasFlag(MatchTargets.Ways))      return null; break;
                     }
                     
                     bool isMatch = definingKey.Method switch
@@ -213,9 +229,9 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     };
 
                     if (!isMatch)
-                        return MatchStrength.NotMatched;
+                        return null;
 
-                    return definingKey.Strength;
+                    return new Match(definingKey.Strength, key);
                 }
 
                 if (matchCounts[MatchStrength.MatchedAsGood] > 0)
@@ -235,7 +251,12 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                         )
                     );
 
-                    // todo: summary for each unique combo
+                    Match poorMatch = matches.First(m => m.Strength == MatchStrength.MatchedAsPoor);
+
+                    if (!totalPoorMatchCounts.ContainsKey(poorMatch.Key))
+                        totalPoorMatchCounts.Add(poorMatch.Key, 1);
+                    else
+                        totalPoorMatchCounts[poorMatch.Key]++;
                     
                     continue;
                 }
@@ -262,10 +283,20 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                 // todo: actually list which tag were the bad/unmatched ones
             }
         }
+        
+        report.AddEntry(
+            ReportGroup.PoorlyDefining,
+            new GenericReportEntry(
+                "Matched these keys: " + 
+                string.Join(", ", totalPoorMatchCounts.Select(pm => "`" + pm.Key + "` x " + pm.Value))
+            )
+        );
     }
 
     private record DefiningKey(string Key, MatchStrength Strength, MatchMethod Method, MatchTargets Targets);
 
+    private record Match(MatchStrength Strength, string Key);
+    
     private enum MatchStrength
     {
         MatchedAsGood,

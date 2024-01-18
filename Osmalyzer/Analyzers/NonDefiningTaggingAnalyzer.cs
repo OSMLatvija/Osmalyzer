@@ -298,6 +298,9 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     "Matched `" + key + "` key " + count + " times with " + values.Distinct().Count() + " unique values for " + string.Join(", ", elementTypes.Distinct().Select(dt => elementTypes.Count(t => t == dt) + " " + ElementTypeToString(dt)))
                 )
             );
+
+            // IEnumerable<(string, int)> valueCounts = values.Distinct().Select(dv => (dv, values.Count(v => v == dv))).OrderBy(vc => vc.Item2);
+            // File.WriteAllLines("source alone values.tsv", valueCounts.Select(vc => vc.Item1 + "\t" + vc.Item2));
             
             continue;
             

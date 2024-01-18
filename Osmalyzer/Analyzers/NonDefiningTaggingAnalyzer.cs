@@ -182,7 +182,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
         foreach (MatchStrength matchStrength in strengths)
             matchCounts.Add(matchStrength, 0); // preload values for performance
         
-        Dictionary<string, int> totalPoorMatchCounts = new Dictionary<string, int>();
+        Dictionary<string, (int, List<string>, List<OsmElement.OsmElementType>)> totalPoorMatchCounts = new Dictionary<string, (int, List<string>, List<OsmElement.OsmElementType>)>();
 
         foreach (OsmElement element in osmElements.Elements)
         {
@@ -231,7 +231,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     if (!isMatch)
                         return null;
 
-                    return new Match(definingKey.Strength, key);
+                    return new Match(definingKey.Strength, key, element.GetValue(key)!);
                 }
 
                 if (matchCounts[MatchStrength.MatchedAsGood] > 0)
@@ -254,10 +254,16 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     Match poorMatch = matches.First(m => m.Strength == MatchStrength.MatchedAsPoor);
 
                     if (!totalPoorMatchCounts.ContainsKey(poorMatch.Key))
-                        totalPoorMatchCounts.Add(poorMatch.Key, 1);
+                    {
+                        totalPoorMatchCounts.Add(poorMatch.Key, (1, new List<string>() { poorMatch.Value }, new List<OsmElement.OsmElementType>() { element.ElementType }));
+                    }
                     else
-                        totalPoorMatchCounts[poorMatch.Key]++;
-                    
+                    {
+                        totalPoorMatchCounts[poorMatch.Key].Item2.Add(poorMatch.Value);
+                        totalPoorMatchCounts[poorMatch.Key].Item3.Add(element.ElementType);
+                        totalPoorMatchCounts[poorMatch.Key] = (totalPoorMatchCounts[poorMatch.Key].Item1 + 1, totalPoorMatchCounts[poorMatch.Key].Item2, totalPoorMatchCounts[poorMatch.Key].Item3);
+                    }
+
                     continue;
                 }
 
@@ -283,19 +289,35 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                 // todo: actually list which tag were the bad/unmatched ones
             }
         }
-        
-        report.AddEntry(
-            ReportGroup.PoorlyDefining,
-            new GenericReportEntry(
-                "Matched these keys: " + 
-                string.Join(", ", totalPoorMatchCounts.Select(pm => "`" + pm.Key + "` x " + pm.Value))
-            )
-        );
+
+        foreach ((string? key, (int count, List<string>? values, List<OsmElement.OsmElementType> elementTypes)) in totalPoorMatchCounts)
+        {
+            report.AddEntry(
+                ReportGroup.PoorlyDefining,
+                new IssueReportEntry(
+                    "Matched `" + key + "` key " + count + " times with " + values.Distinct().Count() + " unique values for " + string.Join(", ", elementTypes.Distinct().Select(dt => elementTypes.Count(t => t == dt) + " " + ElementTypeToString(dt)))
+                )
+            );
+            
+            continue;
+            
+
+            [Pure]
+            static string ElementTypeToString(OsmElement.OsmElementType type)
+            {
+                return type switch
+                {
+                    OsmElement.OsmElementType.Node     => "nodes",
+                    OsmElement.OsmElementType.Way      => "ways",
+                    OsmElement.OsmElementType.Relation => "relations",
+                };
+            }
+        }
     }
 
     private record DefiningKey(string Key, MatchStrength Strength, MatchMethod Method, MatchTargets Targets);
 
-    private record Match(MatchStrength Strength, string Key);
+    private record Match(MatchStrength Strength, string Key, string Value);
     
     private enum MatchStrength
     {

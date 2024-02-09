@@ -12,11 +12,12 @@ public class OsmNode : OsmElement
 
     [PublicAPI]
     public readonly OsmCoord coord;
+    
     [PublicAPI]
-    public IReadOnlyList<OsmNode>? Ways => ways?.AsReadOnly();
+    public IReadOnlyList<OsmWay>? Ways => ways?.AsReadOnly();
 
 
-    internal List<OsmNode>? ways;
+    internal List<OsmWay>? ways;
 
 
     internal OsmNode(OsmGeo rawElement)

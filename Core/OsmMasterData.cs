@@ -114,9 +114,9 @@ public class OsmMasterData : OsmData
 
                 // Backlink
                 if (node.ways == null)
-                    node.ways = new List<OsmNode>();
+                    node.ways = new List<OsmWay>();
 
-                node.ways.Add(node);
+                node.ways.Add(osmWay);
             }
         }
 

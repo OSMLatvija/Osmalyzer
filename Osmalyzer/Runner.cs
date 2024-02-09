@@ -54,7 +54,8 @@ public static class Runner
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
             // new CourthouseAnalyzer(),
-            new NonDefiningTaggingAnalyzer()
+            //new NonDefiningTaggingAnalyzer(),
+            new BridgeAndWaterConnectionAnalyzer()
         };
 #endif
 

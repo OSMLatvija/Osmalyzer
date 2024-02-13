@@ -55,7 +55,8 @@ public static class Runner
             // new LuminorLocationAnalyzer(),
             // new CourthouseAnalyzer(),
             //new NonDefiningTaggingAnalyzer(),
-            new BridgeAndWaterConnectionAnalyzer()
+            //new BridgeAndWaterConnectionAnalyzer(),
+            new TerminatingWaysAnalyzer()
         };
 #endif
 

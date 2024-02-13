@@ -10,7 +10,7 @@ public class BridgeAndWaterConnectionAnalyzer : Analyzer
 {
     public override string Name => "Bridge-Water Connections";
 
-    public override string Description => "This report shows location where a bridge and a waterway connect unexpectedly.";
+    public override string Description => "This report shows locations where a bridge and a waterway connect unexpectedly.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
@@ -110,7 +110,6 @@ public class BridgeAndWaterConnectionAnalyzer : Analyzer
     
     private enum ReportGroup
     {
-        Misconnected,
-        PoorlyDefining
+        Misconnected
     }
 }

@@ -66,7 +66,7 @@ public class TerminatingWaysAnalyzer : Analyzer
                     {
                         if (IsWayRoutable(way))
                         {
-                            if (edgeNode == way.Nodes[0] || edgeNode == way.Nodes[^1])
+                            if (WayTerminatesAtEdge(way, edgeNode, area))
                             {
                                 if (!multipleTerminatingWays) // else, already found multiple terminating, but can still look for crossings
                                 {
@@ -114,6 +114,23 @@ public class TerminatingWaysAnalyzer : Analyzer
                 if (OsmKnowledge.IsRoutableHighwayValue(highwayValue))
                     return true;
                 
+            return false;
+        }
+        
+        [Pure]
+        static bool WayTerminatesAtEdge(OsmWay way, OsmNode edgeNode, OsmWay area)
+        {
+            if (way.Nodes.Count < 2)
+                return false; // degenerate case
+            
+            if (way.Nodes[0] == edgeNode &&
+                way.Nodes.Skip(1).All(n => !area.Nodes.Contains(n)))
+                return true;
+            
+            if (way.Nodes[^1] == edgeNode &&
+                way.Nodes.Take(way.Nodes.Count - 1).All(n => !area.Nodes.Contains(n)))
+                return true;
+            
             return false;
         }
         

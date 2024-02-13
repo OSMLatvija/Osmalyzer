@@ -33,8 +33,6 @@ public class OsmAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnal
 
     protected override void Download()
     {
-            
-            
         WebsiteDownloadHelper.Download(
             "https://download.geofabrik.de/europe/latvia-latest.osm.pbf", 
             Path.Combine(CacheBasePath, DataFileIdentifier + @".osm.pbf")

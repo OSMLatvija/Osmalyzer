@@ -41,7 +41,7 @@ public class TerminatingWaysAnalyzer : Analyzer
         report.AddEntry(
             ReportGroup.Terminating,
             new DescriptionReportEntry(
-                "These way-area intersection locations likely should interconnect and route within the area."
+                "These way-area intersection locations likely should interconnect and route within the area. There are many false positives due to the many combinations how these get drawn both correctly and incorrectly."
             )
         );
         
@@ -58,22 +58,43 @@ public class TerminatingWaysAnalyzer : Analyzer
             {
                 if (edgeNode.Ways != null)
                 {
+                    // Try to find one and only one way which terminates at this edge node
+                    OsmWay? singleTerminatingWay = null;
+                    bool multipleTerminatingWays = false;
+
                     foreach (OsmWay way in edgeNode.Ways)
                     {
                         if (IsWayRoutable(way))
                         {
                             if (edgeNode == way.Nodes[0] || edgeNode == way.Nodes[^1])
                             {
-                                if (points == null)
-                                    points = new List<TerminationPoint>();
-                                
-                                points.Add(new TerminationPoint(way, edgeNode));
+                                if (!multipleTerminatingWays) // else, already found multiple terminating, but can still look for crossings
+                                {
+                                    if (singleTerminatingWay != null)
+                                    {
+                                        // We already had found another terminating way, so this is a second one, thus they route to each other, we can stop now
+                                        multipleTerminatingWays = true;
+                                        singleTerminatingWay = null; // we no longer have a SINGLE way
+                                    }
+                                    else
+                                    {
+                                        singleTerminatingWay = way;
+                                    }
+                                }
                             }
                             else
                             {
                                 foundCrossing = true;
                             }
                         }
+                    }
+
+                    if (singleTerminatingWay != null) // implies not multipleTerminatingWays
+                    {
+                        if (points == null)
+                            points = new List<TerminationPoint>();
+                                
+                        points.Add(new TerminationPoint(singleTerminatingWay, edgeNode));
                     }
                 }
             }

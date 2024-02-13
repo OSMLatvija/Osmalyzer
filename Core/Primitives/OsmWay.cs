@@ -10,6 +10,9 @@ public class OsmWay : OsmElement
 
     public override string OsmViewUrl => "https://osm.org/way/" + Id;
 
+    /// <summary>
+    /// Note: closed ways will repeat the last/first node.
+    /// </summary>
     [PublicAPI]
     public IReadOnlyList<OsmNode> Nodes => nodes.AsReadOnly();
 

@@ -52,54 +52,39 @@ public class TerminatingWaysAnalyzer : Analyzer
         foreach (OsmWay area in areas.Ways)
         {
             List<TerminationPoint>? points = null;
-            bool foundCrossing = false; // todo: but that won't find these if the ways don't connect/touch...
-            
-            foreach (OsmNode edgeNode in area.Nodes)
+
+            for (int i = 0; i < area.Nodes.Count; i++)
             {
+                OsmNode edgeNode = area.Nodes[i];
+
+                if (i == area.Nodes.Count - 1 && edgeNode == area.Nodes[0])
+                    continue; // skip the last same node as first
+                
                 if (edgeNode.Ways != null)
                 {
-                    // Try to find one and only one way which terminates at this edge node
-                    OsmWay? singleTerminatingWay = null;
-                    bool multipleTerminatingWays = false;
+                    List<OsmWay> waysTerminatingAtNode = new List<OsmWay>();
+                    List<OsmWay> waysPassingThroughNode = new List<OsmWay>();
 
-                    foreach (OsmWay way in edgeNode.Ways)
+                    foreach (OsmWay way in edgeNode.Ways.Where(IsWayRoutable))
                     {
-                        if (IsWayRoutable(way))
-                        {
-                            if (WayTerminatesAtEdge(way, edgeNode, area))
-                            {
-                                if (!multipleTerminatingWays) // else, already found multiple terminating, but can still look for crossings
-                                {
-                                    if (singleTerminatingWay != null)
-                                    {
-                                        // We already had found another terminating way, so this is a second one, thus they route to each other, we can stop now
-                                        multipleTerminatingWays = true;
-                                        singleTerminatingWay = null; // we no longer have a SINGLE way
-                                    }
-                                    else
-                                    {
-                                        singleTerminatingWay = way;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                foundCrossing = true;
-                            }
-                        }
+                        if (WayTerminatesAtEdge(way, edgeNode, area))
+                            waysTerminatingAtNode.Add(way);
+
+                        else if (WayPassesThroughEdge(way, edgeNode, area))
+                            waysPassingThroughNode.Add(way);
                     }
 
-                    if (singleTerminatingWay != null) // implies not multipleTerminatingWays
+                    if (waysTerminatingAtNode.Count == 1 && waysPassingThroughNode.Count == 0)
                     {
                         if (points == null)
                             points = new List<TerminationPoint>();
-                                
-                        points.Add(new TerminationPoint(singleTerminatingWay, edgeNode));
+
+                        points.Add(new TerminationPoint(waysTerminatingAtNode[0], edgeNode));
                     }
                 }
             }
 
-            if (points != null && (points.Count > 1 || foundCrossing))
+            if (points != null)
             {
                 badTerminations.Add(new BadTermination(area, points));
             }
@@ -129,6 +114,18 @@ public class TerminatingWaysAnalyzer : Analyzer
             
             if (way.Nodes[^1] == edgeNode &&
                 way.Nodes.Take(way.Nodes.Count - 1).All(n => !area.Nodes.Contains(n)))
+                return true;
+            
+            return false;
+        }
+        
+        [Pure]
+        static bool WayPassesThroughEdge(OsmWay way, OsmNode edgeNode, OsmWay area)
+        {
+            if (way.Nodes.Count < 2)
+                return false; // degenerate case
+            
+            if (way.Nodes.Any(n => area.Nodes.Contains(n)))
                 return true;
             
             return false;

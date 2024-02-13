@@ -25,10 +25,17 @@ public class TerminatingWaysAnalyzer : Analyzer
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
-        
+
         OsmDataExtract areas = osmMasterData.Filter(
             new IsWay(),
-            new HasValue("amenity", "parking")
+            new OrMatch(
+                new HasValue("amenity", "parking"),
+                new HasValue("place", "square"),
+                new AndMatch(
+                    new HasValue("highway", "pedestrian"),
+                    new HasValue("area", "yes")
+                )
+            )
         );
         
         // TODO: MULTIPOLYGONS
@@ -139,7 +146,9 @@ public class TerminatingWaysAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.Terminating,
                     new IssueReportEntry(
-                        "Area has " + badConnection.Points.Count + " unrouted terminating ways: " + badConnection.Area.OsmViewUrl + " - " + string.Join("; ", badConnection.Points.Select(p => p.Way.OsmViewUrl + " at " + p.Node.OsmViewUrl)),
+                        OsmKnowledge.GetFeatureLabel(badConnection.Area, "Area", true) + "  " + badConnection.Area.OsmViewUrl + 
+                        " has " + badConnection.Points.Count + " unrouted terminating ways: " + 
+                        string.Join("; ", badConnection.Points.Select(p => p.Way.OsmViewUrl + " at " + p.Node.OsmViewUrl)),
                         badConnection.Area.GetAverageCoord(),
                         MapPointStyle.Problem
                     )

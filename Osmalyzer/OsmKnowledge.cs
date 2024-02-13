@@ -34,4 +34,28 @@ public static class OsmKnowledge
             or "bus_stop"
             or "platform";
     }
+
+    public static string GetFeatureLabel(OsmElement element, string fallbackValue, bool capitalize)
+    {
+        string? labelRaw = GetFeatureLabelRaw(element);
+        
+        if (labelRaw == null)
+            return fallbackValue;
+
+        if (capitalize)
+            return char.ToUpper(labelRaw[0]) + labelRaw[1..];
+        
+        return labelRaw;
+        
+        static string? GetFeatureLabelRaw(OsmElement element)
+        {
+            // TODO: all the others
+            
+            if (element.HasValue("amenity", "parking")) return "parking";
+            if (element.HasValue("place", "square")) return "square";
+            if (element.HasValue("amenity", "parking") && element.HasValue("area", "yes")) return "pedestrian area";
+
+            return null;
+        }
+    }
 }

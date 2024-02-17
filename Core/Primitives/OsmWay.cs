@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using OsmSharp;
 
@@ -16,6 +17,8 @@ public class OsmWay : OsmElement
     [PublicAPI]
     public IReadOnlyList<OsmNode> Nodes => nodes.AsReadOnly();
 
+    public bool Closed => nodes.Count >= 3 && nodes[0] == nodes[^1];
+
 
     internal readonly List<OsmNode> nodes = new List<OsmNode>();
         
@@ -32,5 +35,17 @@ public class OsmWay : OsmElement
     public override OsmCoord GetAverageCoord()
     {
         return OsmGeoTools.GetAverageCoord(nodes);
+    }
+    
+    [Pure]
+    public OsmPolygon GetPolygon()
+    {
+        return new OsmPolygon(nodes.Select(n => n.coord).ToList());
+    }
+
+    [Pure]
+    public bool ContainsCoord(OsmCoord coord)
+    {
+        return GetPolygon().ContainsCoord(coord);
     }
 }

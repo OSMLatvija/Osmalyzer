@@ -27,7 +27,7 @@ public class TerminatingWaysAnalyzer : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract areas = osmMasterData.Filter(
-            new IsWay(),
+            new IsClosedWay(),
             new OrMatch(
                 new HasValue("amenity", "parking"),
                 new HasValue("place", "square"),

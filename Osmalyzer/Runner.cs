@@ -56,7 +56,8 @@ public static class Runner
             // new CourthouseAnalyzer(),
             //new NonDefiningTaggingAnalyzer(),
             //new BridgeAndWaterConnectionAnalyzer(),
-            new TerminatingWaysAnalyzer()
+            //new TerminatingWaysAnalyzer()
+            new DoubleMappedFeaturesAnalyzer()
         };
 #endif
 

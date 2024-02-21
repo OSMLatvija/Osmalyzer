@@ -1,0 +1,200 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
+
+namespace Osmalyzer;
+
+[UsedImplicitly]
+public class CrossingConsistencyAnalyzer : Analyzer
+{
+    public override string Name => "Crossing Consistency";
+
+    public override string Description => "This report checks that crossing have consistent tags between its node and way.";
+
+    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+
+
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+        
+
+    public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
+    {
+        // Load OSM data
+
+        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+
+        OsmMasterData osmMasterData = osmData.MasterData;
+
+        OsmDataExtract ways = osmMasterData.Filter(
+            new IsWay(),
+            new OrMatch(
+                new HasValue("highway", "path"),
+                new HasValue("highway", "footway")
+            ),
+            new HasValue("footway", "crossing")
+        );
+        
+        OsmDataExtract points = osmMasterData.Filter(
+            new IsNode(),
+            new HasValue("highway", "crossing")
+        );
+
+        // Prepare groups
+
+        report.AddGroup(ReportGroup.Terminating, "Inconsistent crossings");
+
+        report.AddEntry(
+            ReportGroup.Terminating,
+            new DescriptionReportEntry(
+                "These crossing way-node pairs have tag values that do not match each other. These are most likely errors, because almost all values should match since they represent the same crossing."
+            )
+        );
+        
+        // Parse
+        
+        List<Crossing> crossings = GatherCrossings(ways, points);
+        
+        
+        List<ProblematicCrossing> problematicCrossings = new List<ProblematicCrossing>();
+        
+
+        string[] tags =
+        {
+            "crossing",
+            "crossing:markings",
+            "crossing:island",
+            "tactile_paving",
+            "lit",
+            "button_operated",
+            "traffic_signals:sound",
+            "traffic_signals:vibration",
+            "button_operated",
+            "traffic_calming"
+        };
+        
+        foreach (Crossing crossing in crossings)
+        {
+            List<CrossingIssue> issues = new List<CrossingIssue>();
+
+            foreach (string tag in tags)
+            {
+                string? wayValue = crossing.Way.GetValue(tag);
+                string? nodeValue = crossing.Node.GetValue(tag);
+
+                if (wayValue != null && nodeValue != null && !TagUtils.ValuesMatch(wayValue, nodeValue))
+                    if (!SpecialAllowedCase())
+                        issues.Add(new MismatchValueIssue(tag, wayValue, nodeValue));
+
+                bool SpecialAllowedCase()
+                {
+                    // Tactile paving isn't continuous along the way, but there is (some) tactile paving at the kerbs/edges
+                    if (tag == "tactile_paving")
+                        if (wayValue == "no")
+                            if (nodeValue is "yes" or "incorrect")
+                                return true;
+
+                    return false;
+                }
+            }
+            
+            if (issues.Count > 0)
+                problematicCrossings.Add(new ProblematicCrossing(crossing, issues));
+        }
+        
+
+        if (problematicCrossings.Count > 0)
+        {
+            foreach (ProblematicCrossing problematicCrossing in problematicCrossings)
+            {
+                report.AddEntry(
+                    ReportGroup.Terminating,
+                    new IssueReportEntry(
+                        "Crossing way-node pair " + problematicCrossing.Crossing.Way.OsmViewUrl + " - " + problematicCrossing.Crossing.Node.OsmViewUrl + 
+                        " has " + ProblemDescription(problematicCrossing) + ".",
+                        problematicCrossing.Crossing.Node.coord,
+                        MapPointStyle.Problem
+                    )
+                );
+
+                [Pure]
+                static string ProblemDescription(ProblematicCrossing problem)
+                {
+                    if (problem.Issues.Count == 1)
+                        return IssueDescription(problem.Issues[0]);
+
+                    return "these issues: " + string.Join("; ", problem.Issues.Select(IssueDescription));
+
+                    [Pure]
+                    static string IssueDescription(CrossingIssue issue)
+                    {
+                        switch (issue)
+                        {
+                            case MismatchValueIssue mvi:
+                                return "mismatched values for `" + mvi.Key + "` - `" + mvi.WayValue + "` vs `" + mvi.NodeValue + "`";
+                            
+                            default:
+                                throw new ArgumentOutOfRangeException(nameof(issue));
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            report.AddEntry(
+                ReportGroup.Terminating,
+                new GenericReportEntry(
+                    "No crossing way-node pair issues found."
+                )
+            );
+        }
+    }
+
+    
+    private static List<Crossing> GatherCrossings(OsmDataExtract ways, OsmDataExtract points)
+    {
+        List<Crossing> crossings = new List<Crossing>();
+        
+        Dictionary<long, OsmNode> sortedPoints = points.Nodes.ToDictionary(n => n.Id);
+        
+        foreach (OsmWay way in ways.Ways)
+        {
+            List<OsmNode>? matchedNodes = null;
+            
+            foreach (OsmNode wayNode in way.Nodes)
+            {
+                if (sortedPoints.ContainsKey(wayNode.Id))
+                {
+                    if (matchedNodes == null)
+                        matchedNodes = new List<OsmNode>();
+                    
+                    matchedNodes.Add(wayNode);
+                }
+            }
+
+            if (matchedNodes != null)
+                if (matchedNodes.Count == 1)
+                    crossings.Add(new Crossing(way, matchedNodes[0]));
+        }
+
+        return crossings;
+    }
+
+
+    private record Crossing(OsmWay Way, OsmNode Node);
+    
+
+    private record MismatchValueIssue(string Key, string WayValue, string NodeValue) : CrossingIssue;
+    
+    private abstract record CrossingIssue;
+    
+    
+    private record ProblematicCrossing(Crossing Crossing, List<CrossingIssue> Issues);
+    
+    
+    private enum ReportGroup
+    {
+        Terminating
+    }
+}

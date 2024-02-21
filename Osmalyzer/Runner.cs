@@ -57,7 +57,8 @@ public static class Runner
             //new NonDefiningTaggingAnalyzer(),
             //new BridgeAndWaterConnectionAnalyzer(),
             //new TerminatingWaysAnalyzer()
-            new DoubleMappedFeaturesAnalyzer()
+            //new DoubleMappedFeaturesAnalyzer(),
+            new CrossingConsistencyAnalyzer()
         };
 #endif
 

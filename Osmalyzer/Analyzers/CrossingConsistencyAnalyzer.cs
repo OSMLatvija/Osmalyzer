@@ -10,7 +10,7 @@ public class CrossingConsistencyAnalyzer : Analyzer
 {
     public override string Name => "Crossing Consistency";
 
-    public override string Description => "This report checks that crossing have consistent tags between its node and way.";
+    public override string Description => "This report checks that crossings have consistent tags between their node and way.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
@@ -42,12 +42,24 @@ public class CrossingConsistencyAnalyzer : Analyzer
 
         // Prepare groups
 
-        report.AddGroup(ReportGroup.Terminating, "Inconsistent crossings");
+        report.AddGroup(ReportGroup.MismatchedBad, "Inconsistent crossings");
 
         report.AddEntry(
-            ReportGroup.Terminating,
+            ReportGroup.MismatchedBad,
             new DescriptionReportEntry(
-                "These crossing way-node pairs have tag values that do not match each other. These are most likely errors, because almost all values should match since they represent the same crossing."
+                "These crossing way-node pairs have tag values that do not match each other. " +
+                "These are most likely errors, because almost all values should match since they represent the same crossing."
+            )
+        );
+        
+        report.AddGroup(ReportGroup.MismatchedCommon, "Inconsistent crossings (known)");
+
+        report.AddEntry(
+            ReportGroup.MismatchedCommon,
+            new DescriptionReportEntry(
+                "Same as above section, but these are a common known variation that is left over from earlier tagging before crossing tag standartization. " +
+                "Because there are so many of the same type, these are in a separate list. " +
+                "This includes: way being `crossing=marked` but node being `crossing=traffic_signals` representing zebra surface + signals that should instead both be `crossing=traffic_signals` + `crossing:markings=zebra`."
             )
         );
         
@@ -59,7 +71,7 @@ public class CrossingConsistencyAnalyzer : Analyzer
         List<ProblematicCrossing> problematicCrossings = new List<ProblematicCrossing>();
         
 
-        string[] tags =
+        string[] crossingTags =
         {
             "crossing",
             "crossing:markings",
@@ -77,7 +89,7 @@ public class CrossingConsistencyAnalyzer : Analyzer
         {
             List<CrossingIssue> issues = new List<CrossingIssue>();
 
-            foreach (string tag in tags)
+            foreach (string tag in crossingTags)
             {
                 string? wayValue = crossing.Way.GetValue(tag);
                 string? nodeValue = crossing.Node.GetValue(tag);
@@ -85,7 +97,10 @@ public class CrossingConsistencyAnalyzer : Analyzer
                 if (wayValue != null && nodeValue != null && !TagUtils.ValuesMatch(wayValue, nodeValue))
                     if (!SpecialAllowedCase())
                         issues.Add(new MismatchValueIssue(tag, wayValue, nodeValue));
+                
+                continue;
 
+                
                 bool SpecialAllowedCase()
                 {
                     // Tactile paving isn't continuous along the way, but there is (some) tactile paving at the kerbs/edges
@@ -99,7 +114,19 @@ public class CrossingConsistencyAnalyzer : Analyzer
             }
             
             if (issues.Count > 0)
-                problematicCrossings.Add(new ProblematicCrossing(crossing, issues));
+                problematicCrossings.Add(new ProblematicCrossing(crossing, CalculateSeverity(issues), issues));
+            
+            static Severity CalculateSeverity(List<CrossingIssue> issues)
+            {
+                if (issues.Count > 1)
+                    return Severity.Bad;
+                
+                // Special case: crossing - marked vs traffic_signals.
+                if (issues.Any(i => i is MismatchValueIssue { Key: "crossing", WayValue: "marked", NodeValue: "traffic_signals" }))
+                    return Severity.Common;
+
+                return Severity.Bad;
+            }
         }
         
 
@@ -108,7 +135,7 @@ public class CrossingConsistencyAnalyzer : Analyzer
             foreach (ProblematicCrossing problematicCrossing in problematicCrossings)
             {
                 report.AddEntry(
-                    ReportGroup.Terminating,
+                    problematicCrossing.Severity == Severity.Bad ? ReportGroup.MismatchedBad : ReportGroup.MismatchedCommon,
                     new IssueReportEntry(
                         "Crossing way-node pair " + problematicCrossing.Crossing.Way.OsmViewUrl + " - " + problematicCrossing.Crossing.Node.OsmViewUrl + 
                         " has " + ProblemDescription(problematicCrossing) + ".",
@@ -140,18 +167,9 @@ public class CrossingConsistencyAnalyzer : Analyzer
                 }
             }
         }
-        else
-        {
-            report.AddEntry(
-                ReportGroup.Terminating,
-                new GenericReportEntry(
-                    "No crossing way-node pair issues found."
-                )
-            );
-        }
     }
 
-    
+
     private static List<Crossing> GatherCrossings(OsmDataExtract ways, OsmDataExtract points)
     {
         List<Crossing> crossings = new List<Crossing>();
@@ -190,11 +208,18 @@ public class CrossingConsistencyAnalyzer : Analyzer
     private abstract record CrossingIssue;
     
     
-    private record ProblematicCrossing(Crossing Crossing, List<CrossingIssue> Issues);
-    
-    
+    private record ProblematicCrossing(Crossing Crossing, Severity Severity, List<CrossingIssue> Issues);
+
+
+    private enum Severity
+    {
+        Bad,
+        Common
+    }
+        
     private enum ReportGroup
     {
-        Terminating
+        MismatchedBad,
+        MismatchedCommon
     }
 }

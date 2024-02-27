@@ -58,7 +58,8 @@ public static class Runner
             //new BridgeAndWaterConnectionAnalyzer(),
             //new TerminatingWaysAnalyzer()
             //new DoubleMappedFeaturesAnalyzer(),
-            new CrossingConsistencyAnalyzer()
+            //new CrossingConsistencyAnalyzer(),
+            new StreetTaggingContinuationAnalyzer()
         };
 #endif
 

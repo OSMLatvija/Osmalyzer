@@ -132,12 +132,11 @@ public class StreetTaggingContinuationAnalyzer : Analyzer
         // Quick lookup whether ways are considered
         HashSet<long> allWays = ways.Elements.Select(e => e.Id).ToHashSet();
 
-        // Keep a lookup of ways we already assigned to streets for performance
-        HashSet<long> usedWays = new HashSet<long>();
+        Dictionary<long, RoadSegment> assignedWays = new Dictionary<long, RoadSegment>();
         
         foreach (OsmRelation roadRoute in roadRoutes.Relations)
         {
-            List<OsmWay> goodWays = new List<OsmWay>();
+            List<RoadSegment> goodWays = new List<RoadSegment>();
             
             foreach (OsmElement roadElement in roadRoute.Elements)
             {
@@ -145,10 +144,20 @@ public class StreetTaggingContinuationAnalyzer : Analyzer
                 {
                     if (allWays.Contains(roadWay.Id))
                     {
-                        goodWays.Add(roadWay);
+                        if (assignedWays.TryGetValue(roadWay.Id, out RoadSegment? existingSegment))
+                        {
+                            existingSegment.RoadRoutes.Add(roadRoute);
+                            
+                            goodWays.Add(existingSegment);
+                        }
+                        else
+                        {
+                            RoadSegment roadSegment = new RoadSegment(roadWay, new List<OsmRelation>() { roadRoute });
 
-                        // Mark as used, so we don't recheck it
-                        usedWays.Add(roadWay.Id);
+                            goodWays.Add(roadSegment);
+
+                            assignedWays.Add(roadWay.Id, roadSegment);
+                        }
                     }
                 }
                 
@@ -180,9 +189,12 @@ public class StreetTaggingContinuationAnalyzer : Analyzer
     {
         List<string?> values = new List<string?>();
         
-        foreach (OsmWay segment in street.Segments)
+        foreach (RoadSegment segment in street.Segments)
         {
-            string? value = segment.GetValue(tag);
+            if (segment.RoadRoutes.Count > 1)
+                continue; // multiple road routes - we don't need to bother checking these, they will always not have values for at least one street
+
+            string? value = segment.Way.GetValue(tag);
             
             if (!values.Contains(value))
                 values.Add(value);
@@ -194,9 +206,9 @@ public class StreetTaggingContinuationAnalyzer : Analyzer
     }
 
 
-    private record Street(OsmRelation Route, List<OsmWay> Segments);
+    private record RoadSegment(OsmWay Way, List<OsmRelation> RoadRoutes);
     
-    private record RoadRoute(OsmRelation Relation, List<OsmWay> Ways);
+    private record Street(OsmRelation Route, List<RoadSegment> Segments);
     
 
     private record MultipleValueIssue(string Key, List<string?> Values) : StreetIssue;

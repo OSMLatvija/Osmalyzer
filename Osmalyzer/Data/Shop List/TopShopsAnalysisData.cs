@@ -103,7 +103,7 @@ public class TopShopsAnalysisData : ShopListAnalysisData
             
             // <h4>Aizputes nov.:</h4><a href="#" data-gps="56.7190047, 21.6073235" data-id="86">Zvaigžņu iela 2, Aizpute, Dienvidkurzemes nov., LV-3456 <span>❯</span></a><a href="#" data-gps="56.72416029999999, 21.5986474" data-id="92">Saules iela 3B, Aizpute, Dienvidkurzemes nov., LV-3456 <span>❯</span></a><a href="#" data-gps="56.732375, 21.390684" data-id="93">"Ezeriņi", Cīrava, Cīravas pag., Dienvidkurzemes nov., LV-3453 <span>❯</span></a><a href="#" data-gps="56.7215305, 21.6039028" data-id="99">Pasta iela 7, Aizpute, Dienvidkurzemes nov., LV-3456 <span>❯</span></a><a href="#" data-gps="56.729474, 21.733235" data-id="105">'Veikals gatve'', Kazdanga, Kazdangas pag., Dienvidkurzemes nov., LV-3457 <span>❯</span></a><a href="#" data-gps="57.078675, 24.328741" data-id="323">Gaujas iela 20, Ādaži, Ādažu pag., Ādažu nov., LV-2164 <span>❯</span></a><h4>Brocēnu nov.:</h4><a href="#" data-gps="56.6804187, 22.5685818" data-id="122">Lielcieceres iela 11, Brocēni, Saldus nov., LV-3851 <span>❯</span></a><h4>Grobiņas nov
 
-            MatchCollection matches = Regex.Matches(shopContent, @"<a href=""#"" data-gps=""([^,]+), ([^""]+)"" data-id=""[^""]+"">([^<]+)<");
+            MatchCollection matches = Regex.Matches(shopContent, @"<a href=""#"" data-gps=""([^,""]+), ([^""]+)"" data-id=""[^""]+"">([^<]+)<");
             // <a href="#" data-gps="56.7190047, 21.6073235" data-id="86">Zvaigžņu iela 2, Aizpute, Dienvidkurzemes nov., LV-3456 <
             
             if (matches.Count == 0)

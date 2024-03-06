@@ -47,7 +47,7 @@ public static class Runner
             // new VeskoShopAnalyzer(),
             // new SparShopAnalyzer(),
             // new CitroShopAnalyzer(),
-            // new TopShopAnalyzer(),
+            new TopShopAnalyzer(),
             // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
@@ -59,7 +59,7 @@ public static class Runner
             //new TerminatingWaysAnalyzer()
             //new DoubleMappedFeaturesAnalyzer(),
             //new CrossingConsistencyAnalyzer(),
-            new StreetTaggingContinuationAnalyzer()
+            //new StreetTaggingContinuationAnalyzer()
         };
 #endif
 

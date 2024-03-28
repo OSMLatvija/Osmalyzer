@@ -26,11 +26,11 @@ public static class Runner
             // new HighwaySeasonalSpeedsAnalyzer(),
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
-            // new RigasSatiksmeAnalyzer(),
-            // new LiepajasTransportsAnalyzer(),
-            // new RezeknesSatiksmeAnalyzer(),
-            // new JurmalasSatiksmeAnalyzer(),
-            // new AutotransportaDirekcijaAnalyzer(),
+            new RigasSatiksmeAnalyzer(),
+            new LiepajasTransportsAnalyzer(),
+            new RezeknesSatiksmeAnalyzer(),
+            new JurmalasSatiksmeAnalyzer(),
+            new AutotransportaDirekcijaAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(), // -- it fails from localhost, no idea why
             // new StreetNameAnalyzer(),
@@ -47,19 +47,19 @@ public static class Runner
             // new VeskoShopAnalyzer(),
             // new SparShopAnalyzer(),
             // new CitroShopAnalyzer(),
-            new TopShopAnalyzer(),
+            // new TopShopAnalyzer(),
             // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
             // new CourthouseAnalyzer(),
-            //new NonDefiningTaggingAnalyzer(),
-            //new BridgeAndWaterConnectionAnalyzer(),
-            //new TerminatingWaysAnalyzer()
-            //new DoubleMappedFeaturesAnalyzer(),
-            //new CrossingConsistencyAnalyzer(),
-            //new StreetTaggingContinuationAnalyzer()
+            // new NonDefiningTaggingAnalyzer(),
+            // new BridgeAndWaterConnectionAnalyzer(),
+            // new TerminatingWaysAnalyzer(),
+            // new DoubleMappedFeaturesAnalyzer(),
+            // new CrossingConsistencyAnalyzer(),
+            // new StreetTaggingContinuationAnalyzer()
         };
 #endif
 

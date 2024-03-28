@@ -221,6 +221,9 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 {
                     foreach (PublicTransportTrip trip in service.Trips)
                     {
+                        if (!trip.Points.Any())
+                            continue; // broken data?
+                        
                         PublicTransportStop firstStop = trip.Points.First().Stop;
                         if (!endStops.Contains(firstStop))
                             endStops.Add(firstStop);

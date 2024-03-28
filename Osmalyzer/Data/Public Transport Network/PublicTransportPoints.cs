@@ -41,7 +41,9 @@ public class PublicTransportPoints
             PublicTransportTrip? trip = trips.GetTrip(tripId);
 
             string stopId = segments[3];
-            PublicTransportStop stop = stops.GetStop(stopId);
+            PublicTransportStop? stop = stops.GetStop(stopId);
+            if (stop == null) 
+                continue; // broken data?
 
             PublicTransportPoint newPoint = new PublicTransportPoint(trip, stop);
 

@@ -42,8 +42,10 @@ public class PublicTransportStops
 
             string id = segments[0];
             string name = segments[2].Substring(1, segments[2].Length - 2).Replace("\"\"", "\"");
-            double lat = double.Parse(segments[4]);
-            double lon = double.Parse(segments[5]);
+            if (!double.TryParse(segments[4], out double lat)) 
+                continue; // broken data
+            if (!double.TryParse(segments[5], out double lon)) 
+                continue; // broken data
 
             PublicTransportStop stop = new PublicTransportStop(id, name, new OsmCoord(lat, lon));
 
@@ -58,8 +60,9 @@ public class PublicTransportStops
 
         
     [Pure]
-    public PublicTransportStop GetStop(string id)
+    public PublicTransportStop? GetStop(string id)
     {
-        return _stops[id];
+        _stops.TryGetValue(id, out PublicTransportStop? stop);
+        return stop;
     }
 }

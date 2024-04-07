@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
@@ -28,7 +30,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
     protected override void Download()
     {
         // https://karte.mantojums.lv
-        // It has MapBox renderer and fetches FBG files from backend
+        // It has MapBox renderer and fetches FGB files from backend
 
         foreach (string variant in _variants)
         {
@@ -43,7 +45,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
     {
         Monuments = new List<CulturalMonument>();
         
-        // Parse the FlatGeobuf FBG files
+        // Parse the FlatGeobuf FGB files
         
         foreach (string variant in _variants)
         {
@@ -51,28 +53,36 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
 
             AsyncFeatureEnumerator enumerator = AsyncFeatureEnumerator.Create(File.OpenRead(filePath)).Result;
 
-            while (enumerator.MoveNextAsync().Result)
+            try // "cultural-monuments-16.fgb" fails to read past a certain point
             {
-                IFeature feature = enumerator.Current;
+                while (enumerator.MoveNextAsync().Result)
+                {
+                    IFeature feature = enumerator.Current;
 
-                Point centroid = feature.Geometry.Centroid;
-                OsmCoord coord = new OsmCoord(centroid.Y, centroid.X);
+                    Point centroid = feature.Geometry.Centroid;
+                    OsmCoord coord = new OsmCoord(centroid.Y, centroid.X);
 
-                List<string> names = feature.Attributes.GetNames().ToList();
+                    List<string> names = feature.Attributes.GetNames().ToList();
 
-                int nameIndex = names.IndexOf("name");
-                int monRefIndex = names.IndexOf("national_protection_number");
-                // the third one is "id" but it's not the system ID, it's some different ID for map stuff 
+                    int nameIndex = names.IndexOf("name");
+                    int monRefIndex = names.IndexOf("national_protection_number");
+                    // the third one is "id" but it's not the system ID, it's some different ID for map stuff 
 
-                object[] values = feature.Attributes.GetValues();
+                    object[] values = feature.Attributes.GetValues();
 
-                string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
-                string monRefValue = values[monRefIndex].ToString()!;
-                int? monRef = monRefValue != "" ? int.Parse(monRefValue) : null; // there are some with missing id
+                    string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
+                    string monRefValue = values[monRefIndex].ToString()!;
+                    int? monRef = monRefValue != "" ? int.Parse(monRefValue) : null; // there are some with missing id
 
-                // There are repeats, so keep each only once
-                if (!Monuments.Any(m => m.Name == name && m.ReferenceID == monRef))
-                    Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
+                    // There are repeats, so keep each only once
+                    if (!Monuments.Any(m => m.Name == name && m.ReferenceID == monRef))
+                        Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to parse FBG data file variant " + variant + " " + filePath);
+                Console.WriteLine(e.Message);
             }
         }
     }

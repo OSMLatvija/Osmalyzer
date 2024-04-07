@@ -72,7 +72,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
 
                 // There are repeats, so keep each only once
                 if (!Monuments.Any(m => m.Name == name && m.ReferenceID == monRef))
-                    Monuments.Add(new CulturalMonument(coord, name, monRef));
+                    Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
             }
         }
     }

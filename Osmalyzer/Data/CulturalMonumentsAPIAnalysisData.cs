@@ -66,7 +66,7 @@ public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysi
                 OsmCoord osmCoord = new OsmCoord(56, 24);
                 // TODO: it's not in the data here, but each individual monument request
                 
-                Monuments.Add(new CulturalMonument(osmCoord, name, id));
+                Monuments.Add(new CulturalMonument(osmCoord, name, id, null));
             }
         }
     }

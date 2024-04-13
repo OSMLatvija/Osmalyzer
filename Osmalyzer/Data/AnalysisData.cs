@@ -71,16 +71,6 @@ public abstract class AnalysisData
 
     public void Prepare()
     {
-        // TODO: TEMP
-        // TODO: TEMP
-        // TODO: TEMP
-        
-        DoPrepare();
-        
-        Status = DataStatus.Ok;
-
-        return;
-        
         try
         {
             DoPrepare();

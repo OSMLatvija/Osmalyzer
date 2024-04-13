@@ -14,6 +14,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikidataSharp", "WikidataSh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikidataSharpTests", "WikidataSharpTests\WikidataSharpTests.csproj", "{98AC519F-97E7-47F8-B934-4D6F71A68306}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatGeobuf", "FlatGeobuf\FlatGeobuf.csproj", "{1A5353EB-ABC1-4AC5-9EC0-A1AEDC4E8837}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.FlatBuffers", "FlatBuffers\Google.FlatBuffers.csproj", "{681D2880-C723-45A3-87EA-2B11FBA805F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +52,13 @@ Global
 		{98AC519F-97E7-47F8-B934-4D6F71A68306}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98AC519F-97E7-47F8-B934-4D6F71A68306}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98AC519F-97E7-47F8-B934-4D6F71A68306}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A5353EB-ABC1-4AC5-9EC0-A1AEDC4E8837}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A5353EB-ABC1-4AC5-9EC0-A1AEDC4E8837}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A5353EB-ABC1-4AC5-9EC0-A1AEDC4E8837}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A5353EB-ABC1-4AC5-9EC0-A1AEDC4E8837}.Release|Any CPU.Build.0 = Release|Any CPU
+		{681D2880-C723-45A3-87EA-2B11FBA805F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{681D2880-C723-45A3-87EA-2B11FBA805F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{681D2880-C723-45A3-87EA-2B11FBA805F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{681D2880-C723-45A3-87EA-2B11FBA805F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

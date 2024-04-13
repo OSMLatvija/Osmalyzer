@@ -11,12 +11,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
+      <ProjectReference Include="..\FlatGeobuf\FlatGeobuf.csproj" />
       <ProjectReference Include="..\WikidataSharp\WikidataSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
-      <PackageReference Include="FlatGeobuf" Version="3.26.0" />
       <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
       <PackageReference Include="itext7" Version="8.0.0" />
       <PackageReference Include="NetTopologySuite.IO.ShapeFile" Version="2.1.0" />
@@ -72,7 +72,6 @@
         <Link>readme.md</Link>
       </Content>
     </ItemGroup>
-
 
 
 </Project>

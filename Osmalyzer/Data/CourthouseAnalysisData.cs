@@ -7,11 +7,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CourthouseAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
+public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Courthouses";
 
     public override string ReportWebLink => @"https://www.tiesas.lv/tiesas/saraksts";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "courthouses";
@@ -43,7 +45,7 @@ public class CourthouseAnalysisData : AnalysisData, IPreparableAnalysisData, IUn
         }
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         _courthouses = new List<CourthouseData>();
 

@@ -8,11 +8,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisData
+public class SEBPointAnalysisData : BankPointAnalysisData
 {
     public override string Name => "SEB Points";
 
     public override string ReportWebLink => @"https://www.seb.lv/atm-find";
+
+    public override bool NeedsPreparation => true;
     
 
     protected override string DataFileIdentifier => "seb-points";
@@ -73,7 +75,7 @@ public class SEBPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisDa
             throw new Exception("Failed to download branch pages");
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         Points = new List<BankPoint>();
 

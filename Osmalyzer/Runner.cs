@@ -120,22 +120,20 @@ public static class Runner
 
         Console.WriteLine("Preparing data...");
 
-        List<IPreparableAnalysisData> preparableData = requestedDatas.OfType<IPreparableAnalysisData>().ToList();
+        List<AnalysisData> preparableData = requestedDatas.Where(rd => rd.NeedsPreparation).ToList();
 
         for (int i = 0; i < preparableData.Count; i++)
         {
-            AnalysisData data = (AnalysisData)preparableData[i];
+            AnalysisData data = preparableData[i];
 
-            if (data.RetrievalStatus != DataRetrievalStatus.Ok)
+            if (data.Status != DataStatus.Ok)
                 continue;
 
             Console.WriteLine("Preparing " + data.Name + " data [" + (i + 1) + "/" + preparableData.Count + "]...");
 
             Stopwatch prepareStopwatch = Stopwatch.StartNew();
-                
+
             preparableData[i].Prepare();
-                
-            prepareStopwatch.Stop();
 
             Console.WriteLine("(" + prepareStopwatch.ElapsedMilliseconds + " ms)");
         }
@@ -153,7 +151,7 @@ public static class Runner
             foreach (Type dataType in perAnalyzerRequestedDataTypes[i])
                 datas.Add(requestedDatas.First(rd => rd.GetType() == dataType));
 
-            if (datas.Any(d => d.RetrievalStatus != DataRetrievalStatus.Ok))
+            if (datas.Any(d => d.Status != DataStatus.Ok))
             {
                 Console.WriteLine("Skipping " + analyzers[i].Name + " analyzer due to missing required data [" + (i + 1) + "/" + analyzers.Count + "].");
 

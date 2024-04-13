@@ -12,6 +12,8 @@ public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
 
     public override string ReportWebLink => @"https://download.geofabrik.de/europe/latvia.html";
 
+    public override bool NeedsPreparation => false;
+
 
     public bool DataDateHasDayGranularity => true;
 
@@ -34,5 +36,10 @@ public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
             "https://download.geofabrik.de/europe/latvia.poly",
             Path.Combine(CacheBasePath, DataFileIdentifier + @".poly")
         );
+    }
+
+    protected override void DoPrepare()
+    {
+        throw new InvalidOperationException();
     }
 }

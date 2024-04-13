@@ -10,11 +10,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData, IPreparableAnalysisData
+public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData
 {
     public override string Name => "Kuldiga Roads";
 
     public override string ReportWebLink => @"https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases";
+
+    public override bool NeedsPreparation => true;
 
 
     public bool DataDateHasDayGranularity => false; // only day given on data page
@@ -60,7 +62,7 @@ public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData, IPrepa
         }
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         RoadNames = new List<string>();
             

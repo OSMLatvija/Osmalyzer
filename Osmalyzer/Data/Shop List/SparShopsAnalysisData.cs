@@ -31,9 +31,8 @@ public class SparShopsAnalysisData : ShopListAnalysisData
             DataFileName
         );
     }
-
     
-    public override void Prepare()
+    protected override void DoPrepare()
     {
         _shops = new List<ShopData>();
         

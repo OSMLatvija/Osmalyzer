@@ -4,11 +4,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class RoadLawAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
+public class RoadLawAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Road Law";
 
     public override string ReportWebLink => @"https://likumi.lv/ta/id/198589";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "road-law";
@@ -24,7 +26,7 @@ public class RoadLawAnalysisData : AnalysisData, IPreparableAnalysisData, IUndat
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         RoadLaw = new RoadLaw(Path.Combine(CacheBasePath, DataFileIdentifier + @".html"));
     }

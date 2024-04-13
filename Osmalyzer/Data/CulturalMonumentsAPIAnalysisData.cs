@@ -6,11 +6,13 @@ using Newtonsoft.Json;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
+public class CulturalMonumentsAPIAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Cultural Monuments";
 
     public override string ReportWebLink => @"https://karte.mantojums.lv";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "cultural-monuments";
@@ -40,7 +42,7 @@ public class CulturalMonumentsAPIAnalysisData : AnalysisData, IPreparableAnalysi
         }
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         Monuments = new List<CulturalMonument>();
         

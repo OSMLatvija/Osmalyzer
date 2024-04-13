@@ -33,7 +33,7 @@ public class CitroShopsAnalysisData : ShopListAnalysisData
         );
     }
 
-    public override void Prepare()
+    protected override void DoPrepare()
     {
         // APP.shops.list = [{"id":159426,"url":"https:\/\/www.citro.lv\/veikali\/citro-galerija-centrs","full_name":"Citro Galerija centrs","business_name":"citro galerija centrs","address_line_1":"audeju iela 16","keywords":null,"locality":"riga","icon":"https:\/\/citrobaltic-web-res.cloudinary.com\/image\/upload\/c_fit,f_auto,h_48,q_auto,w_48\/v1\/web-cms\/fd86ab20bf713e2cd42f2fbbe6a01a9459c20b4b.png","longitude":"24.11271384","latitude":"56.94801025","most_visited":1,"display":"\u201eCitro Galerija centrs\u201c, Aud\u0113ju iela 16, R\u012bga"},   
                 

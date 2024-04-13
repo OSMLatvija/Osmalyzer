@@ -62,7 +62,7 @@ public class TopShopsAnalysisData : ShopListAnalysisData
         }
     }
 
-    public override void Prepare()
+    protected override void DoPrepare()
     {
         _shops = new List<ShopData>();
 

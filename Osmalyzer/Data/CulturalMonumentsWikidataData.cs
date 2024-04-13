@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using WikidataSharp;
@@ -12,6 +13,8 @@ public class CulturalMonumentsWikidataData : AnalysisData
     public override string Name => "Cultural Monuments Wikidata";
 
     public override string ReportWebLink => @"https://www.wikidata.org/wiki/Property:P" + PropertyID;
+
+    public override bool NeedsPreparation => false;
 
 
     public long PropertyID => 2494;
@@ -29,7 +32,12 @@ public class CulturalMonumentsWikidataData : AnalysisData
         // todo: cache, would need fetch and parse
     }
 
-    
+    protected override void DoPrepare()
+    {
+        throw new InvalidOperationException();
+    }
+
+
     public void Assign(List<CulturalMonument> monuments) // todo: interface
     {
         foreach (CulturalMonument monument in monuments)

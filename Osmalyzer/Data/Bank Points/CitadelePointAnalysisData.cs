@@ -8,11 +8,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CitadelePointAnalysisData : BankPointAnalysisData, IPreparableAnalysisData
+public class CitadelePointAnalysisData : BankPointAnalysisData
 {
     public override string Name => "Citadele Points";
 
     public override string ReportWebLink => @"https://www.citadele.lv/lv/contacts";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "citadele-points";
@@ -26,7 +28,7 @@ public class CitadelePointAnalysisData : BankPointAnalysisData, IPreparableAnaly
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         string data = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier + @".html"));
 

@@ -10,11 +10,13 @@ using SharpKml.Engine;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
+public class GlikaOzoliAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Glika Ozoli";
 
     public override string ReportWebLink => @"https://www.lelb.lv/lv/?ct=glika_ozoli";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "glika-ozoli";
@@ -42,7 +44,7 @@ public class GlikaOzoliAnalysisData : AnalysisData, IPreparableAnalysisData, IUn
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         Oaks = new List<GlikaOak>();
 

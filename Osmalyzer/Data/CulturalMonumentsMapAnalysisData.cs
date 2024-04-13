@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
@@ -11,11 +10,13 @@ using NetTopologySuite.Geometries;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
+public class CulturalMonumentsMapAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Cultural Monuments";
 
     public override string ReportWebLink => @"https://karte.mantojums.lv";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "cultural-monuments";
@@ -41,7 +42,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
         }
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         Monuments = new List<CulturalMonument>();
         
@@ -79,10 +80,10 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IPreparableAnalysi
                         Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("Failed to parse FBG data file variant " + variant + " " + filePath);
-                Console.WriteLine(e.Message);
+                throw;
             }
         }
     }

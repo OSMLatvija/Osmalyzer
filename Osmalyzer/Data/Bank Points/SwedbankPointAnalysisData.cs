@@ -7,11 +7,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisData
+public class SwedbankPointAnalysisData : BankPointAnalysisData
 {
     public override string Name => "Swedbank Points";
 
     public override string ReportWebLink => @"https://www.swedbank.lv/private/home/contacts/finder.xml";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "swedbank-points";
@@ -25,7 +27,7 @@ public class SwedbankPointAnalysisData : BankPointAnalysisData, IPreparableAnaly
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         string data = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier + @".xml"));
 

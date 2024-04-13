@@ -6,11 +6,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class OsmAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnalysisData
+public class OsmAnalysisData : AnalysisData, IDatedAnalysisData
 {
     public override string Name => "OSM";
 
     public override string ReportWebLink => @"https://download.geofabrik.de/europe/latvia.html";
+
+    public override bool NeedsPreparation => true;
 
 
     public bool DataDateHasDayGranularity => true;
@@ -39,7 +41,7 @@ public class OsmAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnal
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         MasterData = new OsmMasterData(Path.Combine(CacheBasePath, DataFileIdentifier + @".osm.pbf"));
     }

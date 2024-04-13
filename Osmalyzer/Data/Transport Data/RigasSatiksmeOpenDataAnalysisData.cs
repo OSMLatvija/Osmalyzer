@@ -10,7 +10,7 @@ namespace Osmalyzer;
 /// The data published in the open portal, once a month
 /// </summary>
 [UsedImplicitly]
-public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnalysisData
+public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IDatedAnalysisData
 {
     public override string Name => "Rigas Satiksme";
 
@@ -20,6 +20,8 @@ public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalys
     public bool DataDateHasDayGranularity => false; // only day given on data page (file itself is month only)
 
     protected override string DataFileIdentifier => "rigas-satiksme-opendata";
+
+    public override bool NeedsPreparation => true;
 
         
     public string ExtractionFolder => "RS";
@@ -59,7 +61,7 @@ public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IPreparableAnalys
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         // RS data comes in a zip file, so unzip
             

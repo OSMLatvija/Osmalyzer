@@ -33,8 +33,7 @@ public class VeskoShopsAnalysisData : ShopListAnalysisData
         );
     }
 
-    
-    public override void Prepare()
+    protected override void DoPrepare()
     {
         string source = File.ReadAllText(DataFileName);
         

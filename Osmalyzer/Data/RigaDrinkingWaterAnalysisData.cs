@@ -7,11 +7,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class RigaDrinkingWaterAnalysisData : AnalysisData, IPreparableAnalysisData, IUndatedAnalysisData
+public class RigaDrinkingWaterAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public override string Name => "Riga Drinking Water";
 
     public override string ReportWebLink => @"https://www.rigasudens.lv/lv/udens-brivkranu-karte";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "riga-drinking-water";
@@ -28,7 +30,7 @@ public class RigaDrinkingWaterAnalysisData : AnalysisData, IPreparableAnalysisDa
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         DrinkingWaters = new List<DrinkingWater>();
 

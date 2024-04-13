@@ -33,7 +33,7 @@ public class RimiShopsAnalysisData : ShopListAnalysisData
         );
     }
 
-    public override void Prepare()
+    protected override void DoPrepare()
     {
         // APP.shops.list = [{"id":159426,"url":"https:\/\/www.rimi.lv\/veikali\/rimi-galerija-centrs","full_name":"Rimi Galerija centrs","business_name":"rimi galerija centrs","address_line_1":"audeju iela 16","keywords":null,"locality":"riga","icon":"https:\/\/rimibaltic-web-res.cloudinary.com\/image\/upload\/c_fit,f_auto,h_48,q_auto,w_48\/v1\/web-cms\/fd86ab20bf713e2cd42f2fbbe6a01a9459c20b4b.png","longitude":"24.11271384","latitude":"56.94801025","most_visited":1,"display":"\u201eRimi Galerija centrs\u201c, Aud\u0113ju iela 16, R\u012bga"},   
                 

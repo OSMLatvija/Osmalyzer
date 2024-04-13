@@ -26,10 +26,12 @@ public abstract class AnalysisData
     /// </summary>
     public abstract string? ReportWebLink { get; }
 
+    public abstract bool NeedsPreparation { get; }
+
     
     public DateTime? DataDate => _dataDate;
         
-    public DataRetrievalStatus RetrievalStatus { get; private set; }
+    public DataStatus Status { get; private set; }
 
         
     /// <summary>
@@ -46,32 +48,54 @@ public abstract class AnalysisData
 
     public void Retrieve()
     {
-#if REMOTE_EXECUTION
         try
         {
-#endif
-        
             DoRetrieve();
-        
-#if REMOTE_EXECUTION
         }
         catch (Exception e)
         {
-            // On remote, we continue gracefully
-
-            Console.WriteLine("Failed with exception!");
+            Console.WriteLine("Failed to retrieve with exception!");
             Console.WriteLine(e.Message);
 
-            RetrievalStatus = DataRetrievalStatus.Fail;
-            return;
-        }
-#endif        
+            Status = DataStatus.FailedToRetrieve;
 
-        RetrievalStatus = DataRetrievalStatus.Ok;
+#if !REMOTE_EXECUTION
+            throw; // on local, allow debugging the problem
+#else
+            return; // on remote, continue gracefully
+#endif
+        }
+
+        Status = DataStatus.Ok;
+    }
+
+    public void Prepare()
+    {
+        try
+        {
+            DoPrepare();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Failed to prepare with exception!");
+            Console.WriteLine(e.Message);
+
+            Status = DataStatus.FailedToRetrieve;
+            
+#if !REMOTE_EXECUTION
+            throw; // on local, allow debugging the problem
+#else
+            return; // on remote, continue gracefully
+#endif
+        }
+
+        Status = DataStatus.Ok;
     }
 
 
     protected abstract void Download();
+    
+    protected abstract void DoPrepare();
 
 
     private void DoRetrieve()
@@ -171,10 +195,9 @@ public abstract class AnalysisData
 }
     
     
-public enum DataRetrievalStatus
+public enum DataStatus
 {
     Ok,
-#if REMOTE_EXECUTION
-    Fail
-#endif
+    FailedToRetrieve,
+    FailedToProcess
 }

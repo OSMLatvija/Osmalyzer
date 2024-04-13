@@ -7,11 +7,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class LuminorPointAnalysisData : BankPointAnalysisData, IPreparableAnalysisData
+public class LuminorPointAnalysisData : BankPointAnalysisData
 {
     public override string Name => "Luminor Points";
 
     public override string ReportWebLink => @"https://www.luminor.lv/lv/musu-tikls";
+
+    public override bool NeedsPreparation => true;
 
 
     protected override string DataFileIdentifier => "luminor-points";
@@ -27,7 +29,7 @@ public class LuminorPointAnalysisData : BankPointAnalysisData, IPreparableAnalys
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         string data = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier + @".html"));
 

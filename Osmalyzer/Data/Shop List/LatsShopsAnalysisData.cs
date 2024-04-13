@@ -34,7 +34,7 @@ public class LatsShopsAnalysisData : ShopListAnalysisData
         );
     }
 
-    public override void Prepare()
+    protected override void DoPrepare()
     {
         // markers.push({
         //     coordinates: {lat: 56.9069266, lng: 24.1982285},

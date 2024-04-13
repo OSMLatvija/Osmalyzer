@@ -34,7 +34,7 @@ public class ElviShopsAnalysisData : ShopListAnalysisData
         );
     }
 
-    public override void Prepare()
+    protected override void DoPrepare()
     {
         // value: "Kursīši, Saldus nov., Bērzu iela 1-18, LV-3890, ELVI veikals",
         // data: [

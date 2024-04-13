@@ -6,11 +6,13 @@ using JetBrains.Annotations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, IDatedAnalysisData
+public class MicroReserveAnalysisData : AnalysisData, IDatedAnalysisData
 {
     public override string Name => "Micro Reserves";
 
     public override string ReportWebLink => @"https://data.gov.lv/dati/lv/dataset/mikroliegumi";
+
+    public override bool NeedsPreparation => true;
 
 
     public bool DataDateHasDayGranularity => false; // only day given on data page
@@ -62,7 +64,7 @@ public class MicroReserveAnalysisData : AnalysisData, IPreparableAnalysisData, I
         );
     }
 
-    public void Prepare()
+    protected override void DoPrepare()
     {
         // Data comes in a zip file, so unzip
             

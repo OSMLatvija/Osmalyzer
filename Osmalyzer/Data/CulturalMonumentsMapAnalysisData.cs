@@ -54,36 +54,31 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IUndatedAnalysisDa
 
             AsyncFeatureEnumerator enumerator = AsyncFeatureEnumerator.Create(File.OpenRead(filePath)).Result;
 
-            try // "cultural-monuments-16.fgb" fails to read past a certain point
+            while (enumerator.MoveNextAsync().Result)
             {
-                while (enumerator.MoveNextAsync().Result)
-                {
-                    IFeature feature = enumerator.Current;
+                IFeature feature = enumerator.Current;
 
-                    Point centroid = feature.Geometry.Centroid;
-                    OsmCoord coord = new OsmCoord(centroid.Y, centroid.X);
+                Point centroid = feature.Geometry.Centroid;
+                OsmCoord coord = new OsmCoord(centroid.Y, centroid.X);
 
-                    List<string> names = feature.Attributes.GetNames().ToList();
+                List<string> names = feature.Attributes.GetNames().ToList();
 
-                    int nameIndex = names.IndexOf("name");
-                    int monRefIndex = names.IndexOf("national_protection_number");
-                    // the third one is "id" but it's not the system ID, it's some different ID for map stuff 
+                int nameIndex = names.IndexOf("name");
+                int monRefIndex = names.IndexOf("national_protection_number");
+                // the third one is "id" but it's not the system ID, it's some different ID for map stuff 
 
-                    object[] values = feature.Attributes.GetValues();
+                object[] values = feature.Attributes.GetValues();
 
-                    string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
-                    string monRefValue = values[monRefIndex].ToString()!;
-                    int? monRef = monRefValue != "" ? int.Parse(monRefValue) : null; // there are some with missing id
+                string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
+                string monRefValue = values[monRefIndex].ToString()!;
+                int? monRef = null;
+                if (monRefValue != "") // there are some with missing id
+                    if (int.TryParse(monRefValue, out int value)) // there are some with malformed id
+                        monRef = value;
 
-                    // There are repeats, so keep each only once
-                    if (!Monuments.Any(m => m.Name == name && m.ReferenceID == monRef))
-                        Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
-                }
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Failed to parse FBG data file variant " + variant + " " + filePath);
-                throw;
+                // There are repeats, so keep each only once
+                if (!Monuments.Any(m => m.Name == name && m.ReferenceID == monRef))
+                    Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
             }
         }
     }

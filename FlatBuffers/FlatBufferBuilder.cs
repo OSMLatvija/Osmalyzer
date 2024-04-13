@@ -133,13 +133,13 @@ namespace Google.FlatBuffers
                 _minAlign = size;
             // Find the amount of alignment needed such that `size` is properly
             // aligned after `additional_bytes`
-            var alignSize =
+            int alignSize =
                 ((~((int)_bb.Length - _space + additionalBytes)) + 1) &
                 (size - 1);
             // Reallocate the buffer if needed.
             while (_space < alignSize + size + additionalBytes)
             {
-                var oldBufSize = (int)_bb.Length;
+                int oldBufSize = (int)_bb.Length;
                 GrowBuffer();
                 _space += (int)_bb.Length - oldBufSize;
 
@@ -732,7 +732,7 @@ namespace Google.FlatBuffers
             }
             NotNested();
             AddByte(0);
-            var utf8StringLen = Encoding.UTF8.GetByteCount(s);
+            int utf8StringLen = Encoding.UTF8.GetByteCount(s);
             StartVector(1, utf8StringLen, 1);
             _bb.PutStringUTF8(_space -= utf8StringLen, s);
             return new StringOffset(EndVector().Value);
@@ -785,7 +785,7 @@ namespace Google.FlatBuffers
                 return _sharedStringMap[s];
             }
 
-            var stringOffset = CreateString(s);
+            StringOffset stringOffset = CreateString(s);
             _sharedStringMap.Add(s, stringOffset);
             return stringOffset;
         }
@@ -809,7 +809,7 @@ namespace Google.FlatBuffers
                   "Flatbuffers: calling EndTable without a StartTable");
 
             AddInt((int)0);
-            var vtableloc = Offset;
+            int vtableloc = Offset;
             // Write out the current vtable.
             int i = _vtableSize - 1;
             // Trim trailing zeroes.
@@ -863,7 +863,7 @@ namespace Google.FlatBuffers
                 if (_numVtables == _vtables.Length)
                 {
                     // Arrays.CopyOf(vtables num_vtables * 2);
-                    var newvtables = new int[ _numVtables * 2];
+                    int[] newvtables = new int[ _numVtables * 2];
                     Array.Copy(_vtables, newvtables, _vtables.Length);
 
                     _vtables = newvtables;

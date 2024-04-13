@@ -70,8 +70,8 @@ namespace Google.FlatBuffers
                 return null;
 
             offset += stringOffset;
-            var len = bb.GetInt(offset);
-            var startPos = offset + sizeof(int);
+            int len = bb.GetInt(offset);
+            int startPos = offset + sizeof(int);
             return bb.GetStringUTF8(startPos, len);
         }
 
@@ -118,14 +118,14 @@ namespace Google.FlatBuffers
         // then a null value will be returned.
         public ArraySegment<byte>? __vector_as_arraysegment(int offset)
         {
-            var o = this.__offset(offset);
+            int o = this.__offset(offset);
             if (0 == o)
             {
                 return null;
             }
 
-            var pos = this.__vector(o);
-            var len = this.__vector_len(o);
+            int pos = this.__vector(o);
+            int len = this.__vector_len(o);
             return bb.ToArraySegment(pos, len);
         }
 #endif
@@ -142,14 +142,14 @@ namespace Google.FlatBuffers
                     "system is not support");
             }
 
-            var o = this.__offset(offset);
+            int o = this.__offset(offset);
             if (0 == o)
             {
                 return null;
             }
 
-            var pos = this.__vector(o);
-            var len = this.__vector_len(o);
+            int pos = this.__vector(o);
+            int len = this.__vector_len(o);
             return bb.ToArray<T>(pos, len);
         }
 
@@ -166,7 +166,7 @@ namespace Google.FlatBuffers
             if (ident.Length != FlatBufferConstants.FileIdentifierLength)
                 throw new ArgumentException("FlatBuffers: file identifier must be length " + FlatBufferConstants.FileIdentifierLength, "ident");
 
-            for (var i = 0; i < FlatBufferConstants.FileIdentifierLength; i++)
+            for (int i = 0; i < FlatBufferConstants.FileIdentifierLength; i++)
             {
                 if (ident[i] != (char)bb.Get(bb.Position + sizeof(int) + i)) return false;
             }
@@ -179,11 +179,11 @@ namespace Google.FlatBuffers
         {
             offset_1 += bb.GetInt(offset_1);
             offset_2 += bb.GetInt(offset_2);
-            var len_1 = bb.GetInt(offset_1);
-            var len_2 = bb.GetInt(offset_2);
-            var startPos_1 = offset_1 + sizeof(int);
-            var startPos_2 = offset_2 + sizeof(int);
-            var len = Math.Min(len_1, len_2);
+            int len_1 = bb.GetInt(offset_1);
+            int len_2 = bb.GetInt(offset_2);
+            int startPos_1 = offset_1 + sizeof(int);
+            int startPos_2 = offset_2 + sizeof(int);
+            int len = Math.Min(len_1, len_2);
             for(int i = 0; i < len; i++) {
                 byte b1 = bb.Get(i + startPos_1);
                 byte b2 = bb.Get(i + startPos_2);
@@ -197,10 +197,10 @@ namespace Google.FlatBuffers
         public static int CompareStrings(int offset_1, byte[] key, ByteBuffer bb)
         {
             offset_1 += bb.GetInt(offset_1);
-            var len_1 = bb.GetInt(offset_1);
-            var len_2 = key.Length;
-            var startPos_1 = offset_1 + sizeof(int);
-            var len = Math.Min(len_1, len_2);
+            int len_1 = bb.GetInt(offset_1);
+            int len_2 = key.Length;
+            int startPos_1 = offset_1 + sizeof(int);
+            int len = Math.Min(len_1, len_2);
             for (int i = 0; i < len; i++) {
                 byte b = bb.Get(i + startPos_1);
                 if (b != key[i])

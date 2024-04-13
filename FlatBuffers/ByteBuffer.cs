@@ -464,7 +464,7 @@ namespace Google.FlatBuffers
         public void PutByte(int offset, byte value, int count)
         {
             AssertOffsetAndLength(offset, sizeof(byte) * count);
-            for (var i = 0; i < count; ++i)
+            for (int i = 0; i < count; ++i)
                 _buffer.Buffer[offset + i] = value;
         }
 #endif
@@ -924,7 +924,7 @@ namespace Google.FlatBuffers
 #if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
                 MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.Span.Slice(offset, numBytes));
 #else
-                var srcOffset = ByteBuffer.SizeOf<T>() * x.Offset;
+                int srcOffset = ByteBuffer.SizeOf<T>() * x.Offset;
                 Buffer.BlockCopy(x.Array, srcOffset, _buffer.Buffer, offset, numBytes);
 #endif
             }

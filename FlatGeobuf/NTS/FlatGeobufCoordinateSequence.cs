@@ -25,7 +25,7 @@ namespace FlatGeobuf.NTS
 
         static int GetDimension(double[] z, double[] m)
         {
-            var dimension = 2;
+            int dimension = 2;
             if (z != null)
                 dimension++;
             if (m != null)

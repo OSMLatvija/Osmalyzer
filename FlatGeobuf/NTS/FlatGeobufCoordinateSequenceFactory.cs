@@ -11,9 +11,9 @@ namespace FlatGeobuf.NTS
     {
         public CoordinateSequence Create(HeaderT header, ref Geometry geometry, int end = 0)
         {
-            var xy = geometry.GetXyArray();
-            var offset = end > 0 ? (int) geometry.Ends(end - 1) : 0;
-            var count = geometry.EndsLength > 0 ? (int) geometry.Ends(end) - offset : xy.Length / 2;
+            double[] xy = geometry.GetXyArray();
+            int offset = end > 0 ? (int) geometry.Ends(end - 1) : 0;
+            int count = geometry.EndsLength > 0 ? (int) geometry.Ends(end) - offset : xy.Length / 2;
             double[] z = null;
             double[] m = null;
             if (header.HasZ)

@@ -30,24 +30,24 @@ namespace FlatGeobuf.NTS
     public static class FeatureCollectionConversions {
         public static async Task<byte[]> SerializeAsync(FeatureCollection fc, GeometryType geometryType, byte dimensions = 2, IList<ColumnMeta> columns = null)
         {
-            var featureFirst = fc.First();
+            IFeature featureFirst = fc.First();
             if (columns == null && featureFirst.Attributes != null)
                     columns = featureFirst.Attributes.GetNames()
                         .Select(n => new ColumnMeta() { Name = n, Type = ToColumnType(featureFirst.Attributes.GetType(n)) })
                         .ToList();
-            using var memoryStream = new MemoryStream();
+            using MemoryStream memoryStream = new MemoryStream();
             await SerializeAsync(memoryStream, fc, geometryType, dimensions, columns);
             return memoryStream.ToArray();
         }
 
         public static byte[] Serialize(FeatureCollection fc, GeometryType geometryType, byte dimensions = 2, IList<ColumnMeta> columns = null)
         {
-            var featureFirst = fc.First();
+            IFeature featureFirst = fc.First();
             if (columns == null && featureFirst.Attributes != null)
                     columns = featureFirst.Attributes.GetNames()
                         .Select(n => new ColumnMeta() { Name = n, Type = ToColumnType(featureFirst.Attributes.GetType(n)) })
                         .ToList();
-            using var memoryStream = new MemoryStream();
+            using MemoryStream memoryStream = new MemoryStream();
             Serialize(memoryStream, fc, geometryType, dimensions, columns);
             return memoryStream.ToArray();
         }
@@ -61,14 +61,14 @@ namespace FlatGeobuf.NTS
         public static async Task SerializeAsync(Stream output, IEnumerable<IFeature> features, GeometryType geometryType, byte dimensions = 2, IList<ColumnMeta> columns = null)
         {
             await output.WriteAsync(Constants.MagicBytes, 0, Constants.MagicBytes.Length);
-            var headerBuffer = BuildHeader(0, geometryType, dimensions, columns, null);
-            var bytes = headerBuffer.ToSizedArray();
+            ByteBuffer headerBuffer = BuildHeader(0, geometryType, dimensions, columns, null);
+            byte[] bytes = headerBuffer.ToSizedArray();
             await output.WriteAsync(bytes, 0, bytes.Length);
             headerBuffer.Position += 4;
-            var header = Header.GetRootAsHeader(headerBuffer).UnPack();
-            foreach (var feature in features)
+            HeaderT header = Header.GetRootAsHeader(headerBuffer).UnPack();
+            foreach (IFeature feature in features)
             {
-                var buffer = FeatureConversions.ToByteBuffer(feature, header);
+                ByteBuffer buffer = FeatureConversions.ToByteBuffer(feature, header);
                 bytes = buffer.ToSizedArray();
                 await output.WriteAsync(bytes, 0, bytes.Length);
             }
@@ -106,9 +106,9 @@ namespace FlatGeobuf.NTS
 
         public static FeatureCollection Deserialize(byte[] bytes)
         {
-            var fc = new FeatureCollection();
+            FeatureCollection fc = new FeatureCollection();
 
-            foreach (var feature in Deserialize(new MemoryStream(bytes)))
+            foreach (IFeature feature in Deserialize(new MemoryStream(bytes)))
                 fc.Add(feature);
 
             return fc;
@@ -116,30 +116,30 @@ namespace FlatGeobuf.NTS
 
         public static IEnumerable<IFeature> Deserialize(Stream stream, Envelope rect = null)
         {
-            using var reader = new BinaryReader(stream, Encoding.UTF8, true);
-            var header = Helpers.ReadHeader(stream, out var headerSize).UnPack();
+            using BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true);
+            HeaderT header = Helpers.ReadHeader(stream, out int headerSize).UnPack();
 
-            var count = header.FeaturesCount;
-            var nodeSize = header.IndexNodeSize;
-            var geometryType = header.GeometryType;
+            ulong count = header.FeaturesCount;
+            ushort nodeSize = header.IndexNodeSize;
+            GeometryType geometryType = header.GeometryType;
 
-            var seqFactory = new FlatGeobufCoordinateSequenceFactory();
-            var factory = new GeometryFactory(seqFactory);
+            FlatGeobufCoordinateSequenceFactory seqFactory = new FlatGeobufCoordinateSequenceFactory();
+            GeometryFactory factory = new GeometryFactory(seqFactory);
 
             if (nodeSize > 0)
             {
                 long offset = 8 + 4 + headerSize;
-                var size = PackedRTree.CalcSize(count, nodeSize);
+                ulong size = PackedRTree.CalcSize(count, nodeSize);
                 if (rect != null) {
-                    var result = PackedRTree.StreamSearch(count, nodeSize, rect, (ulong treeOffset, ulong size) => {
+                    List<(ulong Offset, ulong Index)> result = PackedRTree.StreamSearch(count, nodeSize, rect, (ulong treeOffset, ulong size) => {
                         stream.Seek(offset + (long) treeOffset, SeekOrigin.Begin);
                         return stream;
                     }).ToList();
-                    foreach (var item in result) {
+                    foreach ((ulong Offset, ulong Index) item in result) {
                         stream.Seek(offset + (long) size + (long) item.Offset, SeekOrigin.Begin);
-                        var featureLength = reader.ReadInt32();
-                        var byteBuffer = new ByteBuffer(reader.ReadBytes(featureLength));
-                        var feature = FeatureConversions.FromByteBuffer(factory, seqFactory, byteBuffer, header);
+                        int featureLength = reader.ReadInt32();
+                        ByteBuffer byteBuffer = new ByteBuffer(reader.ReadBytes(featureLength));
+                        IFeature feature = FeatureConversions.FromByteBuffer(factory, seqFactory, byteBuffer, header);
                         yield return feature;
                     }
                     yield break;
@@ -149,22 +149,22 @@ namespace FlatGeobuf.NTS
 
             while (stream.Position < stream.Length)
             {
-                var featureLength = reader.ReadInt32();
-                var byteBuffer = new ByteBuffer(reader.ReadBytes(featureLength));
-                var feature = FeatureConversions.FromByteBuffer(factory, seqFactory, byteBuffer, header);
+                int featureLength = reader.ReadInt32();
+                ByteBuffer byteBuffer = new ByteBuffer(reader.ReadBytes(featureLength));
+                IFeature feature = FeatureConversions.FromByteBuffer(factory, seqFactory, byteBuffer, header);
                 yield return feature;
             }
         }
 
         public static ByteBuffer BuildHeader(ulong count, GeometryType geometryType, byte dimensions, IList<ColumnMeta> columns, PackedRTree index)
         {
-            var builder = new FlatBufferBuilder(1024);
+            FlatBufferBuilder builder = new FlatBufferBuilder(1024);
             VectorOffset? columnsOffset = null;
             if (columns != null)
             {
-                var columnsArray = columns
-                    .Select(c => Column.CreateColumn(builder, builder.CreateString(c.Name), c.Type))
-                    .ToArray();
+                Offset<Column>[] columnsArray = columns
+                                                .Select(c => Column.CreateColumn(builder, builder.CreateString(c.Name), c.Type))
+                                                .ToArray();
                 columnsOffset = Header.CreateColumnsVector(builder, columnsArray);
             }
 
@@ -181,7 +181,7 @@ namespace FlatGeobuf.NTS
             else
                 Header.AddIndexNodeSize(builder, 0);
             Header.AddFeaturesCount(builder, count);
-            var offset = Header.EndHeader(builder);
+            Offset<Header> offset = Header.EndHeader(builder);
 
             builder.FinishSizePrefixed(offset.Value);
 

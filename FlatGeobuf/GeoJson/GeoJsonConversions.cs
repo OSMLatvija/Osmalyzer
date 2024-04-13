@@ -9,25 +9,25 @@ namespace FlatGeobuf
     {
         public static byte[] Serialize(string geojson)
         {
-            var reader = new GeoJsonReader();
-            var fc = reader.Read<FeatureCollection>(geojson);
-            var bytes = FeatureCollectionConversions.Serialize(fc, GeometryType.Unknown);
+            GeoJsonReader reader = new GeoJsonReader();
+            FeatureCollection fc = reader.Read<FeatureCollection>(geojson);
+            byte[] bytes = FeatureCollectionConversions.Serialize(fc, GeometryType.Unknown);
             return bytes;
         }
 
         public static async Task<byte[]> SerializeAsync(string geojson)
         {
-            var reader = new GeoJsonReader();
-            var fc = reader.Read<FeatureCollection>(geojson);
-            var bytes = await FeatureCollectionConversions.SerializeAsync(fc, GeometryType.Unknown);
+            GeoJsonReader reader = new GeoJsonReader();
+            FeatureCollection fc = reader.Read<FeatureCollection>(geojson);
+            byte[] bytes = await FeatureCollectionConversions.SerializeAsync(fc, GeometryType.Unknown);
             return bytes;
         }
 
         public static string Deserialize(byte[] bytes)
         {
-            var fc = FeatureCollectionConversions.Deserialize(bytes);
-            var writer = new GeoJsonWriter();
-            var geojson = writer.Write(fc);
+            FeatureCollection fc = FeatureCollectionConversions.Deserialize(bytes);
+            GeoJsonWriter writer = new GeoJsonWriter();
+            string geojson = writer.Write(fc);
             return geojson;
         }
     }

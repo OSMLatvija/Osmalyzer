@@ -12,25 +12,25 @@ namespace FlatGeobuf.NTS
     {
         public static ByteBuffer ToByteBuffer(IFeature feature, HeaderT header)
         {
-            var builder = new FlatBufferBuilder(1024);
+            FlatBufferBuilder builder = new FlatBufferBuilder(1024);
             GeometryType geometryType;
             if (header.GeometryType != GeometryType.Unknown)
                 geometryType = header.GeometryType;
             else
                 geometryType = GeometryConversions.ToGeometryType(feature.Geometry);
-            var go = GeometryConversions.BuildGeometry(builder, feature.Geometry, geometryType, header);
-            var memoryStream = new MemoryStream();
+            GeometryOffsets go = GeometryConversions.BuildGeometry(builder, feature.Geometry, geometryType, header);
+            MemoryStream memoryStream = new MemoryStream();
             if (feature.Attributes != null && feature.Attributes.Count > 0 && header.Columns.Count > 0)
             {
-                var writer = new BinaryWriter(memoryStream, Encoding.UTF8);
+                BinaryWriter writer = new BinaryWriter(memoryStream, Encoding.UTF8);
                 for (ushort i = 0; i < header.Columns.Count; i++)
                 {
-                    var column = header.Columns[i];
-                    var type = column.Type;
-                    var name = column.Name;
+                    ColumnT column = header.Columns[i];
+                    ColumnType type = column.Type;
+                    string name = column.Name;
                     if (!feature.Attributes.Exists(name))
                         continue;
-                    var value = feature.Attributes[name];
+                    object value = feature.Attributes[name];
                     if (value is null)
                         continue;
                     writer.Write(i);
@@ -71,7 +71,7 @@ namespace FlatGeobuf.NTS
                             break;
                         case ColumnType.DateTime:
                         case ColumnType.String:
-                            var bytes = Encoding.UTF8.GetBytes((string) value);
+                            byte[] bytes = Encoding.UTF8.GetBytes((string) value);
                             writer.Write(bytes.Length);
                             writer.Write(bytes);
                             break;
@@ -81,19 +81,19 @@ namespace FlatGeobuf.NTS
                 }
             }
 
-            var propertiesOffset = default(VectorOffset);
+            VectorOffset propertiesOffset = default(VectorOffset);
             if (memoryStream.Position > 0)
                 propertiesOffset = Feature.CreatePropertiesVectorBlock(builder, memoryStream.ToArray());
 
             Offset<Geometry> geometryOffset;
             if (go.gos != null && go.gos.Length > 0) {
-                var partOffsets = new Offset<Geometry>[go.gos.Length];
+                Offset<Geometry>[] partOffsets = new Offset<Geometry>[go.gos.Length];
                 for (int i = 0; i < go.gos.Length; i++) {
-                    var goPart = go.gos[i];
-                    var partOffset = Geometry.CreateGeometry(builder, goPart.endsOffset, goPart.xyOffset, goPart.zOffset, goPart.mOffset, default, default, go.Type, default);
+                    GeometryOffsets goPart = go.gos[i];
+                    Offset<Geometry> partOffset = Geometry.CreateGeometry(builder, goPart.endsOffset, goPart.xyOffset, goPart.zOffset, goPart.mOffset, default, default, go.Type, default);
                     partOffsets[i] = partOffset;
                 }
-                var partsOffset = Geometry.CreatePartsVector(builder, partOffsets);
+                VectorOffset partsOffset = Geometry.CreatePartsVector(builder, partOffsets);
                 geometryOffset = Geometry.CreateGeometry(builder, default, default, default, default, default, default, go.Type, partsOffset);
             } else {
                 geometryOffset = Geometry.CreateGeometry(builder, go.endsOffset, go.xyOffset, go.zOffset, go.mOffset, default, default, go.Type, default);
@@ -102,7 +102,7 @@ namespace FlatGeobuf.NTS
 
             Feature.AddGeometry(builder, geometryOffset);
             Feature.AddProperties(builder, propertiesOffset);
-            var featureOffset = Feature.EndFeature(builder);
+            Offset<Feature> featureOffset = Feature.EndFeature(builder);
 
             builder.FinishSizePrefixed(featureOffset.Value);
 
@@ -111,7 +111,7 @@ namespace FlatGeobuf.NTS
 
         public static IFeature FromByteBuffer(GeometryFactory factory, FlatGeobufCoordinateSequenceFactory seqFactory, ByteBuffer bb, HeaderT header)
         {
-            var feature = Feature.GetRootAsFeature(bb);
+            Feature feature = Feature.GetRootAsFeature(bb);
             return FromFeature(factory, seqFactory, feature, header);
         }
 
@@ -120,16 +120,16 @@ namespace FlatGeobuf.NTS
             IAttributesTable attributesTable = null;
             if (feature.PropertiesLength != 0)
             {
-                var propertiesArray = feature.GetPropertiesArray();
-                var memoryStream = new MemoryStream(propertiesArray);
-                using var reader = new BinaryReader(memoryStream, Encoding.UTF8, false);
+                byte[] propertiesArray = feature.GetPropertiesArray();
+                MemoryStream memoryStream = new MemoryStream(propertiesArray);
+                using BinaryReader reader = new BinaryReader(memoryStream, Encoding.UTF8, false);
                 attributesTable = new AttributesTable();
                 while (memoryStream.Position < memoryStream.Length)
                 {
                     ushort i = reader.ReadUInt16();
-                    var column = header.Columns[i];
-                    var type = column.Type;
-                    var name = column.Name;
+                    ColumnT column = header.Columns[i];
+                    ColumnType type = column.Type;
+                    string name = column.Name;
                     switch (type)
                     {
                         case ColumnType.Bool:
@@ -168,7 +168,7 @@ namespace FlatGeobuf.NTS
                         case ColumnType.DateTime:
                         case ColumnType.String:
                             int len = reader.ReadInt32();
-                            var str = Encoding.UTF8.GetString(memoryStream.ToArray(), (int) memoryStream.Position, len);
+                            string str = Encoding.UTF8.GetString(memoryStream.ToArray(), (int) memoryStream.Position, len);
                             memoryStream.Position += len;
                             attributesTable.Add(name, str);
                             break;
@@ -224,7 +224,7 @@ namespace FlatGeobuf.NTS
             {
                 if (feature.Geometry.HasValue)
                 {
-                    var geometryCopy = feature.Geometry.Value;
+                    Geometry geometryCopy = feature.Geometry.Value;
                     geometry = GeometryConversions.FromFlatbuf(factory, seqFactory, ref geometryCopy, header);
                 }
             }
@@ -233,7 +233,7 @@ namespace FlatGeobuf.NTS
 
             }
 
-            var f = new NetTopologySuite.Features.Feature(geometry, attributesTable);
+            NetTopologySuite.Features.Feature f = new NetTopologySuite.Features.Feature(geometry, attributesTable);
             return f;
         }
     }

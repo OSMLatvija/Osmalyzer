@@ -34,7 +34,7 @@ namespace NetTopologySuite.Geometries.Implementation
                 throw new ArgumentOutOfRangeException(nameof(elementIndex));
             }
 
-            var handle = GCHandle.Alloc(_data.Array, GCHandleType.Pinned);
+            GCHandle handle = GCHandle.Alloc(_data.Array, GCHandleType.Pinned);
             return new MemoryHandle(Unsafe.Add<T>((void*)handle.AddrOfPinnedObject(), _data.Offset + elementIndex), handle, this);
         }
 

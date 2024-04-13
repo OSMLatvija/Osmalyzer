@@ -49,11 +49,11 @@ namespace FlatGeobuf.NTS
             token ??= CancellationToken.None;
 
             // Read the header
-            var header = await Helpers.ReadHeaderAsync(stream, token.Value);
+            HeaderT header = await Helpers.ReadHeaderAsync(stream, token.Value);
 
             // Create an appropriate geometry factory
             pm ??= NtsGeometryServices.Instance.DefaultPrecisionModel;
-            var factory = NtsGeometryServices.Instance.CreateGeometryFactory(pm, header.Crs.Code, CsFactory);
+            GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(pm, header.Crs.Code, CsFactory);
 
             // Get filter iterator
             rect ??= new Envelope();
@@ -200,7 +200,7 @@ namespace FlatGeobuf.NTS
             ReadIndexAsync(HeaderT header, Stream stream, Envelope rect, CancellationToken token)
         {
             int treeSize = (int)PackedRTree.CalcSize(header.FeaturesCount, header.IndexNodeSize);
-            var dataOffset = stream.Position + treeSize;
+            long dataOffset = stream.Position + treeSize;
             List<(long Offset, ulong Index)> filter;
             if (stream.CanSeek)
             {
@@ -238,7 +238,7 @@ namespace FlatGeobuf.NTS
         }
         private static HashSet<long> CreateItemsIndex(IEnumerable<(long Offset, ulong Index)> items)
         {
-            var res = new HashSet<long>();
+            HashSet<long> res = new HashSet<long>();
             foreach ((long offset, _) in items)
                 res.Add(offset);
             return res;

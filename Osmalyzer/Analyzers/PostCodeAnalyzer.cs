@@ -160,14 +160,31 @@ public class PostCodeAnalyzer : Analyzer
             
             averageCoords.Add(postcode, averageCoord);
 
-            report.AddEntry(
-                ReportGroup.Regions,
-                new MapPointReportEntry(
-                    averageCoord,
-                    "Post code `" + postcode + "` region with " + elements.Count + " addressable elements.",
-                    MapPointStyle.Okay
-                )
-            );
+            bool tooFew = elements.Count < 10;
+
+            if (tooFew)
+            {
+                report.AddEntry(
+                    ReportGroup.Regions,
+                    new IssueReportEntry(
+                        "Post code `" + postcode + "` region with only " + elements.Count + " addressable elements -- " + string.Join(", ", elements.Select(e => e.OsmViewUrl)),
+                        new SortEntryAsc(postcode),
+                        averageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+            }
+            else
+            {
+                report.AddEntry(
+                    ReportGroup.Regions,
+                    new MapPointReportEntry(
+                        averageCoord,
+                        "Post code `" + postcode + "` region with " + elements.Count + " addressable elements.",
+                        MapPointStyle.Okay
+                    )
+                );
+            }
         }
         
         // Post offices

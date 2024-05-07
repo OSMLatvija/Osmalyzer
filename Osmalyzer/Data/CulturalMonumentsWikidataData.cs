@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using WikidataSharp;
 
 namespace Osmalyzer;
@@ -17,7 +16,7 @@ public class CulturalMonumentsWikidataData : AnalysisData
     public override bool NeedsPreparation => false;
 
 
-    public long PropertyID => 2494;
+    public long PropertyID => 2494; // "Latvian cultural heritage register ID"
     
 
     protected override string DataFileIdentifier => "cultural-monuments-wikidata";

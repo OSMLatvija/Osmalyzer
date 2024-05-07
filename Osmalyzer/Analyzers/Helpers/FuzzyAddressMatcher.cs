@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 
 namespace Osmalyzer;
 

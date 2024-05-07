@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using JetBrains.Annotations;
 using FlatGeobuf.NTS;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;

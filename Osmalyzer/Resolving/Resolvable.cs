@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// A reported issue that can be resolved by the user by choosing to "ignore" this issue.

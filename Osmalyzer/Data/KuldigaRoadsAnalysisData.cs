@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
-using JetBrains.Annotations;
 
 namespace Osmalyzer;
 

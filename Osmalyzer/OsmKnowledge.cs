@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public static class OsmKnowledge
 {
@@ -56,6 +54,8 @@ public static class OsmKnowledge
         static string? GetFeatureLabelRaw(OsmElement element)
         {
             // TODO: all the others
+            
+            if (element.HasKey("building")) return "building";
             
             if (element.HasValue("amenity", "parking")) return "parking";
             if (element.HasValue("place", "square")) return "square";

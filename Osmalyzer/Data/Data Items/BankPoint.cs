@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public abstract class BankPoint : IDataItem
 {

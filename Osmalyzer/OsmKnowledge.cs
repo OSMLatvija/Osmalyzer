@@ -98,7 +98,71 @@ public static class OsmKnowledge
                 if (element.HasValue("area", "yes"))
                 {
                     if (highway == "pedestrian") return "pedestrian area";
+
+                    return "road area";
                 }
+                
+                if (highway == "motorway") return "motorway";
+                if (highway == "trunk") return "trunk road";
+                if (highway == "primary") return "primary road";
+                if (highway == "secondary") return "secondary road";
+                if (highway == "tertiary") return "tertiary road";
+                if (highway == "unclassified") return "unclassified road";
+                if (highway == "residential") return "residential road";
+                if (highway == "motorway_link") return "motorway link";
+                if (highway == "trunk_link") return "trunk road link";
+                if (highway == "primary_link") return "primary road link";
+                if (highway == "secondary_link") return "secondary road link";
+                if (highway == "tertiary_link") return "tertiary road link";
+                if (highway == "living_street") return "living street";
+                if (highway == "service") return "service road";
+                if (highway == "pedestrian") return "pedestrian road";
+                if (highway == "track") return "track";
+                if (highway == "footway") return "footway";
+                if (highway == "bridleway") return "bridleway";
+                if (highway == "steps") return "steps";
+                if (highway == "path") return "path";
+                if (highway == "cycleway") return "cycleway";
+                if (highway == "crossing") return "crossing";
+                if (highway == "platform") return "psv platform";
+            }
+        
+            string? barrier = element.GetValue("barrier");
+
+            if (barrier != null)
+            {
+                if (barrier == "fence")
+                {
+                    string? fenceType = element.GetValue("fence_type");
+
+                    if (fenceType == "railing") return "railing";
+                        
+                    return "fence";
+                }
+                
+                if (barrier == "wall") return "wall";
+                if (barrier == "guard_rail") return "guard rail";
+                if (barrier == "handrail") return "handrail";
+                if (barrier == "hedge") return "hedge";
+                if (barrier == "retaining_wall") return "retaining wall";
+                if (barrier == "ditch") return "trench";
+                
+                if (barrier == "block") return "block";
+                if (barrier == "bollard") return "bollard";
+                if (barrier == "planter") return "planter";
+                
+                if (barrier == "gate") return "gate";
+                if (barrier == "wicket_gate") return "wicket gate";
+                if (barrier == "lift_gate") return "lift gate";
+                if (barrier == "swing_gate") return "swing gate";
+                if (barrier == "sliding_gate") return "sliding gate";
+                if (barrier == "kissing_gate") return "kissing gate";
+                if (barrier == "entrance") return "entrance";
+                if (barrier == "cattle_grid") return "cattle grid";
+                if (barrier == "chain") return "chain barrier";
+                if (barrier == "sally_port") return "sally port";
+
+                return "barrier";
             }
 
             return null;

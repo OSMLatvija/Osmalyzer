@@ -62,6 +62,7 @@ public static class Runner
             // new StreetTaggingContinuationAnalyzer(),
             // new PostCodeAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
+            new BarrierConnectionAnalyzer(),
         };
 #endif
 

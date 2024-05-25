@@ -139,10 +139,10 @@ public class CommonBrandsAnalyzer : Analyzer
 
                     if (!generic)
                     {
-                        // Report less common ones
-                            
                         if (group.Values.Count > 1)
                         {
+                            // Report less common ones
+
                             int max = group.Values.Max(v => v.count);
 
                             List<(string value, int count)> reportable = group.Values.Where(v => v.count < 10 && v.count <= max / 2).ToList();
@@ -151,6 +151,14 @@ public class CommonBrandsAnalyzer : Analyzer
                             {
                                 reportLine += " -- " + string.Join("; ", reportable.Select(r => "`" + r.value + "`: " + string.Join(", ", group.GetElementsWithValue(r.value).Select(e => e.OsmViewUrl))));
                             }
+                        }
+                        else
+                        {
+                            // Report some example
+
+                            string value = group.Values[0].value;
+
+                            reportLine += " (e.g. " + string.Join(", ", group.GetElementsWithValue(value).Take(5).Select(e => e.OsmViewUrl)) + ")";
                         }
                     }
                     else

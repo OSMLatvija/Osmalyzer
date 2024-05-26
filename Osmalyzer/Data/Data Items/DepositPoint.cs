@@ -8,7 +8,7 @@ public class DepositPoint : IDataItem
 
     public string ShopName { get; }
 
-    public DepositPointMode Mode { get; }
+    public DepositPointMode Mode { get; set; }
 
     public string DioId { get; }
 
@@ -19,6 +19,15 @@ public class DepositPoint : IDataItem
         ShopName = shopName;
         Mode = mode;
         Coord = coord;
+    }
+
+    public DepositPoint(DepositPoint point)
+    {
+        DioId = point.DioId;
+        Address = point.Address;
+        ShopName = point.ShopName;
+        Mode = point.Mode;
+        Coord = point.Coord;
     }
 
     public string ReportString()
@@ -33,5 +42,13 @@ public class DepositPoint : IDataItem
         Automatic,
         Manual,
         BeramTaromats
+    }
+
+    // It is here, just to differentiate at report level
+    public class DepositAutomat : DepositPoint
+    {
+        public DepositAutomat(DepositPoint point) : base(point)
+        {
+        }
     }
 }

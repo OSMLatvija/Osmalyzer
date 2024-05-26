@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -43,21 +44,28 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
         MatchCollection matches = Regex.Matches(
             source,
-            @"\{""type"":""Feature"",""properties"":\{(?:""id"":\d+,)?""Adrese"":""(?<address>(?:\\""|[^""])*)"",""Datums"":(?:null|""(?:\\""|[^""])*""),\s*""uni_id"":""(?<id>[^""]+)"",""reitings"":(?:null|\d|""[^""]*""),""Shop_name"":(?:null|""(?<shop>(?:\\""|[^""])*)""),""AutoManual"":""(?<mode>[ABMabm])[^""]*"",""taromata_tips"":(?:null|""(?<size>(?:\\""|[^""])*)""),""Planota_metode"":(?:null|""(?:\\""|[^""])*"")(?:,""object_gauja_id"":[^}]*)?\},""geometry"":\{""type"":""Point"",""coordinates"":\[(?<long>\d+\.\d+),(?<lat>\d+\.\d+)\]\},""id"":\d+\}"
+            @"\{""type"":""Feature"",""properties"":\{(?<properties>[^{}]*)\},""geometry"":\{(?<geometry>[^{}]*)\}[^{}]*\}" //more magic regexes
         );
+
+//@"\{(?:""id"":\d+,)?""Adrese"":""(?<address>(?:\\""|[^""])*)"",""Datums"":(?:null|""(?:\\""|[^""])*""),\s*""uni_id"":""(?<id>[^""]+)"",""reitings"":(?:null|\d|""[^""]*""),""Shop_name"":(?:null|""(?<shop>(?:\\""|[^""])*)""),""AutoManual"":""(?<mode>[ABMabm])[^""]*"",""taromata_tips"":(?:null|""(?<size>(?:\\""|[^""])*)""),""Planota_metode"":(?:null|""(?:\\""|[^""])*"")(?:,""object_gauja_id"":[^}]*)?"
+
 
         if (matches.Count == 0)
             throw new Exception("Did not match any items on webpage");
 
         foreach (Match match in matches)
         {
-            string dioId = Regex.Unescape(match.Groups["id"].ToString());
-            string address = Regex.Unescape(match.Groups["address"].ToString());
-            string shopName = Regex.Unescape(match.Groups["shop"].ToString());
+            string properties = match.Groups["properties"].ToString();
+            string geometry = match.Groups["geometry"].ToString();
 
-            DepositPoint.DepositPointMode mode = ModeStringToType(match.Groups["mode"].ToString());
-            double lat = double.Parse(Regex.Unescape(match.Groups["lat"].ToString()));
-            double lon = double.Parse(Regex.Unescape(match.Groups["long"].ToString()));
+            string dioId = Regex.Unescape(Regex.Match(properties, @"""uni_id"":""([^""]+)""").Groups[1].ToString());
+            string address = Regex.Unescape(Regex.Match(properties, @"""Adrese"":""((?:\\""|[^""])*)""").Groups[1].ToString());
+            string shopName = Regex.Unescape(Regex.Match(properties, @"""Shop_name"":""((?:\\""|[^""])*)""").Groups[1].ToString());
+            DepositPoint.DepositPointMode mode = ModeStringToType(Regex.Match(properties, @"""AutoManual"":""([ABMabm])(?:utomat[^""]*)?""").Groups[1].ToString());
+            
+            Match geometryMatch = Regex.Match(geometry, @"""coordinates"":\[(?<long>\d+\.\d+),(?<lat>\d+\.\d+)\]");
+            double lat = double.Parse(Regex.Unescape(geometryMatch.Groups["lat"].ToString()), CultureInfo.InvariantCulture);
+            double lon = double.Parse(Regex.Unescape(geometryMatch.Groups["long"].ToString()), CultureInfo.InvariantCulture);
 
             DepositPoints.Add(
                 new DepositPoint(

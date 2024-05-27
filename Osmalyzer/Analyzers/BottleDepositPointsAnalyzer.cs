@@ -126,14 +126,18 @@ public class BottleDepositPointsAnalyzer : Analyzer
         {
             Dictionary<string, int> shopCounts =
                 points
-                    .GroupBy(p => p.ShopName)
+                    .Where(p => p.ShopName != null)
+                    .GroupBy(p => p.ShopName!)
                     .OrderByDescending(g => g.Count())
                     .ToDictionary(g => g.Key, g => g.Count());
+
+            int unspecified = points.Count(p => p.ShopName == null);
             
             report.AddEntry(
                 ExtraReportGroup.Stats,
                 new GenericReportEntry(
-                    label + " are found in/near the following shops: " + string.Join(", ", shopCounts.Select(kvp => "`" + kvp.Key + "`" + " (x " + kvp.Value + ")"))
+                    label + " are found in/near the following shops: " + string.Join(", ", shopCounts.Select(kvp => "`" + kvp.Key + "`" + " (x " + kvp.Value + ")")) +
+                    (unspecified > 0 ? " and " + unspecified + " unspecified" : "")
                 )
             );
         }

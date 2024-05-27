@@ -73,13 +73,16 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
             string dioId = Regex.Unescape(Regex.Match(properties, @"""uni_id"":""([^""]+)""").Groups[1].ToString());
             string address = Regex.Unescape(Regex.Match(properties, @"""Adrese"":""((?:\\""|[^""])*)""").Groups[1].ToString());
-            string shopName = Regex.Unescape(Regex.Match(properties, @"""Shop_name"":""((?:\\""|[^""])*)""").Groups[1].ToString());
+            string? shopName = Regex.Unescape(Regex.Match(properties, @"""Shop_name"":""((?:\\""|[^""])*)""").Groups[1].ToString());
             string numberOfTaromats = Regex.Unescape(Regex.Match(properties, @"""taromata_tips"":""((?:\\""|[^""])*)""").Groups[1].ToString()).ToLower();
             string mode = Regex.Match(properties, @"""AutoManual"":""([ABMabm])(?:utomat[^""]*)?""").Groups[1].ToString();
 
             Match geometryMatch = Regex.Match(geometry, @"""coordinates"":\[(?<long>\d+\.\d+),(?<lat>\d+\.\d+)\]");
             double lat = double.Parse(Regex.Unescape(geometryMatch.Groups["lat"].ToString()), CultureInfo.InvariantCulture);
             double lon = double.Parse(Regex.Unescape(geometryMatch.Groups["long"].ToString()), CultureInfo.InvariantCulture);
+
+            if (string.IsNullOrWhiteSpace(shopName)) // a couple aren't specified
+                shopName = null;
 
             if (mode.Equals("M") || numberOfTaromats.Contains("manuālā"))  // because data is inconsistent: uni_id=51666
             {

@@ -10,11 +10,12 @@ public abstract class DepositPoint : IDataItem
     
     public string Address { get; }
 
-    public string ShopName { get; }
+    public string? ShopName { get; }
 
     public string DioId { get; }
 
-    public DepositPoint(string dioId, string address, string shopName, OsmCoord coord)
+    
+    protected DepositPoint(string dioId, string address, string? shopName, OsmCoord coord)
     {
         DioId = dioId;
         Address = address;
@@ -22,6 +23,7 @@ public abstract class DepositPoint : IDataItem
         Coord = coord;
     }
 
+    
     public virtual string ReportString()
     {
         return TypeString + " (`" + DioId + "`) " + 
@@ -43,37 +45,42 @@ public class DepositAutomat : DepositPoint
 
     public TaromatMode Mode { get; }
 
+    
     public DepositAutomat(AutomatedDepositLocation point, TaromatMode mode)
         : base(point.DioId, point.Address, point.ShopName, new OsmCoord(point.Coord.lat, point.Coord.lon))
     {
         Mode = mode;
     }
 
+    
     public override string ReportString()
     {
-        return Mode.ToString() + (ShopName != null ? "in shop '" + ShopName + "' " : "") + 
+        return Mode + (ShopName != null ? "in shop '" + ShopName + "' " : "") + 
            "at (`" + Address + "`)";
     }
 }
 
+
 public class AutomatedDepositLocation : DepositPoint
 {
-    public AutomatedDepositLocation(string dioId, string address, string shopName, OsmCoord coord)
+    public override string TypeString => "Automated redemption location";
+
+    
+    public AutomatedDepositLocation(string dioId, string address, string? shopName, OsmCoord coord)
         : base(dioId, address, shopName, coord)
     {
     }
-
-    public override string TypeString => "Automated redemption location";
 }
+
 
 public class ManualDepositLocation : DepositPoint
 {
     public override string TypeString => "Manual redemption location";
     
-    public ManualDepositLocation(string dioId, string address, string shopName, OsmCoord coord)
+    
+    public ManualDepositLocation(string dioId, string address, string? shopName, OsmCoord coord)
         : base(dioId, address, shopName, coord)
     {
     }
-
 }
 

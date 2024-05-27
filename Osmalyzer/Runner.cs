@@ -22,7 +22,7 @@ public static class Runner
 #else
         List<Analyzer> analyzers = new List<Analyzer>()
         {
-            new CommonBrandsAnalyzer(),
+            //new CommonBrandsAnalyzer(),
             // new HighwaySeasonalSpeedsAnalyzer(),
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
@@ -61,10 +61,10 @@ public static class Runner
             // new CrossingConsistencyAnalyzer(),
             // new StreetTaggingContinuationAnalyzer(),
             // new PostCodeAnalyzer(),
-            new BottleDepositPointsAnalyzer()
             // new PostCodeAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
+            new BottleDepositPointsAnalyzer()
         };
 #endif
 

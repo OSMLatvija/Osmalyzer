@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-abstract public class DepositPoint : IDataItem
+public abstract class DepositPoint : IDataItem
 {
     public abstract string TypeString { get; }
 
@@ -24,8 +24,8 @@ abstract public class DepositPoint : IDataItem
 
     public virtual string ReportString()
     {
-        return TypeString + " (" + DioId + ") " + 
-           (ShopName != null ? "in shop '" + ShopName + "' " : "") + 
+        return TypeString + " (`" + DioId + "`) " + 
+           (ShopName != null ? " in shop `" + ShopName + "` " : "") + 
            "at (`" + Address + "`)";
     }
 

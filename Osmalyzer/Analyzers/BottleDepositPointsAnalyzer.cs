@@ -8,7 +8,7 @@ namespace Osmalyzer;
 [UsedImplicitly]
 public class BottleDepositPointsAnalyzer : Analyzer
 {
-    public override string Name => "Depozīta punkts";
+    public override string Name => "Depozīta punkti";
 
     public override string Description => "This report checks that all bottle deposit points are found on the map." + Environment.NewLine +
                                           "Note that deposit points website has errors: large offsets, missing locations " +
@@ -94,9 +94,8 @@ public class BottleDepositPointsAnalyzer : Analyzer
             [Pure]
             MatchStrength GetMatchStrength(DepositPoint point, OsmElement element)
             {
-                if (point.Address != null)
-                    if (FuzzyAddressMatcher.Matches(element, point.Address))
-                        return MatchStrength.Strong;
+                if (FuzzyAddressMatcher.Matches(element, point.Address))
+                    return MatchStrength.Strong;
 
                 return MatchStrength.Good;
             }

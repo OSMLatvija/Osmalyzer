@@ -66,11 +66,11 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         DepositPointsAnalysisData depositPointData = datas.OfType<DepositPointsAnalysisData>().First();
 
-        List<AutomatedDepositLocation> listedAutomatedDepositLocations = depositPointData.AutomatedDepositLocations;
+        List<AutomatedDepositLocation> listedDepositKiosks = depositPointData.DepositKiosk;
         List<ManualDepositLocation> listedManualDepositLocations = depositPointData.ManualDepositLocations;
         List<DepositAutomat> listedDepositAutomats = depositPointData.DepositAutomats;
 
-        Correlate(osmAutomatedDepositLoactions, listedAutomatedDepositLocations, "automated deposit location", "automated deposit locations");
+        Correlate(osmAutomatedDepositLoactions, listedDepositKiosks, "deposit kiosk", "deposit kiosks");
         Correlate(osmDepositAutomats, listedDepositAutomats, "deposit automat", "deposit automats");
         Correlate(osmManualDepositLoactions, listedManualDepositLocations, "manual deposit location", "manual deposit locations");
         
@@ -81,7 +81,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
             Correlator<TItem> dataComparer = new Correlator<TItem>(
                 osmPoints,
                 dataPoints,
-                new MatchDistanceParamater(50), // most data is like 50 meters away
+                new MatchDistanceParamater(75), // often data points to shop instead of kiosk
                 new MatchFarDistanceParamater(150), // some are really far from where the data says they ought to be
                 new MatchExtraDistanceParamater(MatchStrength.Strong, 500), // allow really far for exact matches
                 new DataItemLabelsParamater(labelSingular, labelPlural),
@@ -90,6 +90,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
                 new MatchCallbackParameter<DepositPoint>(GetMatchStrength)
             );
 
+            // todo: compare shop names too or maybe even extract it from Correlate and make strength function per item type
             [Pure]
             MatchStrength GetMatchStrength(DepositPoint point, OsmElement element)
             {

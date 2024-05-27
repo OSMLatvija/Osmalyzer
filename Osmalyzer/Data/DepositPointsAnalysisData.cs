@@ -21,13 +21,13 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
-    // List of Depozita punkts. Might be standalone building or amenity inside shop
-    public List<AutomatedDepositLocation> AutomatedDepositLocations { get; private set; } = null!; // only null before prepared
+    // List of standalone Deposit kiosks
+    public List<AutomatedDepositLocation> DepositKiosk { get; private set; } = null!; // only null before prepared
 
     // List of shops that accept bottles at counter
     public List<ManualDepositLocation> ManualDepositLocations { get; private set; } = null!; // only null before prepared
 
-    // List of automats, that accept bottles.
+    // List of taromats, that accept bottles. Both in kiosks and inside shops
     public List<DepositAutomat> DepositAutomats { get; private set; } = null!; // only null before prepared
 
 
@@ -44,12 +44,13 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void DoPrepare()
     {
-        AutomatedDepositLocations = new List<AutomatedDepositLocation>();
+        DepositKiosk = new List<AutomatedDepositLocation>();
         ManualDepositLocations = new List<ManualDepositLocation>();
         DepositAutomats = new List<DepositAutomat>();
 
         string source = File.ReadAllText(DataFileName);
 
+        // Match objects for deposit locations (all types)
         MatchCollection matches = Regex.Matches(
             source,
             @"\{""type"":""Feature"",""properties"":\{(?<properties>[^{}]*)\},""geometry"":\{(?<geometry>[^{}]*)\}[^{}]*\}" //more magic regexes
@@ -60,6 +61,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
         foreach (Match match in matches)
         {
+            // Parse fields that are of interest for us
             string properties = match.Groups["properties"].ToString();
             string geometry = match.Groups["geometry"].ToString();
 
@@ -72,7 +74,6 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
             Match geometryMatch = Regex.Match(geometry, @"""coordinates"":\[(?<long>\d+\.\d+),(?<lat>\d+\.\d+)\]");
             double lat = double.Parse(Regex.Unescape(geometryMatch.Groups["lat"].ToString()), CultureInfo.InvariantCulture);
             double lon = double.Parse(Regex.Unescape(geometryMatch.Groups["long"].ToString()), CultureInfo.InvariantCulture);
-
 
             if (mode.Equals("M") || numberOfTaromats.Contains("manuālā"))  // because data is inconsistent: uni_id=51666
             {
@@ -92,11 +93,19 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                     shopName,
                     new OsmCoord(lat, lon)
                 );
-                AutomatedDepositLocations.Add(location);
+
+                // Only want standalone kiosks. No way of knowing that, so trying to guess
+                if (
+                    !shopName.ToLower().Contains("lidl") // AFAIK, Lidl has only taromats inside
+                    && Regex.Match(numberOfTaromats,@"liel(?:ais|ie) taromāt[si]").Success) // AFAIK, kiosks only have big taromats
+                {
+                    DepositKiosk.Add(location);
+                }
 
                 // For automated points with info about number of automats provided, add automats into a separate list
                 if (!string.IsNullOrWhiteSpace(numberOfTaromats))
                 {
+                    // Try to parse number of taromats https://regex101.com/r/8CEDfv/1
                     MatchCollection matchedTaromats = Regex.Matches(
                         numberOfTaromats,
                         @"(?:(?<a_num>\d+) )?(?:mazais|vidējais|liel(?:ais|ie)) (?<taromat>taromāt[si])|(?:(?<b_num>\d+) )?(?<beram>beramtaromāt[si])"
@@ -106,7 +115,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                         throw new Exception("Didn't recognise number of taromats: '" + numberOfTaromats + "'");
 
                     foreach (Match matchedTaromat in matchedTaromats)
-                    {                        
+                    {                   
                         if (!string.IsNullOrEmpty(matchedTaromat.Groups["beram"]?.Value))
                         {
                             var taromat = new DepositAutomat(location, TaromatMode.BeramTaromat);

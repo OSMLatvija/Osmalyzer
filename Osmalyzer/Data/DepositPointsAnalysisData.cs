@@ -21,11 +21,14 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
-    // List of Depozita punkts. Might be standalone building, amenity inside shop or shop itself, that accepts bottles
-    public List<DepositPoint> DepositPoints { get; private set; } = null!; // only null before prepared
+    // List of Depozita punkts. Might be standalone building or amenity inside shop
+    public List<AutomatedDepositLocation> AutomatedDepositLocations { get; private set; } = null!; // only null before prepared
+
+    // List of shops that accept bottles at counter
+    public List<ManualDepositLocation> ManualDepositLocations { get; private set; } = null!; // only null before prepared
 
     // List of automats, that accept bottles.
-    public List<DepositPoint.DepositAutomat> DepositAutomats { get; private set; } = null!; // only null before prepared
+    public List<DepositAutomat> DepositAutomats { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
@@ -41,8 +44,9 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void DoPrepare()
     {
-        DepositPoints = new List<DepositPoint>();
-        DepositAutomats = new List<DepositPoint.DepositAutomat>();
+        AutomatedDepositLocations = new List<AutomatedDepositLocation>();
+        ManualDepositLocations = new List<ManualDepositLocation>();
+        DepositAutomats = new List<DepositAutomat>();
 
         string source = File.ReadAllText(DataFileName);
 
@@ -63,72 +67,67 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
             string address = Regex.Unescape(Regex.Match(properties, @"""Adrese"":""((?:\\""|[^""])*)""").Groups[1].ToString());
             string shopName = Regex.Unescape(Regex.Match(properties, @"""Shop_name"":""((?:\\""|[^""])*)""").Groups[1].ToString());
             string numberOfTaromats = Regex.Unescape(Regex.Match(properties, @"""taromata_tips"":""((?:\\""|[^""])*)""").Groups[1].ToString()).ToLower();
-            DepositPoint.DepositPointMode mode = ModeStringToType(Regex.Match(properties, @"""AutoManual"":""([ABMabm])(?:utomat[^""]*)?""").Groups[1].ToString());
+            string mode = Regex.Match(properties, @"""AutoManual"":""([ABMabm])(?:utomat[^""]*)?""").Groups[1].ToString();
 
             Match geometryMatch = Regex.Match(geometry, @"""coordinates"":\[(?<long>\d+\.\d+),(?<lat>\d+\.\d+)\]");
             double lat = double.Parse(Regex.Unescape(geometryMatch.Groups["lat"].ToString()), CultureInfo.InvariantCulture);
             double lon = double.Parse(Regex.Unescape(geometryMatch.Groups["long"].ToString()), CultureInfo.InvariantCulture);
 
 
-            DepositPoint point = new DepositPoint(
+            if (mode.Equals("M") || numberOfTaromats.Contains("manuālā"))  // because data is inconsistent: uni_id=51666
+            {
+                ManualDepositLocation location = new ManualDepositLocation(
                     dioId,
                     address,
                     shopName,
-                    mode,
                     new OsmCoord(lat, lon)
                 );
-
-            DepositPoints.Add(point);
-            
-            // if deposit point is automated and info about number of automats provided, add automats into a separate list
-            if (point.Mode != DepositPoint.DepositPointMode.Manual
-                    && !numberOfTaromats.Contains("manuālā")  // because data is inconsistent
-                    && !string.IsNullOrWhiteSpace(numberOfTaromats))
+                ManualDepositLocations.Add(location);
+            }
+            else
             {
-                MatchCollection matchedTaromats = Regex.Matches(
-                    numberOfTaromats,
-                    @"(?:(?<a_num>\d+) )?(?:mazais|vidējais|liel(?:ais|ie)) (?<taromat>taromāt[si])|(?:(?<b_num>\d+) )?(?<beram>beramtaromāt[si])"
+                AutomatedDepositLocation location = new AutomatedDepositLocation(
+                    dioId,
+                    address,
+                    shopName,
+                    new OsmCoord(lat, lon)
                 );
+                AutomatedDepositLocations.Add(location);
 
-                if (matchedTaromats.Count == 0)
-                    throw new Exception("Didn't recognise number of taromats: '" + numberOfTaromats + "'");
-
-                foreach (Match matchedTaromat in matchedTaromats)
+                // For automated points with info about number of automats provided, add automats into a separate list
+                if (!string.IsNullOrWhiteSpace(numberOfTaromats))
                 {
-                    var taromat = new DepositPoint.DepositAutomat(point);
-                    
-                    if (!string.IsNullOrEmpty(matchedTaromat.Groups["beram"]?.Value))
-                    {
-                        int number = int.TryParse(matchedTaromat.Groups["b_num"]?.Value, out int b_num) ? b_num : 1;
-                        taromat.Mode = DepositPoint.DepositPointMode.BeramTaromats;
-                        for (int i = 0; i < number; i++) 
+                    MatchCollection matchedTaromats = Regex.Matches(
+                        numberOfTaromats,
+                        @"(?:(?<a_num>\d+) )?(?:mazais|vidējais|liel(?:ais|ie)) (?<taromat>taromāt[si])|(?:(?<b_num>\d+) )?(?<beram>beramtaromāt[si])"
+                    );
+
+                    if (matchedTaromats.Count == 0)
+                        throw new Exception("Didn't recognise number of taromats: '" + numberOfTaromats + "'");
+
+                    foreach (Match matchedTaromat in matchedTaromats)
+                    {                        
+                        if (!string.IsNullOrEmpty(matchedTaromat.Groups["beram"]?.Value))
                         {
-                            DepositAutomats.Add(taromat);
+                            var taromat = new DepositAutomat(location, TaromatMode.BeramTaromat);
+                            int number = int.TryParse(matchedTaromat.Groups["b_num"]?.Value, out int b_num) ? b_num : 1;
+                            for (int i = 0; i < number; i++) 
+                            {
+                                DepositAutomats.Add(taromat);
+                            }
                         }
-                    }
-                    else if (!string.IsNullOrEmpty(matchedTaromat.Groups["taromat"]?.Value))
-                    {
-                        int number = int.TryParse(matchedTaromat.Groups["a_num"]?.Value, out int a_num) ? a_num : 1;
-                        taromat.Mode = DepositPoint.DepositPointMode.Automatic;
-                        for (int i = 0; i < number; i++) 
+                        else if (!string.IsNullOrEmpty(matchedTaromat.Groups["taromat"]?.Value))
                         {
-                            DepositAutomats.Add(taromat);
+                            var taromat = new DepositAutomat(location, TaromatMode.Taromat);
+                            int number = int.TryParse(matchedTaromat.Groups["a_num"]?.Value, out int a_num) ? a_num : 1;
+                            for (int i = 0; i < number; i++) 
+                            {
+                                DepositAutomats.Add(taromat);
+                            }
                         }
                     }
                 }
             }
         }
-    }
-
-    [Pure]
-    private static DepositPoint.DepositPointMode ModeStringToType(string s)
-    {
-        return s.ToUpper() switch
-        {
-            "A" => DepositPoint.DepositPointMode.Automatic,
-            "M" => DepositPoint.DepositPointMode.Manual,
-            "B" => DepositPoint.DepositPointMode.BeramTaromats,
-            _ => throw new NotImplementedException()
-        };
     }
 }

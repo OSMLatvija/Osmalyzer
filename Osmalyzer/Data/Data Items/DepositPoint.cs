@@ -1,54 +1,79 @@
-﻿namespace Osmalyzer;
+﻿using System;
 
-public class DepositPoint : IDataItem
+namespace Osmalyzer;
+
+abstract public class DepositPoint : IDataItem
 {
+    public abstract string TypeString { get; }
+
     public OsmCoord Coord { get; }
     
     public string Address { get; }
 
     public string ShopName { get; }
 
-    public DepositPointMode Mode { get; set; }
-
     public string DioId { get; }
 
-    public DepositPoint(string dioId, string address, string shopName, DepositPointMode mode, OsmCoord coord)
+    public DepositPoint(string dioId, string address, string shopName, OsmCoord coord)
     {
         DioId = dioId;
         Address = address;
         ShopName = shopName;
-        Mode = mode;
         Coord = coord;
     }
 
-    public DepositPoint(DepositPoint point)
+    public virtual string ReportString()
     {
-        DioId = point.DioId;
-        Address = point.Address;
-        ShopName = point.ShopName;
-        Mode = point.Mode;
-        Coord = point.Coord;
+        return TypeString + " (" + DioId + ") " + 
+           (ShopName != null ? "in shop '" + ShopName + "' " : "") + 
+           "at (`" + Address + "`)";
     }
 
-    public string ReportString()
+}
+
+public enum TaromatMode
+{
+    Taromat,
+    BeramTaromat
+}
+
+public class DepositAutomat : DepositPoint
+{
+    public override string TypeString => "Taromat";
+
+    public TaromatMode Mode { get; }
+
+    public DepositAutomat(AutomatedDepositLocation point, TaromatMode mode)
+        : base(point.DioId, point.Address, point.ShopName, new OsmCoord(point.Coord.lat, point.Coord.lon))
     {
-        return Mode.ToString() + " Deposit point " + DioId +
-           (ShopName != null ? " in shop '" + ShopName + "'" : "") + 
-           " (`" + Address + "`)";
+        Mode = mode;
     }
 
-    public enum DepositPointMode
+    public override string ReportString()
     {
-        Automatic,
-        Manual,
-        BeramTaromats
-    }
-
-    // It is here, just to differentiate at report level
-    public class DepositAutomat : DepositPoint
-    {
-        public DepositAutomat(DepositPoint point) : base(point)
-        {
-        }
+        return Mode.ToString() + (ShopName != null ? "in shop '" + ShopName + "' " : "") + 
+           "at (`" + Address + "`)";
     }
 }
+
+public class AutomatedDepositLocation : DepositPoint
+{
+    public AutomatedDepositLocation(string dioId, string address, string shopName, OsmCoord coord)
+        : base(dioId, address, shopName, coord)
+    {
+    }
+
+    public override string TypeString => "Automated redemption location";
+}
+
+public class ManualDepositLocation : DepositPoint
+{
+    public override string TypeString => "Manual redemption location";
+    
+    public ManualDepositLocation(string dioId, string address, string shopName, OsmCoord coord)
+        : base(dioId, address, shopName, coord)
+    {
+    }
+
+}
+

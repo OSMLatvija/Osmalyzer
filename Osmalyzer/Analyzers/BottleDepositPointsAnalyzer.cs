@@ -32,14 +32,21 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
-        OsmDataExtract osmDepositPoints = osmMasterData.Filter(
+        OsmDataExtract osmAutomatedDepositLoactions = osmMasterData.Filter(
             new HasAnyValue("amenity", "recycling"),
             new CustomMatch(IsRelatedToDepositPoint)
         );
 
+        OsmDataExtract osmManualDepositLoactions = osmMasterData.Filter(
+            new HasKey("shop"),
+            new HasValue("recycling:cans","yes"),
+            new HasValue("recycling:plastic_bottles","yes"),
+            new HasValue("recycling:glass_bottles","yes")
+        );
+
         OsmDataExtract osmDepositAutomats = osmMasterData.Filter(
-            new HasAnyValue("amenity", "vending_machine"),
-            new CustomMatch(IsRelatedToDepositPoint)
+            new HasValue("amenity", "vending_machine"),
+            new HasValue("vending", "bottle_return")
         );
 
         [Pure]
@@ -59,13 +66,14 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         DepositPointsAnalysisData depositPointData = datas.OfType<DepositPointsAnalysisData>().First();
 
-        List<DepositPoint> listedDepositPoints = depositPointData.DepositPoints
-            .Where(_ => _.Mode != DepositPoint.DepositPointMode.Manual).ToList(); // Only automated for now
-        List<DepositPoint.DepositAutomat> listedDepositAutomats = depositPointData.DepositAutomats;
+        List<AutomatedDepositLocation> listedAutomatedDepositLocations = depositPointData.AutomatedDepositLocations;
+        List<ManualDepositLocation> listedManualDepositLocations = depositPointData.ManualDepositLocations;
+        List<DepositAutomat> listedDepositAutomats = depositPointData.DepositAutomats;
 
-        Correlate(osmDepositPoints, listedDepositPoints, "deposit point", "deposit points");
+        Correlate(osmAutomatedDepositLoactions, listedAutomatedDepositLocations, "automated deposit location", "automated deposit locations");
         Correlate(osmDepositAutomats, listedDepositAutomats, "deposit automat", "deposit automats");
-
+        Correlate(osmManualDepositLoactions, listedManualDepositLocations, "manual deposit location", "manual deposit locations");
+        
         void Correlate<TItem>(OsmDataExtract osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : DepositPoint
         {
             // Prepare data comparer/correlator

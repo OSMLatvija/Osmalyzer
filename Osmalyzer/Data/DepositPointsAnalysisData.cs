@@ -21,13 +21,19 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
-    // List of standalone Deposit kiosks
-    public List<AutomatedDepositLocation> DepositKiosk { get; private set; } = null!; // only null before prepared
+    /// <summary>
+    /// List of standalone Deposit kiosks
+    /// </summary>
+    public List<AutomatedDepositLocation> DepositKiosks { get; private set; } = null!; // only null before prepared
 
-    // List of shops that accept bottles at counter
+    /// <summary>
+    /// List of shops that accept bottles at counter
+    /// </summary>
     public List<ManualDepositLocation> ManualDepositLocations { get; private set; } = null!; // only null before prepared
 
-    // List of taromats, that accept bottles. Both in kiosks and inside shops
+    /// <summary>
+    /// List of taromats, that accept bottles. Both in kiosks and inside shops
+    /// </summary>
     public List<DepositAutomat> DepositAutomats { get; private set; } = null!; // only null before prepared
 
 
@@ -44,7 +50,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void DoPrepare()
     {
-        DepositKiosk = new List<AutomatedDepositLocation>();
+        DepositKiosks = new List<AutomatedDepositLocation>();
         ManualDepositLocations = new List<ManualDepositLocation>();
         DepositAutomats = new List<DepositAutomat>();
 
@@ -99,7 +105,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                     !shopName.ToLower().Contains("lidl") // AFAIK, Lidl has only taromats inside
                     && Regex.Match(numberOfTaromats,@"liel(?:ais|ie) taromāt[si]").Success) // AFAIK, kiosks only have big taromats
                 {
-                    DepositKiosk.Add(location);
+                    DepositKiosks.Add(location);
                 }
 
                 // For automated points with info about number of automats provided, add automats into a separate list

@@ -66,7 +66,9 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         DepositPointsAnalysisData depositPointData = datas.OfType<DepositPointsAnalysisData>().First();
 
-        List<AutomatedDepositLocation> listedDepositKiosks = depositPointData.DepositKiosk;
+        // General location correlation
+        
+        List<AutomatedDepositLocation> listedDepositKiosks = depositPointData.DepositKiosks;
         List<ManualDepositLocation> listedManualDepositLocations = depositPointData.ManualDepositLocations;
         List<DepositAutomat> listedDepositAutomats = depositPointData.DepositAutomats;
 
@@ -111,5 +113,35 @@ public class BottleDepositPointsAnalyzer : Analyzer
                 new UnmatchedOsmBatch()
             );
         }
+        
+        // Additional stats
+        
+        report.AddGroup(ExtraReportGroup.Stats, "Stats");
+
+        ReportStats(depositPointData.DepositKiosks, "Kiosks");
+        ReportStats(depositPointData.DepositAutomats, "Vending machines");
+        ReportStats(depositPointData.ManualDepositLocations, "Manual returns");
+
+        void ReportStats<TItem>(List<TItem> points, string label) where TItem : DepositPoint
+        {
+            Dictionary<string, int> shopCounts =
+                points
+                    .GroupBy(p => p.ShopName)
+                    .OrderByDescending(g => g.Count())
+                    .ToDictionary(g => g.Key, g => g.Count());
+            
+            report.AddEntry(
+                ExtraReportGroup.Stats,
+                new GenericReportEntry(
+                    label + " are found in/near the following shops: " + string.Join(", ", shopCounts.Select(kvp => "`" + kvp.Key + "`" + " (x " + kvp.Value + ")"))
+                )
+            );
+        }
+    }
+    
+    
+    private enum ExtraReportGroup
+    {
+        Stats
     }
 }

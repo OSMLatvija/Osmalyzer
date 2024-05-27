@@ -32,19 +32,19 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
-        OsmDataExtract osmAutomatedDepositLoactions = osmMasterData.Filter(
+        OsmDataExtract osmKioskDepositLocations = osmMasterData.Filter(
             new HasAnyValue("amenity", "recycling"),
             new CustomMatch(IsRelatedToDepositPoint)
         );
 
-        OsmDataExtract osmManualDepositLoactions = osmMasterData.Filter(
+        OsmDataExtract osmManualDepositLocations = osmMasterData.Filter(
             new HasKey("shop"),
             new HasValue("recycling:cans","yes"),
             new HasValue("recycling:plastic_bottles","yes"),
             new HasValue("recycling:glass_bottles","yes")
         );
 
-        OsmDataExtract osmDepositAutomats = osmMasterData.Filter(
+        OsmDataExtract osmVendingMachines = osmMasterData.Filter(
             new HasValue("amenity", "vending_machine"),
             new HasValue("vending", "bottle_return")
         );
@@ -68,13 +68,13 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         // General location correlation
         
-        List<AutomatedDepositLocation> listedDepositKiosks = depositPointData.DepositKiosks;
-        List<ManualDepositLocation> listedManualDepositLocations = depositPointData.ManualDepositLocations;
-        List<DepositAutomat> listedDepositAutomats = depositPointData.DepositAutomats;
+        List<KioskDepositPoint> listedDepositKiosks = depositPointData.Kiosks;
+        List<ManualDepositPoint> listedManualDepositLocations = depositPointData.ManualLocations;
+        List<VendingMachineDepositPoint> listedDepositVendingMachines = depositPointData.VendingMachines;
 
-        Correlate(osmAutomatedDepositLoactions, listedDepositKiosks, "deposit kiosk", "deposit kiosks");
-        Correlate(osmDepositAutomats, listedDepositAutomats, "deposit automat", "deposit automats");
-        Correlate(osmManualDepositLoactions, listedManualDepositLocations, "manual deposit location", "manual deposit locations");
+        Correlate(osmKioskDepositLocations, listedDepositKiosks, "kiosk", "kiosks");
+        Correlate(osmVendingMachines, listedDepositVendingMachines, "vending machine", "vending machines");
+        Correlate(osmManualDepositLocations, listedManualDepositLocations, "manual location", "manual locations");
         
         void Correlate<TItem>(OsmDataExtract osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : DepositPoint
         {
@@ -118,9 +118,9 @@ public class BottleDepositPointsAnalyzer : Analyzer
         
         report.AddGroup(ExtraReportGroup.Stats, "Stats");
 
-        ReportStats(depositPointData.DepositKiosks, "Kiosks");
-        ReportStats(depositPointData.DepositAutomats, "Vending machines");
-        ReportStats(depositPointData.ManualDepositLocations, "Manual returns");
+        ReportStats(depositPointData.Kiosks, "Kiosks");
+        ReportStats(depositPointData.VendingMachines, "Vending machines");
+        ReportStats(depositPointData.ManualLocations, "Manual returns");
 
         void ReportStats<TItem>(List<TItem> points, string label) where TItem : DepositPoint
         {

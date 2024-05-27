@@ -19,22 +19,24 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override string DataFileIdentifier => "deposit-points";
 
-    public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
+    
+    private string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
+
+    
+    /// <summary>
+    /// List of standalone Deposit kiosks/buildings with one or more "taromāti" inside
+    /// </summary>
+    public List<KioskDepositPoint> Kiosks { get; private set; } = null!; // only null before prepared
 
     /// <summary>
-    /// List of standalone Deposit kiosks
+    /// List of shops that accept bottles at counter manually
     /// </summary>
-    public List<AutomatedDepositLocation> DepositKiosks { get; private set; } = null!; // only null before prepared
+    public List<ManualDepositPoint> ManualLocations { get; private set; } = null!; // only null before prepared
 
     /// <summary>
-    /// List of shops that accept bottles at counter
+    /// List of "taromāts" that accept bottles. Both in kiosks and inside shops
     /// </summary>
-    public List<ManualDepositLocation> ManualDepositLocations { get; private set; } = null!; // only null before prepared
-
-    /// <summary>
-    /// List of taromats, that accept bottles. Both in kiosks and inside shops
-    /// </summary>
-    public List<DepositAutomat> DepositAutomats { get; private set; } = null!; // only null before prepared
+    public List<VendingMachineDepositPoint> VendingMachines { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
@@ -50,9 +52,9 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void DoPrepare()
     {
-        DepositKiosks = new List<AutomatedDepositLocation>();
-        ManualDepositLocations = new List<ManualDepositLocation>();
-        DepositAutomats = new List<DepositAutomat>();
+        Kiosks = new List<KioskDepositPoint>();
+        ManualLocations = new List<ManualDepositPoint>();
+        VendingMachines = new List<VendingMachineDepositPoint>();
 
         string source = File.ReadAllText(DataFileName);
 
@@ -92,17 +94,17 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
 
             if (mode.Equals("M") || numberOfTaromats.Contains("manuālā"))  // because data is inconsistent: uni_id=51666
             {
-                ManualDepositLocation location = new ManualDepositLocation(
+                ManualDepositPoint location = new ManualDepositPoint(
                     dioId,
                     address,
                     shopName,
                     new OsmCoord(lat, lon)
                 );
-                ManualDepositLocations.Add(location);
+                ManualLocations.Add(location);
             }
             else
             {
-                AutomatedDepositLocation location = new AutomatedDepositLocation(
+                KioskDepositPoint location = new KioskDepositPoint(
                     dioId,
                     address,
                     shopName,
@@ -114,7 +116,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                     !shopName.ToLower().Contains("lidl") // AFAIK, Lidl has only taromats inside
                     && Regex.Match(numberOfTaromats,@"liel(?:ais|ie) taromāt[si]").Success) // AFAIK, kiosks only have big taromats
                 {
-                    DepositKiosks.Add(location);
+                    Kiosks.Add(location);
                 }
 
                 // For automated points with info about number of automats provided, add automats into a separate list
@@ -133,20 +135,20 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                     {                   
                         if (!string.IsNullOrEmpty(matchedTaromat.Groups["beram"]?.Value))
                         {
-                            var taromat = new DepositAutomat(location, TaromatMode.BeramTaromat);
+                            var taromat = new VendingMachineDepositPoint(location, TaromatMode.BeramTaromat);
                             int number = int.TryParse(matchedTaromat.Groups["b_num"]?.Value, out int b_num) ? b_num : 1;
                             for (int i = 0; i < number; i++) 
                             {
-                                DepositAutomats.Add(taromat);
+                                VendingMachines.Add(taromat);
                             }
                         }
                         else if (!string.IsNullOrEmpty(matchedTaromat.Groups["taromat"]?.Value))
                         {
-                            var taromat = new DepositAutomat(location, TaromatMode.Taromat);
+                            var taromat = new VendingMachineDepositPoint(location, TaromatMode.Taromat);
                             int number = int.TryParse(matchedTaromat.Groups["a_num"]?.Value, out int a_num) ? a_num : 1;
                             for (int i = 0; i < number; i++) 
                             {
-                                DepositAutomats.Add(taromat);
+                                VendingMachines.Add(taromat);
                             }
                         }
                     }

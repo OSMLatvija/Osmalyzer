@@ -23,62 +23,74 @@ public abstract class DepositPoint : IDataItem
         Coord = coord;
     }
 
-    
+
     public virtual string ReportString()
     {
-        return TypeString + " (`" + DioId + "`) " + 
-           (ShopName != null ? " in shop `" + ShopName + "` " : "") + 
-           "at (`" + Address + "`)";
+        return TypeString +
+               " (`" + DioId + "`) " +
+               (ShopName != null ? " in shop `" + ShopName + "` " : "") +
+               "at (`" + Address + "`)";
     }
 
 }
 
 public enum TaromatMode
 {
+    /// <summary> Accepts items one at a time </summary>
     Taromat,
+    /// <summary> Accepts a large number of items at once "poured" in </summary>
     BeramTaromat
 }
 
-public class DepositAutomat : DepositPoint
+/// <summary>
+/// "Taromāts"
+/// </summary>
+public class VendingMachineDepositPoint : DepositPoint
 {
-    public override string TypeString => "Taromat";
+    public override string TypeString => ModeToString(Mode);
 
     public TaromatMode Mode { get; }
 
     
-    public DepositAutomat(AutomatedDepositLocation point, TaromatMode mode)
+    public VendingMachineDepositPoint(DepositPoint point, TaromatMode mode)
         : base(point.DioId, point.Address, point.ShopName, new OsmCoord(point.Coord.lat, point.Coord.lon))
     {
         Mode = mode;
     }
 
     
-    public override string ReportString()
+    [Pure]
+    private static string ModeToString(TaromatMode mode)
     {
-        return Mode + (ShopName != null ? "in shop '" + ShopName + "' " : "") + 
-           "at (`" + Address + "`)";
+        return mode switch
+        {
+            TaromatMode.Taromat      => "Taromāts",
+            TaromatMode.BeramTaromat => "Beramtaromāts",
+
+            _ => throw new NotImplementedException()
+        };
     }
 }
 
 
-public class AutomatedDepositLocation : DepositPoint
+public class KioskDepositPoint : DepositPoint
 {
-    public override string TypeString => "Automated redemption location";
+    public override string TypeString => "Kiosk";
 
     
-    public AutomatedDepositLocation(string dioId, string address, string? shopName, OsmCoord coord)
+    public KioskDepositPoint(string dioId, string address, string? shopName, OsmCoord coord)
         : base(dioId, address, shopName, coord)
     {
     }
 }
 
 
-public class ManualDepositLocation : DepositPoint
+public class ManualDepositPoint : DepositPoint
 {
-    public override string TypeString => "Manual redemption location";
+    public override string TypeString => "Manual location";
     
     
-    public ManualDepositLocation(string dioId, string address, string? shopName, OsmCoord coord)
+    public ManualDepositPoint(string dioId, string address, string? shopName, OsmCoord coord)
         : base(dioId, address, shopName, coord)
     {
     }

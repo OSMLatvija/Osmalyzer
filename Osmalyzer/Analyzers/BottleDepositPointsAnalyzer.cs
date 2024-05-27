@@ -124,19 +124,34 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         void ReportStats<TItem>(List<TItem> points, string label) where TItem : DepositPoint
         {
-            Dictionary<string, int> shopCounts =
-                points
-                    .Where(p => p.ShopName != null)
-                    .GroupBy(p => p.ShopName!)
-                    .OrderByDescending(g => g.Count())
-                    .ToDictionary(g => g.Key, g => g.Count());
+            // Shop names
+            
+            List<ShopCounter> counters = new List<ShopCounter>();
+            int unspecified = 0;
+            
+            foreach (TItem point in points)
+            {
+                string? shopName = point.ShopName;
 
-            int unspecified = points.Count(p => p.ShopName == null);
+                if (shopName == null)
+                {
+                    unspecified++;
+                    continue;
+                }
+
+                ShopCounter? counter = counters.FirstOrDefault(c => c.Names.Any(n => string.Equals(n, shopName, StringComparison.CurrentCultureIgnoreCase)));
+                // There are a bunch of other stupid inconsistencies like "VIADA DUS" and DUS VIADA" and "VIADA", but not hard-coding every case
+
+                if (counter == null)
+                    counters.Add(new ShopCounter(shopName));
+                else
+                    counter.Add(shopName);
+            }
             
             report.AddEntry(
                 ExtraReportGroup.Stats,
                 new GenericReportEntry(
-                    label + " are found in/near the following shops: " + string.Join(", ", shopCounts.Select(kvp => "`" + kvp.Key + "`" + " (x " + kvp.Value + ")")) +
+                    label + " are found in/near the following shops: " + string.Join(", ", counters.Select(kvp => string.Join(" / ", kvp.Names.Select(n => "`" + n + "`")) + " (× " + kvp.Count + ")")) +
                     (unspecified > 0 ? " and " + unspecified + " unspecified" : "")
                 )
             );
@@ -147,5 +162,29 @@ public class BottleDepositPointsAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         Stats
+    }
+
+    private class ShopCounter
+    {
+        public IEnumerable<string> Names => _names.AsReadOnly();
+
+        public int Count { get; set; } = 1;
+
+        
+        private readonly List<string> _names = new List<string>();
+        
+
+        public ShopCounter(string firstName)
+        {
+            _names.Add(firstName);
+        }
+
+
+        public void Add(string anotherName)
+        {
+            Count++;
+            if (!_names.Contains(anotherName))
+                _names.Add(anotherName);
+        }
     }
 }

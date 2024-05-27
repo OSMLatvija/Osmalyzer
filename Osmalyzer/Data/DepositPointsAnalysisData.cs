@@ -84,6 +84,12 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
             if (string.IsNullOrWhiteSpace(shopName)) // a couple aren't specified
                 shopName = null;
 
+            if (shopName != null &&
+                (shopName.ToLower() == "veikals" ||
+                 shopName == "Local store")) // this is not a real store, someone used placeholder name (in English)
+                shopName = null;
+            // There are more values that don't look like shop names, but not hard-coding single instances
+
             if (mode.Equals("M") || numberOfTaromats.Contains("manuālā"))  // because data is inconsistent: uni_id=51666
             {
                 ManualDepositLocation location = new ManualDepositLocation(
@@ -104,7 +110,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                 );
 
                 // Only want standalone kiosks. No way of knowing that, so trying to guess
-                if (
+                if (shopName != null &&
                     !shopName.ToLower().Contains("lidl") // AFAIK, Lidl has only taromats inside
                     && Regex.Match(numberOfTaromats,@"liel(?:ais|ie) taromāt[si]").Success) // AFAIK, kiosks only have big taromats
                 {

@@ -61,10 +61,10 @@ public static class Runner
             // new CrossingConsistencyAnalyzer(),
             // new StreetTaggingContinuationAnalyzer(),
             // new PostCodeAnalyzer(),
-            // new PostCodeAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
-            new BottleDepositPointsAnalyzer()
+            // new BottleDepositPointsAnalyzer(),
+            new VenipakParcelLockerAnalyzer()
         };
 #endif
 

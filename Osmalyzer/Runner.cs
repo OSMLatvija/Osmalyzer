@@ -64,7 +64,8 @@ public static class Runner
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
             // new BottleDepositPointsAnalyzer(),
-            new VenipakParcelLockerAnalyzer()
+            // new VenipakParcelLockerAnalyzer(),
+            new OmnivaParcelLockerAnalyzer()
         };
 #endif
 

@@ -65,7 +65,8 @@ public static class Runner
             // new BarrierConnectionAnalyzer(),
             // new BottleDepositPointsAnalyzer(),
             // new VenipakParcelLockerAnalyzer(),
-            new OmnivaParcelLockerAnalyzer()
+            // new OmnivaParcelLockerAnalyzer(),
+            new SmartpostParcelLockerAnalyzer()
         };
 #endif
 

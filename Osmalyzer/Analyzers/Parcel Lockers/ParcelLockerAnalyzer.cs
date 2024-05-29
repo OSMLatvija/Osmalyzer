@@ -17,18 +17,22 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
 
     protected abstract string Operator { get; }
 
-    protected abstract List<string> ParcelLockerOsmNames { get; }
-
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
-        typeof(OsmAnalysisData), 
+        typeof(OsmAnalysisData),
+        typeof(ParcelLockerOperatorAnalysisData), 
         typeof(T)
     };
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
+        // Get relevant brand name (variations)
+
+        ParcelLockerOperatorAnalysisData operatorData = datas.OfType<ParcelLockerOperatorAnalysisData>().First();
+        List<string> brandNames = operatorData.Branding[Operator];
+
         // Load OSM data
 
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
@@ -38,7 +42,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
         OsmDataExtract osmLockers = osmMasterData.Filter(
             new HasAnyValue("amenity", "parcel_locker")
         );
-        
+
         OsmDataExtract brandLockers = osmLockers.Filter(
             new CustomMatch(LockerMatchesBrand)
         );
@@ -46,24 +50,24 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
         // but parcel lockers are frequently found nearby to other lockers and we have no way to match like that 
         // because any of the other branded lockers could equally match - this isn't a "match" as far as we are concerned.
         // See UnknownParcelLockerAnalyzer for all the ones we don't explicitly match.
-
+        
         bool LockerMatchesBrand(OsmElement osmElement)
         {
             // todo: use known brand data (file)
 
             string? osmName = osmElement.GetValue("name");
 
-            if (osmName != null && ParcelLockerOsmNames.Exists(sn => osmName.ToLower().Contains(sn.ToLower())))
+            if (osmName != null && brandNames.Exists(sn => osmName.ToLower().Contains(sn.ToLower())))
                 return true;
 
             string? osmOperator = osmElement.GetValue("operator");
 
-            if (osmOperator != null && ParcelLockerOsmNames.Exists(sn => osmOperator.ToLower().Contains(sn.ToLower())))
+            if (osmOperator != null && brandNames.Exists(sn => osmOperator.ToLower().Contains(sn.ToLower())))
                 return true;
 
             string? osmBrand = osmElement.GetValue("brand");
 
-            if (osmBrand != null && ParcelLockerOsmNames.Exists(sn => osmBrand.ToLower().Contains(sn.ToLower())))
+            if (osmBrand != null && brandNames.Exists(sn => osmBrand.ToLower().Contains(sn.ToLower())))
                 return true;
             
             return false;

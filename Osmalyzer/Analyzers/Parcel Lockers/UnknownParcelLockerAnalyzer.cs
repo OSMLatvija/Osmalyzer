@@ -14,7 +14,11 @@ public class UnknownParcelLockerAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>()
+    {
+        typeof(OsmAnalysisData),
+        typeof(ParcelLockerOperatorAnalysisData)
+    };
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

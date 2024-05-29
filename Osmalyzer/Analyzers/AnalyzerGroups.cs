@@ -11,6 +11,7 @@ public static class AnalyzerGroups
     public static AnalyzerGroup Road { get; } = new AnalyzerGroup("Roads");
     public static AnalyzerGroup PublicTransport { get; } = new AnalyzerGroup("Public Transport");
     public static AnalyzerGroup Misc { get; } = new AnalyzerGroup("Miscellaneous");
+    public static AnalyzerGroup ParcelLocker { get; } = new AnalyzerGroup("Parcel Lockers");
 
 
     [Pure]

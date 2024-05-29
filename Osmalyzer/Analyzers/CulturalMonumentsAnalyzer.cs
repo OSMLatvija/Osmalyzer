@@ -119,7 +119,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
             new DataItemLabelsParamater("monument", "monuments"),
             new MatchCallbackParameter<CulturalMonument>(DoesOsmNodeMatchMonument),
             new OsmElementPreviewValue("name", false),
-            new LoneElementAllowanceCallbackParameter(IsOsmElementHeritagePoiByItself)
+            new LoneElementAllowanceParameter(IsOsmElementHeritagePoiByItself)
         );
         
         [Pure]

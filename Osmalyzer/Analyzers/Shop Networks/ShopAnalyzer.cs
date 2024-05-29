@@ -82,7 +82,6 @@ public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
             new MatchExtraDistanceParamater(MatchStrength.Strong, 700), // allow really far for exact matches
             new DataItemLabelsParamater(ShopName + " shop", ShopName + " shops"),
             new OsmElementPreviewValue("name", false),
-            new LoneElementAllowanceCallbackParameter(_ => true),
             new MatchCallbackParameter<ShopData>(GetMatchStrength)
         );
         

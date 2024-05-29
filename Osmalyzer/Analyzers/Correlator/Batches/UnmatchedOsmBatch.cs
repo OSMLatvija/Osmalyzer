@@ -2,8 +2,9 @@
 
 /// <summary>
 /// This will include all OSM elements not matched to anything.
-/// Unless all elements given to the correlator are expected on the map, this should be avoided;
-/// instead use <see cref="LoneElementAllowanceCallbackParameter"/> to match elements that don't have a data item and <see cref="MatchedLoneOsmBatch"/> to list.
+/// If all elements given to the correlator are not necessarilly expected on the map,
+/// instead use <see cref="LoneElementAllowanceParameter"/> to match elements that appear to be something we should be matching
+/// but don't have a data item and use <see cref="MatchedLoneOsmBatch"/> to list them.
 /// </summary>
 public class UnmatchedOsmBatch : CorrelatorBatch
 {

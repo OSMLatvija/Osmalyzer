@@ -41,7 +41,7 @@ public class GlikaOaksAnalyzer : Analyzer
             new MatchFarDistanceParamater(300), // some are poorly-placed
             new DataItemLabelsParamater("Glika oak", "Glika oaks"),
             new MatchCallbackParameter<GlikaOak>(DoesOsmTreeMatchOak),
-            new LoneElementAllowanceCallbackParameter(DoesTreeAppearToBeGlika)
+            new LoneElementAllowanceParameter(DoesTreeAppearToBeGlika)
         );
         
         [Pure]

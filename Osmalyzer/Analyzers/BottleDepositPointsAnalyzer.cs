@@ -88,7 +88,6 @@ public class BottleDepositPointsAnalyzer : Analyzer
                 new MatchExtraDistanceParamater(MatchStrength.Strong, 500), // allow really far for exact matches
                 new DataItemLabelsParamater(labelSingular, labelPlural),
                 new OsmElementPreviewValue("name", false),
-                new LoneElementAllowanceCallbackParameter(_ => true),
                 new MatchCallbackParameter<DepositPoint>(GetMatchStrength)
             );
 
@@ -107,7 +106,6 @@ public class BottleDepositPointsAnalyzer : Analyzer
             dataComparer.Parse(
                 report,
                 new MatchedPairBatch(),
-                new MatchedLoneOsmBatch(true),
                 new UnmatchedItemBatch(),
                 new MatchedFarPairBatch(),
                 new UnmatchedOsmBatch()

@@ -46,7 +46,7 @@ public class CourthouseAnalyzer : Analyzer
             new DataItemLabelsParamater("courthouse", "courthouses"),
             new OsmElementPreviewValue("name", false),
             new MatchCallbackParameter<CourthouseData>(GetMatchStrength),
-            new LoneElementAllowanceCallbackParameter(SeemsLikeRecognizedCourthouse)
+            new LoneElementAllowanceParameter(SeemsLikeRecognizedCourthouse)
         );
         
         // todo: report closest potential (brand-untagged) courthouse when not matching anything?

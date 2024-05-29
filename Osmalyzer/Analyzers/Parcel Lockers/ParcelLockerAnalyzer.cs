@@ -40,10 +40,10 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
         );
         
         OsmDataExtract brandLockers = osmLockers.Filter(
-            new CustomMatch(LockerNameMatches)
+            new CustomMatch(LockerMatchesBrand)
         );
 
-        bool LockerNameMatches(OsmElement osmElement)
+        bool LockerMatchesBrand(OsmElement osmElement)
         {
             // todo: use known brand data (file)
 
@@ -78,7 +78,6 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
             new MatchExtraDistanceParamater(MatchStrength.Strong, 500),
             new DataItemLabelsParamater(Operator + " parcel locker", Operator + " parcel lockers"),
             new OsmElementPreviewValue("name", false),
-            new LoneElementAllowanceCallbackParameter(_ => true),
             new MatchCallbackParameter<ParcelLocker>(GetMatchStrength)
         );
         

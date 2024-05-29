@@ -46,7 +46,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             osmTaps,
             rigaTapsStatic,
             new DataItemLabelsParamater("Riga tap", "Riga taps"),
-            new LoneElementAllowanceCallbackParameter(IsUnmatchedOsmElementAllowed),
+            new LoneElementAllowanceParameter(IsUnmatchedOsmElementAllowed),
             new OsmElementPreviewValue( // add a label for (non-)seasonal
                 "seasonal", 
                 false, 

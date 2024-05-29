@@ -43,7 +43,7 @@ public class Correlator<T> where T : IDataItem
         bool shouldReportUnmatchedItem = entries.OfType<UnmatchedItemBatch>().Any();
         MatchedLoneOsmBatch? matchedLoneOsmBatch = entries.OfType<MatchedLoneOsmBatch>().FirstOrDefault();
         bool shouldReportMatchedLoneOsm = matchedLoneOsmBatch != null;
-        bool reportMatchedLoneOsmAsProblem =shouldReportMatchedLoneOsm && matchedLoneOsmBatch!.AsProblem;
+        bool reportMatchedLoneOsmAsProblem = shouldReportMatchedLoneOsm && matchedLoneOsmBatch!.AsProblem;
         bool shouldReportUnmatchedOsm = entries.OfType<UnmatchedOsmBatch>().Any();
 
         // Gather (optional) parameters (or set defaults)
@@ -52,7 +52,7 @@ public class Correlator<T> where T : IDataItem
         double unmatchDistance = _paramaters.OfType<MatchFarDistanceParamater>().FirstOrDefault()?.FarDistance ?? 75;
         if (unmatchDistance < matchDistance) throw new InvalidOperationException();
         Func<T, OsmElement, MatchStrength>? matchCallback = _paramaters.OfType<MatchCallbackParameter<T>>().FirstOrDefault()?.MatchCallback ?? null;
-        Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceCallbackParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
+        Func<OsmElement, bool>? loneElementAllowanceCallback = _paramaters.OfType<LoneElementAllowanceParameter>().FirstOrDefault()?.AllowanceCallback ?? null;
         string dataItemLabelSingular = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelSingular ?? "item";
         string dataItemLabelPlural = _paramaters.OfType<DataItemLabelsParamater>().FirstOrDefault()?.LabelPlural ?? "items";
         double matchOriginMinReportDistance = _paramaters.OfType<MinOriginReportDistanceParamater>().FirstOrDefault()?.MinDistance ?? 20;

@@ -6,10 +6,13 @@ namespace Osmalyzer;
 public class Validator<T> where T : IDataItem
 {
     private readonly CorrelatorReport _correlatorReport;
+    
+    private readonly string? _customTitle;
 
 
-    public Validator(CorrelatorReport correlatorReport)
+    public Validator(CorrelatorReport correlatorReport, string? customTitle = null)
     {
+        _customTitle = customTitle;
         _correlatorReport = correlatorReport;
     }
 
@@ -18,8 +21,8 @@ public class Validator<T> where T : IDataItem
     {
         report.AddGroup(
             ReportGroup.ValidationResults, 
-            "Other issues",
-            "These matched/found OSM elements and/or data items have additional individual (known) issues.",
+            _customTitle ?? "Other issues",
+            "These OSM elements and/or data items have additional individual (known) issues.",
             "No (known) issues found with matched/found OSM elements and/or data items."
         );
         
@@ -37,6 +40,11 @@ public class Validator<T> where T : IDataItem
 
                 case LoneCorrelation loneCorrelation:
                     osmElement = loneCorrelation.OsmElement;
+                    dataItem = default;
+                    break;
+                
+                case UnmatchedCorrelation unmatchedCorrelation:
+                    osmElement = unmatchedCorrelation.OsmElement;
                     dataItem = default;
                     break;
 
@@ -59,6 +67,14 @@ public class Validator<T> where T : IDataItem
                     
                     case ValidateElementHasValue elementHasValue:
                         CheckElementHasValue(elementHasValue);
+                        break;
+                    
+                    case ValidateElementHasKey elementHasKey:
+                        CheckElementHasKey(elementHasKey);
+                        break;
+                    
+                    case ValidateElementDoesntHaveValue elementDoesntHaveValue:
+                        CheckElementDoesntHaveValue(elementDoesntHaveValue);
                         break;
                     
                     case ValidateElementHasAcceptableValue elementHasAcceptableValue:
@@ -122,6 +138,42 @@ public class Validator<T> where T : IDataItem
                             )
                         );
                     }
+                }
+            }
+
+            void CheckElementHasKey(ValidateElementHasKey rule)
+            {
+                string? value = osmElement.GetValue(rule.Tag);
+
+                if (value == null)
+                {
+                    report.AddEntry(
+                        ReportGroup.ValidationResults,
+                        new IssueReportEntry(
+                            "OSM element doesn't have expected `" + rule.Tag + "` set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                            new SortEntryAsc(SortOrder.Tagging),
+                            osmElement.GetAverageCoord(),
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
+            }
+
+            void CheckElementDoesntHaveValue(ValidateElementDoesntHaveValue rule)
+            {
+                string? value = osmElement.GetValue(rule.Tag);
+
+                if (value != null)
+                {
+                    report.AddEntry(
+                        ReportGroup.ValidationResults,
+                        new IssueReportEntry(
+                            "OSM element isn't expected to have `" + rule.Tag + "` set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
+                            new SortEntryAsc(SortOrder.Tagging),
+                            osmElement.GetAverageCoord(),
+                            MapPointStyle.Problem
+                        )
+                    );
                 }
             }
 

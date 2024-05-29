@@ -453,6 +453,9 @@ public class Correlator<T> where T : IDataItem
         foreach (Match match in allMatchedElements.Values)
             correlations.Add(new MatchedCorrelation<T>(match.Element, match.Item, match.Distance, match.Far));
 
+        foreach (OsmElement unmatched in unmatchableElements)
+            correlations.Add(new UnmatchedCorrelation(unmatched));
+
         foreach (OsmElement osmElement in matchedLoneElements)
             correlations.Add(new LoneCorrelation(osmElement));
             

@@ -71,11 +71,11 @@ public class BottleDepositPointsAnalyzer : Analyzer
         List<ManualDepositPoint> listedManualDepositLocations = depositPointData.ManualLocations;
         List<VendingMachineDepositPoint> listedDepositVendingMachines = depositPointData.VendingMachines;
 
-        Correlate(osmKioskDepositLocations, listedDepositKiosks, "kiosk", "kiosks");
-        Correlate(osmVendingMachines, listedDepositVendingMachines, "vending machine", "vending machines");
-        Correlate(osmManualDepositLocations, listedManualDepositLocations, "manual location", "manual locations");
-        
-        void Correlate<TItem>(OsmDataExtract osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : DepositPoint
+        CorrelatorReport kioskReport = Correlate(osmKioskDepositLocations, listedDepositKiosks, "kiosk", "kiosks");
+        CorrelatorReport vendingMachineReport = Correlate(osmVendingMachines, listedDepositVendingMachines, "vending machine", "vending machines");
+        CorrelatorReport manualLocationReport = Correlate(osmManualDepositLocations, listedManualDepositLocations, "manual location", "manual locations");
+
+        CorrelatorReport Correlate<TItem>(OsmDataExtract osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : DepositPoint
         {
             // Prepare data comparer/correlator
 
@@ -102,7 +102,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
             // Parse and report primary matching and location correlation
 
-            dataComparer.Parse(
+            return dataComparer.Parse(
                 report,
                 new MatchedPairBatch(),
                 new UnmatchedItemBatch(),
@@ -111,6 +111,51 @@ public class BottleDepositPointsAnalyzer : Analyzer
             );
         }
         
+        // Tagging verification
+
+        // CorrelatorReport comboReport = new CorrelatorReport(
+        //     kioskReport,
+        //     vendingMachineReport,
+        //     manualLocationReport
+        // );
+
+        Validator<KioskDepositPoint> kisokValidator = new Validator<KioskDepositPoint>(
+            kioskReport,
+            "Other kiosk issues"
+        );
+
+        kisokValidator.Validate(
+            report,
+            new ValidateElementHasValue("name", "Depozīta punkts"),
+            new ValidateElementHasValue("brand", "Depozīta punkts"),
+            new ValidateElementHasValue("brand:wikidata", "Q110979381"),
+            new ValidateElementHasValue("building", "kiosk"), 
+            new ValidateElementHasValue("recycling:cans", "yes"),
+            new ValidateElementHasValue("recycling:glass_bottles", "yes"),
+            new ValidateElementHasValue("recycling:plastic_bottles", "yes"),
+            new ValidateElementDoesntHaveValue("recycling_type"),
+            // todo: operator needed ?
+            new ValidateElementFixme()
+        );
+
+        Validator<VendingMachineDepositPoint> vendingValidator = new Validator<VendingMachineDepositPoint>(
+            vendingMachineReport,
+            "Other vending machine issues"
+        );
+
+        vendingValidator.Validate(
+            report,
+            new ValidateElementHasValue("name", "Depozīta punkts"),
+            new ValidateElementHasValue("brand", "Depozīta punkts"),
+            new ValidateElementHasValue("brand:wikidata", "Q110979381"),
+            new ValidateElementHasValue("recycling:cans", "yes"),
+            new ValidateElementHasValue("recycling:glass_bottles", "yes", "no"),
+            new ValidateElementHasValue("recycling:plastic_bottles", "yes"),
+            new ValidateElementDoesntHaveValue("building"),
+            // todo: operator needed ?
+            new ValidateElementFixme()
+        );
+
         // Additional stats
         
         report.AddGroup(ExtraReportGroup.Stats, "Stats");

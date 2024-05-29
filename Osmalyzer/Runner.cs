@@ -34,12 +34,12 @@ public static class Runner
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(), // -- it fails from localhost, no idea why
             // new StreetNameAnalyzer(),
-            new RigaDrinkingWaterAnalyzer(),
+            // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
             // new GlikaOaksAnalyzer(),
             // new ElviShopAnalyzer(),
-            new LatsShopAnalyzer(),
+            // new LatsShopAnalyzer(),
             // new RimiShopAnalyzer(),
             // new MaximaShopAnalyzer(),
             // new MegoShopAnalyzer(),
@@ -63,10 +63,11 @@ public static class Runner
             // new PostCodeAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
-            new BottleDepositPointsAnalyzer(),
+            // new BottleDepositPointsAnalyzer(),
             // new VenipakParcelLockerAnalyzer(),
-            new OmnivaParcelLockerAnalyzer(),
-            // new SmartpostParcelLockerAnalyzer()
+            // new OmnivaParcelLockerAnalyzer(),
+            // new SmartpostParcelLockerAnalyzer(),
+            new UnknownParcelLockerAnalyzer()
         };
 #endif
 

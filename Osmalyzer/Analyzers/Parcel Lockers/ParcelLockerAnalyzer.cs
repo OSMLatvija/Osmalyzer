@@ -42,6 +42,10 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
         OsmDataExtract brandLockers = osmLockers.Filter(
             new CustomMatch(LockerMatchesBrand)
         );
+        // Note that we are only matching to brand-tagged lockers, because data coordinates are very approximate,
+        // but parcel lockers are frequently found nearby to other lockers and we have no way to match like that 
+        // because any of the other branded lockers could equally match - this isn't a "match" as far as we are concerned.
+        // See UnknownParcelLockerAnalyzer for all the ones we don't explicitly match.
 
         bool LockerMatchesBrand(OsmElement osmElement)
         {
@@ -71,7 +75,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
         // Prepare data comparer/correlator
 
         Correlator<ParcelLocker> dataComparer = new Correlator<ParcelLocker>(
-            brandLockers,
+            brandLockers, 
             listedLockers,
             new MatchDistanceParamater(100),
             new MatchFarDistanceParamater(200),

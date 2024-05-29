@@ -5,13 +5,13 @@ using Newtonsoft.Json;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class SmartpostParcelLockerAnalysisData : ParcelLockerAnalysisData
+public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
 {
-    public override string Name => "Smartpost Parcel Lockers";
+    public override string Name => "Itella Parcel Lockers";
 
     public override string ReportWebLink => @"https://itella.lv/en/private-customer/parcel-locker-locations/";
 
-    protected override string DataFileIdentifier => "parcel-lockers-smartpost";
+    protected override string DataFileIdentifier => "parcel-lockers-itella";
 
     public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
@@ -79,7 +79,7 @@ public class SmartpostParcelLockerAnalysisData : ParcelLockerAnalysisData
             {
                 _parcelLockers.Add(
                     new ParcelLocker(
-                        "Smartpost",
+                        "Itella",
                         id,
                         name,
                         address,

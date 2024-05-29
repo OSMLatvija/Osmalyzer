@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class ItellaParcelLockerAnalyzer : ParcelLockerAnalyzer<SmartpostParcelLockerAnalysisData>
+public class ItellaParcelLockerAnalyzer : ParcelLockerAnalyzer<ItellaParcelLockerAnalysisData>
 {
     protected override string Operator => "Itella";
 }

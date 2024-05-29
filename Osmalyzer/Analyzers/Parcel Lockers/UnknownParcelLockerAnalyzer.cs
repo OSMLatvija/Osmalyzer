@@ -23,6 +23,10 @@ public class UnknownParcelLockerAnalyzer : Analyzer
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
+        // Get parcel locker operator used branding names
+        
+        ParcelLockerOperatorAnalysisData operatorData = datas.OfType<ParcelLockerOperatorAnalysisData>().First();
+
         // Load OSM data
 
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
@@ -44,18 +48,17 @@ public class UnknownParcelLockerAnalyzer : Analyzer
             )
         );
         
-        // Prepare known brands
-        
         // Parse
 
         foreach (OsmElement element in lockers.Elements)
         {
-            if (!MatchesKnownBrandedLocker(element))
+            if (!MatchesKnownBrandedLocker(element, operatorData, out List<string>? comparedValues))
             {
                 report.AddEntry(
                     ReportGroup.Unknown,
                     new IssueReportEntry(
-                        "Parcel locker " + element.OsmViewUrl + " doesn't seem to belong to a known brand.",
+                        "Parcel locker " + element.OsmViewUrl + " doesn't seem to belong to a known brand" +
+                        (comparedValues!.Count > 0 ? " (compared values: " + string.Join(", ", comparedValues.Select(v => "`" + v + "`")) + ")" : ""),
                         element.GetAverageCoord(),
                         MapPointStyle.Problem
                     )
@@ -66,10 +69,51 @@ public class UnknownParcelLockerAnalyzer : Analyzer
 
     
     [Pure]
-    private bool MatchesKnownBrandedLocker(OsmElement element)
+    private static bool MatchesKnownBrandedLocker(OsmElement element, ParcelLockerOperatorAnalysisData operatorData, out List<string>? comparedValues)
     {
-        // todo:
+        foreach ((string? _, List<string>? values) in operatorData.Branding)
+        {
+            if (LockerMatchesBrand(element, values))
+            {
+                comparedValues = null;
+                return true;
+            }
+        }
+
+        comparedValues = new List<string>();
+        
+        string? osmName = element.GetValue("name");
+        string? osmOperator = element.GetValue("operator");
+        string? osmBrand = element.GetValue("brand");
+        
+        if (osmName != null) comparedValues.Add(osmName);
+        if (osmOperator != null) comparedValues.Add(osmOperator);
+        if (osmBrand != null) comparedValues.Add(osmBrand);
+        
         return false;
+        
+
+        static bool LockerMatchesBrand(OsmElement element, List<string> values)
+        {
+            // todo: use known brand data (file)
+
+            string? osmName = element.GetValue("name");
+
+            if (osmName != null && values.Exists(sn => osmName.ToLower().Contains(sn.ToLower())))
+                return true;
+
+            string? osmOperator = element.GetValue("operator");
+
+            if (osmOperator != null && values.Exists(sn => osmOperator.ToLower().Contains(sn.ToLower())))
+                return true;
+
+            string? osmBrand = element.GetValue("brand");
+
+            if (osmBrand != null && values.Exists(sn => osmBrand.ToLower().Contains(sn.ToLower())))
+                return true;
+            
+            return false;
+        }
     }
 
 

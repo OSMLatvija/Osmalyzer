@@ -55,7 +55,12 @@ public abstract class AnalysisData
         catch (Exception e)
         {
             Console.WriteLine("Failed to retrieve with exception!");
-            Console.WriteLine(e.Message);
+            Console.WriteLine("Exception message: " + e.Message);
+            while (e.InnerException != null)
+            {
+                e = e.InnerException;
+                Console.WriteLine("Inner exception message: " + e.Message);
+            }
 
             Status = DataStatus.FailedToRetrieve;
 
@@ -78,7 +83,12 @@ public abstract class AnalysisData
         catch (Exception e)
         {
             Console.WriteLine("Failed to prepare with exception!");
-            Console.WriteLine(e.Message);
+            Console.WriteLine("Exception message: " + e.Message);
+            while (e.InnerException != null)
+            {
+                e = e.InnerException;
+                Console.WriteLine("Inner exception message: " + e.Message);
+            }
 
             Status = DataStatus.FailedToRetrieve;
             

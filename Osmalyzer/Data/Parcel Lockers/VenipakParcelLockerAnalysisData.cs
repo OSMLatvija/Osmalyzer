@@ -27,7 +27,7 @@ public class VenipakParcelLockerAnalysisData : ParcelLockerAnalysisData
         // list at https://venipak.com/lv/produkti-un-pakalpojumi/pickup-sutijumu-punkti/
         // query to get json data at https://go.venipak.lt/ws/get_pickup_points
 
-        WebsiteDownloadHelper.Download(
+        WebsiteBrowsingHelper.DownloadPage( // regular download fails on GitHub with SSL errors 
             "https://go.venipak.lt/ws/get_pickup_points", 
             DataFileName
         );

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Osmalyzer;
@@ -52,7 +54,18 @@ public class VenipakParcelLockerAnalysisData : ParcelLockerAnalysisData
         //     ...
         //}
 
-        dynamic[] content = JsonConvert.DeserializeObject<dynamic[]>(source)!;
+        dynamic[] content;
+        
+        try
+        {
+            content = JsonConvert.DeserializeObject<dynamic[]>(source)!;
+        }
+        catch (JsonException)
+        {
+            Console.WriteLine("JSON exception!");
+            Console.WriteLine("We were trying to parse: " + (source.Length <= 200 ? source : source[..200] + " [" + (source.Length - 200) + "]..."));
+            throw;
+        }
 
         foreach (dynamic item in content)
         {

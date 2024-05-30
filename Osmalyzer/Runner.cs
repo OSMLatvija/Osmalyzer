@@ -164,6 +164,7 @@ public static class Runner
                 Console.WriteLine("Skipping " + analyzers[i].Name + " analyzer due to missing required data [" + (i + 1) + "/" + analyzers.Count + "].");
 
                 reporter.AddSkippedReport(analyzers[i].Name, "missing data");
+                // todo: which one and why
                     
                 continue;
             }

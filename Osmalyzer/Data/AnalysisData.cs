@@ -90,7 +90,7 @@ public abstract class AnalysisData
                 Console.WriteLine("Inner exception message: " + e.Message);
             }
 
-            Status = DataStatus.FailedToRetrieve;
+            Status = DataStatus.FailedToPrepare;
             
 #if !REMOTE_EXECUTION
             throw; // on local, allow debugging the problem
@@ -209,5 +209,5 @@ public enum DataStatus
 {
     Ok,
     FailedToRetrieve,
-    FailedToProcess
+    FailedToPrepare
 }

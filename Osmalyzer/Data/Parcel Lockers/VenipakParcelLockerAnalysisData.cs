@@ -40,19 +40,19 @@ public class VenipakParcelLockerAnalysisData : ParcelLockerAnalysisData
         _parcelLockers = new List<ParcelLocker>();
 
         string source = File.ReadAllText(DataFileName);
-        // Expecting item to be:
-        //{
-        //    "id": 2342,
-        //    "address": "Rīgas gatve 5",
-        //    "city": "Ādaži",
-        //    "zip": "2164",
-        //    "country": "LV",
-        //    "display_name": "Ādažu TC Apelsīns DROGAS Venipak Pickup punkts",
-        //    "lat": "57.0712143",
-        //    "lng": "24.3200930",
-        //    "type": 1,
-        //     ...
-        //}
+        
+        // On remote it could be wrapped like this:
+        // We were trying to parse: <html><head><meta name="color-scheme" content="light dark"><meta charset="utf-8"></head><body><pre>[{"id":3348,"name":"Venipak locker, Coop Venipak pakiautomaat","code":"12142751","address":"P\u00e4rn [1635718]...
+
+        if (source.StartsWith("<"))
+        {
+            // Grab content between "<pre>", which seems what it is wrapped in
+            source = source[
+                (source.IndexOf("<pre>", StringComparison.Ordinal) + "<pre>".Length)
+                ..
+                source.LastIndexOf("</pre>", StringComparison.Ordinal)
+            ];
+        }
 
         dynamic[] content;
         
@@ -69,6 +69,20 @@ public class VenipakParcelLockerAnalysisData : ParcelLockerAnalysisData
 
         foreach (dynamic item in content)
         {
+            // Expecting item to be:
+            //{
+            //    "id": 2342,
+            //    "address": "Rīgas gatve 5",
+            //    "city": "Ādaži",
+            //    "zip": "2164",
+            //    "country": "LV",
+            //    "display_name": "Ādažu TC Apelsīns DROGAS Venipak Pickup punkts",
+            //    "lat": "57.0712143",
+            //    "lng": "24.3200930",
+            //    "type": 1,
+            //     ...
+            //}
+            
             string id = item.id;
             string name = item.display_name;
             string country = item.country;

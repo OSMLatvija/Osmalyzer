@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
-using OpenQA.Selenium.DevTools.V117.Debugger;
+using System.Linq;
 
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class LatviaPostAnalysisData : AnalysisData, IUndatedAnalysisData
+public class LatviaPostAnalysisData : ParcelLockerAnalysisData
 {
-    public override string Name => "Latvia post";
+    public override string Name => "Latvijas Pasts";
 
     public override bool NeedsPreparation => true;
 
@@ -21,6 +21,10 @@ public class LatviaPostAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public List<LatviaPostItem> LatviaPostItems{ get; private set; } = null!; // only null until prepared
 
+    public override IEnumerable<ParcelLocker> ParcelLockers
+    { 
+        get { return LatviaPostItems?.Where(_ => _.ItemType == LatviaPostItemType.ParcelLocker); } 
+    }
 
     protected override void Download()
     {

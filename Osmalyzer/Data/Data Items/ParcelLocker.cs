@@ -23,7 +23,7 @@ public class ParcelLocker : IDataItem
     }
     
     
-    public string ReportString()
+    public virtual string ReportString()
     {
         return
             Operator + " parcel locker" +

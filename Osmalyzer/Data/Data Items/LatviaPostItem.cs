@@ -1,34 +1,24 @@
-﻿namespace Osmalyzer;
+﻿using System.Net.Sockets;
 
-public class LatviaPostItem : IDataItem
+namespace Osmalyzer;
+
+public class LatviaPostItem : ParcelLocker
 {
-    public string? Name { get; }
-
-    public string? Code { get; }
-
-    public string? Address { get; }
-
     public LatviaPostItemType? ItemType { get; }
     
-    public OsmCoord Coord { get; }
-
-
     public LatviaPostItem(string? name, string? address, string? code, LatviaPostItemType itemType, OsmCoord coord)
+        : base("Latvijas Pasts", code, name, address, coord)
     {
-        Name = name;
-        Address = address;
-        Code = code;
         ItemType = itemType;
-        Coord = coord;
     }
     
     
-    public string ReportString()
+    public override string ReportString()
     {
         return
-            "Latvia Post " + ItemType.ToString() +
+            Operator + ItemType.ToString() +
             (Name != null ? " `" + Name + "`" : "") +
-            (Code != null ? " (`" + Code + "`)" : "") +
+            (Id != null ? " (`" + Id + "`)" : "") +
             (Address != null ? " at `" + Address + "`" : "");
     }
 }

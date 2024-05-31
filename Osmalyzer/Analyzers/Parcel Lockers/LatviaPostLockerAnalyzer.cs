@@ -5,7 +5,7 @@ using System.Linq;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class LatviaPostLockerAnalyzer : ParcelLockerAnalyzer<ItellaParcelLockerAnalysisData>
+public class LatviaPostLockerAnalyzer : ParcelLockerAnalyzer<LatviaPostAnalysisData>
 {
     protected override string Operator => "Latvijas Pasts";
 }

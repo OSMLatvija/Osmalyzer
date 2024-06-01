@@ -5,7 +5,7 @@ using System.Linq;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerAnalysisData
+public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLockerListProvider
 {
     public override string Name => Operator + " Parcel lockers";
 
@@ -74,7 +74,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : ParcelLockerA
         }
 
         // Load Parcel locker data
-        List<ParcelLocker> listedLockers = datas.OfType<ParcelLockerAnalysisData>().First().ParcelLockers.ToList();
+        List<ParcelLocker> listedLockers = datas.OfType<IParcelLockerListProvider>().First().ParcelLockers.ToList();
 
         // Prepare data comparer/correlator
 

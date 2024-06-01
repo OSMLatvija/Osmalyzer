@@ -7,7 +7,7 @@ using System.Linq;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class LatviaPostAnalysisData : ParcelLockerAnalysisData
+public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
 {
     public override string Name => "Latvijas Pasts";
 
@@ -21,11 +21,12 @@ public class LatviaPostAnalysisData : ParcelLockerAnalysisData
 
     public List<LatviaPostItem> LatviaPostItems{ get; private set; } = null!; // only null until prepared
 
-    public override IEnumerable<ParcelLocker> ParcelLockers
+    public IEnumerable<ParcelLocker> ParcelLockers
     { 
-        get { return LatviaPostItems?.Where(_ => _.ItemType == LatviaPostItemType.ParcelLocker); } 
+        get { return LatviaPostItems.Where(i => i.ItemType == LatviaPostItemType.ParcelLocker); } 
     }
 
+    
     protected override void Download()
     {
         // list at https://pasts.lv/lv/kategorija/pasta_nodalas/

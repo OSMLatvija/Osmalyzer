@@ -27,6 +27,7 @@ public static class Runner
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
             // new RigasSatiksmeAnalyzer(),
+            new RigasSatiksmeTicketVendingAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),

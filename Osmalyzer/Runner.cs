@@ -27,6 +27,7 @@ public static class Runner
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
             // new RigasSatiksmeAnalyzer(),
+            new RigasSatiksmeTicketVendingAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
@@ -64,7 +65,7 @@ public static class Runner
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
             // new BottleDepositPointsAnalyzer(),
-            new VenipakParcelLockerAnalyzer(),
+            // new VenipakParcelLockerAnalyzer(),
             // new OmnivaParcelLockerAnalyzer(),
             // new ItellaParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer()

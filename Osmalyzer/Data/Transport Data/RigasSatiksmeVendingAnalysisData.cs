@@ -56,15 +56,45 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         foreach (Placemark placemark in placemarks)
         {
             if (placemark.Geometry is Point point)
-            {                    
+            {
+                string? location = SanitizeLocation(placemark.Description?.Text);
+                
                 VendingMachines.Add(
                     new TicketVendingMachineData(
                         new OsmCoord(point.Coordinate.Latitude, point.Coordinate.Longitude),
-                        placemark.Description?.Text ?? "",
+                        location,
                         placemark.Name // name is address in this list for some reason
                     )
                 );
             }
         }
+    }
+
+    
+    [Pure]
+    private static string? SanitizeLocation(string? value)
+    {
+        if (value == null)
+            return null;
+        
+        if (value == "Biļešu automāts") // useless value, 1 instance as of writing this
+            return null;
+
+        // All the rest seem to be prefixed with a semi-useless string, so just trim it
+        
+        const string prefix = "Biļešu automāts atrodas ";
+
+        if (!value.StartsWith(prefix)) // currently, all do, but future-proof
+            return value;
+        
+        value = value[prefix.Length..];
+                            
+        if (value.Length > 0)
+            value = char.ToUpper(value[0]) + value[1..];
+        
+        // We could theoretically parse more
+        // "p/v "Mežaparks"" - implcit psv stop, about half the entries are like this
+
+        return value;
     }
 }

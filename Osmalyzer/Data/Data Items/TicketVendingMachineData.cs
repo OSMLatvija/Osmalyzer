@@ -4,21 +4,25 @@ public class TicketVendingMachineData : IDataItem
 {
     public OsmCoord Coord { get; }
     
-    public string Name { get; }
+    public string? Location { get; }
     
     public string Address { get; }
 
 
-    public TicketVendingMachineData(OsmCoord coord, string name, string address)
+    public TicketVendingMachineData(OsmCoord coord, string? location, string address)
     {
         Coord = coord;
-        Name = name;
+        Location = location;
         Address = address;
     }
 
 
     public string ReportString()
     {
-        return "`" + Name + "` (`" + Address + "`)";
+        return
+            Location != null ?
+                "`" + Location + "` (`" + Address + "`)"
+                :
+                "`" + Address + "`";
     }
 }

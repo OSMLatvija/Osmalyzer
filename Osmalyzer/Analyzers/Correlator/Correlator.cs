@@ -281,7 +281,8 @@ public class Correlator<T> where T : IDataItem
                         new MapPointReportEntry(
                             osmElement.GetAverageCoord(),
                             "No " + dataItemLabelSingular + " expected in " + unmatchDistance + " m range of OSM element " +
-                            OsmElementReportText(osmElement) + OsmElementTagsBlock(osmElement),
+                            OsmElementReportText(osmElement) + 
+                            OsmElementTagsBlock(osmElement),
                             MapPointStyle.CorrelatorOsmUnmatched
                         )
                     );
@@ -314,7 +315,8 @@ public class Correlator<T> where T : IDataItem
                             match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
-                            " at " + match.Distance.ToString("F0") + " m" + OsmElementTagsBlock(match.Element),
+                            " at " + match.Distance.ToString("F0") + " m" + 
+                            OsmElementTagsBlock(match.Element),
                             MapPointStyle.CorrelatorPairMatched
                         )
                     );
@@ -330,7 +332,8 @@ public class Correlator<T> where T : IDataItem
                                 " at " + match.Item.Coord.OsmUrl + ", " +
                                 " instead matched " +
                                 OsmElementReportText(match.Element) +
-                                " at " + match.Distance.ToString("F0") + " m" + OsmElementTagsBlock(match.Element),
+                                " at " + match.Distance.ToString("F0") + " m" + 
+                                OsmElementTagsBlock(match.Element),
                                 MapPointStyle.CorrelatorPairMatchedOffsetOrigin
                             )
                         );
@@ -364,7 +367,8 @@ public class Correlator<T> where T : IDataItem
                             match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
-                            " but it's far away at " + match.Distance.ToString("F0") + " m" + OsmElementTagsBlock(match.Element),
+                            " but it's far away at " + match.Distance.ToString("F0") + " m" + 
+                            OsmElementTagsBlock(match.Element),
                             MapPointStyle.CorrelatorPairMatchedFar
                         )
                     );
@@ -378,7 +382,8 @@ public class Correlator<T> where T : IDataItem
                             " at " + match.Item.Coord.OsmUrl + ", " +
                             " but matched " +
                             OsmElementReportText(match.Element) +
-                            " at " + match.Distance.ToString("F0") + " m" + OsmElementTagsBlock(match.Element),
+                            " at " + match.Distance.ToString("F0") + " m" + 
+                            OsmElementTagsBlock(match.Element),
                             MapPointStyle.CorrelatorPairMatchedFarOrigin
                         )
                     );
@@ -405,7 +410,8 @@ public class Correlator<T> where T : IDataItem
                             osmElement.GetAverageCoord(),
                             "Matched OSM element " +
                             OsmElementReportText(osmElement) +
-                            " by itself" + OsmElementTagsBlock(osmElement),
+                            " by itself" + 
+                            OsmElementTagsBlock(osmElement),
                             reportMatchedLoneOsmAsProblem ? MapPointStyle.CorrelatorLoneOsmUnmatched : MapPointStyle.CorrelatorLoneOsmMatched
                         )
                     );
@@ -515,11 +521,13 @@ public class Correlator<T> where T : IDataItem
         }
     }
 
-    private string OsmElementTagsBlock(OsmElement osmElement)
+    
+    [Pure]
+    private static string? OsmElementTagsBlock(OsmElement osmElement)
     {
-        string tags = osmElement.getTags();
+        string? tags = osmElement.GetAllTagsAsString();
 
-        return tags != "" ? Environment.NewLine + "```" + tags + "```" : tags;
+        return tags != null ? Environment.NewLine + "```" + tags + "```" : null;
 
     }
 

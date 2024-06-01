@@ -38,7 +38,7 @@ public class LatviaPostMailBoxAnalyzer : Analyzer
         // Load Parcel locker data
         List<LatviaPostItem> listedItems  = datas.OfType<LatviaPostAnalysisData>().First().LatviaPostItems;
         
-        List<LatviaPostItem> listedBoxes  = listedItems.Where(_ => _.ItemType == LatviaPostItemType.PostBox).ToList();
+        List<LatviaPostItem> listedBoxes  = listedItems.Where(i => i.ItemType == LatviaPostItemType.PostBox).ToList();
 
         // Prepare data comparer/correlator
 

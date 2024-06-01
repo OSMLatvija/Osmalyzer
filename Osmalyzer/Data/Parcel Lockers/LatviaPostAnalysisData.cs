@@ -100,29 +100,26 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
                     name,
                     address,
                     code,
-                    parseTypeOfItem(type),
+                    ParseTypeOfItem(type),
                     new OsmCoord(lat, lon)
                 )
             );
         }
     }
 
-    private LatviaPostItemType parseTypeOfItem(int itemType)
+    
+    [Pure]
+    private static LatviaPostItemType ParseTypeOfItem(int itemType)
     {
-        switch(itemType)
+        return itemType switch
         {
-            case 1: 
-                return LatviaPostItemType.Office;
-            case 2:
-                return LatviaPostItemType.CircleK;
-            case 4:
-                return LatviaPostItemType.PostBox;
-            case 5:
-                return LatviaPostItemType.ParcelLocker;
-            case 6:
-                return LatviaPostItemType.ServiceOnRequest;
-            default:
-                throw new ArgumentException(String.Format("Value {0} is unexpected", itemType));
-        }
+            1 => LatviaPostItemType.Office,
+            2 => LatviaPostItemType.CircleK,
+            4 => LatviaPostItemType.PostBox,
+            5 => LatviaPostItemType.ParcelLocker,
+            6 => LatviaPostItemType.ServiceOnRequest,
+            
+            _ => throw new ArgumentException($"Value {itemType} is unexpected")
+        };
     }
 }

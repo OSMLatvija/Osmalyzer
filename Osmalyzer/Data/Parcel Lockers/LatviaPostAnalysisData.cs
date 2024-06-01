@@ -19,14 +19,13 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
 
     public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
-    public List<LatviaPostItem> LatviaPostItems{ get; private set; } = null!; // only null until prepared
+    public List<LatviaPostItem> LatviaPostItems { get; private set; } = null!; // only null until prepared
 
-    public IEnumerable<ParcelLocker> ParcelLockers
-    { 
-        get { return LatviaPostItems.Where(i => i.ItemType == LatviaPostItemType.ParcelLocker); } 
-    }
+    public IEnumerable<ParcelLocker> ParcelLockers => LatviaPostItems
+                                                      .Where(i => i.ItemType == LatviaPostItemType.ParcelLocker)
+                                                      .Select(i => i.AsParcelLocker());
 
-    
+
     protected override void Download()
     {
         // list at https://pasts.lv/lv/kategorija/pasta_nodalas/
@@ -97,10 +96,10 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
 
             LatviaPostItems.Add(
                 new LatviaPostItem(
+                    ParseTypeOfItem(type),
                     name,
                     address,
                     code,
-                    ParseTypeOfItem(type),
                     new OsmCoord(lat, lon)
                 )
             );

@@ -34,7 +34,22 @@ public abstract class OsmElement : IChunkerItem
     [PublicAPI]
     public IReadOnlyList<OsmRelationMember>? Relations => relations?.AsReadOnly();
 
-    
+    [PublicAPI]
+    public string getTags()
+    {
+        string s = "";
+
+        if (_tags == null)
+            return s;
+
+        foreach( var tag in _tags)
+        {
+            s += tag.Key + "=" + tag.Value + Environment.NewLine;
+        }
+        return s;
+    }
+
+   
     public (double x, double y) ChunkCoord => GetAverageCoord().ToCartesian();
 
 

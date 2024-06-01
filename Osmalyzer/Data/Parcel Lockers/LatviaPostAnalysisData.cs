@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Osmalyzer;
 
@@ -88,19 +89,32 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
             // },
             
             string? name = item.tmpName;
-            string address = item.tmpAddress;
+            string? address = item.tmpAddress;
             string? code = item.tmpService;
             double lat = item.tmpLat;
             double lon = item.tmpLong;
             int type = item.tmpCategory;
 
+            LatviaPostItemType itemType = ParseTypeOfItem(type);
+
             // Post box names are exactly the same as addresses, which makes them pointless
             if (name == address) name = null;
             
             if (string.IsNullOrWhiteSpace(code)) code = null;
-
-            LatviaPostItemType itemType = ParseTypeOfItem(type);
             
+            // Service location addresses are just post codes like "LV-3283" but there is no code, so convert them to code (which will be extracted)
+            if (itemType == LatviaPostItemType.ServiceOnRequest)
+            {
+                if (code == null)
+                {
+                    if (Regex.IsMatch(address, @"^LV-\d{4}$"))
+                    {
+                        code = address;
+                        address = null;
+                    }
+                }
+            }
+
             LatviaPostItems.Add(
                 new LatviaPostItem(
                     itemType,
@@ -201,9 +215,18 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
             }
 
             case LatviaPostItemType.ServiceOnRequest:
-                // Data has no code for this type
+            {
+                // For service locations, it's a post code in form "LV-4724" (that was originally given as address)
+                
+                if (code.Length != 7)
+                    return null;
+
+                if (int.TryParse(code[3..], out int codeValue))
+                    return codeValue;
+
                 return null;
-            
+            }
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(itemType), itemType, null);
         }

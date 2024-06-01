@@ -31,7 +31,7 @@ public class LatviaPostAnalysisData : ParcelLockerAnalysisData
         // list at https://pasts.lv/lv/kategorija/pasta_nodalas/
         // query to get json data at https://pasts.lv/ajax/module:post_office/
 
-        WebsiteDownloadHelper.Download(
+        WebsiteBrowsingHelper.DownloadPage( // direct download can fail both locally and on remote
             "https://pasts.lv/ajax/module:post_office/", 
             DataFileName
         );
@@ -42,33 +42,61 @@ public class LatviaPostAnalysisData : ParcelLockerAnalysisData
         LatviaPostItems = new List<LatviaPostItem>();
 
         string source = File.ReadAllText(DataFileName);
+        
+        // On remote it could be wrapped like this:
+        // We were trying to parse: <html><head><meta name="color-scheme" content="light dark"><meta charset="utf-8"></head><body><pre>{"all":"[{\"tmpLat\":55.876953093846,\"tmpLong\":26.551113605154,\"tmpName\":\"Daugavpils 18.novembra [775616]...
+
+        if (source.StartsWith("<"))
+        {
+            // Grab content between "<pre>", which seems what it is wrapped in
+            source = source[
+                (source.IndexOf("<pre>", StringComparison.Ordinal) + "<pre>".Length)
+                ..
+                source.LastIndexOf("</pre>", StringComparison.Ordinal)
+            ];
+        }
+
+        dynamic content;
+        
+        try
+        {
+            content = JsonConvert.DeserializeObject<dynamic>(source)!;
+        }
+        catch (JsonException)
+        {
+            Console.WriteLine("JSON exception!");
+            Console.WriteLine("We were trying to parse: " + (source.Length <= 200 ? source : source[..200] + " [" + (source.Length - 200) + "]..."));
+            throw;
+        }
+        
+        
+        string serialisedArray = content.all;
+
         // Format of data: {"all":"<serialised json array of POIs>","count":1287}
 
-        // Expecting item to be:
-        // {
-        //     "tmpLat":57.077432765182,
-        //     "tmpLong":24.323845390354,
-        //     "tmpName":"\\u0100da\\u017eu pasta noda\\u013ca",
-        //     "tmpNameFull":"\\u0100da\\u017eu pasta noda\\u013ca LV-2164",
-        //     "tmpAddress":"Gaujas iela 11, \\u0100da\\u017ei, \\u0100da\\u017eu nov., LV-2164",
-        //     "tmpCategory":1,
-        //     "tmpDistrict":"\\u0100da\\u017eu nov.",
-        //     "tmpPhone":"67008001",
-        //     "tmpService":"LV-2164",
-        //     "tmpImage":null,
-        //     "tmpWork":"P 8:00-18:00<br \\/>O 8:00-18:00<br \\/>T 8:00-19:00<br \\/>C 8:00-18:00<br \\/>P 8:00-18:00<br \\/>S -<br \\/>Sv -<br \\/>",
-        //     "tmpPayment":"1",
-        //     "tmpFilterOut":false,
-        //     "tmpMarker":null,
-        //     "tmpInfo":null
-        // },
-
-        dynamic content = JsonConvert.DeserializeObject<dynamic>(source)!;
-        string serialisedArray = content.all;
         dynamic[] jsonItems = JsonConvert.DeserializeObject<dynamic[]>(serialisedArray)!;
 
         foreach (dynamic item in jsonItems)
         {
+            // Expecting item to be:
+            // {
+            //     "tmpLat":57.077432765182,
+            //     "tmpLong":24.323845390354,
+            //     "tmpName":"\\u0100da\\u017eu pasta noda\\u013ca",
+            //     "tmpNameFull":"\\u0100da\\u017eu pasta noda\\u013ca LV-2164",
+            //     "tmpAddress":"Gaujas iela 11, \\u0100da\\u017ei, \\u0100da\\u017eu nov., LV-2164",
+            //     "tmpCategory":1,
+            //     "tmpDistrict":"\\u0100da\\u017eu nov.",
+            //     "tmpPhone":"67008001",
+            //     "tmpService":"LV-2164",
+            //     "tmpImage":null,
+            //     "tmpWork":"P 8:00-18:00<br \\/>O 8:00-18:00<br \\/>T 8:00-19:00<br \\/>C 8:00-18:00<br \\/>P 8:00-18:00<br \\/>S -<br \\/>Sv -<br \\/>",
+            //     "tmpPayment":"1",
+            //     "tmpFilterOut":false,
+            //     "tmpMarker":null,
+            //     "tmpInfo":null
+            // },
+            
             string name = item.tmpName;
             string address = item.tmpAddress;
             string code = item.tmpService;

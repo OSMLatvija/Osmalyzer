@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class TicketVendingMachineData : IDataItem
+public class TicketVendingMachine : IDataItem
 {
     public OsmCoord Coord { get; }
     
@@ -9,7 +9,7 @@ public class TicketVendingMachineData : IDataItem
     public string Address { get; }
 
 
-    public TicketVendingMachineData(OsmCoord coord, string? location, string address)
+    public TicketVendingMachine(OsmCoord coord, string? location, string address)
     {
         Coord = coord;
         Location = location;

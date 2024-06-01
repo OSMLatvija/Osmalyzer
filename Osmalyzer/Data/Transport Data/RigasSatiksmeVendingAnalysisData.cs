@@ -21,7 +21,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
     protected override string DataFileIdentifier => "riga-satiksme-ticket-vending";
 
 
-    public List<TicketVendingMachineData> VendingMachines { get; private set; } = null!; // only null before prepared
+    public List<TicketVendingMachine> VendingMachines { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
@@ -45,7 +45,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
 
     protected override void DoPrepare()
     {
-        VendingMachines = new List<TicketVendingMachineData>();
+        VendingMachines = new List<TicketVendingMachine>();
 
         using FileStream fileStream = File.OpenRead(Path.Combine(CacheBasePath, DataFileIdentifier + @".kml"));
             
@@ -60,7 +60,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
                 string? location = SanitizeLocation(placemark.Description?.Text);
                 
                 VendingMachines.Add(
-                    new TicketVendingMachineData(
+                    new TicketVendingMachine(
                         new OsmCoord(point.Coordinate.Latitude, point.Coordinate.Longitude),
                         location,
                         placemark.Name // name is address in this list for some reason

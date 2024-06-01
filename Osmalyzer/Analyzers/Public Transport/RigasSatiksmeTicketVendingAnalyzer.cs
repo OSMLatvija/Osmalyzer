@@ -35,9 +35,9 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
         );
         // We assume only RS actualyl has vending machines. This may not be true in the future.
         
-        List<GenericData> listedTicketVendingMachines = datas.OfType<RigasSatiksmeVendingAnalysisData>().First().VendingMachines;
+        List<TicketVendingMachineData> listedTicketVendingMachines = datas.OfType<RigasSatiksmeVendingAnalysisData>().First().VendingMachines;
         
-        Correlator<GenericData> dataComparer = new Correlator<GenericData>(
+        Correlator<TicketVendingMachineData> dataComparer = new Correlator<TicketVendingMachineData>(
             osmTicketVendingMachines,
             listedTicketVendingMachines,
             new MatchDistanceParamater(75), // often data points to shop instead of kiosk
@@ -70,7 +70,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
         
         // Tagging verification
 
-        Validator<GenericData> validator = new Validator<GenericData>(
+        Validator<TicketVendingMachineData> validator = new Validator<TicketVendingMachineData>(
             correlatorReport,
             "Other ticket vending issues"
         );

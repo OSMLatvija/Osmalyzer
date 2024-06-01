@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class GenericData : IDataItem
+public class TicketVendingMachineData : IDataItem
 {
     public OsmCoord Coord { get; }
     
@@ -8,20 +8,17 @@ public class GenericData : IDataItem
     
     public string Address { get; }
 
-    public string Type { get; }
 
-
-    public GenericData(OsmCoord coord, string name, string address, string type)
+    public TicketVendingMachineData(OsmCoord coord, string name, string address)
     {
         Coord = coord;
         Name = name;
         Address = address;
-        Type = type;
     }
 
 
     public string ReportString()
     {
-        return Type + " `" + Name + "` (`" + Address + "`)";
+        return "`" + Name + "` (`" + Address + "`)";
     }
 }

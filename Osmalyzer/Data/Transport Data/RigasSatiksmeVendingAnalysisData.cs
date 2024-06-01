@@ -21,7 +21,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
     protected override string DataFileIdentifier => "riga-satiksme-ticket-vending";
 
 
-    public List<GenericData> VendingMachines { get; private set; } = null!; // only null before prepared
+    public List<TicketVendingMachineData> VendingMachines { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
@@ -45,7 +45,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
 
     protected override void DoPrepare()
     {
-        VendingMachines = new List<GenericData>();
+        VendingMachines = new List<TicketVendingMachineData>();
 
         using FileStream fileStream = File.OpenRead(Path.Combine(CacheBasePath, DataFileIdentifier + @".kml"));
             
@@ -58,11 +58,10 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
             if (placemark.Geometry is Point point)
             {                    
                 VendingMachines.Add(
-                    new GenericData(
+                    new TicketVendingMachineData(
                         new OsmCoord(point.Coordinate.Latitude, point.Coordinate.Longitude),
                         placemark.Description?.Text ?? "",
-                        placemark.Name,  // name is address in this list for some reason
-                        "Ticket vending machine"
+                        placemark.Name // name is address in this list for some reason
                     )
                 );
             }

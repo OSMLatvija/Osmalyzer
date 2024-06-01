@@ -55,13 +55,13 @@ public static class Runner
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
             // new CourthouseAnalyzer(),
-            new NonDefiningTaggingAnalyzer(),
+            // new NonDefiningTaggingAnalyzer(),
             // new BridgeAndWaterConnectionAnalyzer(),
             // new TerminatingWaysAnalyzer(),
             // new DoubleMappedFeaturesAnalyzer(),
             // new CrossingConsistencyAnalyzer(),
             // new StreetTaggingContinuationAnalyzer(),
-            new PostCodeAnalyzer(),
+            // new PostCodeAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
             // new BottleDepositPointsAnalyzer(),
@@ -70,7 +70,7 @@ public static class Runner
             // new ItellaParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
             // new LatviaPostLockerAnalyzer(),
-            new LatviaPostMailBoxAnalyzer()
+            // new LatviaPostMailBoxAnalyzer()
         };
 #endif
 

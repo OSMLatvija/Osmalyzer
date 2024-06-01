@@ -11,9 +11,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
 
 
-    public override string Description => "This report checks that all bottle deposit points are found on the map." + Environment.NewLine +
-                                          "Note that deposit points website has errors: large offsets, missing locations " +
-                                          "and incorrect number of taromats in place.";
+    public override string Description => "This report checks that all Rīgas Satiksme ticket vending machines are found on the map.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
 
@@ -35,6 +33,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
             new HasValue("amenity", "vending_machine"),
             new HasValue("vending", "public_transport_tickets")
         );
+        // We assume only RS actualyl has vending machines. This may not be true in the future.
         
         List<GenericData> listedTicketVendingMachines = datas.OfType<RigasSatiksmeVendingAnalysisData>().First().VendingMachines;
         
@@ -49,7 +48,6 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
             new MatchCallbackParameter<DepositPoint>(GetMatchStrength)
         );
 
-        // todo: compare shop names too or maybe even extract it from Correlate and make strength function per item type
         [Pure]
         MatchStrength GetMatchStrength(DepositPoint point, OsmElement element)
         {
@@ -79,8 +77,8 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
         validator.Validate(
             report,
-            new ValidateElementHasKey("operator"),
-            // new ValidateElementHasKey("operator:wikidata"),
+            new ValidateElementHasValue("operator", "Rīgas Satiksme"),
+            new ValidateElementHasValue("operator:wikidata", "Q2280274"),
             new ValidateElementFixme()
         );
     }

@@ -87,13 +87,16 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
             //     "tmpInfo":null
             // },
             
-            string name = item.tmpName;
+            string? name = item.tmpName;
             string address = item.tmpAddress;
             string? code = item.tmpService;
             double lat = item.tmpLat;
             double lon = item.tmpLong;
             int type = item.tmpCategory;
 
+            // Post box names are exactly the same as addresses, which makes them pointless
+            if (name == address) name = null;
+            
             if (string.IsNullOrWhiteSpace(code)) code = null;
 
             LatviaPostItemType itemType = ParseTypeOfItem(type);

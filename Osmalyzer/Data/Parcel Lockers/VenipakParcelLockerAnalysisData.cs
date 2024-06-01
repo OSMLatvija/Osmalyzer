@@ -41,18 +41,8 @@ public class VenipakParcelLockerAnalysisData : ParcelLockerAnalysisData
 
         string source = File.ReadAllText(DataFileName);
         
-        // On remote it could be wrapped like this:
-        // We were trying to parse: <html><head><meta name="color-scheme" content="light dark"><meta charset="utf-8"></head><body><pre>[{"id":3348,"name":"Venipak locker, Coop Venipak pakiautomaat","code":"12142751","address":"P\u00e4rn [1635718]...
-
-        if (source.StartsWith("<"))
-        {
-            // Grab content between "<pre>", which seems what it is wrapped in
-            source = source[
-                (source.IndexOf("<pre>", StringComparison.Ordinal) + "<pre>".Length)
-                ..
-                source.LastIndexOf("</pre>", StringComparison.Ordinal)
-            ];
-        }
+        // Due to headless browsing, it could/will be wrapped in boilerplate HTML that we need to strip
+        source = WebsiteBrowsingHelper.TryUnwrapJsonFromBoilerplateHtml(source);
 
         dynamic[] content;
         

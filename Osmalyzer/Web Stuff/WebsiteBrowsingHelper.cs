@@ -108,7 +108,25 @@ public static class WebsiteBrowsingHelper
         // Headless browsing needs a full site load, so there's no way to directly write to file, we just have to dump the results 
         File.WriteAllText(fileName, Read(url, canUseCache, null, browsingActions));
     }
-    
+
+    public static string TryUnwrapJsonFromBoilerplateHtml(string source)
+    {
+        // On remote it could be wrapped like this:
+        // We were trying to parse: <html><head><meta name="color-scheme" content="light dark"><meta charset="utf-8"></head><body><pre>{JSON HERE...
+
+        if (source.StartsWith("<"))
+        {
+            // Grab content between "<pre>", which seems what it is wrapped in
+            source = source[
+                (source.IndexOf("<pre>", StringComparison.Ordinal) + "<pre>".Length)
+                ..
+                source.LastIndexOf("</pre>", StringComparison.Ordinal)
+            ];
+        }
+
+        return source;
+    }
+
 
     [MustUseReturnValue]
     private static IWebDriver PrepareChrome()

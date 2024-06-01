@@ -42,19 +42,9 @@ public class LatviaPostAnalysisData : ParcelLockerAnalysisData
         LatviaPostItems = new List<LatviaPostItem>();
 
         string source = File.ReadAllText(DataFileName);
-        
-        // On remote it could be wrapped like this:
-        // We were trying to parse: <html><head><meta name="color-scheme" content="light dark"><meta charset="utf-8"></head><body><pre>{"all":"[{\"tmpLat\":55.876953093846,\"tmpLong\":26.551113605154,\"tmpName\":\"Daugavpils 18.novembra [775616]...
 
-        if (source.StartsWith("<"))
-        {
-            // Grab content between "<pre>", which seems what it is wrapped in
-            source = source[
-                (source.IndexOf("<pre>", StringComparison.Ordinal) + "<pre>".Length)
-                ..
-                source.LastIndexOf("</pre>", StringComparison.Ordinal)
-            ];
-        }
+        // Due to headless browsing, it could/will be wrapped in boilerplate HTML that we need to strip
+        source = WebsiteBrowsingHelper.TryUnwrapJsonFromBoilerplateHtml(source);
 
         dynamic content;
         

@@ -89,24 +89,29 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
             
             string name = item.tmpName;
             string address = item.tmpAddress;
-            string code = item.tmpService;
+            string? code = item.tmpService;
             double lat = item.tmpLat;
             double lon = item.tmpLong;
             int type = item.tmpCategory;
 
+            if (string.IsNullOrWhiteSpace(code)) code = null;
+
+            LatviaPostItemType itemType = ParseTypeOfItem(type);
+            
             LatviaPostItems.Add(
                 new LatviaPostItem(
-                    ParseTypeOfItem(type),
+                    itemType,
                     name,
                     address,
                     code,
+                    TryExtractCodeValue(code, itemType),
                     new OsmCoord(lat, lon)
                 )
             );
         }
     }
 
-    
+
     [Pure]
     private static LatviaPostItemType ParseTypeOfItem(int itemType)
     {
@@ -120,5 +125,84 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
             
             _ => throw new ArgumentException($"Value {itemType} is unexpected")
         };
+    }
+
+    [Pure]
+    private static int? TryExtractCodeValue(string? code, LatviaPostItemType itemType)
+    {
+        if (code == null) 
+            return null;
+
+        switch (itemType)
+        {
+            case LatviaPostItemType.PostBox:
+            {
+                // For post boxes, it's a code written out as "Vēstuļu kastītes numurs: 129"
+
+                string prefix = "Vēstuļu kastītes numurs: ";
+                
+                if (!code.StartsWith(prefix))
+                    return null;
+                
+                if (int.TryParse(code[prefix.Length..], out int codeValue))
+                    return codeValue;
+
+                return null;
+            }
+
+            case LatviaPostItemType.Office:
+            {
+                // For post offices, it's a post code in form "LV-4724"
+                
+                if (code.Length != 7)
+                    return null;
+
+                if (int.TryParse(code[3..], out int codeValue))
+                    return codeValue;
+
+                return null;
+            }
+
+            case LatviaPostItemType.ParcelLocker:
+            {
+                // For parcel lockers, it's a code in form "LV6941" or "LVP231"
+                // The former variant looks like a post code, but I think that's just a coincidence and data being weird
+
+                if (code.Length < 3)
+                    return null;
+                
+                if (code.StartsWith("LV"))
+                    if (int.TryParse(code[2..], out int codeValue))
+                        return codeValue;
+                
+                if (code.StartsWith("LVP"))
+                    if (int.TryParse(code[3..], out int codeValue))
+                        return codeValue;
+
+                return null;
+            }
+
+            case LatviaPostItemType.CircleK:
+            {
+                // For Circle K locations, it's a code in form "LV1761"
+                // It looks like a post code, but I think that's just a coincidence and data being weird
+                
+                if (code.Length < 3)
+                    return null;
+                
+                if (code.StartsWith("LV"))
+                    if (int.TryParse(code[2..], out int codeValue)) // we enforce it being a number
+                        return codeValue;
+
+                return null;
+            }
+
+            case LatviaPostItemType.ServiceOnRequest:
+                // Data has no code for this type
+                return null;
+            
+            default:
+                throw new ArgumentOutOfRangeException(nameof(itemType), itemType, null);
+        }
     }
 }

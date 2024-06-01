@@ -68,7 +68,7 @@ public static class Runner
             // new OmnivaParcelLockerAnalyzer(),
             // new ItellaParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
-            new LatviaPostLockerAnalyzer(),
+            // new LatviaPostLockerAnalyzer(),
             new LatviaPostMailBoxAnalyzer()
         };
 #endif

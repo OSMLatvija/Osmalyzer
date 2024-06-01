@@ -8,6 +8,8 @@ public class LatviaPostItem : IDataItem
 
     public string? Code { get; }
 
+    public int? CodeValue { get; }
+
     public string? Name { get; }
 
     public string? Address { get; }
@@ -15,13 +17,14 @@ public class LatviaPostItem : IDataItem
     public OsmCoord Coord { get; }
 
     
-    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, OsmCoord coord)
+    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, int? codeValue, OsmCoord coord)
     {
-        Code = code;
+        ItemType = itemType;
         Name = name;
         Address = address;
+        Code = code;
+        CodeValue = codeValue;
         Coord = coord;
-        ItemType = itemType;
     }
 
 
@@ -45,7 +48,7 @@ public class LatviaPostItem : IDataItem
         return
             TypeToLabel(ItemType) +
             (Name != null ? " `" + Name + "`" : "") +
-            (Code != null ? " (`" + Code + "`)" : "") +
+            (CodeValue != null ? " (#`" + CodeValue + "`)" : Code != null ? " (`" + Code + "`)" : "") +
             (Address != null ? " at `" + Address + "`" : "");
 
         

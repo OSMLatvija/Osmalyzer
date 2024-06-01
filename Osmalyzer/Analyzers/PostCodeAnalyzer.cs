@@ -263,6 +263,7 @@ public class PostCodeAnalyzer : Analyzer
                 new MapPointReportEntry(
                     postOffice.GetAverageCoord(),
                     "Post office " + postOffice.OsmViewUrl + " for post code `" + postcode + "`.",
+                    postOffice,
                     MapPointStyle.Okay
                 )
             );

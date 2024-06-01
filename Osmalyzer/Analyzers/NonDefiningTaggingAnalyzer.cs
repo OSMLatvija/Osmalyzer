@@ -245,7 +245,8 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                         ReportGroup.PoorlyDefining,
                         new MapPointReportEntry( // there are a ton of these, don't care to write a line for each
                             element.GetAverageCoord(),
-                            "Element only has poorly-defining keys " + string.Join(", ", element.AllKeys!.Select(k => "`" + k + "`")) + " for " + element.OsmViewUrl, 
+                            "Element only has poorly-defining keys for " + element.OsmViewUrl,
+                            element,
                             MapPointStyle.Dubious
                         )
                     );

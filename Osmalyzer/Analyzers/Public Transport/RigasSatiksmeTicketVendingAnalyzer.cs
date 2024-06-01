@@ -11,7 +11,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
 
 
-    public override string Description => "This report checks that all Rīgas Satiksme ticket vending machines are found on the map.";
+    public override string Description => "This report checks that all Rīgas satiksme ticket vending machines are found on the map.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
 
@@ -77,7 +77,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
         validator.Validate(
             report,
-            new ValidateElementHasValue("operator", "Rīgas Satiksme"),
+            new ValidateElementHasValue("operator", "Rīgas satiksme"),
             new ValidateElementHasValue("operator:wikidata", "Q2280274"),
             new ValidateElementFixme()
         );

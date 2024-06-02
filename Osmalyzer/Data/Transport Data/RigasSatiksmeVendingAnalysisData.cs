@@ -49,7 +49,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
             File.WriteAllText(dumpFileName, infoPageText);
             
             string headerDumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-header-dump.html");
-            File.WriteAllLines(headerDumpFileName, WebsiteBrowsingHelper.RecentRequestHeaders);
+            File.WriteAllLines(headerDumpFileName, WebsiteBrowsingHelper.RecentResponseHeaders);
             
             throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html' and headers in 'RS-vending-header-dump.html')");
             

@@ -40,9 +40,12 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
             throw new Exception("Failed to read RS page", e);
         }
             
-        Match mapMatch = Regex.Match(infoPageText, @"src=""https://www\.google\.com/maps/d/embed\?mid=([a-zA-Z0-9_.]+)&");
+        Match mapMatch = Regex.Match(infoPageText, @"src=""https://www\.google\.com/maps/d/embed\?mid=([a-zA-Z0-9_\.]+)&");
         // https://www.google.com/maps/d/viewer?mid=1wRS7q3l_ESgCVKjHm1lO_dW0o3rSJYU
 
+        if (!mapMatch.Success)
+            throw new Exception("Couldn't parse RS site html for the Google Maps KML ID");
+        
         string mapId = mapMatch.Groups[1].ToString();
 
         string kmlUrl = $@"https://www.google.com/maps/d/kml?mid={mapId}&forcekml=1";

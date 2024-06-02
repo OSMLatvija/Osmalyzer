@@ -30,7 +30,10 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         
         try
         {
-            infoPageText = WebsiteDownloadHelper.Read(ReportWebLink, true);
+            infoPageText = WebsiteBrowsingHelper.Read( // direct fails on GitHub
+                ReportWebLink, 
+                true
+            );
         }
         catch (Exception e)
         {

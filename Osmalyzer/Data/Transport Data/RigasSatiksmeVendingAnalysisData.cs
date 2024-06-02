@@ -58,7 +58,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         }
         catch (Exception e)
         {
-            throw new Exception("Failed to read Google Maps kml page", e);
+            throw new Exception("Failed to read Google Maps kml page (" + kmlUrl + ")", e);
         }
     }
 

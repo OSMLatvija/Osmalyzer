@@ -26,7 +26,16 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
 
     protected override void Download()
     {
-        string infoPageText = WebsiteDownloadHelper.Read(ReportWebLink, true);
+        string infoPageText;
+        
+        try
+        {
+            infoPageText = WebsiteDownloadHelper.Read(ReportWebLink, true);
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Failed to read RS page", e);
+        }
             
         Match mapMatch = Regex.Match(infoPageText, @"src=""https://www\.google\.com/maps/d/embed\?mid=([a-zA-Z0-9_.]+)&");
         // https://www.google.com/maps/d/viewer?mid=1wRS7q3l_ESgCVKjHm1lO_dW0o3rSJYU
@@ -36,11 +45,18 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         string kmlUrl = $@"https://www.google.com/maps/d/kml?mid={mapId}&forcekml=1";
         // forcekml to be readable xml kml and not "encoded" kmd
         // https://www.google.com/maps/d/kml?mid=1wRS7q3l_ESgCVKjHm1lO_dW0o3rSJYU&forcekml=1
-            
-        WebsiteDownloadHelper.Download(
-            kmlUrl, 
-            Path.Combine(CacheBasePath, DataFileIdentifier + @".kml")
-        );
+
+        try
+        {
+            WebsiteDownloadHelper.Download(
+                kmlUrl,
+                Path.Combine(CacheBasePath, DataFileIdentifier + @".kml")
+            );
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Failed to read Google Maps kml page", e);
+        }
     }
 
     protected override void DoPrepare()

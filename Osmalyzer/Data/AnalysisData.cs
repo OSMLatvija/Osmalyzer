@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace Osmalyzer;
@@ -54,13 +55,7 @@ public abstract class AnalysisData
         }
         catch (Exception e)
         {
-            Console.WriteLine("Failed to retrieve with exception!");
-            Console.WriteLine("Exception message: " + e.Message);
-            while (e.InnerException != null)
-            {
-                e = e.InnerException;
-                Console.WriteLine("Inner exception message: " + e.Message);
-            }
+            PrintExceptionDetails(e, "retrieve");
 
             Status = DataStatus.FailedToRetrieve;
 
@@ -82,13 +77,7 @@ public abstract class AnalysisData
         }
         catch (Exception e)
         {
-            Console.WriteLine("Failed to prepare with exception!");
-            Console.WriteLine("Exception message: " + e.Message);
-            while (e.InnerException != null)
-            {
-                e = e.InnerException;
-                Console.WriteLine("Inner exception message: " + e.Message);
-            }
+            PrintExceptionDetails(e, "prepare");
 
             Status = DataStatus.FailedToPrepare;
             
@@ -201,6 +190,40 @@ public abstract class AnalysisData
         _dataDate = newDate;
             
         File.WriteAllText(CachedDateFilePath, _dataDate.Value.Ticks.ToString());
+    }
+
+    private static void PrintExceptionDetails(Exception e, string operationLabel)
+    {
+        Console.WriteLine("Failed to " + operationLabel + " with exception!");
+
+        if (e is AggregateException aggregateException)
+        {
+            ReadOnlyCollection<Exception> subs = aggregateException.Flatten().InnerExceptions;
+            
+            for (int i = 0; i < subs.Count; i++)
+            {
+                Exception sub = subs[i];
+                PrintInnerExceptions(sub, "Aggregate #" + (i + 1));
+            }
+        }
+        else
+        {
+            PrintInnerExceptions(e, null);
+        }
+
+        return;
+
+
+        static void PrintInnerExceptions(Exception e, string? label)
+        {
+            Console.WriteLine((label != null ? label + " exception" : "Exception") + ": " + e.Message);
+
+            while (e.InnerException != null)
+            {
+                e = e.InnerException;
+                Console.WriteLine("Inner exception: " + e.Message);
+            }
+        }
     }
 }
     

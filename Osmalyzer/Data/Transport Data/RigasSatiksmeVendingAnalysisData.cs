@@ -48,7 +48,12 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
             string dumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-html-dump.html");
             File.WriteAllText(dumpFileName, infoPageText);
             
-            throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html')");
+            string headerDumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-header-dump.html");
+            File.WriteAllLines(headerDumpFileName, WebsiteBrowsingHelper.RecentRequestHeaders);
+            
+            throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html' and headers in 'RS-vending-header-dump.html')");
+            
+            // todo: generic way to do this for all failed web requests?
         }
 
         string mapId = mapMatch.Groups[1].ToString();

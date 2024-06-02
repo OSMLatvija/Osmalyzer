@@ -1,20 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Support.UI;
 using Osmalyzer;
 using SeleniumExtras.WaitHelpers;
 
 public static class WebsiteBrowsingHelper
 {
+    public static List<string> RecentRequestHeaders { get; } = new List<string>();
+    
+    public static List<string> RecentResponseHeaders { get; } = new List<string>();
+
+    
     private static IWebDriver? _driver;
+
 
     [MustUseReturnValue]
     public static string Read(string url, bool canUseCache, (string, string)[]? cookies = null, params BrowsingAction[] browsingActions)
     {
+        RecentRequestHeaders.Clear();
+        RecentResponseHeaders.Clear();
+        
         if (canUseCache)
             if (WebsiteCache.IsCached(url))
                 return WebsiteCache.GetCached(url);
@@ -148,8 +160,37 @@ public static class WebsiteBrowsingHelper
         options.AddArgument("--log-level=3");
         // it still has "ChromeDriver was started successfully." spam that I don't know how to disable
 
-        _driver = new ChromeDriver(service, options);
+        ChromeDriver chromeDriver = new ChromeDriver(service, options);
+        
+        _driver = chromeDriver;
+
+
+        // Set up debug listening
+        
+        DevToolsSession session = ((IDevTools)chromeDriver).GetDevToolsSession();
+        
+        session.Domains.Network.EnableNetwork();
+
+        session.DevToolsEventReceived += OnDevToolsEventReceived;
+
         
         return _driver;
+
+        
+        void OnDevToolsEventReceived(object? sender, DevToolsEventReceivedEventArgs e)
+        {
+            if (e.EventName == "requestWillBeSentExtraInfo")
+            {
+                JToken? requestHeaders = e.EventData["headers"];
+                if (requestHeaders != null)
+                    RecentRequestHeaders.Add(requestHeaders.ToString());
+            }
+            else if (e.EventName == "responseReceivedExtraInfo")
+            {
+                JToken? responseHeaders = e.EventData["headers"];
+                if (responseHeaders != null)
+                    RecentResponseHeaders.Add(responseHeaders.ToString());            
+            }  
+        }
     }
 }

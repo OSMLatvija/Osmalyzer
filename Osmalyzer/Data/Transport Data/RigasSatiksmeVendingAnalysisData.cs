@@ -44,8 +44,13 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         // https://www.google.com/maps/d/viewer?mid=1wRS7q3l_ESgCVKjHm1lO_dW0o3rSJYU
 
         if (!mapMatch.Success)
-            throw new Exception("Couldn't parse RS site html for the Google Maps KML ID");
-        
+        {
+            string dumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-html-dump.html");
+            File.WriteAllText(dumpFileName, infoPageText);
+            
+            throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html')");
+        }
+
         string mapId = mapMatch.Groups[1].ToString();
 
         string kmlUrl = $@"https://www.google.com/maps/d/kml?mid={mapId}&forcekml=1";

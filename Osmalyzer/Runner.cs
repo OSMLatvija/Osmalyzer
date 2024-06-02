@@ -75,6 +75,12 @@ public static class Runner
 #endif
 
         Console.WriteLine("Running with " + analyzers.Count + " analyzers...");
+        
+        
+        // Prepare reporter
+        // This also makes sure the output folder exists in case we want to add some extra stuff/debug there "manually"
+        //Reporter reporter = new TextFileReporter();
+        Reporter reporter = new HtmlFileReporter();
 
             
         List<Type> requestedDataTypes = new List<Type>();
@@ -151,9 +157,6 @@ public static class Runner
 
 
         Console.WriteLine("Parsing...");
-
-        //Reporter reporter = new TextFileReporter();
-        Reporter reporter = new HtmlFileReporter();
             
         for (int i = 0; i < analyzers.Count; i++)
         {

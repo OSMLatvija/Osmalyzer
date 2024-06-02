@@ -11,14 +11,17 @@ namespace Osmalyzer;
 
 public class HtmlFileReporter : Reporter
 {
-    public override void Save()
+    public HtmlFileReporter()
     {
         if (Directory.Exists(ReportWriter.OutputPath))
             Directory.Delete(ReportWriter.OutputPath, true);  
                 
-        Directory.CreateDirectory(ReportWriter.OutputPath);
-
-            
+        Directory.CreateDirectory(ReportWriter.OutputPath);        
+    }
+    
+    
+    public override void Save()
+    {
         string output = GetTemplate();
 
         string reportList = BuildReportListOutput();

@@ -159,7 +159,10 @@ public static class WebsiteBrowsingHelper
         options.SetLoggingPreference(LogType.Driver, LogLevel.Severe);
         options.AddArgument("--log-level=3");
         // it still has "ChromeDriver was started successfully." spam that I don't know how to disable
-
+        
+        // Ignore any SSL and such problems, because sites seem to have issues on GitHub 
+        options.AcceptInsecureCertificates = true;
+        
         ChromeDriver chromeDriver = new ChromeDriver(service, options);
         
         _driver = chromeDriver;

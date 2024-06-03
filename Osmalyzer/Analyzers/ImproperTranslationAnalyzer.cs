@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using F23.StringSimilarity;
 
 namespace Osmalyzer;
 
@@ -38,6 +39,8 @@ public class ImproperTranslationAnalyzer : Analyzer
         // Parse
 
         List<ProblemFeature> problemFeatures = new List<ProblemFeature>();
+
+        List<NonExactMatch> nonExactButGoodEnoughMatches = new List<NonExactMatch>();
 
         foreach (OsmElement element in osmElements.Elements)
         {
@@ -89,9 +92,25 @@ public class ImproperTranslationAnalyzer : Analyzer
                             (value.Contains("ул.") ? "ул." : "улица") + " " + // preserve prefix if shortened
                             Transliterator.TransliterateFromLvToRu(lvNameRaw);
 
-                        if (!string.Equals(expectedRuName, value, StringComparison.InvariantCultureIgnoreCase))
+                        if (!GoodEnoughNameMatch(value, expectedRuName, CyrillicNameMatcher.Instance, out bool exact))
                         {
-                            issues.Add(new TranslitMismatchIssue(key, expectedRuName, value, "name", name));
+                            issues.Add(new TranslitMismatchIssue("Russian", key, expectedRuName, value, "name", name));
+                        }
+                        else
+                        {
+                            if (!exact)
+                            {
+                                NonExactMatch? existing = nonExactButGoodEnoughMatches
+                                    .FirstOrDefault(m => 
+                                                        m.Actual == value && 
+                                                        m.Expected == expectedRuName && 
+                                                        m.Source == name);
+                                
+                                if (existing != null)
+                                    existing.Count++;
+                                else
+                                    nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, expectedRuName, name, 1));
+                            }
                         }
 
                         break;
@@ -118,9 +137,18 @@ public class ImproperTranslationAnalyzer : Analyzer
             }
         }
         
+        // todo: list languages we don't know hwo to compare
+        
         // Report
         
-        report.AddGroup(ReportGroup.Issues, "Issues");
+        report.AddGroup(
+            ReportGroup.Issues, 
+            "Issues",
+            "This lists any entries that look problematic for some reason. " +
+            "Due to large variation of naming, there are certainly false positives. " +
+            "Transliteration is approximate and lacks any context (e.g. people's names)." + Environment.NewLine +
+            "Currently checking \"Latvian iela\" versus expected transliterated \"улица Russian\"."
+        );
 
         foreach (ProblemFeature problemFeature in problemFeatures)
         {
@@ -135,8 +163,40 @@ public class ImproperTranslationAnalyzer : Analyzer
                 )
             );
         }
+
+        if (nonExactButGoodEnoughMatches.Count > 0)
+        {
+            report.AddEntry(
+                ReportGroup.Issues,
+                new GenericReportEntry(
+                    "Non-exact but good enough matches not listed as problems (i.e. an allowance for transliteration errors, but would also allow typos and spelling errors): " +
+                    string.Join("; ", nonExactButGoodEnoughMatches.Select(m => m.Count + " × `" + m.Actual + "` not `" + m.Expected + "` for `" + m.Source + "`"))
+                )
+            );
+        }
     }
 
+    
+    [Pure]
+    private static bool GoodEnoughNameMatch(string actual, string expected, NameMatcher matcher, out bool exact)
+    {
+        actual = actual.ToLower();
+        expected = expected.ToLower();
+
+        if (actual == expected)
+        {
+            exact = true;
+            return true;
+        }
+
+        exact = false;
+        
+        WeightedLevenshtein l = new WeightedLevenshtein(matcher);
+
+        double distance = l.Distance(actual, expected);
+
+        return distance <= 2.0;
+    }
 
     [Pure]
     private static string? ExtractLanguage(string key)
@@ -202,6 +262,8 @@ public class ImproperTranslationAnalyzer : Analyzer
 
     private class TranslitMismatchIssue : Issue
     {
+        public string Language { get; }
+        
         public string MismatchKey { get;}
 
         public string ExpectedValue { get; }
@@ -213,8 +275,9 @@ public class ImproperTranslationAnalyzer : Analyzer
         public string SourceValue { get; }
 
 
-        public TranslitMismatchIssue(string mismatchKey, string expectedValue, string actualValue, string sourceKey, string sourceValue)
+        public TranslitMismatchIssue(string language, string mismatchKey, string expectedValue, string actualValue, string sourceKey, string sourceValue)
         {
+            Language = language;
             MismatchKey = mismatchKey;
             ExpectedValue = expectedValue;
             ActualValue = actualValue;
@@ -228,16 +291,74 @@ public class ImproperTranslationAnalyzer : Analyzer
             if (issue is not TranslitMismatchIssue other)
                 return false;
 
-            return MismatchKey == other.MismatchKey &&
-                   ExpectedValue == other.ExpectedValue &&
-                   ActualValue == other.ActualValue &&
-                     SourceKey == other.SourceKey &&
-                   SourceValue == other.SourceValue;
+            return
+                Language == other.Language &&
+                MismatchKey == other.MismatchKey &&
+                ExpectedValue == other.ExpectedValue &&
+                ActualValue == other.ActualValue &&
+                SourceKey == other.SourceKey &&
+                SourceValue == other.SourceValue;
         }
 
         public override string ReportString()
         {
-            return "Expected `" + MismatchKey + "` to be `" + ExpectedValue + "`, but was `" + ActualValue + "` for `" + SourceKey + "`=`" + SourceValue + "`";
+            return "Expected " + Language + " `" + MismatchKey + "` to be `" + ExpectedValue + "`, but was `" + ActualValue + "` for `" + SourceKey + "=" + SourceValue + "`";
+        }
+    }
+
+
+    private abstract class NameMatcher : ICharacterSubstitution
+    {
+        public abstract double Cost(char c1, char c2);
+    }
+        
+    private class CyrillicNameMatcher : NameMatcher
+    {
+        public static NameMatcher Instance { get; } = new CyrillicNameMatcher();
+
+        
+        public override double Cost(char c1, char c2)
+        {
+            c1 = char.ToLower(c1);
+            c2 = char.ToLower(c2);
+            
+            return Math.Min( // we don't care about order, but the comparer seems to care, so we just check both "directions"
+                D(c1, c2), 
+                D(c2, c1)
+            );
+            
+            static double D(char c1, char c2)
+            {
+                // Letters that we might fail to transliterate are okay to consider very similar
+                
+                if (c1 == 'е' && c2 == 'э') return 0.5;
+                if (c1 == 'е' && c2 == 'ё') return 0.5;
+                if (c1 == 'и' && c2 == 'й') return 0.5;
+                if (c1 == 'ш' && c2 == 'щ') return 0.5;
+
+                return 1.0;
+            }
+        }
+    }
+    
+    
+    private class NonExactMatch
+    {
+        public string Actual { get; }
+
+        public string Expected { get; }
+
+        public string Source { get; }
+
+        public int Count { get; set; }
+
+        
+        public NonExactMatch(string actual, string expected, string source, int count)
+        {
+            Actual = actual;
+            Expected = expected;
+            Source = source;
+            Count = count;
         }
     }
 

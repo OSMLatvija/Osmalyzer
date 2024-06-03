@@ -53,13 +53,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             
             // Main name
 
-            string? lvNameRaw = null;
-            
-            if (name.EndsWith(" iela"))
-                // todo: use FuzzyAddressMatcher suffixes?
-            {
-                lvNameRaw = name[..^5];
-            }
+            string? lvNameRaw = ExtractRawLatvianName(name, out string? latvianNameSuffix);
             
             // todo: how many do we not know?
             if (lvNameRaw == null)
@@ -90,38 +84,56 @@ public class ImproperTranslationAnalyzer : Analyzer
                 {
                     case "ru":
                     {
-                        string expectedRuName = 
-                            (value.Contains("ул.") ? "ул." : "улица") + " " + // preserve prefix if shortened
-                            Transliterator.TransliterateFromLvToRu(lvNameRaw);
+                        // Figure out how the street should look like in Russian transliteration
+                        
+                        string expectedRuPrefix = LatvianToRussianStreetNameSuffix(latvianNameSuffix!);
 
-                        if (!GoodEnoughNameMatch(value, expectedRuName, CyrillicNameMatcher.Instance, out bool exact))
+                        if (expectedRuPrefix == "улица")
+                            if (value.Contains("ул."))
+                                expectedRuPrefix = "ул."; // preserve prefix if already shortened
+                        
+                        // Try both 
+                        string expectedRuName1 = expectedRuPrefix + " " + Transliterator.TransliterateFromLvToRu(lvNameRaw);
+                        string expectedRuName2 = Transliterator.TransliterateFromLvToRu(lvNameRaw) + " " + expectedRuPrefix;
+
+                        // Match against current value
+                        
+                        Match match1 = MatchBetween(value, expectedRuName1, CyrillicNameMatcher.Instance);
+                        Match match2 = MatchBetween(value, expectedRuName2, CyrillicNameMatcher.Instance);
+                        
+                        Match bestMatch = match1.Quality >= match2.Quality ? match1 : match2;
+                        // well, let's hope we never need to compare 3
+
+                        switch (bestMatch)
                         {
-                            issues.Add(new TranslitMismatchIssue("Russian", key, expectedRuName, value, "name", name));
-                        }
-                        else
-                        {
-                            if (!exact)
-                            {
+                            case ExactMatch:
+                                if (fullMatches.ContainsKey(value))
+                                    fullMatches[value]++;
+                                else
+                                    fullMatches[value] = 1;
+                                break;
+                            
+                            case GoodEnoughMatch:
                                 NonExactMatch? existing = nonExactButGoodEnoughMatches
                                     .FirstOrDefault(m => 
                                                         m.Actual == value && 
-                                                        m.Expected == expectedRuName && 
+                                                        m.Expected == bestMatch.Expected && 
                                                         m.Source == name);
                                 
                                 if (existing != null)
                                     existing.Count++;
                                 else
-                                    nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, expectedRuName, name, 1));
-                            }
-                            else
-                            {
-                                if (fullMatches.ContainsKey(value))
-                                    fullMatches[value]++;
-                                else
-                                    fullMatches[value] = 1;
-                            }
+                                    nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, name, 1));
+                                break;
+                            
+                            case NotAMatch:
+                                issues.Add(new TranslitMismatchIssue("Russian", key, bestMatch.Expected, value, "name", name));
+                                break;
+                            
+                            default:
+                                throw new NotImplementedException();
                         }
-
+                        
                         break;
                     }
                 }
@@ -130,7 +142,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             }
             
             
-            // Did we find any issues?
+            // Did we find any issues for this element?
             
             if (issues.Count > 0)
             {
@@ -195,26 +207,50 @@ public class ImproperTranslationAnalyzer : Analyzer
         }
     }
 
-    
+
     [Pure]
-    private static bool GoodEnoughNameMatch(string actual, string expected, NameMatcher matcher, out bool exact)
+    private static string? ExtractRawLatvianName(string name, out string? suffix)
+    {
+        if (FuzzyAddressMatcher.EndsWithStreetNameSuffix(name, out suffix))
+            return name[..^(suffix!.Length + 1)]; // also grab the implied space 
+
+        return null;
+    }
+
+    [Pure]
+    private static Match MatchBetween(string actual, string expectedOriginal, NameMatcher matcher)
     {
         actual = actual.ToLower();
-        expected = expected.ToLower();
+        string expectedLower = expectedOriginal.ToLower();
 
-        if (actual == expected)
-        {
-            exact = true;
-            return true;
-        }
+        if (actual == expectedLower)
+            return new ExactMatch(expectedOriginal);
 
-        exact = false;
-        
         WeightedLevenshtein l = new WeightedLevenshtein(matcher);
 
-        double distance = l.Distance(actual, expected);
+        double distance = l.Distance(actual, expectedLower);
 
-        return distance <= 2.0;
+        return distance <= 2.0 ? new GoodEnoughMatch(expectedOriginal) : new NotAMatch(expectedOriginal);
+    }
+
+    private abstract record Match(string Expected)
+    {
+        public abstract int Quality { get; }
+    }
+
+    private record ExactMatch(string Expected) : Match(Expected)
+    {
+        public override int Quality => 100;
+    }
+
+    private record GoodEnoughMatch(string Expected) : Match(Expected)
+    {
+        public override int Quality => 69;
+    }
+
+    private record NotAMatch(string Expected) : Match(Expected)
+    {
+        public override int Quality => -420;
     }
 
     [Pure]
@@ -242,6 +278,28 @@ public class ImproperTranslationAnalyzer : Analyzer
             return null;
 
         return key[5..];
+    }
+
+    [Pure]
+    private static string LatvianToRussianStreetNameSuffix(string suffix)
+    {
+        return suffix switch
+        {
+            "iela"      => "улица",
+            "bulvāris"  => "бульвар",
+            "ceļš"      => "дорога",
+            "gatve"     => "гатве", // apparently, not translated but transliterated
+            "šoseja"    => "шоссе",
+            "tilts"     => "мост",
+            "dambis"    => "дамбис",
+            "aleja"     => "аллея",
+            "apvedceļš" => "окружная дорога",
+            "laukums"   => "площадь",
+            "prospekts" => "проспект",
+            "pārvads"   => "переезд",
+            
+            _ => "улица"
+        };
     }
 
 

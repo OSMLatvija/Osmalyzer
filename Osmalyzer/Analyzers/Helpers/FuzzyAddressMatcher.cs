@@ -20,6 +20,7 @@ public static class FuzzyAddressMatcher
         "prospekts",
         "pārvads"
     };
+    // Note: ImproperTranslationAnalyzer is doing Russian translations, so add value there if adding here
     
     
     [Pure]
@@ -101,7 +102,7 @@ public static class FuzzyAddressMatcher
     {
         foreach (string s in _suffixes)
         {
-            if (streetName.EndsWith(s))
+            if (streetName.EndsWith(" " + s))
             {
                 suffix = s;
                 return true;

@@ -83,6 +83,21 @@ public abstract class OsmElement : IChunkerItem
             
         _tags.TryGetValue(key, out string? value);
         return value;
+    }  
+        
+    [Pure]
+    public List<(string, string)>? GetPrefixedValues(string keyPrefix)
+    {
+        if (_tags == null)
+            return null;
+            
+        List<(string, string)> values = new List<(string, string)>();
+
+        foreach ((string? key, string? value) in _tags)
+            if (key.StartsWith(keyPrefix))
+                values.Add((key, value));
+
+        return values.Count > 0 ? values : null;
     }
         
     [Pure]
@@ -92,6 +107,19 @@ public abstract class OsmElement : IChunkerItem
             return false;
             
         return _tags.ContainsKey(key);
+    }
+        
+    [Pure]
+    public bool HasKeyPrefixed(string keyPrefix)
+    {
+        if (_tags == null)
+            return false;
+            
+        foreach ((string? key, string? _) in _tags)
+            if (key.StartsWith(keyPrefix))
+                return true;
+
+        return false;
     }
         
     [Pure]

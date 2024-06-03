@@ -76,7 +76,9 @@ public abstract class OsmData
 
     public OsmElement? Find(params OsmFilter[] filters)
     {
-        foreach (OsmElement element in _elements)
+        IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters);
+        
+        foreach (OsmElement element in collection)
             if (OsmElementMatchesFilters(element, filters))
                 return element;
 

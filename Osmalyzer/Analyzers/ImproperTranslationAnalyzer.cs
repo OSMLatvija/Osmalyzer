@@ -42,6 +42,8 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         List<NonExactMatch> nonExactButGoodEnoughMatches = new List<NonExactMatch>();
 
+        Dictionary<string, int> fullMatches = new Dictionary<string, int>();
+
         foreach (OsmElement element in osmElements.Elements)
         {
             List<Issue> issues = new List<Issue>();
@@ -111,6 +113,13 @@ public class ImproperTranslationAnalyzer : Analyzer
                                 else
                                     nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, expectedRuName, name, 1));
                             }
+                            else
+                            {
+                                if (fullMatches.ContainsKey(value))
+                                    fullMatches[value]++;
+                                else
+                                    fullMatches[value] = 1;
+                            }
                         }
 
                         break;
@@ -169,8 +178,18 @@ public class ImproperTranslationAnalyzer : Analyzer
             report.AddEntry(
                 ReportGroup.Issues,
                 new GenericReportEntry(
-                    "Non-exact but good enough matches not listed as problems (i.e. an allowance for transliteration errors, but would also allow typos and spelling errors): " +
+                    "Non-exact but good enough transliterated matches not listed as problems (i.e. an allowance for transliteration errors, but would also allow typos and spelling errors): " +
                     string.Join("; ", nonExactButGoodEnoughMatches.Select(m => m.Count + " × `" + m.Actual + "` not `" + m.Expected + "` for `" + m.Source + "`"))
+                )
+            );
+        }
+        
+        if (fullMatches.Count > 0)
+        {
+            report.AddEntry(
+                ReportGroup.Issues,
+                new GenericReportEntry(
+                    "There were " + fullMatches.Count + " exact expected transliterated matches."
                 )
             );
         }

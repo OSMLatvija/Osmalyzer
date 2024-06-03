@@ -62,10 +62,8 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
             catch (Exception e)
             {
                 // RS site is geoblocked in US, where GitHub runner is,
-                // so fail gracefully and just hard-code the ID, sine we are only checking teh site for the id anyway
-                
+                // so fail gracefully and just hard-code the ID, since we are only checking the site for the id anyway
                 return "1fHZLaJ1t5cPs9PbaUotV_-IlwVs";
-                
                 //throw new Exception("Failed to read RS page", e);
             }
 
@@ -82,9 +80,12 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
                 string headerDumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-header-dump.html");
                 File.WriteAllLines(headerDumpFileName, WebsiteBrowsingHelper.RecentResponseHeaders);
 
-                throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html' and headers in 'RS-vending-header-dump.html')");
-
                 // todo: generic way to do this for all failed web requests?
+
+                // RS site is geoblocked in US, where GitHub runner is,
+                // so fail gracefully and just hard-code the ID, since we are only checking the site for the id anyway
+                return "1fHZLaJ1t5cPs9PbaUotV_-IlwVs";
+                //throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html' and headers in 'RS-vending-header-dump.html')");
             }
 
             return mapMatch.Groups[1].ToString();

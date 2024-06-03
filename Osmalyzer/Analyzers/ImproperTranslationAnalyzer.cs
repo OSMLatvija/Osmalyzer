@@ -10,7 +10,8 @@ public class ImproperTranslationAnalyzer : Analyzer
 {
     public override string Name => "Improper translations";
 
-    public override string Description => "This analyzer checks for improper translations/transliterations of things like street names."; 
+    public override string Description => "This analyzer checks for improper translations/transliterations of things like street names. " + Environment.NewLine +
+                                          "Note that proposed/expected transliteration is generated automatically and has false positives as it makes mistakes.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
@@ -84,7 +85,9 @@ public class ImproperTranslationAnalyzer : Analyzer
                 {
                     case "ru":
                     {
-                        string expectedRuName = "улица " + Transliterator.TransliterateFromLvToRu(lvNameRaw);
+                        string expectedRuName = 
+                            (value.Contains("ул.") ? "ул." : "улица") + " " + // preserve prefix if shortened
+                            Transliterator.TransliterateFromLvToRu(lvNameRaw);
 
                         if (!string.Equals(expectedRuName, value, StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -127,7 +130,8 @@ public class ImproperTranslationAnalyzer : Analyzer
                     (problemFeature.Elements.Count > 1 ? problemFeature.Elements.Count + " elements have " : "Element has ") +
                     (problemFeature.Issues.Count > 1 ? problemFeature.Issues.Count + " issues" : "issue") + ": " +
                     string.Join("; ", problemFeature.Issues.Select(i => i.ReportString())) + " -- " +
-                    (problemFeature.Elements.Count <= 10 ? string.Join(", ", problemFeature.Elements.Select(e => e.OsmViewUrl)) : "")
+                    string.Join(", ", problemFeature.Elements.Take(10).Select(e => e.OsmViewUrl)) +
+                    (problemFeature.Elements.Count > 10 ? " and " + (problemFeature.Elements.Count - 10) + " more" : "")
                 )
             );
         }

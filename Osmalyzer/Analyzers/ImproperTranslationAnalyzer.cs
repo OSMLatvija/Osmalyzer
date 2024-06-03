@@ -88,21 +88,29 @@ public class ImproperTranslationAnalyzer : Analyzer
                         
                         string expectedRuPrefix = LatvianToRussianStreetNameSuffix(latvianNameSuffix!);
 
-                        if (expectedRuPrefix == "улица")
-                            if (value.Contains("ул."))
-                                expectedRuPrefix = "ул."; // preserve prefix if already shortened
+                        List<string> expectedNames = new List<string>();
                         
-                        // Try both 
-                        string expectedRuName1 = expectedRuPrefix + " " + Transliterator.TransliterateFromLvToRu(lvNameRaw);
-                        string expectedRuName2 = Transliterator.TransliterateFromLvToRu(lvNameRaw) + " " + expectedRuPrefix;
+                        expectedNames.Add(expectedRuPrefix + " " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                        expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " " + expectedRuPrefix);
+
+                        if (expectedRuPrefix == "улица")
+                        {
+                            // Also try short prefix
+                            expectedNames.Add("ул. " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                        }
+                        else
+                        {
+                            // Also try default prefix value
+                            expectedNames.Add("улица " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                            expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " улица");
+                            expectedNames.Add("ул. " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                        }
 
                         // Match against current value
                         
-                        Match match1 = MatchBetween(value, expectedRuName1, CyrillicNameMatcher.Instance);
-                        Match match2 = MatchBetween(value, expectedRuName2, CyrillicNameMatcher.Instance);
+                        List<Match> matches = expectedNames.Select(en => MatchBetween(value, en, CyrillicNameMatcher.Instance)).ToList(); 
                         
-                        Match bestMatch = match1.Quality >= match2.Quality ? match1 : match2;
-                        // well, let's hope we never need to compare 3
+                        Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
 
                         switch (bestMatch)
                         {
@@ -379,7 +387,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         public override string ReportString()
         {
-            return "Expected " + Language + " `" + MismatchKey + "` to be `" + ExpectedValue + "`, but was `" + ActualValue + "` for `" + SourceKey + "=" + SourceValue + "`";
+            return "Expected " + Language + " `" + MismatchKey + "` to resemble `" + ExpectedValue + "`, but was `" + ActualValue + "` for `" + SourceKey + "=" + SourceValue + "`";
         }
     }
 

@@ -26,41 +26,12 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
 
     protected override void Download()
     {
-        string infoPageText;
+        string mapId = GetMapId();
         
-        try
-        {
-            infoPageText = WebsiteBrowsingHelper.Read( // direct fails on GitHub
-                ReportWebLink, 
-                true
-            );
-        }
-        catch (Exception e)
-        {
-            throw new Exception("Failed to read RS page", e);
-        }
-            
-        Match mapMatch = Regex.Match(infoPageText, @"src=""https://www\.google\.com/maps/d/embed\?mid=([a-zA-Z0-9_\.]+)&");
-        // https://www.google.com/maps/d/viewer?mid=1wRS7q3l_ESgCVKjHm1lO_dW0o3rSJYU
-
-        if (!mapMatch.Success)
-        {
-            string dumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-html-dump.html");
-            File.WriteAllText(dumpFileName, infoPageText);
-            
-            string headerDumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-header-dump.html");
-            File.WriteAllLines(headerDumpFileName, WebsiteBrowsingHelper.RecentResponseHeaders);
-            
-            throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html' and headers in 'RS-vending-header-dump.html')");
-            
-            // todo: generic way to do this for all failed web requests?
-        }
-
-        string mapId = mapMatch.Groups[1].ToString();
 
         string kmlUrl = $@"https://www.google.com/maps/d/kml?mid={mapId}&forcekml=1";
         // forcekml to be readable xml kml and not "encoded" kmd
-        // https://www.google.com/maps/d/kml?mid=1wRS7q3l_ESgCVKjHm1lO_dW0o3rSJYU&forcekml=1
+        // https://www.google.com/maps/d/kml?mid=1fHZLaJ1t5cPs9PbaUotV_-IlwVs&forcekml=1
 
         try
         {
@@ -72,6 +43,59 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         catch (Exception e)
         {
             throw new Exception("Failed to read Google Maps kml page (" + kmlUrl + ")", e);
+        }
+
+        return;
+
+        
+        string GetMapId()
+        {
+            // TODO:
+            // TODO:
+            // TODO:
+            // TODO:
+            // TODO:
+            // TODO:
+            return "1fHZLaJ1t5cPs9PbaUotV_-IlwVs";
+            
+            string infoPageText;
+
+            try
+            {
+                infoPageText = WebsiteBrowsingHelper.Read( // direct fails on GitHub
+                    ReportWebLink,
+                    true
+                );
+            }
+            catch (Exception e)
+            {
+                // RS site is geoblocked in US, where GitHub runner is,
+                // so fail gracefully and just hard-code the ID, sine we are only checking teh site for the id anyway
+                
+                return "1fHZLaJ1t5cPs9PbaUotV_-IlwVs";
+                
+                //throw new Exception("Failed to read RS page", e);
+            }
+
+            Match mapMatch = Regex.Match(infoPageText, @"src=""https://www\.google\.com/maps/d/embed\?mid=([a-zA-Z0-9_\.]+)&");
+            // https://www.google.com/maps/d/embed?mid=z04Qg9kXVnqk.kwqapebDyDDY&amp;output=embed
+            // redirects to (RS site url is probably old)
+            // https://www.google.com/maps/d/u/0/embed?output=embed&mid=1fHZLaJ1t5cPs9PbaUotV_-IlwVs
+
+            if (!mapMatch.Success)
+            {
+                string dumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-html-dump.html");
+                File.WriteAllText(dumpFileName, infoPageText);
+
+                string headerDumpFileName = Path.Combine(ReportWriter.OutputPath, "RS-vending-header-dump.html");
+                File.WriteAllLines(headerDumpFileName, WebsiteBrowsingHelper.RecentResponseHeaders);
+
+                throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html' and headers in 'RS-vending-header-dump.html')");
+
+                // todo: generic way to do this for all failed web requests?
+            }
+
+            return mapMatch.Groups[1].ToString();
         }
     }
 

@@ -19,3 +19,6 @@ https://commons.wikimedia.org/wiki/File:Breezeicons-emblems-16-vcs-locally-modif
 The rest are derived from above
 
 Edited by https://github.com/HellMapGoesCoding
+
+inline-img.svg
+https://commons.wikimedia.org/wiki/File:OOjs_UI_icon_edit-ltr-gray.svg

@@ -112,7 +112,7 @@ public class HtmlFileReporter : Reporter
             Assembly assembly = Assembly.GetExecutingAssembly();
 
             const string resourcePrefix = @"Osmalyzer.Reporting.HTML_report_resources.";
-            string resourcePath = resourcePrefix + embeddedIcon.Name + ".png";
+            string resourcePath = resourcePrefix + embeddedIcon.Name;
 
             using Stream stream = assembly.GetManifestResourceStream(resourcePath)!;
 
@@ -121,7 +121,7 @@ public class HtmlFileReporter : Reporter
             if (!Directory.Exists(outputPath))
                 Directory.CreateDirectory(outputPath);  
         
-            FileStream fileStream = new FileStream(Path.Combine(outputPath, embeddedIcon.Name + ".png"), FileMode.Create);
+            FileStream fileStream = new FileStream(Path.Combine(outputPath, embeddedIcon.Name), FileMode.Create);
             StreamWriter streamWriter = new StreamWriter(fileStream);
             stream.CopyTo(streamWriter.BaseStream);
             streamWriter.Close();

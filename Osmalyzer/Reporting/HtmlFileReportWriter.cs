@@ -87,7 +87,7 @@ public class HtmlFileReportWriter : ReportWriter
                 // todo: to template
                 
                 str.AppendLine(@"var " + iconName + " = L.icon({");
-                str.AppendLine(@"iconUrl: 'icons/" + iconName + ".png',");
+                str.AppendLine(@"iconUrl: 'icons/" + iconName + "',");
                 str.AppendLine(@"iconSize: ["+size+", "+size+"],"); // size of the icon
                 str.AppendLine(@"iconAnchor: ["+(size/2)+", "+(size/2)+"],"); // point of the icon which will correspond to marker's location
                 str.AppendLine(@"popupAnchor: [2, -"+(size+2)+"]"); // point from which the popup should open relative to the iconAnchor
@@ -256,9 +256,9 @@ public class HtmlFileReportWriter : ReportWriter
             
         // URLs
         
-        line = Regex.Replace(line, @"(https://osm.org/node/(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Node $2</a> <a href=""https://osm.org/edit?node=$2"" class=""osm-link"" target=""_blank"">✏️</a>");
-        line = Regex.Replace(line, @"(https://osm.org/way/(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Way $2</a> <a href=""https://osm.org/edit?way=$2"" class=""osm-link"" target=""_blank"">✏️</a>");
-        line = Regex.Replace(line, @"(https://osm.org/relation/(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Rel $2</a> <a href=""https://osm.org/edit?relation=$2"" class=""osm-link"" target=""_blank"">✏️</a>");
+        line = Regex.Replace(line, @"(https://osm.org/node/(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Node $2</a> <a href=""https://osm.org/edit?node=$2"" class=""osm-link"" target=""_blank""><img class=""inline-img"" src=""icons/editLinkPencil.svg""></a>");
+        line = Regex.Replace(line, @"(https://osm.org/way/(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Way $2</a> <a href=""https://osm.org/edit?way=$2"" class=""osm-link"" target=""_blank""><img class=""inline-img"" src=""icons/editLinkPencil.svg""></a>");
+        line = Regex.Replace(line, @"(https://osm.org/relation/(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Rel $2</a> <a href=""https://osm.org/edit?relation=$2"" class=""osm-link"" target=""_blank""><img class=""inline-img"" src=""icons/editLinkPencil.svg""></a>");
         line = Regex.Replace(line, @"(https://osm.org/changeset/(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Changeset $2</a>");
         line = Regex.Replace(line, @"(https://osm.org/#map=\d{1,2}/(-?\d{1,3}\.\d+)/(-?\d{1,3}\.\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">$2, $3</a>");
             

@@ -65,6 +65,8 @@
       <EmbeddedResource Include="Reporting\HTML report resources\orangeCircle.png" />
       <None Remove="Reporting\Report templates\index.html" />
       <EmbeddedResource Include="Reporting\Report templates\index.html" />
+      <None Remove="Reporting\HTML report resources\editLinkPencil.svg" />
+      <EmbeddedResource Include="Reporting\HTML report resources\editLinkPencil.svg" />
     </ItemGroup>
 
 

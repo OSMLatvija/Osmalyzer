@@ -7,7 +7,7 @@ public static class EmbeddedIcons
     public static readonly List<EmbeddedIcon> Icons = new List<EmbeddedIcon>()
     {
         new LeafletIcon(
-            "greenCheckmark",
+            "greenCheckmark.png",
             16,
             LeafletIcon.IconGroup.Main,
             ColorGroup.Green,
@@ -16,7 +16,7 @@ public static class EmbeddedIcons
         ),
         
         new LeafletIcon(
-            "orangeCheckmark", 
+            "orangeCheckmark.png", 
             16, 
             LeafletIcon.IconGroup.Main, 
             ColorGroup.Orange,
@@ -25,7 +25,7 @@ public static class EmbeddedIcons
         ),
         
         new LeafletIcon(
-            "redCross", 
+            "redCross.png", 
             16, 
             LeafletIcon.IconGroup.Main, 
             ColorGroup.Red,
@@ -34,7 +34,7 @@ public static class EmbeddedIcons
         ),
         
         new LeafletIcon(
-            "redQuestion", 
+            "redQuestion.png", 
             16, 
             LeafletIcon.IconGroup.Main, 
             ColorGroup.Red,
@@ -43,7 +43,7 @@ public static class EmbeddedIcons
         ),
         
         new LeafletIcon(
-            "redExclamation", 
+            "redExclamation.png", 
             16, 
             LeafletIcon.IconGroup.Main, 
             ColorGroup.Red,
@@ -52,7 +52,7 @@ public static class EmbeddedIcons
         ),
         
         new LeafletIcon(
-            "blueStar", 
+            "blueStar.png", 
             12, 
             LeafletIcon.IconGroup.Sub, 
             ColorGroup.Other, // we don't expect it clustered in Sub group
@@ -60,43 +60,49 @@ public static class EmbeddedIcons
         ),
         
         new LeafletClusterIcon(
-            "grayCircle",
+            "grayCircle.png",
             20
         ),
         
         new LeafletClusterIcon(
-            "redCircle",
+            "redCircle.png",
             20
         ),
         
         new LeafletClusterIcon(
-            "orangeCircle",
+            "orangeCircle.png",
             20
         ),
         
         new LeafletClusterIcon(
-            "greenCircle",
+            "greenCircle.png",
             20
         ),
         
         new LeafletClusterIcon(
-            "redGreenCircle",
+            "redGreenCircle.png",
             20
         ),
         
         new LeafletClusterIcon(
-            "redOrangeCircle",
+            "redOrangeCircle.png",
             20
         ),
         
         new LeafletClusterIcon(
-            "redOrangeGreenCircle",
+            "redOrangeGreenCircle.png",
             20
         ),
         
         new LeafletClusterIcon(
-            "orangeGreenCircle",
+            "orangeGreenCircle.png",
             20
+        ),
+        
+        
+        new EmbeddedIcon(
+            "editLinkPencil.svg",
+            12
         ),
     };
 }

@@ -27,7 +27,7 @@ public static class Runner
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
             // new RigasSatiksmeAnalyzer(),
-            new RigasSatiksmeTicketVendingAnalyzer(),
+            // new RigasSatiksmeTicketVendingAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
@@ -68,7 +68,7 @@ public static class Runner
             // new VenipakParcelLockerAnalyzer(),
             // new OmnivaParcelLockerAnalyzer(),
             // new ItellaParcelLockerAnalyzer(),
-            // new UnknownParcelLockerAnalyzer(),
+            new UnknownParcelLockerAnalyzer(),
             // new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer()
         };

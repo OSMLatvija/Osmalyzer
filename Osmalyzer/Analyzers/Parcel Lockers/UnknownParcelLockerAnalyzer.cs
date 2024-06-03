@@ -50,36 +50,48 @@ public class UnknownParcelLockerAnalyzer : Analyzer
         
         // Parse
 
+        Dictionary<string, int> foundValues = new Dictionary<string, int>();
+            
         foreach (OsmElement element in lockers.Elements)
         {
-            if (!MatchesKnownBrandedLocker(element, operatorData, out List<string>? comparedValues))
+            if (!MatchesKnownBrandedLocker(element, operatorData, out List<string> comparedValues))
             {
                 report.AddEntry(
                     ReportGroup.Unknown,
                     new IssueReportEntry(
                         "Parcel locker " + element.OsmViewUrl + " doesn't seem to belong to a known brand" +
-                        (comparedValues!.Count > 0 ? " (compared values: " + string.Join(", ", comparedValues.Select(v => "`" + v + "`")) + ")" : ""),
+                        (comparedValues.Count > 0 ? " (compared values: " + string.Join(", ", comparedValues.Select(v => "`" + v + "`")) + ")" : ""),
                         element.GetAverageCoord(),
                         MapPointStyle.Problem
                     )
                 );
             }
+            else
+            {
+                foreach (string comparedValue in comparedValues.Distinct()) // don't repeat values within the same locker
+                    if (!foundValues.ContainsKey(comparedValue))
+                        foundValues.Add(comparedValue, 1);
+                    else
+                        foundValues[comparedValue]++;
+            }
         }
+        
+        // Stats
+        
+        report.AddGroup(ReportGroup.Stats, "Stats");
+
+        report.AddEntry(
+            ReportGroup.Stats,
+            new DescriptionReportEntry(
+                "Values for locker name/operator/brand: " + string.Join(", ", foundValues.OrderByDescending(v => v.Value).Select(kv => "`" + kv.Key + "` ×" + kv.Value + ""))
+            )
+        );
     }
 
     
     [Pure]
-    private static bool MatchesKnownBrandedLocker(OsmElement element, ParcelLockerOperatorAnalysisData operatorData, out List<string>? comparedValues)
+    private static bool MatchesKnownBrandedLocker(OsmElement element, ParcelLockerOperatorAnalysisData operatorData, out List<string> comparedValues)
     {
-        foreach ((string? _, List<string>? values) in operatorData.Branding)
-        {
-            if (LockerMatchesBrand(element, values))
-            {
-                comparedValues = null;
-                return true;
-            }
-        }
-
         comparedValues = new List<string>();
         
         string? osmName = element.GetValue("name");
@@ -90,6 +102,11 @@ public class UnknownParcelLockerAnalyzer : Analyzer
         if (osmOperator != null) comparedValues.Add(osmOperator);
         if (osmBrand != null) comparedValues.Add(osmBrand);
         
+        
+        foreach ((string? _, List<string>? values) in operatorData.Branding)
+            if (LockerMatchesBrand(element, values))
+                return true;
+
         return false;
         
 
@@ -120,5 +137,6 @@ public class UnknownParcelLockerAnalyzer : Analyzer
     private enum ReportGroup
     {
         Unknown,
+        Stats
     }
 }

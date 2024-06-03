@@ -50,14 +50,6 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         
         string GetMapId()
         {
-            // TODO:
-            // TODO:
-            // TODO:
-            // TODO:
-            // TODO:
-            // TODO:
-            return "1fHZLaJ1t5cPs9PbaUotV_-IlwVs";
-            
             string infoPageText;
 
             try

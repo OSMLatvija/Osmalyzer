@@ -82,12 +82,12 @@ public class HtmlFileReportWriter : ReportWriter
             foreach (LeafletIcon leafletIcon in EmbeddedIcons.Icons.OfType<LeafletIcon>())
                 AddIcon(leafletIcon.Name, leafletIcon.Size);
 
-            void AddIcon(string iconName, int size)
+            void AddIcon(string iconFileName, int size)
             {
                 // todo: to template
                 
-                str.AppendLine(@"var " + iconName + " = L.icon({");
-                str.AppendLine(@"iconUrl: 'icons/" + iconName + "',");
+                str.AppendLine(@"var " + iconFileName[..^4] + " = L.icon({"); // excluding the extension
+                str.AppendLine(@"iconUrl: 'icons/" + iconFileName + "',");
                 str.AppendLine(@"iconSize: ["+size+", "+size+"],"); // size of the icon
                 str.AppendLine(@"iconAnchor: ["+(size/2)+", "+(size/2)+"],"); // point of the icon which will correspond to marker's location
                 str.AppendLine(@"popupAnchor: [2, -"+(size+2)+"]"); // point from which the popup should open relative to the iconAnchor
@@ -200,8 +200,8 @@ public class HtmlFileReportWriter : ReportWriter
                 string markerGroup = StyleMarkerGroup(icon.Group);
                 markerContent = markerContent.Replace("_FEATURES_", markerGroup);
                 
-                string iconName = icon.Name;
-                markerContent = markerContent.Replace("_ICON_", iconName);
+                string iconFileName = icon.Name[..^4]; // exlcuding the extension
+                markerContent = markerContent.Replace("_ICON_", iconFileName);
 
                 string iconGroup = IconVisualColorGroup(icon.ColorGroup);
                 markerContent = markerContent.Replace("_GROUP_", iconGroup);

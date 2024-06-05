@@ -17,7 +17,11 @@ public class ImproperTranslationAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() 
+    {
+        typeof(OsmAnalysisData),
+        typeof(OsmNamesAnalysisData)
+    };
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -25,6 +29,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         // Load OSM data
 
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        OsmNamesAnalysisData osmNamesData = datas.OfType<OsmNamesAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
@@ -86,24 +91,16 @@ public class ImproperTranslationAnalyzer : Analyzer
                     {
                         // Figure out how the street should look like in Russian transliteration
                         
-                        string expectedRuPrefix = LatvianToRussianStreetNameSuffix(latvianNameSuffix!);
+                        List<string> expectedRuPrefixes = osmNamesData.Names[latvianNameSuffix!][language];
+                        // It is acceptable for all object to be named as street (why?)
+                        expectedRuPrefixes = expectedRuPrefixes.Union(osmNamesData.Names["iela"][language]).ToList();
 
                         List<string> expectedNames = new List<string>();
                         
-                        expectedNames.Add(expectedRuPrefix + " " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
-                        expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " " + expectedRuPrefix);
-
-                        if (expectedRuPrefix == "улица")
+                        foreach (var expectedPrefix in expectedRuPrefixes)
                         {
-                            // Also try short prefix
-                            expectedNames.Add("ул. " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
-                        }
-                        else
-                        {
-                            // Also try default prefix value
-                            expectedNames.Add("улица " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
-                            expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " улица");
-                            expectedNames.Add("ул. " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                            expectedNames.Add(expectedPrefix + " " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                            expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " " + expectedPrefix);
                         }
 
                         // Match against current value
@@ -287,29 +284,6 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         return key[5..];
     }
-
-    [Pure]
-    private static string LatvianToRussianStreetNameSuffix(string suffix)
-    {
-        return suffix switch
-        {
-            "iela"      => "улица",
-            "bulvāris"  => "бульвар",
-            "ceļš"      => "дорога",
-            "gatve"     => "гатве", // apparently, not translated but transliterated
-            "šoseja"    => "шоссе",
-            "tilts"     => "мост",
-            "dambis"    => "дамбис",
-            "aleja"     => "аллея",
-            "apvedceļš" => "окружная дорога",
-            "laukums"   => "площадь",
-            "prospekts" => "проспект",
-            "pārvads"   => "переезд",
-            
-            _ => "улица"
-        };
-    }
-
 
     private class ProblemFeature
     {

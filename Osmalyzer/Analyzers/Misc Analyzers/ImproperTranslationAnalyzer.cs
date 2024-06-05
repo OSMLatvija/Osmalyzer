@@ -31,8 +31,6 @@ public class ImproperTranslationAnalyzer : Analyzer
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
         StreetNameQualifiersAnalysisData nameQualifiersData = datas.OfType<StreetNameQualifiersAnalysisData>().First();
 
-        Dictionary<string, int> ignoredLocales = new Dictionary<string, int>();
-
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract osmElements = osmMasterData.Filter(
@@ -54,6 +52,8 @@ public class ImproperTranslationAnalyzer : Analyzer
         Dictionary<KnownLanguage, LanguageAnalysisResults> results =
             knownLanguages.ToDictionary(kl => kl, _ => new LanguageAnalysisResults());
         
+        Dictionary<string, int> ignoredLanguages = new Dictionary<string, int>();
+
         // Parse
 
         foreach (OsmElement element in osmElements.Elements)
@@ -233,10 +233,10 @@ public class ImproperTranslationAnalyzer : Analyzer
                 }
                 else
                 {
-                    if (ignoredLocales.ContainsKey(language))
-                        ignoredLocales[language]++;
+                    if (ignoredLanguages.ContainsKey(language))
+                        ignoredLanguages[language]++;
                     else
-                        ignoredLocales.Add(language, 1);
+                        ignoredLanguages.Add(language, 1);
                     break;
                 }
             }
@@ -299,13 +299,13 @@ public class ImproperTranslationAnalyzer : Analyzer
             "This lists entries of languages that were not checked. "
         );
 
-        foreach ((string locale, int number) in ignoredLocales)
+        foreach ((string language, int number) in ignoredLanguages.OrderByDescending(kv => kv.Value))
         {
             report.AddEntry(
                 GenericReportGroup.OtherLanguages,
                 new IssueReportEntry(
-                    "Locale '" + locale + "' was ignored. " + 
-                    number + " element" + (number % 10 == 1 ? "" : "s") + " have tag `name:" + locale + "`"
+                    "Language '" + language + "' was ignored. " + 
+                    number + " " + (number == 1 ? "element has" : "elements have") + " tag `name:" + language + "`"
                 )
             );
         }

@@ -141,6 +141,58 @@ public class ImproperTranslationAnalyzer : Analyzer
                         
                         break;
                     }
+                    case "en":
+                    {                        
+                        List<string> expectedRuPrefixes = osmNamesData.Names[latvianNameSuffix!][language];
+                        // It is acceptable for all object to be named as street (why?)
+                        expectedRuPrefixes = expectedRuPrefixes.Union(osmNamesData.Names["iela"][language]).ToList();
+
+                        List<string> expectedNames = new List<string>();
+                        
+                        // Expect exact name with only translation for the nomenclature
+                        foreach (var expectedPrefix in expectedRuPrefixes)
+                        {
+                            expectedNames.Add(lvNameRaw + " " + expectedPrefix);
+                        }
+
+                        // Match against current value
+                        
+                        List<Match> matches = expectedNames.Select(en => MatchBetween(value, en, LatinNameMatcher.Instance)).ToList(); 
+                        
+                        Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
+
+                        switch (bestMatch)
+                        {
+                            case ExactMatch:
+                                if (fullMatches.ContainsKey(value))
+                                    fullMatches[value]++;
+                                else
+                                    fullMatches[value] = 1;
+                                break;
+                            
+                            case GoodEnoughMatch:
+                                NonExactMatch? existing = nonExactButGoodEnoughMatches
+                                    .FirstOrDefault(m => 
+                                                        m.Actual == value && 
+                                                        m.Expected == bestMatch.Expected && 
+                                                        m.Source == name);
+                                
+                                if (existing != null)
+                                    existing.Count++;
+                                else
+                                    nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, name, 1));
+                                break;
+                            
+                            case NotAMatch:
+                                issues.Add(new TranslitMismatchIssue("English", key, bestMatch.Expected, value, "name", name));
+                                break;
+                            
+                            default:
+                                throw new NotImplementedException();
+                        }
+                        
+                        break;
+                    }
                 }
                 
                 // todo: list languages we ignore 
@@ -394,6 +446,47 @@ public class ImproperTranslationAnalyzer : Analyzer
                 if (c1 == 'е' && c2 == 'ё') return 0.5;
                 if (c1 == 'и' && c2 == 'й') return 0.5;
                 if (c1 == 'ш' && c2 == 'щ') return 0.5;
+
+                return 1.0;
+            }
+        }
+    }
+
+    private class LatinNameMatcher : NameMatcher
+    {
+        public static NameMatcher Instance { get; } = new LatinNameMatcher();
+
+        
+        public override double Cost(char c1, char c2)
+        {
+            c1 = char.ToLower(c1);
+            c2 = char.ToLower(c2);
+            
+            return Math.Min( // we don't care about order, but the comparer seems to care, so we just check both "directions"
+                D(c1, c2), 
+                D(c2, c1)
+            );
+            
+            static double D(char c1, char c2)
+            {
+                // Letters that we might fail to transliterate are okay to consider very similar
+
+                // Don't know if "downplaying" garumziem is OK
+                // if (c1 == 'ē' && c2 == 'e') return 0.5;
+                // if (c1 == 'ū' && c2 == 'u') return 0.5;
+                // if (c1 == 'ī' && c2 == 'i') return 0.5;
+                // if (c1 == 'ō' && c2 == 'o') return 0.5;
+                // if (c1 == 'ā' && c2 == 'a') return 0.5;
+                // if (c1 == 'č' && c2 == 'c') return 0.5;
+                // if (c1 == 'ķ' && c2 == 'k') return 0.5;
+                // if (c1 == 'ļ' && c2 == 'l') return 0.5;
+                // if (c1 == 'ņ' && c2 == 'n') return 0.5;
+                // if (c1 == 'ģ' && c2 == 'g') return 0.5;
+                // if (c1 == 'ž' && c2 == 'z') return 0.5;
+
+                // Deos this exist?
+                // if (c1 == 'ŗ' && c2 == 'r') return 0.5;
+                
 
                 return 1.0;
             }

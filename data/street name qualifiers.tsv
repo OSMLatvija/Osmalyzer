@@ -1,5 +1,5 @@
-//latvian   russian english
-// if mutiple values needed - separate by ;
+//latvian	russian	english
+// if multiple values needed - separate by ;
 iela	улица;ул.	street;st.
 bulvāris	бульвар	boulevard
 ceļš	дорога	road

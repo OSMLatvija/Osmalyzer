@@ -7,9 +7,9 @@ using System.Text;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class OsmNamesAnalysisData : AnalysisData
+public class StreetNameQualifiersAnalysisData : AnalysisData
 {
-    public override string Name => "Names for OSM objects";
+    public override string Name => "Street name generic qualifiers/descriptors";
 
     public override string? ReportWebLink => null;
     
@@ -26,7 +26,7 @@ public class OsmNamesAnalysisData : AnalysisData
     {
         Names = new Dictionary<string, Dictionary<string, List<string>>>();
         
-        string dataFileName = @"data/object names.tsv";
+        string dataFileName = @"data/street name qualifiers.tsv";
 
         if (!File.Exists(dataFileName))
             dataFileName = @"../../../../" + dataFileName; // "exit" Osmalyzer\bin\Debug\net_.0\ folder and grab it from root data\
@@ -40,7 +40,7 @@ public class OsmNamesAnalysisData : AnalysisData
                 string[] splits = line.Split('\t');
                 
                 if (splits.Length != locales.Length + 1)
-                    throw new Exception("Incorrect number of locales in 'object names.tsv' file in line: " + line);
+                    throw new Exception("Incorrect number of locales in '" + dataFileName + "' file in line: " + line);
                 
                 var variants = new Dictionary<string, List<string>>();
                 for (int i = 0; i < locales.Length; i++)

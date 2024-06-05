@@ -70,7 +70,7 @@ public static class Runner
             // new ItellaParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
             // new LatviaPostLockerAnalyzer(),
-            new LatviaPostMailBoxAnalyzer(),
+            // new LatviaPostMailBoxAnalyzer(),
             new ImproperTranslationAnalyzer(),
         };
 #endif

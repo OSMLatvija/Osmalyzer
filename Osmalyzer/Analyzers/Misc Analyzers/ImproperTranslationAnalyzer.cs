@@ -20,7 +20,7 @@ public class ImproperTranslationAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => new List<Type>() 
     {
         typeof(OsmAnalysisData),
-        typeof(OsmNamesAnalysisData)
+        typeof(StreetNameQualifiersAnalysisData)
     };
         
 
@@ -29,7 +29,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         // Load OSM data
 
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
-        OsmNamesAnalysisData osmNamesData = datas.OfType<OsmNamesAnalysisData>().First();
+        StreetNameQualifiersAnalysisData nameQualifiersData = datas.OfType<StreetNameQualifiersAnalysisData>().First();
 
         Dictionary<string, int> ignoredLocales = new Dictionary<string, int>();
 
@@ -92,9 +92,9 @@ public class ImproperTranslationAnalyzer : Analyzer
                     {
                         // Figure out how the street should look like in Russian transliteration
                         
-                        List<string> expectedRuPrefixes = osmNamesData.Names[latvianNameSuffix!][language];
+                        List<string> expectedRuPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
                         // It is acceptable for all object to be named as street (why?)
-                        expectedRuPrefixes = expectedRuPrefixes.Union(osmNamesData.Names["iela"][language]).ToList();
+                        expectedRuPrefixes = expectedRuPrefixes.Union(nameQualifiersData.Names["iela"][language]).ToList();
 
                         List<string> expectedNames = new List<string>();
                         
@@ -144,9 +144,9 @@ public class ImproperTranslationAnalyzer : Analyzer
                     }
                     case "en":
                     {                        
-                        List<string> expectedRuPrefixes = osmNamesData.Names[latvianNameSuffix!][language];
+                        List<string> expectedRuPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
                         // It is acceptable for all object to be named as street (why?)
-                        expectedRuPrefixes = expectedRuPrefixes.Union(osmNamesData.Names["iela"][language]).ToList();
+                        expectedRuPrefixes = expectedRuPrefixes.Union(nameQualifiersData.Names["iela"][language]).ToList();
 
                         List<string> expectedNames = new List<string>();
                         

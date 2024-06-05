@@ -42,7 +42,7 @@ public class StreetNameQualifiersAnalysisData : AnalysisData
                 if (splits.Length != locales.Length + 1)
                     throw new Exception("Incorrect number of locales in '" + dataFileName + "' file in line: " + line);
                 
-                var variants = new Dictionary<string, List<string>>();
+                Dictionary<string, List<string>> variants = new Dictionary<string, List<string>>();
                 for (int i = 0; i < locales.Length; i++)
                 {
                     variants.Add(locales[i], splits[i+1].Split(';').ToList());

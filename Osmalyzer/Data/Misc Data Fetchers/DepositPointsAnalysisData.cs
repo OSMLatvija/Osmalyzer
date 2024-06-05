@@ -134,7 +134,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                     {                   
                         if (!string.IsNullOrEmpty(matchedTaromat.Groups["beram"]?.Value))
                         {
-                            var taromat = new VendingMachineDepositPoint(location, TaromatMode.BeramTaromat);
+                            VendingMachineDepositPoint? taromat = new VendingMachineDepositPoint(location, TaromatMode.BeramTaromat);
                             int number = int.TryParse(matchedTaromat.Groups["b_num"]?.Value, out int b_num) ? b_num : 1;
                             for (int i = 0; i < number; i++) 
                             {
@@ -143,7 +143,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                         }
                         else if (!string.IsNullOrEmpty(matchedTaromat.Groups["taromat"]?.Value))
                         {
-                            var taromat = new VendingMachineDepositPoint(location, TaromatMode.Taromat);
+                            VendingMachineDepositPoint? taromat = new VendingMachineDepositPoint(location, TaromatMode.Taromat);
                             int number = int.TryParse(matchedTaromat.Groups["a_num"]?.Value, out int a_num) ? a_num : 1;
                             for (int i = 0; i < number; i++) 
                             {

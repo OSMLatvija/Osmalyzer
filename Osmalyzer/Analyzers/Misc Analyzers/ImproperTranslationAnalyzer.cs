@@ -237,7 +237,6 @@ public class ImproperTranslationAnalyzer : Analyzer
                         ignoredLanguages[language]++;
                     else
                         ignoredLanguages.Add(language, 1);
-                    break;
                 }
             }
         }

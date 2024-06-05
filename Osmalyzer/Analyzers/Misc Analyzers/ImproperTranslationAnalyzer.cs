@@ -17,7 +17,11 @@ public class ImproperTranslationAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() 
+    {
+        typeof(OsmAnalysisData),
+        typeof(OsmNamesAnalysisData)
+    };
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -25,6 +29,9 @@ public class ImproperTranslationAnalyzer : Analyzer
         // Load OSM data
 
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        OsmNamesAnalysisData osmNamesData = datas.OfType<OsmNamesAnalysisData>().First();
+
+        Dictionary<string, int> ignoredLocales = new Dictionary<string, int>();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
@@ -47,7 +54,6 @@ public class ImproperTranslationAnalyzer : Analyzer
         foreach (OsmElement element in osmElements.Elements)
         {
             List<Issue> issues = new List<Issue>();
-            
             
             string name = element.GetValue("name")!;
             
@@ -86,24 +92,16 @@ public class ImproperTranslationAnalyzer : Analyzer
                     {
                         // Figure out how the street should look like in Russian transliteration
                         
-                        string expectedRuPrefix = LatvianToRussianStreetNameSuffix(latvianNameSuffix!);
+                        List<string> expectedRuPrefixes = osmNamesData.Names[latvianNameSuffix!][language];
+                        // It is acceptable for all object to be named as street (why?)
+                        expectedRuPrefixes = expectedRuPrefixes.Union(osmNamesData.Names["iela"][language]).ToList();
 
                         List<string> expectedNames = new List<string>();
                         
-                        expectedNames.Add(expectedRuPrefix + " " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
-                        expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " " + expectedRuPrefix);
-
-                        if (expectedRuPrefix == "улица")
+                        foreach (var expectedPrefix in expectedRuPrefixes)
                         {
-                            // Also try short prefix
-                            expectedNames.Add("ул. " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
-                        }
-                        else
-                        {
-                            // Also try default prefix value
-                            expectedNames.Add("улица " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
-                            expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " улица");
-                            expectedNames.Add("ул. " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                            expectedNames.Add(expectedPrefix + " " + Transliterator.TransliterateFromLvToRu(lvNameRaw));
+                            expectedNames.Add(Transliterator.TransliterateFromLvToRu(lvNameRaw) + " " + expectedPrefix);
                         }
 
                         // Match against current value
@@ -144,9 +142,67 @@ public class ImproperTranslationAnalyzer : Analyzer
                         
                         break;
                     }
+                    case "en":
+                    {                        
+                        List<string> expectedRuPrefixes = osmNamesData.Names[latvianNameSuffix!][language];
+                        // It is acceptable for all object to be named as street (why?)
+                        expectedRuPrefixes = expectedRuPrefixes.Union(osmNamesData.Names["iela"][language]).ToList();
+
+                        List<string> expectedNames = new List<string>();
+                        
+                        // Expect exact name with only translation for the nomenclature
+                        foreach (var expectedPrefix in expectedRuPrefixes)
+                        {
+                            expectedNames.Add(lvNameRaw + " " + expectedPrefix);
+                        }
+
+                        // Match against current value
+                        
+                        List<Match> matches = expectedNames.Select(en => MatchBetween(value, en, LatinNameMatcher.Instance)).ToList(); 
+                        
+                        Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
+
+                        switch (bestMatch)
+                        {
+                            case ExactMatch:
+                                if (fullMatches.ContainsKey(value))
+                                    fullMatches[value]++;
+                                else
+                                    fullMatches[value] = 1;
+                                break;
+                            
+                            case GoodEnoughMatch:
+                                NonExactMatch? existing = nonExactButGoodEnoughMatches
+                                    .FirstOrDefault(m => 
+                                                        m.Actual == value && 
+                                                        m.Expected == bestMatch.Expected && 
+                                                        m.Source == name);
+                                
+                                if (existing != null)
+                                    existing.Count++;
+                                else
+                                    nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, name, 1));
+                                break;
+                            
+                            case NotAMatch:
+                                issues.Add(new TranslitMismatchIssue("English", key, bestMatch.Expected, value, "name", name));
+                                break;
+                            
+                            default:
+                                throw new NotImplementedException();
+                        }
+                        
+                        break;
+                    }
+                    default:
+                    {
+                        if (ignoredLocales.ContainsKey(language))
+                            ignoredLocales[language]++;
+                        else
+                            ignoredLocales.Add(language, 1);
+                        break;
+                    }
                 }
-                
-                // todo: list languages we ignore 
             }
             
             
@@ -165,8 +221,6 @@ public class ImproperTranslationAnalyzer : Analyzer
                     problemFeatures.Add(new ProblemFeature(new List<OsmElement>() { element }, issues));
             }
         }
-        
-        // todo: list languages we don't know hwo to compare
         
         // Report
         
@@ -210,6 +264,24 @@ public class ImproperTranslationAnalyzer : Analyzer
                 ReportGroup.Issues,
                 new GenericReportEntry(
                     "There were " + fullMatches.Count + " exact expected transliterated matches."
+                )
+            );
+        }
+    
+            
+        report.AddGroup(
+            ReportGroup.OtherLanguages, 
+            "Other languages",
+            "This lists entries of languages that were not checked. "
+        );
+
+        foreach (var (locale, number) in ignoredLocales)
+        {
+            report.AddEntry(
+                ReportGroup.OtherLanguages,
+                new IssueReportEntry(
+                    "Locale '" + locale + "' was ignored. " + 
+                    number + " element" + (number % 10 == 1 ? "" : "s") + " have tag `name:" + locale + "`"
                 )
             );
         }
@@ -275,6 +347,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             key == "name:etymology" ||
             key == "name:carnaval" ||
             key == "name:language" ||
+            key == "name:source" ||
             key.Count(c => c == ':') > 1) // sub-sub keys can do a lot of stuff like specify sources, date ranges, etc.
         {
             return null;
@@ -287,29 +360,6 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         return key[5..];
     }
-
-    [Pure]
-    private static string LatvianToRussianStreetNameSuffix(string suffix)
-    {
-        return suffix switch
-        {
-            "iela"      => "улица",
-            "bulvāris"  => "бульвар",
-            "ceļš"      => "дорога",
-            "gatve"     => "гатве", // apparently, not translated but transliterated
-            "šoseja"    => "шоссе",
-            "tilts"     => "мост",
-            "dambis"    => "дамбис",
-            "aleja"     => "аллея",
-            "apvedceļš" => "окружная дорога",
-            "laukums"   => "площадь",
-            "prospekts" => "проспект",
-            "pārvads"   => "переезд",
-            
-            _ => "улица"
-        };
-    }
-
 
     private class ProblemFeature
     {
@@ -425,6 +475,47 @@ public class ImproperTranslationAnalyzer : Analyzer
             }
         }
     }
+
+    private class LatinNameMatcher : NameMatcher
+    {
+        public static NameMatcher Instance { get; } = new LatinNameMatcher();
+
+        
+        public override double Cost(char c1, char c2)
+        {
+            c1 = char.ToLower(c1);
+            c2 = char.ToLower(c2);
+            
+            return Math.Min( // we don't care about order, but the comparer seems to care, so we just check both "directions"
+                D(c1, c2), 
+                D(c2, c1)
+            );
+            
+            static double D(char c1, char c2)
+            {
+                // Letters that we might fail to transliterate are okay to consider very similar
+
+                // Don't know if "downplaying" garumziem is OK
+                // if (c1 == 'ē' && c2 == 'e') return 0.5;
+                // if (c1 == 'ū' && c2 == 'u') return 0.5;
+                // if (c1 == 'ī' && c2 == 'i') return 0.5;
+                // if (c1 == 'ō' && c2 == 'o') return 0.5;
+                // if (c1 == 'ā' && c2 == 'a') return 0.5;
+                // if (c1 == 'č' && c2 == 'c') return 0.5;
+                // if (c1 == 'ķ' && c2 == 'k') return 0.5;
+                // if (c1 == 'ļ' && c2 == 'l') return 0.5;
+                // if (c1 == 'ņ' && c2 == 'n') return 0.5;
+                // if (c1 == 'ģ' && c2 == 'g') return 0.5;
+                // if (c1 == 'ž' && c2 == 'z') return 0.5;
+
+                // Deos this exist?
+                // if (c1 == 'ŗ' && c2 == 'r') return 0.5;
+                
+
+                return 1.0;
+            }
+        }
+    }
     
     
     private class NonExactMatch
@@ -450,6 +541,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
     private enum ReportGroup
     {
-        Issues
+        Issues,
+        OtherLanguages
     }
 }

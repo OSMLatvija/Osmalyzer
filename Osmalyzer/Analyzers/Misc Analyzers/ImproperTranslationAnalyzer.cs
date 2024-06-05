@@ -31,6 +31,8 @@ public class ImproperTranslationAnalyzer : Analyzer
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
         OsmNamesAnalysisData osmNamesData = datas.OfType<OsmNamesAnalysisData>().First();
 
+        Dictionary<string, int> ignoredLocales = new Dictionary<string, int>();
+
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract osmElements = osmMasterData.Filter(
@@ -52,7 +54,6 @@ public class ImproperTranslationAnalyzer : Analyzer
         foreach (OsmElement element in osmElements.Elements)
         {
             List<Issue> issues = new List<Issue>();
-            
             
             string name = element.GetValue("name")!;
             
@@ -193,9 +194,15 @@ public class ImproperTranslationAnalyzer : Analyzer
                         
                         break;
                     }
+                    default:
+                    {
+                        if (ignoredLocales.ContainsKey(language))
+                            ignoredLocales[language]++;
+                        else
+                            ignoredLocales.Add(language, 1);
+                        break;
+                    }
                 }
-                
-                // todo: list languages we ignore 
             }
             
             
@@ -214,8 +221,6 @@ public class ImproperTranslationAnalyzer : Analyzer
                     problemFeatures.Add(new ProblemFeature(new List<OsmElement>() { element }, issues));
             }
         }
-        
-        // todo: list languages we don't know hwo to compare
         
         // Report
         
@@ -259,6 +264,24 @@ public class ImproperTranslationAnalyzer : Analyzer
                 ReportGroup.Issues,
                 new GenericReportEntry(
                     "There were " + fullMatches.Count + " exact expected transliterated matches."
+                )
+            );
+        }
+    
+            
+        report.AddGroup(
+            ReportGroup.OtherLanguages, 
+            "Other languages",
+            "This lists entries of languages that were not checked. "
+        );
+
+        foreach (var (locale, number) in ignoredLocales)
+        {
+            report.AddEntry(
+                ReportGroup.OtherLanguages,
+                new IssueReportEntry(
+                    "Locale '" + locale + "' was ignored. " + 
+                    number + " element" + (number % 10 == 1 ? "" : "s") + " have tag `name:" + locale + "`"
                 )
             );
         }
@@ -324,6 +347,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             key == "name:etymology" ||
             key == "name:carnaval" ||
             key == "name:language" ||
+            key == "name:source" ||
             key.Count(c => c == ':') > 1) // sub-sub keys can do a lot of stuff like specify sources, date ranges, etc.
         {
             return null;
@@ -517,6 +541,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
     private enum ReportGroup
     {
-        Issues
+        Issues,
+        OtherLanguages
     }
 }

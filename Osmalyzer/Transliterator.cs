@@ -19,6 +19,10 @@ public static class Transliterator
         name = Regex.Replace(name, @"ļ(?![euioaēūīōāļ])", "ль");
         name = Regex.Replace(name, @"ģ(?![euioaēūīōāģ])", "гь");
         
+        // Эйзенштейна not Эизенштейна for Eizenšteina - but only at the start of word
+        name = Regex.Replace(name, @"\b[EĒ]i", "Эй");
+        name = Regex.Replace(name, @"\b[eē]i", "эй");
+        
         // Элизабетес not Елизабетес for Elizabetes - but only at the start of word
         name = Regex.Replace(name, @"\b[EĒ]", "Э");
         name = Regex.Replace(name, @"\b[eē]", "э");

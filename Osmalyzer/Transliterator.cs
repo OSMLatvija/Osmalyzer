@@ -40,7 +40,7 @@ public static class Transliterator
         // Екабпилс not Йекабпилс for Jēkabpils
         name = ReplaceWithPreserveCase(name, "je", "е");
         name = ReplaceWithPreserveCase(name, "jē", "е");
-        
+
         // Кришьяня not Кришяня for Krišjāņa
         name = ReplaceWithPreserveCase(name, "šja", "шья");
         name = ReplaceWithPreserveCase(name, "šjā", "шья");
@@ -59,7 +59,6 @@ public static class Transliterator
         // Гравю not Гравйу for Grāvju
         name = ReplaceWithPreserveCase(name, "ju", "ю");
         name = ReplaceWithPreserveCase(name, "jū", "ю");
-        name = ReplaceWithPreserveCase(name, "pju", "пю");
 
         // Гипократа not Хипократа for Hipokrāta
         name = ReplaceWithPreserveCase(name, "hi", "ги");

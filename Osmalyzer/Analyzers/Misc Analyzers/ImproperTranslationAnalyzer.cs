@@ -333,7 +333,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         double distance = l.Distance(actual, expectedLower);
 
-        return distance <= 2.0 ? new GoodEnoughMatch(expectedOriginal) : new NotAMatch(expectedOriginal);
+        return distance <= 0.5 ? new GoodEnoughMatch(expectedOriginal) : new NotAMatch(expectedOriginal);
     }
 
     [Pure]

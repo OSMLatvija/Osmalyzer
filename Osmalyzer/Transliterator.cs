@@ -12,6 +12,12 @@ public static class Transliterator
         
         // Numbers don't have period
         name = Regex.Replace(name, @"(\d+).", "$1");
+
+        // Replace soft consonant followed by another consonant with soft sign
+        name = Regex.Replace(name, @"ņ(?![euioaēūīōāņ])", "нь");
+        name = Regex.Replace(name, @"ķ(?![euioaēūīōāķ])", "кь");
+        name = Regex.Replace(name, @"ļ(?![euioaēūīōāļ])", "ль");
+        name = Regex.Replace(name, @"ģ(?![euioaēūīōāģ])", "гь");
         
         // Элизабетес not Елизабетес for Elizabetes - but only at the start of word
         name = Regex.Replace(name, @"\b[EĒ]", "Э");

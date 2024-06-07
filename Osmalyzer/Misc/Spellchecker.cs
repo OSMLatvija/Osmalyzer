@@ -20,7 +20,7 @@ public class Spellchecker
     {
         char[] punctuation = text.Where(char.IsPunctuation).Distinct().ToArray();
         
-        IEnumerable<string> words = text.Split().Select(x => x.Trim(punctuation));
+        IEnumerable<string> words = text.Split().Select(x => x.Trim(punctuation)).Where(w => w != "");
 
         List<Misspelling>? misspellings = null;
 

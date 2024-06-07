@@ -1,5 +1,6 @@
-﻿using System.IO;
-using NHunspell;
+﻿using System.Collections.Generic;
+using System.IO;
+using WeCantSpell.Hunspell;
 
 namespace Osmalyzer;
 
@@ -15,7 +16,7 @@ public class LatvianHunspellDictionaryAnalysisData : AnalysisData, ISpellcheckPr
     protected override string DataFileIdentifier => "";
 
 
-    private Hunspell _hunspell = null!; // only null until prepared
+    private WordList _dictionary = null!; // only null until prepared
 
 
     protected override void Download()
@@ -36,7 +37,8 @@ public class LatvianHunspellDictionaryAnalysisData : AnalysisData, ISpellcheckPr
             Path.GetFullPath("LSD") // lol
         );
 
-        _hunspell = new Hunspell("LSD/lv_LV.aff", "LSD/lv_LV.dic");
+        
+        _dictionary = WordList.CreateFromFiles(@"LSD/lv_LV.dic", "LSD/lv_LV.aff");
         // todo: hypen data
     }
 
@@ -44,6 +46,6 @@ public class LatvianHunspellDictionaryAnalysisData : AnalysisData, ISpellcheckPr
     [Pure]
     public bool Spell(string word)
     {
-        return _hunspell.Spell(word);
+        return _dictionary.Check(word);
     }
 }

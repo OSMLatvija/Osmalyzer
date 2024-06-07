@@ -31,8 +31,8 @@ jobs:
     
     # Multiple steps
     - run: dotnet restore
-    - run: dotnet build --runtime linux-x64 --configuration Release --no-restore --property:ExtraDefineConstants=REMOTE_EXECUTION
-    - run: dotnet run --runtime linux-x64 --project Osmalyzer --configuration Release --no-build
+    - run: dotnet build --os linux --configuration Release --no-restore --property:ExtraDefineConstants=REMOTE_EXECUTION
+    - run: dotnet run --os linux --project Osmalyzer --configuration Release --no-build
     
     ## Profile
     #- run: dotnet restore

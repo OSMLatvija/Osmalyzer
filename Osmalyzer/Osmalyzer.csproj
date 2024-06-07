@@ -21,6 +21,8 @@
       <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
       <PackageReference Include="itext7" Version="8.0.0" />
       <PackageReference Include="NetTopologySuite.IO.ShapeFile" Version="2.1.0" />
+      <PackageReference Include="NHunspell" Version="1.2.5554.16953" />
+      <PackageReference Include="NHunspell.Patched" Version="1.2.5554" />
       <PackageReference Include="ProjNET" Version="2.0.0" />
       <PackageReference Include="Selenium.WebDriver" Version="4.21.0" />
       <PackageReference Include="SharpKml.Core" Version="6.0.0" />
@@ -75,6 +77,8 @@
         <Link>readme.md</Link>
       </Content>
     </ItemGroup>
+
+
 
 
 </Project>

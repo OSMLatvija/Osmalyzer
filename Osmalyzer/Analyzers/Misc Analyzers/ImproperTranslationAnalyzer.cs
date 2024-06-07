@@ -260,10 +260,11 @@ public class ImproperTranslationAnalyzer : Analyzer
                     language.Name,
                     new IssueReportEntry(
                         (problemFeature.Elements.Count > 1 ? problemFeature.Elements.Count + " elements have " : "Element has ") +
-                        (problemFeature.Issues.Count > 1 ? problemFeature.Issues.Count + " issues" : "issue") + ": " +
-                        string.Join("; ", problemFeature.Issues.Select(i => i.ReportString())) + " -- " +
-                        string.Join(", ", problemFeature.Elements.Take(10).Select(e => e.OsmViewUrl)) +
-                        (problemFeature.Elements.Count > 10 ? " and " + (problemFeature.Elements.Count - 10) + " more" : "")
+                        (problemFeature.Issues.Count > 1 ? problemFeature.Issues.Count + " issues" : "an issue") + ": " +
+                        string.Join("; ", problemFeature.Issues.Select(i => i.ReportString())) + 
+                        " -- " + string.Join(", ", problemFeature.Elements.Take(10).Select(e => e.OsmViewUrl)) +
+                        (problemFeature.Elements.Count > 10 ? " and " + (problemFeature.Elements.Count - 10) + " more" : ""),
+                        new SortEntryDesc(problemFeature.Elements.Count)
                     )
                 );
             }
@@ -298,13 +299,14 @@ public class ImproperTranslationAnalyzer : Analyzer
             "This lists entries of languages that were not checked. "
         );
 
-        foreach ((string language, int number) in ignoredLanguages.OrderByDescending(kv => kv.Value))
+        foreach ((string language, int number) in ignoredLanguages)
         {
             report.AddEntry(
                 GenericReportGroup.OtherLanguages,
                 new IssueReportEntry(
                     "Language '" + language + "' was ignored. " + 
-                    number + " " + (number == 1 ? "element has" : "elements have") + " tag `name:" + language + "`"
+                    number + " " + (number == 1 ? "element has" : "elements have") + " tag `name:" + language + "`",
+                    new SortEntryDesc(number)
                 )
             );
         }

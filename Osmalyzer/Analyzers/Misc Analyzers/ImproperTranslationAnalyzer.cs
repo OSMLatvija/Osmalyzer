@@ -333,7 +333,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         double distance = l.Distance(actual, expectedLower);
 
-        return distance <= 2.0 ? new GoodEnoughMatch(expectedOriginal) : new NotAMatch(expectedOriginal);
+        return distance <= 0.5 ? new GoodEnoughMatch(expectedOriginal) : new NotAMatch(expectedOriginal);
     }
 
     [Pure]
@@ -502,6 +502,8 @@ public class ImproperTranslationAnalyzer : Analyzer
                 if (c1 == 'е' && c2 == 'ё') return 0.5;
                 if (c1 == 'и' && c2 == 'й') return 0.5;
                 if (c1 == 'ш' && c2 == 'щ') return 0.5;
+                if (c1 == 'х' && c2 == 'г') return 0.5;
+                if (c1 == 'а' && c2 == 'я') return 0.5;
 
                 return 1.0;
             }

@@ -12,6 +12,20 @@ public static class Transliterator
         
         // Numbers don't have period
         name = Regex.Replace(name, @"(\d+).", "$1");
+
+        // Replace soft consonant followed by another consonant with soft sign
+        name = Regex.Replace(name, @"ņ(?![euioaēūīōāņ])", "нь");
+        name = Regex.Replace(name, @"ķ(?![euioaēūīōāķ])", "кь");
+        name = Regex.Replace(name, @"ļ(?![euioaēūīōāļ])", "ль");
+        name = Regex.Replace(name, @"ģ(?![euioaēūīōāģ])", "гь");
+
+        // For combinations consonant + j + vowel add a soft sign into transliteration, to emphasize presence of sound `j`
+        // Example: Кришьяня not Кришяня for Krišjāņa
+        name = Regex.Replace(name, @"(?<=[rtplkgfdscvbnmļķņčģ])(?=j[aeuioāēūīō])", "ь", RegexOptions.IgnoreCase);
+        
+        // Эйзенштейна not Эизенштейна for Eizenšteina - but only at the start of word
+        name = Regex.Replace(name, @"\b[EĒ]i", "Эй");
+        name = Regex.Replace(name, @"\b[eē]i", "эй");
         
         // Элизабетес not Елизабетес for Elizabetes - but only at the start of word
         name = Regex.Replace(name, @"\b[EĒ]", "Э");
@@ -49,14 +63,9 @@ public static class Transliterator
         // Гравю not Гравйу for Grāvju
         name = ReplaceWithPreserveCase(name, "ju", "ю");
         name = ReplaceWithPreserveCase(name, "jū", "ю");
-        name = ReplaceWithPreserveCase(name, "pju", "пю");
 
         // Гипократа not Хипократа for Hipokrāta
         name = ReplaceWithPreserveCase(name, "hi", "ги");
-        
-        // Кришьяня not Кришяня for Krišjāņa
-        name = ReplaceWithPreserveCase(name, "šja", "шья");
-        name = ReplaceWithPreserveCase(name, "šjā", "шья");
         
         // Generic character to character conversion
         

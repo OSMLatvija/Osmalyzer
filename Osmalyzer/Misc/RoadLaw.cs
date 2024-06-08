@@ -348,6 +348,8 @@ public class RoadLaw
 
         notes = HttpUtility.HtmlDecode(notes).Trim(); // can have stuff like &nbsp;
 
+        notes = notes.Replace('\u00a0', ' '); // replace literal NBSP with space
+        
         if (notes == string.Empty)
             notes = null;
 

@@ -6,12 +6,12 @@ namespace Osmalyzer;
 
 public class Spellchecker
 {
-    private readonly ISpellcheckProvider _provider;
+    private readonly ISpellcheckProvider[] _providers;
 
     
-    public Spellchecker(ISpellcheckProvider provider)
+    public Spellchecker(params ISpellcheckProvider[] providers)
     {
-        _provider = provider;
+        _providers = providers;
     }
 
     
@@ -26,7 +26,18 @@ public class Spellchecker
 
         foreach (string word in words)
         {
-            if (!_provider.Spell(word))
+            bool ok = false;
+            
+            foreach (ISpellcheckProvider provider in _providers)
+            {
+                if (provider.Spell(word))
+                {
+                    ok = true; // accepted spelling from at least one provider == ok
+                    break;
+                }
+            }
+
+            if (!ok)
             {
                 if (misspellings == null)
                     misspellings = new List<Misspelling>();

@@ -17,7 +17,8 @@ public class SpellingAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => new List<Type>() 
     {
         typeof(OsmAnalysisData),
-        typeof(LatvianHunspellDictionaryAnalysisData)
+        typeof(LatvianHunspellDictionaryAnalysisData),
+        typeof(LatvianCustomDictionaryAnalysisData)
     };
         
 
@@ -37,11 +38,12 @@ public class SpellingAnalyzer : Analyzer
         
         // Spellcheck
         
-        LatvianHunspellDictionaryAnalysisData dictionaryData = datas.OfType<LatvianHunspellDictionaryAnalysisData>().First();
+        LatvianHunspellDictionaryAnalysisData hunspellData = datas.OfType<LatvianHunspellDictionaryAnalysisData>().First();
+        LatvianCustomDictionaryAnalysisData customData = datas.OfType<LatvianCustomDictionaryAnalysisData>().First();
 
         // Parse
 
-        Spellchecker spellchecker = new Spellchecker(dictionaryData);
+        Spellchecker spellchecker = new Spellchecker(hunspellData, customData);
 
         // Collect problems grouped by problematic value, so we can list then in bulk
         Dictionary<string, Problem> problems = new Dictionary<string, Problem>();

@@ -25,7 +25,7 @@ public static class Runner
             // new CommonBrandsAnalyzer(),
             // new HighwaySeasonalSpeedsAnalyzer(),
             // new LivingZoneSpeedAnalyzer(),
-            new LVCRoadAnalyzer(),
+            // new LVCRoadAnalyzer(),
             // new RigasSatiksmeAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
@@ -72,7 +72,7 @@ public static class Runner
             // new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
             // new ImproperTranslationAnalyzer(),
-            // new SpellingAnalyzer()
+            new SpellingAnalyzer()
         };
 #endif
 

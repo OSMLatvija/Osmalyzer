@@ -9,7 +9,7 @@ public class LatvianHunspellDictionaryAnalysisData : AnalysisData, ISpellcheckPr
 {
     public override string Name => "Latvian Hunspell spellcheck dictionary";
 
-    public override string? ReportWebLink => "https://dict.dv.lv/download.php?prj=lv";
+    public override string ReportWebLink => "https://dict.dv.lv/download.php?prj=lv";
     
     public override bool NeedsPreparation => true;
     

@@ -20,7 +20,7 @@ public static class Transliterator
         name = Regex.Replace(name, @"ģ(?![euioaēūīōāģ])", "гь");
 
         // For combinations consonant + j + vowel add a soft sign into transliteration, to emphasize presence of sound `j`
-        // Example: Кришьяня not Кришяня for Krišjāņa
+        // Example: Канепью not Канепю for Kaņepju
         name = Regex.Replace(name, @"(?<=[rtplkgfdscvbnmļķņčģ])(?=j[aeuioāēūīō])", "ь", RegexOptions.IgnoreCase);
         
         // Эйзенштейна not Эизенштейна for Eizenšteina - but only at the start of word
@@ -48,6 +48,10 @@ public static class Transliterator
         // Екабпилс not Йекабпилс for Jēkabpils
         name = ReplaceWithPreserveCase(name, "je", "е");
         name = ReplaceWithPreserveCase(name, "jē", "е");
+
+        // Кришьяня not Кришяня for Krišjāņa
+        name = ReplaceWithPreserveCase(name, "šja", "шья");
+        name = ReplaceWithPreserveCase(name, "šjā", "шья");
         
         // Стацияс not Стацийас for Stacijas
         name = ReplaceWithPreserveCase(name, "ja", "я");

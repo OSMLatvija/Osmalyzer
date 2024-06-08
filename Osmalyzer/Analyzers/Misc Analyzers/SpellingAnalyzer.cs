@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Osmalyzer;
 
@@ -46,7 +47,7 @@ public class SpellingAnalyzer : Analyzer
         Spellchecker spellchecker = new Spellchecker(hunspellData, customData);
 
         // Collect problems grouped by problematic value, so we can list then in bulk
-        Dictionary<string, Problem> problems = new Dictionary<string, Problem>();
+        List<Problem> problems = new List<Problem>();
         
         // Avoid checking things we've seen and decided are ok
         HashSet<string> okValues = new HashSet<string>();
@@ -56,43 +57,75 @@ public class SpellingAnalyzer : Analyzer
         
         foreach (OsmElement element in osmElements.Elements)
         {
-            string name = element.GetValue("name")!;
+            string rawName = element.GetValue("name")!;
 
-            if (problems.TryGetValue(name, out Problem? problem))
-            {
-                // Already decided this value is a problem
-                
-                misspelled++;
-                problem.Elements.Add(element);
-            }
-            else if (!okValues.Contains(name))
-            {
-                // Not yet seen this value, will now check if it's good/bad
-                
-                SpellcheckResult result = spellchecker.Check(name);
+            // Split by ; as multi-vlaues or / as different language alternatives
+            
+            // Make sure to preserve known "/" uses
+            // (note that we can't just split with " / ", because many names don't add such space)
+            const char temp = '\uFFFD';
+            string[] knownUses = {
+                @"(A)/(S)", // akciju sabiedrība
+                @"(T)/(C)", // tirdzniecības centrs
+                @"(T)/(P)", // tirdzniecības parks
+                @"(B)/(C)", // biznesa centrs
+                @"(a)/(c)", // autoceļš
+                @"(Z)/(S)", // zemnieku sabiedrība
+                @"(K)/(S)", // kooperatīvā? sabiedrība
+                @"(D)/(B)", // dārzkopības biedrība
+                @"(I)/(U)", // individuālais uzņēmums
+                @"(\d+\.?)/(\d+)kV" // 2023/2024 or 24/7 or 110/110kV
+            };
+            foreach (string knownUse in knownUses)
+                rawName = Regex.Replace(rawName, knownUse, $@"$1{temp}$2", RegexOptions.IgnoreCase);
+            
+            List<string> parts = rawName.Split(';', '/')
+                                        .Select(p => p.Trim().Replace(temp, '/'))
+                                        .Where(p => p != "")
+                                        .ToList();
 
-                switch (result)
+            rawName = rawName.Replace(temp, '/');
+            
+            foreach (string part in parts)
+            {
+                Problem? existingProblem = problems.FirstOrDefault(p => p.Value == rawName && p.Part == part);
+                
+                if (existingProblem != null)
                 {
-                    case OkaySpellcheckResult:
-                        ok++;
-                        // Don't recheck this in futrure
-                        okValues.Add(name);
-                        break;
+                    // Already decided this value/part is a problem
 
-                    case MisspelledSpellcheckResult misspelledResult:
-                        misspelled++;
-                        problems.Add(name, new Problem(name, element, misspelledResult));
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(result));
+                    misspelled++;
+                    existingProblem.Elements.Add(element);
                 }
-            }
-            else
-            {
-                // Seen this value before and it was ok
-                
-                ok++;
+                else if (!okValues.Contains(part))
+                {
+                    // Not yet seen this value/part, will now check if it's good/bad
+
+                    SpellcheckResult result = spellchecker.Check(part);
+
+                    switch (result)
+                    {
+                        case OkaySpellcheckResult:
+                            ok++;
+                            // Don't recheck this in futrure
+                            okValues.Add(part);
+                            break;
+
+                        case MisspelledSpellcheckResult misspelledResult:
+                            misspelled++;
+                            problems.Add(new Problem(rawName, part, element, misspelledResult));
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(result));
+                    }
+                }
+                else
+                {
+                    // Seen this value before and it was ok
+
+                    ok++;
+                }
             }
         }
         
@@ -111,13 +144,15 @@ public class SpellingAnalyzer : Analyzer
             )
         );
 
-        foreach (Problem problem in problems.Values)
+        foreach (Problem problem in problems)
         {
             report.AddEntry(
                 ReportGroup.SpellingIssues,
                 new IssueReportEntry(
                     (problem.Elements.Count > 1 ? problem.Elements.Count + " elements have " : "Element has ") +
-                    " name `" + problem.Value + "` with " +
+                    " name `" + problem.Value + "` " +
+                    (problem.Part != problem.Value ? " part `" + problem.Part + "`" : "") +
+                    " with " +
                     (problem.Result.Misspellings.Count > 1 ? problem.Result.Misspellings.Count + " unknown spellings" : "an unknown spelling") + ": " +
                     string.Join(", ", problem.Result.Misspellings.Select(m => "`" + m.Word + "`")) +
                     " -- " + string.Join(", ", problem.Elements.Take(10).Select(e => e.OsmViewUrl)) +
@@ -133,14 +168,17 @@ public class SpellingAnalyzer : Analyzer
     {
         public string Value { get; }
         
+        public string Part { get; }
+        
         public List<OsmElement> Elements { get; }
 
         public MisspelledSpellcheckResult Result { get; }
 
         
-        public Problem(string value, OsmElement element, MisspelledSpellcheckResult result)
+        public Problem(string value, string part, OsmElement element, MisspelledSpellcheckResult result)
         {
             Value = value;
+            Part = part;
             Elements = new List<OsmElement>() { element };
             Result = result;
         }

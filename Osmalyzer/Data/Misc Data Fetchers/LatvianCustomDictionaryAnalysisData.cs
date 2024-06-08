@@ -42,7 +42,7 @@ public class LatvianCustomDictionaryAnalysisData : AnalysisData, ISpellcheckProv
             // 1 is the word
             // 2 is (optional) comment
 
-            _customWordList.Add(splits[0]);
+            _customWordList.Add(splits[0].ToLower());
         }
     }
 
@@ -56,6 +56,6 @@ public class LatvianCustomDictionaryAnalysisData : AnalysisData, ISpellcheckProv
     [Pure]
     public bool Spell(string word)
     {
-        return _customWordList.Contains(word);
+        return _customWordList.Contains(word.ToLower());
     }
 }

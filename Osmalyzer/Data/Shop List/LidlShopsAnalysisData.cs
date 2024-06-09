@@ -48,7 +48,11 @@ public class LidlShopsAnalysisData : ShopListAnalysisData
         
         foreach (Match match in matches)
         {
-            var url = WebsiteDownloadHelper.GetRedirectUrl(match.Groups[1].Value);
+            // TODO: Move download to Download(), Prepare() should not be doing any web stuff or anything that can normally fail
+            string? url = WebsiteDownloadHelper.GetRedirectUrl(match.Groups[1].Value);
+            if (url == null)
+                throw new Exception("Could not get redirect URL");
+            
             Match m = Regex.Match(url, @"!3d(\d+\.\d+)!4d(\d+\.\d+)");
             OsmCoord coord = new OsmCoord(
                 double.Parse(m.Groups[1].Value),
@@ -59,7 +63,5 @@ public class LidlShopsAnalysisData : ShopListAnalysisData
 
             _shops.Add(sd);
         }
-
-        var i = _shops.Count;
     }
 }

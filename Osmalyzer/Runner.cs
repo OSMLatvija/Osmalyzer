@@ -72,9 +72,9 @@ public static class Runner
             // new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
             // new ImproperTranslationAnalyzer(),
-            // new LidlShopAnalyzer(),
-            // new UnisendParcelLockerAnalyzer(),
-            new SpellingAnalyzer()
+            new LidlShopAnalyzer(),
+            new UnisendParcelLockerAnalyzer(),
+            // new SpellingAnalyzer()
         };
 #endif
 

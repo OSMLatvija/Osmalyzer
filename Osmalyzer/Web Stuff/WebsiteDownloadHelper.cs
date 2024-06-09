@@ -70,16 +70,15 @@ public static class WebsiteDownloadHelper
         return lastModifedOffset.Value.UtcDateTime;
     }
 
-    
-    public static string GetRedirectUrl(string url)
+    public static string? GetRedirectUrl(string url)
     {
-        var handler = new HttpClientHandler()
-            {
-                AllowAutoRedirect = false
-            };
+        HttpClientHandler handler = new HttpClientHandler()
+        {
+            AllowAutoRedirect = false
+        };
         using HttpClient client = new HttpClient(handler);
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri)).Result;
-        return response.Headers.Location?.AbsolutePath ?? "";
+        return response.Headers.Location?.AbsolutePath ?? null;
     }
 }

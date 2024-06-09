@@ -72,6 +72,7 @@ public static class Runner
             // new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
             // new ImproperTranslationAnalyzer(),
+            // new LidlShopAnalyzer(),
             new SpellingAnalyzer()
         };
 #endif

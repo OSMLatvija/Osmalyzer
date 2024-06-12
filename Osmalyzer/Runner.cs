@@ -29,7 +29,7 @@ public static class Runner
             // new RigasSatiksmeAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
-            // new RezeknesSatiksmeAnalyzer(),
+            /// new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
             // new AutotransportaDirekcijaAnalyzer(),
             // new TrolleybusWireAnalyzer(),
@@ -72,9 +72,9 @@ public static class Runner
             // new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
             // new ImproperTranslationAnalyzer(),
-            new LidlShopAnalyzer(),
-            new UnisendParcelLockerAnalyzer(),
-            // new SpellingAnalyzer()
+            // new LidlShopAnalyzer(),
+            // new UnisendParcelLockerAnalyzer(),
+            new SpellingAnalyzer()
         };
 #endif
 

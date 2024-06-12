@@ -59,35 +59,83 @@ public class SpellingAnalyzer : Analyzer
         {
             string rawName = element.GetValue("name")!;
 
-            // Split by ; as multi-vlaues or / as different language alternatives
-            
-            // Make sure to preserve known "/" uses
-            // (note that we can't just split with " / ", because many names don't add such space)
             const char temp = '\uFFFD';
-            string[] knownUses = {
-                @"(A)/(S)", // akciju sabiedrība
-                @"(T)/(C)", // tirdzniecības centrs
-                @"(T)/(P)", // tirdzniecības parks
-                @"(B)/(C)", // biznesa centrs
-                @"(a)/(c)", // autoceļš
-                @"(Z)/(S)", // zemnieku sabiedrība
-                @"(K)/(S)", // kooperatīvā? sabiedrība
-                @"(D)/(B)", // dārzkopības biedrība
-                @"(I)/(U)", // individuālais uzņēmums
-                @"(\d+\.?)/(\d+)kV" // 2023/2024 or 24/7 or 110/110kV
-            };
-            foreach (string knownUse in knownUses)
-                rawName = Regex.Replace(rawName, knownUse, $@"$1{temp}$2", RegexOptions.IgnoreCase);
-            
+
+            if (element.HasValue("public_transport", "platform")) // some stops can have double names, this is fine
+            {
+                rawName = rawName.Replace('/', temp);
+            }
+            else
+            {
+                // Split by ; as multi-vlaues or / as different language alternatives
+
+                // Make sure to preserve known "/" uses
+                // (note that we can't just split with " / ", because many names don't add such space)
+                string[] knownUses =
+                {
+                    @"(A)/(S)", // akciju sabiedrība
+                    @"(T)/(C)", // tirdzniecības centrs
+                    @"(T)/(P)", // tirdzniecības parks
+                    @"(B)/(C)", // biznesa centrs
+                    @"(a)/(c)", // autoceļš
+                    @"(Z)/(S)", // zemnieku sabiedrība
+                    @"(K)/(S)", // kooperatīvā? sabiedrība
+                    @"(D)/(B)", // dārzkopības biedrība
+                    @"(I)/(U)", // individuālais uzņēmums
+                    @"(\d+\.?)/(\d+)" // 2023/2024 or 24/7 or 110/110kV
+                };
+                foreach (string knownUse in knownUses)
+                    rawName = Regex.Replace(rawName, knownUse, $@"$1{temp}$2", RegexOptions.IgnoreCase);
+            }
+
             List<string> parts = rawName.Split(';', '/')
                                         .Select(p => p.Trim().Replace(temp, '/'))
                                         .Where(p => p != "")
                                         .ToList();
 
             rawName = rawName.Replace(temp, '/');
+
+            List<(string, string)>? prefixedValues = null;
             
+            if (parts.Count > 1)
+                prefixedValues = element.GetPrefixedValues("name:");
+
             foreach (string part in parts)
             {
+                if (parts.Count > 1)
+                {
+                    if (prefixedValues != null)
+                    {
+                        // Check if one of the prefixed names have the part and we know the language is something we can't parse
+                        // For example, `name=Laikupe / Lätioja` and `name:lv=Laikupe` + `name:et=Lätioja`
+                        // We know we can ignore `name:et` that matches "Lätioja" and only check the other part.
+                        // (Note that we can only do this for multi-part names, because main `name=Xxx` doesn't mean some random `name:xx` cannot also be "Xxx")
+
+                        bool foundPartAsFullNameOfAnotherLanguage = false;
+
+                        foreach ((string key, string value) in prefixedValues)
+                        {
+                            string? language = ImproperTranslationAnalyzer.ExtractLanguage(key);
+
+                            if (language == null)
+                                continue; // key is not for a language
+
+                            if (language == "lv") // todo: others
+                                continue; // this is the language we actually spell-checking, so even if we match, we can't just skip - who says the name:lv is spelled right?
+
+                            if (value == part) // e.g. "Lätioja" == `name:et=Lätioja`
+                            {
+                                foundPartAsFullNameOfAnotherLanguage = true;
+                                break;
+                            }
+                        }
+
+                        if (foundPartAsFullNameOfAnotherLanguage)
+                            continue; // this part is fine then as is
+                    }
+                }
+                
+
                 Problem? existingProblem = problems.FirstOrDefault(p => p.Value == rawName && p.Part == part);
                 
                 if (existingProblem != null)

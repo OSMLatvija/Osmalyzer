@@ -367,8 +367,12 @@ public class ImproperTranslationAnalyzer : Analyzer
         public override int Quality => -420;
     }
 
+    /// <summary>
+    /// Get the language from the key, if it's a language key, such as "en" or "lv" for `name:en` or `name:lv`.
+    /// Null means it's not a language, but a key for something else, like `name:etymology` or some such.
+    /// </summary>
     [Pure]
-    private static string? ExtractLanguage(string key)
+    public static string? ExtractLanguage(string key)
     {
         if (key == "name:left" ||
             key == "name:right" ||

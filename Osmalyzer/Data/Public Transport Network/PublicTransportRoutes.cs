@@ -54,7 +54,7 @@ public class PublicTransportRoutes
                 
             PublicTransportRoute route = new PublicTransportRoute(id, name, number, type);
 
-            _routes.Add(route.Id, route);
+            _routes.TryAdd(route.Id, route);
         }
     }
 

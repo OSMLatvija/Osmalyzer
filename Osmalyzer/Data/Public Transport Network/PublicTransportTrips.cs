@@ -44,7 +44,7 @@ public class PublicTransportTrips
             PublicTransportService? service = services.GetService(serviceId);
 
             PublicTransportTrip trip = new PublicTransportTrip(tripId, service);
-            _trips.Add(trip.Id, trip);
+            _trips.TryAdd(trip.Id, trip);
 
             if (service != null)
             {

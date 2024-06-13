@@ -43,7 +43,7 @@ public class PublicTransportServices
             string serviceId = segments[0];
 
             PublicTransportService service = new PublicTransportService(serviceId);
-            _services.Add(service.Id, service);
+            _services.TryAdd(service.Id, service);
         }
     }
 

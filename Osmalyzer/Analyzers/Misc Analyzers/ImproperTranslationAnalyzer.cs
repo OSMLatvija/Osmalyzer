@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using F23.StringSimilarity;
 
 namespace Osmalyzer;
@@ -118,11 +119,21 @@ public class ImproperTranslationAnalyzer : Analyzer
 
                             List<string> expectedNames = new List<string>();
 
+                            string translit = Transliterator.TransliterateFromLvToRu(lvNameRaw);
+
                             foreach (string expectedPrefix in expectedRuPrefixes)
                             {
-                                string translit = Transliterator.TransliterateFromLvToRu(lvNameRaw);
-                                expectedNames.Add(expectedPrefix + " " + translit);
-                                expectedNames.Add(translit + " " + expectedPrefix);
+                                if (Regex.Match(translit, @"\d\s*$").Success)
+                                {
+                                    // For names like 'Imantas 1. līnija' -> 'Имантас 1-я линия'
+                                    expectedNames.Add(translit + "-я " + expectedPrefix);
+                                    expectedNames.Add(translit + "-й " + expectedPrefix);
+                                }
+                                else 
+                                {
+                                    expectedNames.Add(expectedPrefix + " " + translit);
+                                    expectedNames.Add(translit + " " + expectedPrefix);
+                                }
                             }
 
                             // Match against current value
@@ -171,10 +182,17 @@ public class ImproperTranslationAnalyzer : Analyzer
 
                             List<string> expectedNames = new List<string>();
 
+                            // Handle names like '12th street' and '2nd Line'
+                            string translit = lvNameRaw;
+                            translit = Regex.Replace(translit, @"(?<!1)1\.\s*$", @"1st");
+                            translit = Regex.Replace(translit, @"(?<!1)2\.\s*$", @"2nd");
+                            translit = Regex.Replace(translit, @"(?<!1)3\.\s*$", @"3rd");
+                            translit = Regex.Replace(translit, @"(\d)\.\s*$", @"$1th");
+
                             // Expect exact name with only translation for the nomenclature
                             foreach (string expectedPrefix in expectedEnPrefixes)
                             {
-                                expectedNames.Add(lvNameRaw + " " + expectedPrefix);
+                                expectedNames.Add(translit + " " + expectedPrefix);
                             }
 
                             // Match against current value
@@ -535,6 +553,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                 if (c1 == 'ш' && c2 == 'щ') return 0.5;
                 if (c1 == 'х' && c2 == 'г') return 0.5;
                 if (c1 == 'а' && c2 == 'я') return 0.5;
+                if (c1 == 'и' && c2 == 'ы') return 0.5;
 
                 return 1.0;
             }

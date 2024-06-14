@@ -53,6 +53,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             knownLanguages.ToDictionary(kl => kl, _ => new LanguageAnalysisResults());
         
         Dictionary<string, int> ignoredLanguages = new Dictionary<string, int>();
+        List<string> ignoredNames = new();
 
         // Parse
 
@@ -66,7 +67,10 @@ public class ImproperTranslationAnalyzer : Analyzer
 
             // todo: how many do we not know?
             if (lvNameRaw == null)
+            {
+                ignoredNames.Add(name);
                 continue; // we don't actually know how this name is constructed in Latvian
+            }
 
             // Other languages
 
@@ -310,6 +314,27 @@ public class ImproperTranslationAnalyzer : Analyzer
                 )
             );
         }
+
+
+        report.AddGroup(
+            GenericReportGroup.OtherNames, 
+            "Ignored names",
+            "List of items that were not checked, because their name was not recognized (for example streets that don't have recovnized translatable nomenclature)"
+        );
+
+        foreach (string n in ignoredNames.Distinct().Where(_ => !_.Contains("—")))
+        {
+            report.AddEntry(
+                GenericReportGroup.OtherNames,
+                new IssueReportEntry(
+                    "Name '" + n + "' was ignored. " 
+                    //number + " " + (number == 1 ? "element has" : "elements have") + " tag `name:" + language + "`",
+                    //new SortEntryDesc(number)
+                )
+            );
+        }
+        
+        
     }
 
 
@@ -553,7 +578,8 @@ public class ImproperTranslationAnalyzer : Analyzer
 
     private enum GenericReportGroup
     {
-        OtherLanguages
+        OtherLanguages,
+        OtherNames
         // Individual langauges will go to their own group
     }
 }

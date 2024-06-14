@@ -72,7 +72,7 @@ public static class Runner
             new UnknownParcelLockerAnalyzer(),
             new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
-            // new ImproperTranslationAnalyzer(),
+            new ImproperTranslationAnalyzer(),
             // new LidlShopAnalyzer(),
             new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer()

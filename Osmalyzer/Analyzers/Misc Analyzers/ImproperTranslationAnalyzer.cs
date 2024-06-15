@@ -137,40 +137,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                             }
 
                             // Match against current value
-
-                            List<Match> matches = expectedNames.Select(en => MatchBetweenFuzzy(value, en, CyrillicNameMatcher.Instance)).ToList();
-
-                            Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
-
-                            switch (bestMatch)
-                            {
-                                case ExactMatch:
-                                    if (languageResults.fullMatches.ContainsKey(value))
-                                        languageResults.fullMatches[value]++;
-                                    else
-                                        languageResults.fullMatches[value] = 1;
-                                    break;
-
-                                case GoodEnoughMatch:
-                                    NonExactMatch? existing = languageResults.nonExactButGoodEnoughMatches
-                                                                             .FirstOrDefault(m =>
-                                                                                                 m.Actual == value &&
-                                                                                                 m.Expected == bestMatch.Expected &&
-                                                                                                 m.Source == name);
-
-                                    if (existing != null)
-                                        existing.Count++;
-                                    else
-                                        languageResults.nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, name, 1));
-                                    break;
-
-                                case NotAMatch:
-                                    issues.Add(new TranslitMismatchIssue("Russian", key, bestMatch.Expected, value, "name", name));
-                                    break;
-
-                                default:
-                                    throw new NotImplementedException();
-                            }
+                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenFuzzyCyrillic);
 
                             break;
                         }
@@ -195,41 +162,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                                 expectedNames.Add(translit + " " + expectedPrefix);
                             }
 
-                            // Match against current value
-
-                            List<Match> matches = expectedNames.Select(en => MatchBetweenExact(value, en)).ToList();
-
-                            Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
-
-                            switch (bestMatch)
-                            {
-                                case ExactMatch:
-                                    if (languageResults.fullMatches.ContainsKey(value))
-                                        languageResults.fullMatches[value]++;
-                                    else
-                                        languageResults.fullMatches[value] = 1;
-                                    break;
-
-                                case GoodEnoughMatch:
-                                    NonExactMatch? existing = languageResults.nonExactButGoodEnoughMatches
-                                                                             .FirstOrDefault(m =>
-                                                                                                 m.Actual == value &&
-                                                                                                 m.Expected == bestMatch.Expected &&
-                                                                                                 m.Source == name);
-
-                                    if (existing != null)
-                                        existing.Count++;
-                                    else
-                                        languageResults.nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, name, 1));
-                                    break;
-
-                                case NotAMatch:
-                                    issues.Add(new TranslitMismatchIssue("English", key, bestMatch.Expected, value, "name", name));
-                                    break;
-
-                                default:
-                                    throw new NotImplementedException();
-                            }
+                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenExact);
 
                             break;
                         }
@@ -355,6 +288,51 @@ public class ImproperTranslationAnalyzer : Analyzer
         
     }
 
+    [Pure]
+    private static void checkTransliteration(
+        string value, 
+        List<string> expectedValues, 
+        string originalName, 
+        LanguageAnalysisResults languageResults, 
+        List<Issue> issues, 
+        KnownLanguage knownLanguage,
+        Func<string, string, Match> matcher
+    )
+    {
+        List<Match> matches = expectedValues.Select(ev => matcher(value, ev)).ToList();
+
+        Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
+
+        switch (bestMatch)
+        {
+            case ExactMatch:
+                if (languageResults.fullMatches.ContainsKey(value))
+                    languageResults.fullMatches[value]++;
+                else
+                    languageResults.fullMatches[value] = 1;
+                break;
+
+            case GoodEnoughMatch:
+                NonExactMatch? existing = languageResults.nonExactButGoodEnoughMatches
+                                                            .FirstOrDefault(m =>
+                                                                                m.Actual == value &&
+                                                                                m.Expected == bestMatch.Expected &&
+                                                                                m.Source == originalName);
+
+                if (existing != null)
+                    existing.Count++;
+                else
+                    languageResults.nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, originalName, 1));
+                break;
+
+            case NotAMatch:
+                issues.Add(new TranslitMismatchIssue(knownLanguage.Name, knownLanguage.OsmSuffix, bestMatch.Expected, value, "name", originalName));
+                break;
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
 
     [Pure]
     private static string? ExtractRawLatvianName(string name, out string? suffix)
@@ -363,6 +341,12 @@ public class ImproperTranslationAnalyzer : Analyzer
             return name[..^(suffix!.Length + 1)]; // also grab the implied space 
 
         return null;
+    }
+
+    [Pure]
+    private static Match MatchBetweenFuzzyCyrillic(string actual, string expectedOriginal)
+    {
+        return MatchBetweenFuzzy(actual, expectedOriginal, CyrillicNameMatcher.Instance);
     }
 
     [Pure]

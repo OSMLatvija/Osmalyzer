@@ -82,6 +82,9 @@ public static class Transliterator
             translit += newC;
         }
 
+        // Post processing 
+        translit = translit.Replace("ьйо","ё");
+
         return translit;
     }
 

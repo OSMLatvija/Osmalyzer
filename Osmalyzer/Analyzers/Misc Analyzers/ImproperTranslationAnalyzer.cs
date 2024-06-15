@@ -34,9 +34,12 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
-        OsmDataExtract osmElements = osmMasterData.Filter(
+        OsmDataExtract osmHighwayElements = osmMasterData.Filter(
             new IsWay(),
-            new HasKey("highway"),
+            new OrMatch(
+                new HasKey("highway"),
+                new HasValue("route", "road")
+            ),
             new HasKey("name"),
             new HasKeyPrefixed("name:"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
@@ -58,7 +61,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         // Parse
 
-        foreach (OsmElement element in osmElements.Elements)
+        foreach (OsmElement element in osmHighwayElements.Elements)
         {
             string name = element.GetValue("name")!;
 

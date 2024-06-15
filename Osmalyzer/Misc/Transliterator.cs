@@ -86,6 +86,17 @@ public static class Transliterator
     }
 
     
+    [Pure]
+    public static string TransliterateFromLvToEn(string name)
+    {
+        string translit = name;
+        translit = Regex.Replace(translit, @"(?<!1)1\.\s*$", @"1st");
+        translit = Regex.Replace(translit, @"(?<!1)2\.\s*$", @"2nd");
+        translit = Regex.Replace(translit, @"(?<!1)3\.\s*$", @"3rd");
+        translit = Regex.Replace(translit, @"(\d)\.\s*$", @"$1th");
+        return translit;
+    }
+
     private static string ReplaceWithPreserveCase(string str, string find, string replace)
     {
         string lowerFind = find.ToLower();

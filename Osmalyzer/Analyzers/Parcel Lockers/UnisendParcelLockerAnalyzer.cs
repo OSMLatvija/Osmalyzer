@@ -6,8 +6,9 @@ public class UnisendParcelLockerAnalyzer : ParcelLockerAnalyzer<UnisendParcelLoc
 {
     protected override string Operator => "Unisend";
 
-    protected override List<ValidationRule>? ValidationRules => new() {
-            new ValidateElementHasValue("brand", "Unisend"),
-            new ValidateElementHasValue("operator", "Unisend", "uDrop"),
-        };
+    protected override List<ValidationRule> ValidationRules => new List<ValidationRule>
+    {
+        new ValidateElementHasValue("brand", "Unisend"),
+        new ValidateElementHasValue("operator", "Unisend", "uDrop"),
+    };
 }

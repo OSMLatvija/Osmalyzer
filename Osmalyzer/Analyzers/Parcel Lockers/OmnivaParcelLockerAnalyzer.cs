@@ -6,10 +6,11 @@ public class OmnivaParcelLockerAnalyzer : ParcelLockerAnalyzer<OmnivaParcelLocke
 {
     protected override string Operator => "Omniva";
 
-    protected override List<ValidationRule>? ValidationRules => new() {
-            new ValidateElementHasValue("brand", Operator),
-            new ValidateElementHasValue("brand:wikidata", "Q282457"),
-            new ValidateElementHasValue("parcel_pickup", "yes"),
-            new ValidateElementHasValue("parcel_mail_in", "yes"),
-        };
+    protected override List<ValidationRule> ValidationRules => new List<ValidationRule>
+    {
+        new ValidateElementHasValue("brand", Operator),
+        new ValidateElementHasValue("brand:wikidata", "Q282457"),
+        new ValidateElementHasValue("parcel_pickup", "yes"),
+        new ValidateElementHasValue("parcel_mail_in", "yes"),
+    };
 }

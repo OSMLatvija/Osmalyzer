@@ -9,8 +9,6 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 {
     public override string Name => Operator + " Parcel lockers";
 
-    protected virtual List<ValidationRule>? ValidationRules => null;
-
     public override string Description => "This report checks that all " + Operator + " parcel lockers listed on company's website are found on the map." + Environment.NewLine +
                                           "Note that parcel locker websites can and do have errors: mainly incorrect position, but sometimes lockers are missing too.";
 
@@ -18,6 +16,8 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
 
     protected abstract string Operator { get; }
+
+    protected abstract List<ValidationRule>? ValidationRules { get; }
 
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
@@ -112,16 +112,19 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
             new UnmatchedOsmBatch()
         );
 
-        //
+        // Validate tagging
 
         Validator<ParcelLocker> validator = new Validator<ParcelLocker>(
             correlatorReport,
             "Tagging issues"
         );
 
-        List<ValidationRule> rules = new() {
+        List<ValidationRule> rules = new List<ValidationRule>
+        {
             new ValidateElementFixme()
         };
+        
+        // Add custom rules per operator/analyzer
         if (ValidationRules != null) 
             rules.AddRange(ValidationRules);
 

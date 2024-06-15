@@ -146,7 +146,17 @@ public abstract class OsmElement : IChunkerItem
         string s = "";
 
         foreach (KeyValuePair<string, string> tag in _tags)
-            s += tag.Key + "=" + tag.Value + Environment.NewLine;
+        {
+            string value = tag.Value;
+
+            // "Remove" newlines from value
+            // (OSM package seems to convert literal "\n" string in tag value into newline)
+            value = value.Replace("\r\n", "↲");
+            value = value.Replace("\r", "↲");
+            value = value.Replace("\n", "↲");
+
+            s += tag.Key + "=" + value + Environment.NewLine;
+        }
 
         return s;
     }

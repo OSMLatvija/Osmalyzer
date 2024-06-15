@@ -65,16 +65,16 @@ public static class Runner
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
             // new BottleDepositPointsAnalyzer(),
-            // new VenipakParcelLockerAnalyzer(),
-            // new OmnivaParcelLockerAnalyzer(),
-            // new ItellaParcelLockerAnalyzer(),
+            new VenipakParcelLockerAnalyzer(),
+            new OmnivaParcelLockerAnalyzer(),
+            new ItellaParcelLockerAnalyzer(),
             new DPDParcelLockerAnalyzer(),
-            // new UnknownParcelLockerAnalyzer(),
-            // new LatviaPostLockerAnalyzer(),
+            new UnknownParcelLockerAnalyzer(),
+            new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
             // new ImproperTranslationAnalyzer(),
             // new LidlShopAnalyzer(),
-            // new UnisendParcelLockerAnalyzer(),
+            new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer()
         };
 #endif

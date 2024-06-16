@@ -61,13 +61,16 @@ public class ImproperTranslationAnalyzer : Analyzer
         );
         // place=*, boundary = administrative, railway = station
 
-        OsmDataExtract osmPlaceElements = osmMasterData.Filter(
-            new HasKey("place"),
-            new DoesntHaveAnyValue("place", "city"),
-            new HasKey("name"),
-            new HasKeyPrefixed("name:"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
-        );
+        // Too much of (probably) false positives
+        // OsmDataExtract osmPlaceElements = osmMasterData.Filter(
+        //     new HasKey("place"),
+        //     new DoesntHaveAnyValue("place", "city"),
+        //     new HasKey("name"),
+        //     new HasKeyPrefixed("name:"),
+        //     // Exclude Daugavpils for the time being
+        //     //new CustomMatch(_ => !BoundaryHelper.GetDaugavpilsPolygon(osmData.MasterData).ContainsElement(_, OsmPolygon.RelationInclusionCheck.Fuzzy)),
+        //     new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+        // );
         OsmDataExtract osmAdminBoundariesElements = osmMasterData.Filter(
             new IsWay(),
             new HasValue("boundary", "administrative"),
@@ -87,10 +90,10 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         // Parse
 
-        method(osmHighwayElements.Elements, true, results, nameQualifiersData, ignoredNames, ignoredLanguages);
-        method(osmPlaceElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
-        method(osmAdminBoundariesElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
-        method(osmRwStationsElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        checkElementsTranliteration(osmHighwayElements.Elements, true, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        // checkElementsTranliteration(osmPlaceElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        checkElementsTranliteration(osmAdminBoundariesElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        checkElementsTranliteration(osmRwStationsElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
         
         // Report checked languages
 
@@ -184,7 +187,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         
     }
 
-    private void method(
+    private void checkElementsTranliteration(
         IReadOnlyList<OsmElement> elements, 
         bool nomenclatureRequired,
         Dictionary<KnownLanguage, LanguageAnalysisResults> results,

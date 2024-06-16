@@ -6,6 +6,8 @@ public static class BoundaryHelper
 
     private static OsmPolygon? _rigaPolygon;
 
+    private static OsmPolygon? _daugavpilsPolygon;
+
 
     [Pure]
     public static OsmPolygon GetLatviaPolygon(OsmMasterData osmData)
@@ -28,10 +30,10 @@ public static class BoundaryHelper
     [Pure]
     public static OsmPolygon GetDaugavpilsPolygon(OsmMasterData osmData)
     {
-        if (_rigaPolygon == null)
-            _rigaPolygon = GetAdminRelationPolygon(osmData, "6", "Daugavpils");
+        if (_daugavpilsPolygon == null)
+            _daugavpilsPolygon = GetAdminRelationPolygon(osmData, "6", "Daugavpils");
         
-        return _rigaPolygon;
+        return _daugavpilsPolygon;
     }
 
     [Pure]

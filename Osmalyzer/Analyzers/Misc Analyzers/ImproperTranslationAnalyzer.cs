@@ -21,7 +21,7 @@ public class ImproperTranslationAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => new List<Type>() 
     {
         typeof(OsmAnalysisData),
-        typeof(StreetNameQualifiersAnalysisData)
+        typeof(FeatureNameQualifiersAnalysisData)
     };
 
     /// <summary> These are the languages we check and know about </summary>
@@ -45,7 +45,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         // Load OSM data
 
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
-        StreetNameQualifiersAnalysisData nameQualifiersData = datas.OfType<StreetNameQualifiersAnalysisData>().First();
+        FeatureNameQualifiersAnalysisData nameQualifiersData = datas.OfType<FeatureNameQualifiersAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
@@ -192,7 +192,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         IReadOnlyList<OsmElement> elements, 
         bool nomenclatureRequired,
         Dictionary<KnownLanguage, LanguageAnalysisResults> results,
-        StreetNameQualifiersAnalysisData nameQualifiersData,
+        FeatureNameQualifiersAnalysisData nameQualifiersData,
         List<string> ignoredNames,
         Dictionary<string, int> ignoredLanguages
     )

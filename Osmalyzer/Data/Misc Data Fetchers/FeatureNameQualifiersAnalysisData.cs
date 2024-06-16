@@ -7,9 +7,9 @@ using System.Text;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class StreetNameQualifiersAnalysisData : AnalysisData
+public class FeatureNameQualifiersAnalysisData : AnalysisData
 {
-    public override string Name => "Street name generic qualifiers/descriptors";
+    public override string Name => "OSM feature name generic qualifiers/descriptors";
 
     public override string? ReportWebLink => null;
     
@@ -26,7 +26,7 @@ public class StreetNameQualifiersAnalysisData : AnalysisData
     {
         Names = new Dictionary<string, Dictionary<string, List<string>>>();
         
-        string dataFileName = @"data/street name qualifiers.tsv";
+        string dataFileName = @"data/feature name qualifiers.tsv";
 
         if (!File.Exists(dataFileName))
             dataFileName = @"../../../../" + dataFileName; // "exit" Osmalyzer\bin\Debug\net_.0\ folder and grab it from root data\

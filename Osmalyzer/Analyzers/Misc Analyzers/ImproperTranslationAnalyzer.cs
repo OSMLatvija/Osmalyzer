@@ -169,7 +169,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         report.AddGroup(
             GenericReportGroup.OtherNames, 
             "Ignored names",
-            "List of items that were not checked, because their name was not recognized (for example streets that don't have recovnized translatable nomenclature)"
+            "List of items that were not checked, because their name was not recognized (for example streets that don't have recognized translatable nomenclature)"
         );
 
         foreach (string n in ignoredNames.Distinct().Where(_ => !_.Contains("—")))
@@ -470,7 +470,8 @@ public class ImproperTranslationAnalyzer : Analyzer
             key == "name:carnaval" ||
             key == "name:language" ||
             key == "name:source" ||
-            key.Count(c => c == ':') > 1) // sub-sub keys can do a lot of stuff like specify sources, date ranges, etc.
+            key.Count(c => c == ':') > 1 || // sub-sub keys can do a lot of stuff like specify sources, date ranges, etc.
+            Regex.Match(key, @"^name:\d+-(\d+)?$").Success) // date-ranged main name value like `name:2020-` or `name:2020-2021`
         {
             return null;
         }

@@ -24,8 +24,8 @@ public class ImproperTranslationAnalyzer : Analyzer
         typeof(StreetNameQualifiersAnalysisData)
     };
 
-            // These are the languages we check and know about
-    private List<KnownLanguage> knownLanguages = new List<KnownLanguage>()
+    /// <summary> These are the languages we check and know about </summary>
+    private readonly List<KnownLanguage> _knownLanguages = new List<KnownLanguage>()
     {
         new KnownLanguage("Russian", "ru"),
         new KnownLanguage("English", "en"),
@@ -37,7 +37,7 @@ public class ImproperTranslationAnalyzer : Analyzer
     {
         // Each language keeps its record of results
         Dictionary<KnownLanguage, LanguageAnalysisResults> results =
-            knownLanguages.ToDictionary(kl => kl, _ => new LanguageAnalysisResults());
+            _knownLanguages.ToDictionary(kl => kl, _ => new LanguageAnalysisResults());
         
         Dictionary<string, int> ignoredLanguages = new Dictionary<string, int>();
         List<string> ignoredNames = new List<string>();
@@ -90,10 +90,10 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         // Parse
 
-        checkElementsTranliteration(osmHighwayElements.Elements, true, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        CheckElementsTranliteration(osmHighwayElements.Elements, true, results, nameQualifiersData, ignoredNames, ignoredLanguages);
         // checkElementsTranliteration(osmPlaceElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
-        checkElementsTranliteration(osmAdminBoundariesElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
-        checkElementsTranliteration(osmRwStationsElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        CheckElementsTranliteration(osmAdminBoundariesElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        CheckElementsTranliteration(osmRwStationsElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
         
         // Report checked languages
 
@@ -187,7 +187,8 @@ public class ImproperTranslationAnalyzer : Analyzer
         
     }
 
-    private void checkElementsTranliteration(
+    
+    private void CheckElementsTranliteration(
         IReadOnlyList<OsmElement> elements, 
         bool nomenclatureRequired,
         Dictionary<KnownLanguage, LanguageAnalysisResults> results,
@@ -226,7 +227,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                     continue;
                 }
 
-                KnownLanguage? knownLanguage = knownLanguages.FirstOrDefault(kl => kl.OsmSuffix == language);
+                KnownLanguage? knownLanguage = _knownLanguages.FirstOrDefault(kl => kl.OsmSuffix == language);
 
                 if (knownLanguage != null)
                 {
@@ -241,7 +242,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                         {
                             // Expect exactly the same values as in name
                             List<string> expectedNames = new List<string> {name};
-                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenExact);
+                            CheckTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenExact);
                             break;
                         }
                         case "ru":
@@ -277,7 +278,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                             }
 
                             // Match against current value
-                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenFuzzyCyrillic);
+                            CheckTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenFuzzyCyrillic);
 
                             break;
                         }
@@ -302,7 +303,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                             {
                                 expectedNames.Add(translit);
                             }
-                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenExact);
+                            CheckTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenExact);
 
                             break;
                         }
@@ -337,8 +338,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         }
     }
 
-    [Pure]
-    private static void checkTransliteration(
+    private static void CheckTransliteration(
         string value, 
         List<string> expectedValues, 
         string originalName, 

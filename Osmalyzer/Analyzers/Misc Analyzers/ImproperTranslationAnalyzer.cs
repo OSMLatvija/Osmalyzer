@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using F23.StringSimilarity;
 
 namespace Osmalyzer;
@@ -22,10 +23,25 @@ public class ImproperTranslationAnalyzer : Analyzer
         typeof(OsmAnalysisData),
         typeof(StreetNameQualifiersAnalysisData)
     };
+
+            // These are the languages we check and know about
+    private List<KnownLanguage> knownLanguages = new List<KnownLanguage>()
+    {
+        new KnownLanguage("Russian", "ru"),
+        new KnownLanguage("English", "en"),
+        new KnownLanguage("Latvian", "lv")
+    };
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
+        // Each language keeps its record of results
+        Dictionary<KnownLanguage, LanguageAnalysisResults> results =
+            knownLanguages.ToDictionary(kl => kl, _ => new LanguageAnalysisResults());
+        
+        Dictionary<string, int> ignoredLanguages = new Dictionary<string, int>();
+        List<string> ignoredNames = new List<string>();
+
         // Load OSM data
 
         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
@@ -33,213 +49,51 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
-        OsmDataExtract osmElements = osmMasterData.Filter(
+        OsmDataExtract osmHighwayElements = osmMasterData.Filter(
             new IsWay(),
-            new HasKey("highway"),
+            new OrMatch(
+                new HasKey("highway"),
+                new HasValue("route", "road")
+            ),
+            new HasKey("name"),
+            new HasKeyPrefixed("name:"),
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+        );
+        // place=*, boundary = administrative, railway = station
+
+        // Too much of (probably) false positives
+        // OsmDataExtract osmPlaceElements = osmMasterData.Filter(
+        //     new HasKey("place"),
+        //     new DoesntHaveAnyValue("place", "city"),
+        //     new HasKey("name"),
+        //     new HasKeyPrefixed("name:"),
+        //     // Exclude Daugavpils for the time being
+        //     //new CustomMatch(_ => !BoundaryHelper.GetDaugavpilsPolygon(osmData.MasterData).ContainsElement(_, OsmPolygon.RelationInclusionCheck.Fuzzy)),
+        //     new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+        // );
+        OsmDataExtract osmAdminBoundariesElements = osmMasterData.Filter(
+            new IsWay(),
+            new HasValue("boundary", "administrative"),
+            new HasKey("name"),
+            // filter out cross border objects
+            new CustomMatch(_ => _.HasKey("name") && !Regex.Match(_.GetValue("name")!, @" [-—/] ").Success),
+            new HasKeyPrefixed("name:"),
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+        );
+        OsmDataExtract osmRwStationsElements = osmMasterData.Filter(
+            new HasValue("railway", "station"),
             new HasKey("name"),
             new HasKeyPrefixed("name:"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
         );
 
-        // These are the languages we check and know about
-        List<KnownLanguage> knownLanguages = new List<KnownLanguage>()
-        {
-            new KnownLanguage("Russian", "ru"),
-            new KnownLanguage("English", "en")
-        };
-
-        // Each language keeps its record of results
-        Dictionary<KnownLanguage, LanguageAnalysisResults> results =
-            knownLanguages.ToDictionary(kl => kl, _ => new LanguageAnalysisResults());
-        
-        Dictionary<string, int> ignoredLanguages = new Dictionary<string, int>();
 
         // Parse
 
-        foreach (OsmElement element in osmElements.Elements)
-        {
-            string name = element.GetValue("name")!;
-
-            // Main name
-
-            string? lvNameRaw = ExtractRawLatvianName(name, out string? latvianNameSuffix);
-
-            // todo: how many do we not know?
-            if (lvNameRaw == null)
-                continue; // we don't actually know how this name is constructed in Latvian
-
-            // Other languages
-
-            List<(string, string)> nameXxs = element.GetPrefixedValues("name:")!;
-
-            foreach ((string key, string value) in nameXxs)
-            {
-                if (value == name) // may not be great, but not an error
-                    continue;
-                
-                List<Issue> issues = new List<Issue>();
-
-                string? language = ExtractLanguage(key);
-
-                if (language == null)
-                {
-                    // TODO: report bad language key
-                    continue;
-                }
-
-                if (language == "lv")
-                {
-                    // todo: check if mismatch?
-                    continue; // we assume we are by default in Latvian
-                }
-
-                KnownLanguage? knownLanguage = knownLanguages.FirstOrDefault(kl => kl.OsmSuffix == language);
-
-                if (knownLanguage != null)
-                {
-                    // We know about this language, so we can check the name
-                    
-                    // Collect new results into the language-specific container
-                    LanguageAnalysisResults languageResults = results[knownLanguage];
-
-                    switch (language)
-                    {
-                        case "ru":
-                        {
-                            // Figure out how the street should look like in Russian transliteration
-
-                            List<string> expectedRuPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
-                            // It is acceptable for all object to be named as street (why?)
-                            expectedRuPrefixes = expectedRuPrefixes.Union(nameQualifiersData.Names["iela"][language]).ToList();
-
-                            List<string> expectedNames = new List<string>();
-
-                            foreach (string expectedPrefix in expectedRuPrefixes)
-                            {
-                                string translit = Transliterator.TransliterateFromLvToRu(lvNameRaw);
-                                expectedNames.Add(expectedPrefix + " " + translit);
-                                expectedNames.Add(translit + " " + expectedPrefix);
-                            }
-
-                            // Match against current value
-
-                            List<Match> matches = expectedNames.Select(en => MatchBetweenFuzzy(value, en, CyrillicNameMatcher.Instance)).ToList();
-
-                            Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
-
-                            switch (bestMatch)
-                            {
-                                case ExactMatch:
-                                    if (languageResults.fullMatches.ContainsKey(value))
-                                        languageResults.fullMatches[value]++;
-                                    else
-                                        languageResults.fullMatches[value] = 1;
-                                    break;
-
-                                case GoodEnoughMatch:
-                                    NonExactMatch? existing = languageResults.nonExactButGoodEnoughMatches
-                                                                             .FirstOrDefault(m =>
-                                                                                                 m.Actual == value &&
-                                                                                                 m.Expected == bestMatch.Expected &&
-                                                                                                 m.Source == name);
-
-                                    if (existing != null)
-                                        existing.Count++;
-                                    else
-                                        languageResults.nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, name, 1));
-                                    break;
-
-                                case NotAMatch:
-                                    issues.Add(new TranslitMismatchIssue("Russian", key, bestMatch.Expected, value, "name", name));
-                                    break;
-
-                                default:
-                                    throw new NotImplementedException();
-                            }
-
-                            break;
-                        }
-                        case "en":
-                        {
-                            List<string> expectedEnPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
-                            // It is acceptable for all object to be named as street (why?)
-                            expectedEnPrefixes = expectedEnPrefixes.Union(nameQualifiersData.Names["iela"][language]).ToList();
-
-                            List<string> expectedNames = new List<string>();
-
-                            // Expect exact name with only translation for the nomenclature
-                            foreach (string expectedPrefix in expectedEnPrefixes)
-                            {
-                                expectedNames.Add(lvNameRaw + " " + expectedPrefix);
-                            }
-
-                            // Match against current value
-
-                            List<Match> matches = expectedNames.Select(en => MatchBetweenExact(value, en)).ToList();
-
-                            Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
-
-                            switch (bestMatch)
-                            {
-                                case ExactMatch:
-                                    if (languageResults.fullMatches.ContainsKey(value))
-                                        languageResults.fullMatches[value]++;
-                                    else
-                                        languageResults.fullMatches[value] = 1;
-                                    break;
-
-                                case GoodEnoughMatch:
-                                    NonExactMatch? existing = languageResults.nonExactButGoodEnoughMatches
-                                                                             .FirstOrDefault(m =>
-                                                                                                 m.Actual == value &&
-                                                                                                 m.Expected == bestMatch.Expected &&
-                                                                                                 m.Source == name);
-
-                                    if (existing != null)
-                                        existing.Count++;
-                                    else
-                                        languageResults.nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, name, 1));
-                                    break;
-
-                                case NotAMatch:
-                                    issues.Add(new TranslitMismatchIssue("English", key, bestMatch.Expected, value, "name", name));
-                                    break;
-
-                                default:
-                                    throw new NotImplementedException();
-                            }
-
-                            break;
-                        }
-                        
-                        default:
-                            throw new NotImplementedException();
-                    }
-
-                    // Did we find any issues for this element?
-
-                    if (issues.Count > 0)
-                    {
-                        // Any element(s) with this exact issue already?
-                        ProblemFeature? existing = languageResults.problemFeatures.FirstOrDefault(f => f.IssuesMatch(issues));
-
-                        // todo: dont add by distance too close
-
-                        if (existing != null)
-                            existing.Elements.Add(element); // issues are the same already
-                        else
-                            languageResults.problemFeatures.Add(new ProblemFeature(new List<OsmElement>() { element }, issues));
-                    }
-                }
-                else
-                {
-                    if (ignoredLanguages.ContainsKey(language))
-                        ignoredLanguages[language]++;
-                    else
-                        ignoredLanguages.Add(language, 1);
-                }
-            }
-        }
+        checkElementsTranliteration(osmHighwayElements.Elements, true, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        // checkElementsTranliteration(osmPlaceElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        checkElementsTranliteration(osmAdminBoundariesElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
+        checkElementsTranliteration(osmRwStationsElements.Elements, false, results, nameQualifiersData, ignoredNames, ignoredLanguages);
         
         // Report checked languages
 
@@ -310,16 +164,246 @@ public class ImproperTranslationAnalyzer : Analyzer
                 )
             );
         }
+
+
+        report.AddGroup(
+            GenericReportGroup.OtherNames, 
+            "Ignored names",
+            "List of items that were not checked, because their name was not recognized (for example streets that don't have recovnized translatable nomenclature)"
+        );
+
+        foreach (string n in ignoredNames.Distinct().Where(_ => !_.Contains("—")))
+        {
+            report.AddEntry(
+                GenericReportGroup.OtherNames,
+                new IssueReportEntry(
+                    "Name '" + n + "' was ignored. " 
+                    //number + " " + (number == 1 ? "element has" : "elements have") + " tag `name:" + language + "`",
+                    //new SortEntryDesc(number)
+                )
+            );
+        }
+        
+        
     }
 
+    private void checkElementsTranliteration(
+        IReadOnlyList<OsmElement> elements, 
+        bool nomenclatureRequired,
+        Dictionary<KnownLanguage, LanguageAnalysisResults> results,
+        StreetNameQualifiersAnalysisData nameQualifiersData,
+        List<string> ignoredNames,
+        Dictionary<string, int> ignoredLanguages
+    )
+    {
+        foreach (OsmElement element in elements)
+        {
+            string name = element.GetValue("name")!;
+
+            // Main name
+            bool isSuffixFound = ExtractNomenclature(name, nameQualifiersData.Names.Keys.ToList(), out string lvNameRaw, out string? latvianNameSuffix);
+            
+            if (nomenclatureRequired && !isSuffixFound)
+            {
+                ignoredNames.Add(name);
+                // we don't actually know how this name is constructed in Latvian
+                continue; 
+            }
+
+            // Other languages
+
+            List<(string, string)> nameXxs = element.GetPrefixedValues("name:")!;
+
+            foreach ((string key, string value) in nameXxs)
+            {                
+                List<Issue> issues = new List<Issue>();
+
+                string? language = ExtractLanguage(key);
+
+                if (language == null)
+                {
+                    // TODO: report bad language key
+                    continue;
+                }
+
+                KnownLanguage? knownLanguage = knownLanguages.FirstOrDefault(kl => kl.OsmSuffix == language);
+
+                if (knownLanguage != null)
+                {
+                    // We know about this language, so we can check the name
+                    
+                    // Collect new results into the language-specific container
+                    LanguageAnalysisResults languageResults = results[knownLanguage];
+
+                    switch (language)
+                    {
+                        case "lv":
+                        {
+                            // Expect exactly the same values as in name
+                            List<string> expectedNames = new List<string> {name};
+                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenExact);
+                            break;
+                        }
+                        case "ru":
+                        {
+                            // Figure out how the street should look like in Russian transliteration
+
+                            List<string> expectedNames = new List<string>();
+
+                            string translit = Transliterator.TransliterateFromLvToRu(lvNameRaw);
+
+                            if (latvianNameSuffix != null)
+                            {
+                                List<string> expectedRuPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
+
+                                foreach (string expectedPrefix in expectedRuPrefixes)
+                                {
+                                    if (Regex.Match(translit, @"\d\s*$").Success)
+                                    {
+                                        // For names like 'Imantas 1. līnija' -> 'Имантас 1-я линия'
+                                        expectedNames.Add(translit + "-я " + expectedPrefix);
+                                        expectedNames.Add(translit + "-й " + expectedPrefix);
+                                    }
+                                    else 
+                                    {
+                                        expectedNames.Add(expectedPrefix + " " + translit);
+                                        expectedNames.Add(translit + " " + expectedPrefix);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                expectedNames.Add(translit);
+                            }
+
+                            // Match against current value
+                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenFuzzyCyrillic);
+
+                            break;
+                        }
+                        case "en":
+                        {
+                            // Handle names like '12th street' and '2nd Line'
+                            string translit = Transliterator.TransliterateFromLvToEn(lvNameRaw);
+                            
+                            List<string> expectedNames = new List<string>();
+
+                            if (latvianNameSuffix != null)
+                            {
+                                List<string> expectedEnPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
+
+                                // Expect exact name with only translation for the nomenclature
+                                foreach (string expectedPrefix in expectedEnPrefixes)
+                                {
+                                    expectedNames.Add(translit + " " + expectedPrefix);
+                                }
+                            }
+                            else
+                            {
+                                expectedNames.Add(translit);
+                            }
+                            checkTransliteration(value, expectedNames, name, languageResults, issues, knownLanguage, MatchBetweenExact);
+
+                            break;
+                        }
+                        
+                        default:
+                            throw new NotImplementedException();
+                    }
+
+                    // Did we find any issues for this element?
+
+                    if (issues.Count > 0)
+                    {
+                        // Any element(s) with this exact issue already?
+                        ProblemFeature? existing = languageResults.problemFeatures.FirstOrDefault(f => f.IssuesMatch(issues));
+
+                        // todo: dont add by distance too close
+
+                        if (existing != null)
+                            existing.Elements.Add(element); // issues are the same already
+                        else
+                            languageResults.problemFeatures.Add(new ProblemFeature(new List<OsmElement>() { element }, issues));
+                    }
+                }
+                else
+                {
+                    if (ignoredLanguages.ContainsKey(language))
+                        ignoredLanguages[language]++;
+                    else
+                        ignoredLanguages.Add(language, 1);
+                }
+            }
+        }
+    }
 
     [Pure]
-    private static string? ExtractRawLatvianName(string name, out string? suffix)
+    private static void checkTransliteration(
+        string value, 
+        List<string> expectedValues, 
+        string originalName, 
+        LanguageAnalysisResults languageResults, 
+        List<Issue> issues, 
+        KnownLanguage knownLanguage,
+        Func<string, string, Match> matcher
+    )
     {
-        if (FuzzyAddressMatcher.EndsWithStreetNameSuffix(name, out suffix))
-            return name[..^(suffix!.Length + 1)]; // also grab the implied space 
+        List<Match> matches = expectedValues.Select(ev => matcher(value, ev)).ToList();
 
-        return null;
+        Match bestMatch = matches.OrderByDescending(m => m.Quality).First();
+
+        switch (bestMatch)
+        {
+            case ExactMatch:
+                if (languageResults.fullMatches.ContainsKey(value))
+                    languageResults.fullMatches[value]++;
+                else
+                    languageResults.fullMatches[value] = 1;
+                break;
+
+            case GoodEnoughMatch:
+                NonExactMatch? existing = languageResults.nonExactButGoodEnoughMatches
+                                                            .FirstOrDefault(m =>
+                                                                                m.Actual == value &&
+                                                                                m.Expected == bestMatch.Expected &&
+                                                                                m.Source == originalName);
+
+                if (existing != null)
+                    existing.Count++;
+                else
+                    languageResults.nonExactButGoodEnoughMatches.Add(new NonExactMatch(value, bestMatch.Expected, originalName, 1));
+                break;
+
+            case NotAMatch:
+                issues.Add(new TranslitMismatchIssue(knownLanguage.Name, knownLanguage.OsmSuffix, bestMatch.Expected, value, "name", originalName));
+                break;
+
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    [Pure]
+    private static bool ExtractNomenclature(string name, List<string> nomenclature, out string rawName, out string? nomenclatureName)
+    {
+        foreach (string s in nomenclature)
+        {
+            if (name.EndsWith(" " + s))
+            {
+                nomenclatureName = s;
+                rawName = name[..^(s!.Length)].Trim();
+                return true;
+            }
+        }
+        rawName = name;
+        nomenclatureName = null;
+        return false;
+    }
+
+    [Pure]
+    private static Match MatchBetweenFuzzyCyrillic(string actual, string expectedOriginal)
+    {
+        return MatchBetweenFuzzy(actual, expectedOriginal, CyrillicNameMatcher.Instance);
     }
 
     [Pure]
@@ -510,6 +594,7 @@ public class ImproperTranslationAnalyzer : Analyzer
                 if (c1 == 'ш' && c2 == 'щ') return 0.5;
                 if (c1 == 'х' && c2 == 'г') return 0.5;
                 if (c1 == 'а' && c2 == 'я') return 0.5;
+                if (c1 == 'и' && c2 == 'ы') return 0.5;
 
                 return 1.0;
             }
@@ -553,7 +638,8 @@ public class ImproperTranslationAnalyzer : Analyzer
 
     private enum GenericReportGroup
     {
-        OtherLanguages
+        OtherLanguages,
+        OtherNames
         // Individual langauges will go to their own group
     }
 }

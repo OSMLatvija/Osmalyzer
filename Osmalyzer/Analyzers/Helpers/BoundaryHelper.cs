@@ -25,6 +25,14 @@ public static class BoundaryHelper
         return _rigaPolygon;
     }
 
+    [Pure]
+    public static OsmPolygon GetDaugavpilsPolygon(OsmMasterData osmData)
+    {
+        if (_rigaPolygon == null)
+            _rigaPolygon = GetAdminRelationPolygon(osmData, "6", "Daugavpils");
+        
+        return _rigaPolygon;
+    }
 
     [Pure]
     private static OsmPolygon GetAdminRelationPolygon(OsmMasterData osmData, string level, string name)

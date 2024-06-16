@@ -5,6 +5,7 @@ namespace Osmalyzer;
 
 public static class FuzzyAddressMatcher
 {
+    // TODO: rewrite to use tsv file from data
     private static readonly string[] _suffixes = 
     {
         "iela",
@@ -18,7 +19,10 @@ public static class FuzzyAddressMatcher
         "apvedceļš",
         "laukums",
         "prospekts",
-        "pārvads"
+        "pārvads",
+        "līnija",
+        "šķērslīnija",
+        "krastmala",
     };
     // Note: ImproperTranslationAnalyzer is doing Russian translations, so add value there if adding here
     

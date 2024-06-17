@@ -29,7 +29,7 @@ public class LidlShopsAnalysisData : ShopListAnalysisData
             ReportWebLink, 
             Path.Combine(CacheBasePath, DataFileIdentifier + @".html"),
             true,
-            new WaitForElementOfClass("siteforceContentArea") // loads JS garbage first that loads the rest of the page     siteforceContentArea  article_content
+            new WaitForTime(5000) // loads JS garbage first that loads the rest of the page. No good way to identify when load finished
         );
     }
 

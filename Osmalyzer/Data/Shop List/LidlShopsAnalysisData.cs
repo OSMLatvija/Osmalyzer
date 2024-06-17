@@ -94,9 +94,22 @@ public class LidlShopsAnalysisData : ShopListAnalysisData
                 double.Parse(redirectUrlMatch.Groups[2].Value)
             );
 
+            string address = mainMatch.Groups[2].Value.Trim();
+            
+            // One of the entries is like this "Ganību ielā 182<br lwc-4nfn2rc40ch="">   Ezermalas ielā 3a"
+            address = Regex.Replace(address, @"<[^>]+>", "; "); // remove any html garbage inside
+            address = Regex.Replace(address, @"\s{2,}", " "); // leave just 1 space
+            
+            // Remove declensions from address
+            address = address
+                      .Replace("ielā", "iela")
+                      .Replace("bulvārī", "bulvāris")
+                      .Replace("gatvē", "gatve")
+                      .Replace("prospektā", "prospekts");
+            
             ShopData sd = new ShopData(
                 "Lidl", 
-                mainMatch.Groups[2].Value, 
+                address, 
                 coord
             );
 

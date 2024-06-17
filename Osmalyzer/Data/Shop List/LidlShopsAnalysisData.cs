@@ -41,7 +41,7 @@ public class LidlShopsAnalysisData : ShopListAnalysisData
 
         _shops = new List<ShopData>();
         
-        MatchCollection matches = Regex.Matches(data, @"<a target=""_blank"" href=""(https://(?:goo.gl/maps|maps.app.goo.gl)/[^""]+)"">(.+?)</a>");
+        MatchCollection matches = Regex.Matches(data, @"<a target=""_blank"" href=""(https://(?:goo.gl/maps|maps.app.goo.gl)/[^""]+)""[^>]*>(.+?)</a>");
 
         if (matches.Count == 0)
             throw new Exception("Did not find items on webpage");

@@ -9,9 +9,15 @@ namespace Osmalyzer;
 
 public static class WebsiteDownloadHelper
 {
+    public static bool BrowsingEnabled { get; set; }
+
+    
     [MustUseReturnValue]
     public static string Read(string url, bool canUseCache)
     {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+        
         if (canUseCache)
             if (WebsiteCache.IsCached(url))
                 return WebsiteCache.GetCached(url);
@@ -30,6 +36,9 @@ public static class WebsiteDownloadHelper
 
     public static void Download(string url, string fileName)
     {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
         using HttpClient client = new HttpClient();
         Uri uri = new Uri(url, UriKind.Absolute);
         using Task<Stream> stream = client.GetStreamAsync(uri);
@@ -39,6 +48,9 @@ public static class WebsiteDownloadHelper
 
     public static void DownloadPost(string url, (string, string)[] postFields, string fileName)
     {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
         using HttpClient client = new HttpClient();
         
         client.DefaultRequestHeaders.Add("Accept", "application/json"); // todo: dehardcode
@@ -58,6 +70,9 @@ public static class WebsiteDownloadHelper
 
     public static DateTime? ReadHeaderDate(string url)
     {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
         using HttpClient client = new HttpClient();
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri)).Result;
@@ -72,6 +87,9 @@ public static class WebsiteDownloadHelper
 
     public static string? GetRedirectUrl(string url)
     {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
         HttpClientHandler handler = new HttpClientHandler()
         {
             AllowAutoRedirect = false

@@ -126,6 +126,8 @@ public static class Runner
             }
         }
 
+        WebsiteDownloadHelper.BrowsingEnabled = true;
+        
         for (int i = 0; i < requestedDatas.Count; i++)
         {
             Console.WriteLine("Retrieving " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
@@ -138,6 +140,8 @@ public static class Runner
 
             Console.WriteLine("(" + retrieveStopwatch.ElapsedMilliseconds + " ms)");
         }
+        
+        WebsiteDownloadHelper.BrowsingEnabled = false;
 
 
         Console.WriteLine("Preparing data...");

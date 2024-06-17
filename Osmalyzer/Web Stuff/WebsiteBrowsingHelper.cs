@@ -24,6 +24,9 @@ public static class WebsiteBrowsingHelper
     [MustUseReturnValue]
     public static string Read(string url, bool canUseCache, (string, string)[]? cookies = null, params BrowsingAction[] browsingActions)
     {
+        if (!WebsiteDownloadHelper.BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
         RecentRequestHeaders.Clear();
         RecentResponseHeaders.Clear();
         
@@ -117,6 +120,9 @@ public static class WebsiteBrowsingHelper
 
     public static void DownloadPage(string url, string fileName, bool canUseCache = true, params BrowsingAction[] browsingActions)
     {
+        if (!WebsiteDownloadHelper.BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
         // Headless browsing needs a full site load, so there's no way to directly write to file, we just have to dump the results 
         File.WriteAllText(fileName, Read(url, canUseCache, null, browsingActions));
     }

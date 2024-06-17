@@ -6,7 +6,7 @@ namespace Osmalyzer;
 
 public abstract class AnalysisData
 {
-    private const string cacheRevisionFileName = "cache-v3.txt"; // just has to be unique to previous one(s), but I'm "counting" up for consistency
+    private const string cacheRevisionFileName = "cache-v4.txt"; // just has to be unique to previous one(s), but I'm "counting" up for consistency
 
     private const string cacheBaseFolder = "cache";
 

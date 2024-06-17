@@ -82,7 +82,7 @@ public class SparShopsAnalysisData : ShopListAnalysisData
                 
             _shops.Add(
                 new ShopData(
-                    name,
+                    "Spar",
                     address,
                     coord
                 )

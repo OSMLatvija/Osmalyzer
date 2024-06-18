@@ -80,6 +80,10 @@ public class Validator<T> where T : IDataItem
                     case ValidateElementHasAcceptableValue elementHasAcceptableValue:
                         CheckElementHasAcceptableValue(elementHasAcceptableValue);
                         break;
+                    
+                    case ValidateElementValueMatchesDataItemValue<T> elementValueMatchesDataItemValue:
+                        CheckElementValueMatchesDataItemValue(elementValueMatchesDataItemValue);
+                        break;
 
                     default:
                         throw new NotImplementedException();
@@ -203,9 +207,74 @@ public class Validator<T> where T : IDataItem
                     }
                 }
             }
+
+            void CheckElementValueMatchesDataItemValue(ValidateElementValueMatchesDataItemValue<T> rule)
+            {
+                // No item, no "problem"
+                if (dataItem == null)
+                    return;
+                
+                string? elementValue = osmElement.GetValue(rule.Tag);
+                string? dataValue = rule.DataItemValueLookup(dataItem);
+
+                if (elementValue == null)
+                {
+                    if (dataValue != null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(SortOrder.Tagging),
+                                osmElement.GetAverageCoord(),
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+                    }
+                }
+                else
+                {
+                    if (elementValue != dataValue)
+                    {
+                        if (dataValue != null)
+                        {
+                            report.AddEntry(
+                                ReportGroup.ValidationResults,
+                                new IssueReportEntry(
+                                    "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
+                                    new SortEntryAsc(SortOrder.Tagging),
+                                    osmElement.GetAverageCoord(),
+                                    MapPointStyle.Problem,
+                                    osmElement
+                                )
+                            );
+                        }
+                        else
+                        {
+                            report.AddEntry(
+                                ReportGroup.ValidationResults,
+                                new IssueReportEntry(
+                                    "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                                    new SortEntryAsc(SortOrder.Tagging),
+                                    osmElement.GetAverageCoord(),
+                                    MapPointStyle.Problem,
+                                    osmElement
+                                )
+                            );
+                        }
+                    }
+                }
+            }
         }
     }
 
+    
+    [Pure]
+    private static string GetTagValueDisplayString(string tag, string value)
+    {
+        return "`" +  tag + "=" + value + "`";
+    }
     
     [Pure]
     private static string GetTagValueDisplayString(string tag, string[] values)

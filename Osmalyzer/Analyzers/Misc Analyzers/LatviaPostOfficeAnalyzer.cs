@@ -82,17 +82,16 @@ public class LatviaPostOfficeAnalyzer : Analyzer
             "Tagging issues"
         );
 
-        List<ValidationRule> rules = new List<ValidationRule>
-        {
+        validator.Validate(
+            report,
+            new ValidateElementValueMatchesDataItemValue<LatviaPostItem>("name", di => di.Name),
             new ValidateElementHasValue("operator", Operator),
             new ValidateElementHasValue("operator:wikidata", "Q1807088"),
             new ValidateElementFixme()
-        };
+        );
 
-        validator.Validate(report, rules.ToArray());
-        
         // Stats
-        
+
         // report.AddGroup(ReportGroup.Stats, "Stats");
         //
         // report.AddEntry(

@@ -100,6 +100,11 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
             // Post box names are exactly the same as addresses, which makes them pointless
             if (name == address) name = null;
 
+            // Add space after period for name, e.g. for "Daugavpils 18.novembra ielas pasta nodaļa"
+            // (this used to be many like "Rīgas 5.pasta nodaļa", but they got names changed)
+            if (name != null)
+                name = Regex.Replace(name, @"(\d+)\.(?! )", @"$1. ");
+            
             address = address.Replace("pag.", "pagasts");
             address = address.Replace("nov.", "novads");
             

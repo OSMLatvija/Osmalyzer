@@ -61,7 +61,6 @@ public static class Runner
             // new DoubleMappedFeaturesAnalyzer(),
             // new CrossingConsistencyAnalyzer(),
             // new StreetTaggingContinuationAnalyzer(),
-            // new PostCodeAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
             // new BottleDepositPointsAnalyzer(),
@@ -70,10 +69,12 @@ public static class Runner
             // new ItellaParcelLockerAnalyzer(),
             // new DPDParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
-            // new LatviaPostLockerAnalyzer(),
-            // new LatviaPostMailBoxAnalyzer(),
+            new LatviaPostLockerAnalyzer(),
+            new LatviaPostMailBoxAnalyzer(),
+            new PostCodeAnalyzer(),
+            new LatviaPostOfficeAnalyzer(),
             // new ImproperTranslationAnalyzer(),
-            new LidlShopAnalyzer(),
+            // new LidlShopAnalyzer(),
             // new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer()
         };

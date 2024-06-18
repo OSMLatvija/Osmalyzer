@@ -73,7 +73,7 @@ public class Validator<T> where T : IDataItem
                         CheckElementHasKey(elementHasKey);
                         break;
                     
-                    case ValidateElementDoesntHaveValue elementDoesntHaveValue:
+                    case ValidateElementDoesntHaveTag elementDoesntHaveValue:
                         CheckElementDoesntHaveValue(elementDoesntHaveValue);
                         break;
                     
@@ -163,7 +163,7 @@ public class Validator<T> where T : IDataItem
                 }
             }
 
-            void CheckElementDoesntHaveValue(ValidateElementDoesntHaveValue rule)
+            void CheckElementDoesntHaveValue(ValidateElementDoesntHaveTag rule)
             {
                 string? value = osmElement.GetValue(rule.Tag);
 

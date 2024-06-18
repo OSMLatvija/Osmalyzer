@@ -3,12 +3,12 @@
 /// <summary>
 /// Value is not expected.
 /// </summary>
-public class ValidateElementDoesntHaveValue : ValidationRule
+public class ValidateElementDoesntHaveTag : ValidationRule
 {
     public string Tag { get; }
 
     
-    public ValidateElementDoesntHaveValue(string tag)
+    public ValidateElementDoesntHaveTag(string tag)
     {
         Tag = tag;
     }

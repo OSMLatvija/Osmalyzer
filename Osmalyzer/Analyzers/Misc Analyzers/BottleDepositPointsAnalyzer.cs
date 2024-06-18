@@ -133,7 +133,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
             new ValidateElementHasValue("recycling:cans", "yes"),
             new ValidateElementHasValue("recycling:glass_bottles", "yes"),
             new ValidateElementHasValue("recycling:plastic_bottles", "yes"),
-            new ValidateElementDoesntHaveValue("recycling_type"),
+            new ValidateElementDoesntHaveTag("recycling_type"),
             // todo: operator needed ?
             new ValidateElementFixme()
         );
@@ -151,7 +151,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
             new ValidateElementHasValue("recycling:cans", "yes"),
             new ValidateElementHasValue("recycling:glass_bottles", "yes", "no"),
             new ValidateElementHasValue("recycling:plastic_bottles", "yes"),
-            new ValidateElementDoesntHaveValue("building"),
+            new ValidateElementDoesntHaveTag("building"),
             // todo: operator needed ?
             new ValidateElementFixme()
         );

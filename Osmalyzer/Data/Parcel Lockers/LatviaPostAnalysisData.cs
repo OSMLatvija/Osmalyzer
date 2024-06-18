@@ -99,6 +99,9 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
 
             // Post box names are exactly the same as addresses, which makes them pointless
             if (name == address) name = null;
+
+            address = address.Replace("pag.", "pagasts");
+            address = address.Replace("nov.", "novads");
             
             if (string.IsNullOrWhiteSpace(code)) code = null;
             

@@ -32,7 +32,8 @@ public class LatviaPostOfficeAnalyzer : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
                 
         OsmDataExtract osmPostBoxes = osmMasterData.Filter(
-            new HasAnyValue("amenity", "post_office")
+            new HasAnyValue("amenity", "post_office"),
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // a couple OOB hits
         );
 
         // Load Parcel locker data

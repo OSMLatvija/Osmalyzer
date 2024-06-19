@@ -19,6 +19,10 @@ public class DPDParcelLockerAnalysisData : ParcelLockerAnalysisData
 
     public override IEnumerable<ParcelLocker> ParcelLockers => _parcelLockers;
 
+    public override IEnumerable<ParcelPickupPoint>? PickupPoints => null; // TODO: !!!!!!!!!!!!!!!!!
+    public override PickupPointAmenity? PickupPointLocation => PickupPointAmenity.GasStation;
+    public override string? PickupPointLocationName => "Circle K";
+
 
     private List<ParcelLocker> _parcelLockers = null!; // only null until prepared
 

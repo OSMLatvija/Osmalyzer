@@ -26,6 +26,13 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
                                                       .Where(i => i.ItemType == LatviaPostItemType.ParcelLocker)
                                                       .Select(i => i.AsParcelLocker());
 
+    public IEnumerable<ParcelPickupPoint> PickupPoints => LatviaPostItems
+                                                          .Where(i => i.ItemType == LatviaPostItemType.CircleK)
+                                                          .Select(i => i.AsPickupPointLocker());
+
+    public PickupPointAmenity? PickupPointLocation => PickupPointAmenity.GasStation;
+    public string PickupPointLocationName => "Circle K";
+
 
     protected override void Download()
     {

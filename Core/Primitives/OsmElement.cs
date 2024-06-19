@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using OsmSharp;
 using OsmSharp.Tags;
@@ -83,6 +84,17 @@ public abstract class OsmElement : IChunkerItem
             
         _tags.TryGetValue(key, out string? value);
         return value;
+    }  
+        
+    [Pure]
+    public string[]? GetDelimitedValues(string key)
+    {
+        if (_tags == null)
+            return null;
+            
+        return key.Split(';', StringSplitOptions.TrimEntries)
+                  .Select(v => v.Trim())
+                  .ToArray();
     }  
         
     [Pure]

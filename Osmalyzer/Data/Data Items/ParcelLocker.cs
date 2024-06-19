@@ -1,5 +1,8 @@
 ﻿namespace Osmalyzer;
 
+/// <summary>
+/// A dedicated stand-alone locker, i.e. `amenity=parcel_locker`
+/// </summary>
 public class ParcelLocker : IDataItem
 {
     public string Operator { get; }

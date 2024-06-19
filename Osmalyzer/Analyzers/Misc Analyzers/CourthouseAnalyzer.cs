@@ -37,7 +37,7 @@ public class CourthouseAnalyzer : Analyzer
 
         // Prepare data comparer/correlator
 
-        Correlator<CourthouseData> dataComparer = new Correlator<CourthouseData>(
+        Correlator<CourthouseData> correlator = new Correlator<CourthouseData>(
             osmCourthouses,
             listedCourthouses,
             new MatchDistanceParamater(100), // most data is like 50 meters away
@@ -82,7 +82,7 @@ public class CourthouseAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        dataComparer.Parse(
+        correlator.Parse(
             report,
             new MatchedPairBatch(),
             new UnmatchedItemBatch(),

@@ -35,7 +35,7 @@ public class GlikaOaksAnalyzer : Analyzer
             
         // Prepare data comparer/correlator
 
-        Correlator<GlikaOak> dataComparer = new Correlator<GlikaOak>(
+        Correlator<GlikaOak> correlator = new Correlator<GlikaOak>(
             osmTrees,
             oaks,
             new MatchFarDistanceParamater(300), // some are poorly-placed
@@ -65,7 +65,7 @@ public class GlikaOaksAnalyzer : Analyzer
             
         // Parse and report primary matching and location correlation
 
-        dataComparer.Parse(
+        correlator.Parse(
             report,
             new MatchedPairBatch(),
             new UnmatchedItemBatch(),

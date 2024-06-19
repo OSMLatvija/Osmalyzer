@@ -74,7 +74,7 @@ public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
 
         // Prepare data comparer/correlator
 
-        Correlator<ShopData> dataComparer = new Correlator<ShopData>(
+        Correlator<ShopData> correlator = new Correlator<ShopData>(
             brandShops,
             listedShops,
             new MatchDistanceParamater(100),
@@ -99,7 +99,7 @@ public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
 
         // Parse and report primary matching and location correlation
 
-        dataComparer.Parse(
+        correlator.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),

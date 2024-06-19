@@ -42,7 +42,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             
         // Prepare data comparer/correlator
 
-        Correlator<DrinkingWater> dataComparer = new Correlator<DrinkingWater>(
+        Correlator<DrinkingWater> correlator = new Correlator<DrinkingWater>(
             osmTaps,
             rigaTapsStatic,
             new DataItemLabelsParamater("Riga tap", "Riga taps"),
@@ -65,7 +65,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        CorrelatorReport correlatorReport = dataComparer.Parse(
+        CorrelatorReport correlatorReport = correlator.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(false),

@@ -110,7 +110,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
         
         // Prepare data comparer/correlator
 
-        Correlator<CulturalMonument> dataComparer = new Correlator<CulturalMonument>(
+        Correlator<CulturalMonument> correlator = new Correlator<CulturalMonument>(
             osmHeritages,
             monuments,
             new MatchDistanceParamater(30),
@@ -235,7 +235,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
             
         // Parse and report primary matching and location correlation
 
-        CorrelatorReport correlatorReport = dataComparer.Parse(
+        CorrelatorReport correlatorReport = correlator.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),

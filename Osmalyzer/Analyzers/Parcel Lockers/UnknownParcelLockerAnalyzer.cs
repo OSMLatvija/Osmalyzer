@@ -36,6 +36,8 @@ public class UnknownParcelLockerAnalyzer : Analyzer
         OsmDataExtract lockers = osmMasterData.Filter(
             new HasAnyValue("amenity", "parcel_locker")
         );
+            
+        // TODO: UNKNOWN PICKUP POINTS
 
         // Prepare groups
 

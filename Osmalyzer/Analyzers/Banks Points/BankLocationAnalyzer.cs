@@ -72,7 +72,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
         {
             // Prepare data comparer/correlator
 
-            Correlator<TItem> dataComparer = new Correlator<TItem>(
+            Correlator<TItem> correlator = new Correlator<TItem>(
                 osmPoints,
                 dataPoints,
                 new FilterItemsToPolygonParamater(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), false),
@@ -95,7 +95,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
 
             // Parse and report primary matching and location correlation
 
-            dataComparer.Parse(
+            correlator.Parse(
                 report,
                 new MatchedPairBatch(),
                 new UnmatchedItemBatch(),

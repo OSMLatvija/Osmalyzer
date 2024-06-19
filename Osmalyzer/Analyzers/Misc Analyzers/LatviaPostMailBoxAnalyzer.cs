@@ -42,7 +42,7 @@ public class LatviaPostMailBoxAnalyzer : Analyzer
 
         // Prepare data comparer/correlator
 
-        Correlator<LatviaPostItem> dataComparer = new Correlator<LatviaPostItem>(
+        Correlator<LatviaPostItem> correlator = new Correlator<LatviaPostItem>(
             osmPostBoxes,
             listedBoxes,
             new MatchDistanceParamater(100),
@@ -65,7 +65,7 @@ public class LatviaPostMailBoxAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        dataComparer.Parse(
+        correlator.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),

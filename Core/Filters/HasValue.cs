@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using System;
+
+namespace Osmalyzer;
 
 public class HasValue : OsmFilter
 {
@@ -15,6 +17,9 @@ public class HasValue : OsmFilter
 
     public HasValue(string key, string value, bool caseSensitive = true)
     {
+        if (key == null) throw new ArgumentNullException(nameof(key));
+        if (value == null) throw new ArgumentNullException(nameof(value));
+        
         _key = key;
         _value = value;
         _caseSensitive = caseSensitive;

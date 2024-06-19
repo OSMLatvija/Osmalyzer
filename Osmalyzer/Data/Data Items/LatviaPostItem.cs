@@ -41,7 +41,22 @@ public class LatviaPostItem : IDataItem
             Coord
         );
     }
-    
+
+    [Pure]
+    public ParcelPickupPoint AsPickupPointLocker()
+    {
+        if (ItemType != LatviaPostItemType.CircleK) throw new Exception("This item is not a pickup point.");
+
+        return new ParcelPickupPoint(
+            "Latvijas Pasts",
+            Code,
+            Name,
+            Address,
+            Coord,
+            "Circle K" // the only place in Latvia (at the moment) 
+        );
+    }
+
 
     public string ReportString()
     {

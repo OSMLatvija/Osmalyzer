@@ -37,7 +37,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
         
         List<TicketVendingMachine> listedTicketVendingMachines = datas.OfType<RigasSatiksmeVendingAnalysisData>().First().VendingMachines;
         
-        Correlator<TicketVendingMachine> dataComparer = new Correlator<TicketVendingMachine>(
+        Correlator<TicketVendingMachine> correlator = new Correlator<TicketVendingMachine>(
             osmTicketVendingMachines,
             listedTicketVendingMachines,
             new MatchDistanceParamater(75), // often data points to shop instead of kiosk
@@ -59,7 +59,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        CorrelatorReport correlatorReport = dataComparer.Parse(
+        CorrelatorReport correlatorReport = correlator.Parse(
             report,
             new MatchedPairBatch(),
             new UnmatchedItemBatch(),

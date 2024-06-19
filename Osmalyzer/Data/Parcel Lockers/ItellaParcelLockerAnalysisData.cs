@@ -18,8 +18,12 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
 
     public override IEnumerable<ParcelLocker> ParcelLockers => _parcelLockers;
 
+    public override IEnumerable<ParcelPickupPoint>? PickupPoints => null; // TODO: !!!!!!!!!!!!!!!!!
+
 
     private List<ParcelLocker> _parcelLockers = null!; // only null until prepared
+    public override PickupPointAmenity? PickupPointLocation => PickupPointAmenity.Kiosk;
+    public override string PickupPointLocationName => "Narvessen";
 
 
     protected override void Download()

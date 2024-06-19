@@ -3,7 +3,7 @@
 namespace Osmalyzer;
 
 /// <summary>
-/// Reported via/batched into <see cref="MatchedLoneOsmBatch"/> (not that there is no "unmatched" version - such elements are simply ignored).
+/// Reported via/batched into <see cref="MatchedLoneOsmBatch"/> (note that there is no "unmatched" version - such elements are simply ignored).
 /// If elements are not matched to data items, normally, they are batched into <see cref="UnmatchedItemBatch"/>.
 /// However, we can specify with this to instead consider them "lone" elements and report them separately.
 /// This is only necessary when not all elements passed to the correlator are automatically "missing";

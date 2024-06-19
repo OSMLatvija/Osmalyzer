@@ -6,7 +6,7 @@ public class DPDParcelLockerAnalyzer : ParcelLockerAnalyzer<DPDParcelLockerAnaly
 {
     protected override string Operator => "DPD";
 
-    protected override List<ValidationRule> ValidationRules => new List<ValidationRule>
+    protected override List<ValidationRule> LockerValidationRules => new List<ValidationRule>
     {
         new ValidateElementHasValue("brand", Operator),
         new ValidateElementHasValue("operator", "DPD Latvia"),
@@ -15,4 +15,6 @@ public class DPDParcelLockerAnalyzer : ParcelLockerAnalyzer<DPDParcelLockerAnaly
         new ValidateElementHasValue("parcel_pickup", "yes"),
         new ValidateElementHasValue("parcel_mail_in", "yes"),
     };
+
+    protected override List<ValidationRule>? PickupPointValidationRules => null; // TODO: !!!!!!!!!!!!
 }

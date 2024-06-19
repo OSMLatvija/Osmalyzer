@@ -79,7 +79,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
         {
             // Prepare data comparer/correlator
 
-            Correlator<TItem> dataComparer = new Correlator<TItem>(
+            Correlator<TItem> correlator = new Correlator<TItem>(
                 osmPoints,
                 dataPoints,
                 new MatchDistanceParamater(75), // often data points to shop instead of kiosk
@@ -102,7 +102,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
             // Parse and report primary matching and location correlation
 
-            return dataComparer.Parse(
+            return correlator.Parse(
                 report,
                 new MatchedPairBatch(),
                 new UnmatchedItemBatch(),

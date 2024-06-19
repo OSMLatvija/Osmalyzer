@@ -19,6 +19,10 @@ public class VenipakParcelLockerAnalysisData : ParcelLockerAnalysisData
 
     public override IEnumerable<ParcelLocker> ParcelLockers => _parcelLockers;
 
+    public override IEnumerable<ParcelPickupPoint>? PickupPoints => null; // we don't have any pickup points
+    public override PickupPointAmenity? PickupPointLocation => null; // we don't have any pickup points
+    public override string? PickupPointLocationName => null; // we don't have any pickup points
+
 
     private List<ParcelLocker> _parcelLockers = null!; // only null until prepared
 

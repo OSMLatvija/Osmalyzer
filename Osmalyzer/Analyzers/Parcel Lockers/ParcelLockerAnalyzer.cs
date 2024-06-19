@@ -17,7 +17,9 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
     protected abstract string Operator { get; }
 
-    protected abstract List<ValidationRule>? ValidationRules { get; }
+    protected abstract List<ValidationRule>? LockerValidationRules { get; }
+    
+    protected abstract List<ValidationRule>? PickupPointValidationRules { get; }
 
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
@@ -41,11 +43,8 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
         OsmMasterData osmMasterData = osmData.MasterData;
                 
-        OsmDataExtract osmLockers = osmMasterData.Filter(
-            new HasAnyValue("amenity", "parcel_locker")
-        );
-
-        OsmDataExtract brandLockers = osmLockers.Filter(
+        OsmDataExtract brandLockers = osmMasterData.Filter(
+            new HasAnyValue("amenity", "parcel_locker"),
             new CustomMatch(LockerMatchesBrand)
         );
         // Note that we are only matching to brand-tagged lockers, because data coordinates are very approximate,
@@ -75,59 +74,170 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
             return false;
         }
 
-        // Load Parcel locker data
-        List<ParcelLocker> listedLockers = datas.OfType<IParcelLockerListProvider>().First().ParcelLockers.ToList();
+        // Load data items
+        IParcelLockerListProvider pointData = datas.OfType<IParcelLockerListProvider>().First();
+        List<ParcelLocker> listedLockers = pointData.ParcelLockers.ToList();
+        List<ParcelPickupPoint>? listedPickupPoints = pointData.PickupPoints?.ToList();
 
-        // Prepare data comparer/correlator
-
-        Correlator<ParcelLocker> dataComparer = new Correlator<ParcelLocker>(
-            brandLockers, 
-            listedLockers,
-            new MatchDistanceParamater(100),
-            new MatchFarDistanceParamater(200),
-            new MatchExtraDistanceParamater(MatchStrength.Strong, 500),
-            new DataItemLabelsParamater(Operator + " parcel locker", Operator + " parcel lockers"),
-            new OsmElementPreviewValue("name", false),
-            new MatchCallbackParameter<ParcelLocker>(GetMatchStrength)
-        );
         
-        [Pure]
-        MatchStrength GetMatchStrength(ParcelLocker point, OsmElement element)
+        // Lockers
         {
-            if (point.Address != null)
-                if (FuzzyAddressMatcher.Matches(element, point.Address))
-                    return MatchStrength.Strong;
-                
-            return MatchStrength.Good;
+
+            // Prepare data comparer/correlator
+
+            Correlator<ParcelLocker> correlator = new Correlator<ParcelLocker>(
+                brandLockers,
+                listedLockers,
+                new MatchDistanceParamater(100),
+                new MatchFarDistanceParamater(200),
+                new MatchExtraDistanceParamater(MatchStrength.Strong, 500),
+                new DataItemLabelsParamater(Operator + " parcel locker", Operator + " parcel lockers"),
+                new OsmElementPreviewValue("name", false),
+                new MatchCallbackParameter<ParcelLocker>(GetMatchStrength)
+            );
+
+            [Pure]
+            MatchStrength GetMatchStrength(ParcelLocker point, OsmElement element)
+            {
+                if (point.Address != null)
+                    if (FuzzyAddressMatcher.Matches(element, point.Address))
+                        return MatchStrength.Strong;
+
+                return MatchStrength.Good;
+            }
+
+            // Parse and report primary matching and location correlation
+
+            CorrelatorReport correlatorReport = correlator.Parse(
+                report,
+                new MatchedPairBatch(),
+                new MatchedLoneOsmBatch(true),
+                new UnmatchedItemBatch(),
+                new MatchedFarPairBatch(),
+                new UnmatchedOsmBatch()
+            );
+
+            // Validate tagging
+
+            Validator<ParcelLocker> validator = new Validator<ParcelLocker>(
+                correlatorReport,
+                listedPickupPoints != null ? "Parcel locker tagging issues" : "Tagging issues"
+            );
+
+            List<ValidationRule> rules = new List<ValidationRule>
+            {
+                new ValidateElementFixme()
+            };
+
+            // Add custom rules per operator/analyzer
+            if (LockerValidationRules != null)
+                rules.AddRange(LockerValidationRules);
+
+            validator.Validate(report, rules.ToArray());
         }
 
-        // Parse and report primary matching and location correlation
 
-        CorrelatorReport correlatorReport = dataComparer.Parse(
-            report,
-            new MatchedPairBatch(),
-            new MatchedLoneOsmBatch(true),
-            new UnmatchedItemBatch(),
-            new MatchedFarPairBatch(),
-            new UnmatchedOsmBatch()
-        );
-
-        // Validate tagging
-
-        Validator<ParcelLocker> validator = new Validator<ParcelLocker>(
-            correlatorReport,
-            "Tagging issues"
-        );
-
-        List<ValidationRule> rules = new List<ValidationRule>
+        // Pickup points
+        if (listedPickupPoints != null)
         {
-            new ValidateElementFixme()
-        };
-        
-        // Add custom rules per operator/analyzer
-        if (ValidationRules != null) 
-            rules.AddRange(ValidationRules);
+            OsmDataExtract potentialAmenities;
 
-        validator.Validate(report, rules.ToArray());
+            switch (pointData.PickupPointLocation)
+            {
+                case PickupPointAmenity.GasStation:
+                    potentialAmenities = osmMasterData.Filter(
+                        new OrMatch(
+                            new HasValue("shop", "convenience"), // shop in fuel station mapped separately
+                            new HasValue("amenity", "fuel")
+                        ),
+                        new HasValue("name", pointData.PickupPointLocationName!)
+                    );
+                    break;
+                
+                case PickupPointAmenity.Kiosk: 
+                    potentialAmenities = osmMasterData.Filter(
+                        new HasValue("shop", "kiosk"),
+                        new HasValue("name", pointData.PickupPointLocationName!)
+                    );
+                    break;
+                
+                default:
+                    throw new NotImplementedException();
+            }
+            
+            // Prepare data comparer/correlator
+
+            Correlator<ParcelPickupPoint> correlator = new Correlator<ParcelPickupPoint>(
+                potentialAmenities,
+                listedPickupPoints,
+                new MatchDistanceParamater(100),
+                new MatchFarDistanceParamater(200),
+                new MatchExtraDistanceParamater(MatchStrength.Strong, 500),
+                new DataItemLabelsParamater(Operator + " parcel pickup point", Operator + " parcel pickup points"),
+                new OsmElementPreviewValue("name", false),
+                new MatchCallbackParameter<ParcelPickupPoint>(GetMatchStrength),
+                new LoneElementAllowanceParameter(IsOsmElementAllowedByItself)
+            );
+
+            [Pure]
+            MatchStrength GetMatchStrength(ParcelPickupPoint point, OsmElement element)
+            {
+                string[]? serviceProviders = element.GetDelimitedValues("post_office:service_provider");
+
+                if (serviceProviders != null)
+                    if (!serviceProviders.Contains(Operator))
+                        return MatchStrength.Unmatched; // this is some other providere's location (we could ALSO be here, but it's not mapped, so cannot easily assume to match)
+
+                if (point.Address != null)
+                    if (FuzzyAddressMatcher.Matches(element, point.Address))
+                        return MatchStrength.Strong;
+
+                return MatchStrength.Good;
+            }
+
+            [Pure]
+            bool IsOsmElementAllowedByItself(OsmElement element)
+            {
+                if (element.HasValue("post_office", "post_partner"))
+                {
+                    string[]? serviceProviders = element.GetDelimitedValues("post_office:service_provider");
+                    
+                    if (serviceProviders != null)
+                        if (serviceProviders.Contains(Operator))
+                            return true;
+                }
+
+                return false;
+            }
+
+            // Parse and report primary matching and location correlation
+
+            CorrelatorReport correlatorReport = correlator.Parse(
+                report,
+                new MatchedPairBatch(),
+                new MatchedLoneOsmBatch(true),
+                new UnmatchedItemBatch(),
+                new MatchedFarPairBatch(),
+                new MatchedLoneOsmBatch(true)
+            );
+
+            // Validate tagging
+
+            Validator<ParcelLocker> validator = new Validator<ParcelLocker>(
+                correlatorReport,
+                "Pickup point tagging issues"
+            );
+
+            List<ValidationRule> rules = new List<ValidationRule>
+            {
+                new ValidateElementFixme()
+            };
+
+            // Add custom rules per operator/analyzer
+            if (PickupPointValidationRules != null)
+                rules.AddRange(PickupPointValidationRules);
+
+            validator.Validate(report, rules.ToArray());
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace Osmalyzer;
 [UsedImplicitly]
 public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLockerListProvider
 {
-    public override string Name => Operator + " Parcel lockers";
+    public override string Name => Operator + " Parcel lockers"; // todo: and pickup points if so
 
     public override string Description => "This report checks that all " + Operator + " parcel lockers listed on company's website are found on the map." + Environment.NewLine +
                                           "Note that parcel locker websites can and do have errors: mainly incorrect position, but sometimes lockers are missing too.";

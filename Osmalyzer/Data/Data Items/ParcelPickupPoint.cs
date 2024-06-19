@@ -36,7 +36,7 @@ public class ParcelPickupPoint : IDataItem
             Operator + " parcel pickup point" +
             (Name != null ? " `" + Name + "`" : "") +
             (Id != null ? " (`" + Id + "`)" : "") +
-            (Location != null ? " at `" + Location + "`" : "") +
+            (Location != null ? " in `" + Location + "`" : "") +
             (Address != null ? " at `" + Address + "`" : "");
     }
 }

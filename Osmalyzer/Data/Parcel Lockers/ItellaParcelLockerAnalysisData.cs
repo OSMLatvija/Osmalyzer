@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
 namespace Osmalyzer;
@@ -18,12 +19,14 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
 
     public override IEnumerable<ParcelLocker> ParcelLockers => _parcelLockers;
 
-    public override IEnumerable<ParcelPickupPoint>? PickupPoints => null; // TODO: !!!!!!!!!!!!!!!!!
+    public override IEnumerable<ParcelPickupPoint>? PickupPoints => _pickupPoints;
+    public override PickupPointAmenity? PickupPointLocation => PickupPointAmenity.Kiosk;
+    public override string PickupPointLocationName => "Narvessen";
 
 
     private List<ParcelLocker> _parcelLockers = null!; // only null until prepared
-    public override PickupPointAmenity? PickupPointLocation => PickupPointAmenity.Kiosk;
-    public override string PickupPointLocationName => "Narvessen";
+    
+    private List<ParcelPickupPoint> _pickupPoints = null!; // only null until prepared
 
 
     protected override void Download()
@@ -41,6 +44,7 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
     protected override void DoPrepare()
     {
         _parcelLockers = new List<ParcelLocker>();
+        _pickupPoints = new List<ParcelPickupPoint>();
 
         string source = File.ReadAllText(DataFileName);
 
@@ -79,7 +83,7 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
             double lon = double.Parse(item.longitude.ToString());
             string type = item.type;
 
-            if (type == "ipb")
+            if (type == "ipb") // "Intelligent Parcel Box", probably
             {
                 _parcelLockers.Add(
                     new ParcelLocker(
@@ -88,6 +92,28 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
                         name,
                         address,
                         new OsmCoord(lat, lon)
+                    )
+                );
+            }
+            else if (type == "pudo") // "Pick-Up and Drop-Off", probably, althopugh these don't actually do drop-off, do they?
+            {
+                string? location = item.description;
+                
+                // e.g. "Paku punkts atrodas veikala Narvesen telpās. Paku saņemšana notiek uzrādot PIN kodu veikala pārdevējam."
+                Match locationMatch = Regex.Match(location, @"atrodas ([^\.]+)\.");
+                if (!locationMatch.Success)
+                    location = null;
+                else
+                    location = locationMatch.Groups[1].ToString();
+
+                _pickupPoints.Add(
+                    new ParcelPickupPoint(
+                        "Itella",
+                        id,
+                        name,
+                        address,
+                        new OsmCoord(lat, lon),
+                        location
                     )
                 );
             }

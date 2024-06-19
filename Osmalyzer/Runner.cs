@@ -66,7 +66,7 @@ public static class Runner
             // new BottleDepositPointsAnalyzer(),
             // new VenipakParcelLockerAnalyzer(),
             // new OmnivaParcelLockerAnalyzer(),
-            // new ItellaParcelLockerAnalyzer(),
+            new ItellaParcelLockerAnalyzer(),
             // new DPDParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
             new LatviaPostLockerAnalyzer(),

@@ -199,13 +199,8 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
             bool IsOsmElementAllowedByItself(OsmElement element)
             {
                 if (element.HasValue("post_office", "post_partner"))
-                {
-                    string[]? serviceProviders = element.GetDelimitedValues("post_office:service_provider");
-                    
-                    if (serviceProviders != null)
-                        if (serviceProviders.Contains(Operator))
-                            return true;
-                }
+                    if (element.HasDelimitedValue("post_office:service_provider", Operator))
+                        return true;
 
                 return false;
             }

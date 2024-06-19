@@ -147,7 +147,21 @@ public abstract class OsmElement : IChunkerItem
             return value == actualValue;
         else
             return string.Equals(value, actualValue, StringComparison.OrdinalIgnoreCase);
-    }
+    } 
+        
+    [Pure]
+    public bool HasDelimitedValue(string key, string value)
+    {
+        if (_tags == null)
+            return false;
+            
+        if (!_tags.TryGetValue(key, out string? actualValue))
+            return false;
+
+        return actualValue.Split(';')
+                          .Select(v => v.Trim())
+                          .Any(v => v == value);
+    }  
 
     [Pure]
     public string? GetAllTagsAsString()

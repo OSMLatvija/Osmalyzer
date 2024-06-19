@@ -17,7 +17,7 @@ public class Validator<T> where T : IDataItem
     }
 
 
-    public void Validate(Report report, params ValidationRule[] rules)
+    public void Validate(Report report, bool validateUnmatchedElements, params ValidationRule[] rules)
     {
         report.AddGroup(
             ReportGroup.ValidationResults, 
@@ -44,6 +44,9 @@ public class Validator<T> where T : IDataItem
                     break;
                 
                 case UnmatchedCorrelation unmatchedCorrelation:
+                    if (!validateUnmatchedElements)
+                        continue;
+                    
                     osmElement = unmatchedCorrelation.OsmElement;
                     dataItem = default;
                     break;

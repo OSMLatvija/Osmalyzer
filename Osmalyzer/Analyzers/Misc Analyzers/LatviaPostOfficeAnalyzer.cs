@@ -84,6 +84,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
 
         validator.Validate(
             report,
+            true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementValueMatchesDataItemValue<LatviaPostItem>("name", di => di.Name),
             new ValidateElementHasValue("operator", Operator),
             new ValidateElementHasValue("operator:wikidata", "Q1807088"),

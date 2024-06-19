@@ -132,7 +132,11 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
             if (LockerValidationRules != null)
                 rules.AddRange(LockerValidationRules);
 
-            validator.Validate(report, rules.ToArray());
+            validator.Validate(
+                report,
+                true, // all elements we checked against are "real", so should follow the rules 
+                rules.ToArray()
+            );
         }
 
 
@@ -185,7 +189,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
                 if (serviceProviders != null)
                     if (!serviceProviders.Contains(Operator))
-                        return MatchStrength.Unmatched; // this is some other providere's location (we could ALSO be here, but it's not mapped, so cannot easily assume to match)
+                        return MatchStrength.Unmatched; // this is some other provider's location (we could ALSO be here, but it's not mapped, so cannot easily assume to match)
 
                 if (point.Address != null)
                     if (FuzzyAddressMatcher.Matches(element, point.Address))
@@ -231,7 +235,11 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
             if (PickupPointValidationRules != null)
                 rules.AddRange(PickupPointValidationRules);
 
-            validator.Validate(report, rules.ToArray());
+            validator.Validate(
+                report,
+                false, // we match many elements that may or may not be relevant, so don't check unmatched pairs
+                rules.ToArray()
+            );
         }
     }
 }

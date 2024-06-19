@@ -251,6 +251,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
         validator.Validate(
             report,
+            true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasAcceptableValue("ref:LV:vkpai", IsKnownMonumentRefID, "known monument ID")
         );
         

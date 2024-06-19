@@ -217,7 +217,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
             // Validate tagging
 
-            Validator<ParcelLocker> validator = new Validator<ParcelLocker>(
+            Validator<ParcelPickupPoint> validator = new Validator<ParcelPickupPoint>(
                 correlatorReport,
                 "Pickup point tagging issues"
             );

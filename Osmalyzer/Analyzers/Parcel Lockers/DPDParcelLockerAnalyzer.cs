@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace Osmalyzer;
 
+[UsedImplicitly]
 public class DPDParcelLockerAnalyzer : ParcelLockerAnalyzer<DPDParcelLockerAnalysisData>
 {
     protected override string Operator => "DPD";

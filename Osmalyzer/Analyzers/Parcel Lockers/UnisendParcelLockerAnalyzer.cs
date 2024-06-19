@@ -2,6 +2,7 @@
 
 namespace Osmalyzer;
 
+[UsedImplicitly]
 public class UnisendParcelLockerAnalyzer : ParcelLockerAnalyzer<UnisendParcelLockerAnalysisData>
 {
     protected override string Operator => "Unisend";

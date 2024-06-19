@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace Osmalyzer;
 
-[UsedImplicitly]
 public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLockerListProvider
 {
     public override string Name => Operator + " Parcel lockers"; // todo: and pickup points if so

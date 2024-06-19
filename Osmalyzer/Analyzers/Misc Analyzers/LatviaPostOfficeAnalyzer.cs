@@ -19,7 +19,8 @@ public class LatviaPostOfficeAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
         typeof(OsmAnalysisData),
-        typeof(LatviaPostAnalysisData)
+        typeof(LatviaPostAnalysisData),
+        typeof(PostOfficeOperatorAnalysisData)
     };
         
 
@@ -36,10 +37,13 @@ public class LatviaPostOfficeAnalyzer : Analyzer
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // a couple OOB hits
         );
 
-        // Load Parcel locker data
-        List<LatviaPostItem> listedItems  = datas.OfType<LatviaPostAnalysisData>().First().LatviaPostItems;
+        // Load post office data
+        List<LatviaPostItem> listedBoxes = datas.OfType<LatviaPostAnalysisData>().First()
+                                                .LatviaPostItems
+                                                .Where(i => i.ItemType == LatviaPostItemType.Office).ToList();
         
-        List<LatviaPostItem> listedBoxes  = listedItems.Where(i => i.ItemType == LatviaPostItemType.Office).ToList();
+        // Load other operators that can be slipped
+        List<string> otherOperators = datas.OfType<PostOfficeOperatorAnalysisData>().First().Operators;
 
         // Prepare data comparer/correlator
 
@@ -51,17 +55,33 @@ public class LatviaPostOfficeAnalyzer : Analyzer
             new MatchExtraDistanceParamater(MatchStrength.Strong, 500),
             new DataItemLabelsParamater(Operator + " post office", Operator + " post offices"),
             new OsmElementPreviewValue("name", false),
-            new MatchCallbackParameter<LatviaPostItem>(GetMatchStrength)
+            new MatchCallbackParameter<LatviaPostItem>(GetMatchStrength),
+            new LoneElementAllowanceParameter(e => !DoesElementLookLikeAnotherOperatorsPostOffice(e))
         );
         
         [Pure]
         MatchStrength GetMatchStrength(LatviaPostItem point, OsmElement element)
         {
+            if (DoesElementLookLikeAnotherOperatorsPostOffice(element))
+                return MatchStrength.Unmatched;
+            
             if (point.Address != null)
                 if (FuzzyAddressMatcher.Matches(element, point.Address))
                     return MatchStrength.Strong;
                 
             return MatchStrength.Good;
+        }
+        
+        [Pure]
+        bool DoesElementLookLikeAnotherOperatorsPostOffice(OsmElement element)
+        {
+            if (element.HasValue("operator", otherOperators, false))
+                return true;
+            
+            if (element.HasValue("brand", otherOperators, false))
+                return true;
+            
+            return false;
         }
 
         // Parse and report primary matching and location correlation
@@ -71,8 +91,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
-            new MatchedFarPairBatch(),
-            new UnmatchedOsmBatch()
+            new MatchedFarPairBatch()
         );
 
         // Validate tagging
@@ -84,7 +103,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
 
         validator.Validate(
             report,
-            true, // all elements we checked against are "real", so should follow the rules
+            false, // there are non-LP post offices, so we don't check against them
             new ValidateElementValueMatchesDataItemValue<LatviaPostItem>("name", di => di.Name),
             new ValidateElementHasValue("operator", Operator),
             new ValidateElementHasValue("operator:wikidata", "Q1807088"),

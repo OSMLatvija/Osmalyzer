@@ -150,6 +150,32 @@ public abstract class OsmElement : IChunkerItem
     } 
         
     [Pure]
+    public bool HasValue(string key, IEnumerable<string> values, bool caseSensitive = true)
+    {
+        if (_tags == null)
+            return false;
+
+        if (!_tags.TryGetValue(key, out string? actualValue))
+            return false;
+
+        foreach (string value in values)
+        {
+            if (caseSensitive)
+            {
+                if (value == actualValue)
+                    return true;
+            }
+            else
+            {
+                if (string.Equals(value, actualValue, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+        
+        return false;
+    } 
+        
+    [Pure]
     public bool HasDelimitedValue(string key, string value)
     {
         if (_tags == null)

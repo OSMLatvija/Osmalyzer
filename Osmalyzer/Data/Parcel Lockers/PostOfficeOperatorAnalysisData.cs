@@ -7,26 +7,26 @@ using System.Text;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class ParcelLockerOperatorAnalysisData : AnalysisData
+public class PostOfficeOperatorAnalysisData : AnalysisData
 {
-    public override string Name => "Parcel Locker operators";
+    public override string Name => "Post Office operators";
 
     public override string? ReportWebLink => null;
     
     public override bool NeedsPreparation => false;
 
     
-    protected override string DataFileIdentifier => "parcel-locker-operators";
+    protected override string DataFileIdentifier => "post-office-operators";
 
 
-    public Dictionary<string, List<string>> Branding { get; private set; } = null!; // only null until downloaded
+    public List<string> Operators { get; private set; } = null!; // only null until downloaded
 
 
     protected override void Download()
     {
-        Branding = new Dictionary<string, List<string>>();
+        Operators = new List<string>();
         
-        string dataFileName = @"data/parcel locker operators.tsv";
+        string dataFileName = @"data/post office operators.tsv";
 
         if (!File.Exists(dataFileName))
             dataFileName = @"../../../../" + dataFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
@@ -43,9 +43,7 @@ public class ParcelLockerOperatorAnalysisData : AnalysisData
             
             string[] splits = line.Split('\t');
                 
-            if (splits.Length == 1) throw new Exception();
-                
-            Branding.Add(splits[0], splits.Skip(1).ToList());
+            Operators.Add(splits[0]);
         }
     }
 

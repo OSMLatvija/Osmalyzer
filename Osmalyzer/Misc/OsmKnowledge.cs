@@ -190,7 +190,7 @@ public static class OsmKnowledge
 
         if (leisure != null)
         {
-            if (leisure is "pitch" or "park" or "playground")
+            if (leisure is "pitch" or "park" or "playground" or "fitness_station")
                 return ("leisure", leisure);
         }
 

@@ -27,13 +27,13 @@ public static class Runner
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
             // new RigasSatiksmeAnalyzer(),
-            // new RigasSatiksmeTicketVendingAnalyzer(),
+            new RigasSatiksmeTicketVendingAnalyzer(), // embeded GMaps URL is 404, so nothing can be done atm
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
             // new AutotransportaDirekcijaAnalyzer(),
             // new TrolleybusWireAnalyzer(),
-            new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why
+            // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why
             // new StreetNameAnalyzer(),
             // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),

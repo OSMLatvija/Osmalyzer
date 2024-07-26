@@ -25,7 +25,7 @@ public static class Runner
             // new CommonBrandsAnalyzer(),
             // new HighwaySeasonalSpeedsAnalyzer(),
             // new LivingZoneSpeedAnalyzer(),
-            // new LVCRoadAnalyzer(),
+            new LVCRoadAnalyzer(),
             // new RigasSatiksmeAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
@@ -77,7 +77,7 @@ public static class Runner
             // new LidlShopAnalyzer(),
             // new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer(),
-            new DuplicatePlatformsAnalyzer()
+            // new DuplicatePlatformsAnalyzer()
         };
 #endif
 

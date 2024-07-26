@@ -34,66 +34,89 @@ public class RoadLaw
             HtmlNodeCollection cells = row.SelectNodes(".//td");
             if (cells.Count == 0) throw new Exception();
 
+            if (cells[0].InnerText.Contains("Autoceļa maršruta indekss"))
+                continue; // header, first row
+
+            if (cells[0].InnerText.Contains("maršruta kopgarums"))
+                continue; // header, second row (of merged stuff)
+
+            if (cells[0].InnerText.Contains("posmi ārpus pilsētām"))
+                continue; // header, third row (of merged stuff)
+
+            if (cells[0].InnerText == "no")
+                continue; // header, fourth row (of merged stuff)
+
+            if (cells[0].InnerText == "1")
+                continue; // column index row
+            
             switch (cells.Count)
             {
-                case 11:
+                case 10  // P and V secondary when merged
+                    or 11 // P and V first or secondary when unmerged
+                    or 12 // A secondary merged 
+                    or 13: // A first
                 {
                     // Regular
 
                     List<HtmlNode> cellList = cells.ToList();
 
-                    string? code = GetCodeFromNode(cellList[0]);
+                    int offset = 0;
 
-                    if (code == "1")
-                    {
-                        // This is the column index row 1 2 3 .. 11
-                    }
-                    else if (code != null)
+                    bool subsequent =
+                        cells.Count == 12 || // A merged
+                        cells.Count == 10 || // P or V merged
+                        HttpUtility.HtmlDecode(cellList[0].InnerText).Trim() == ""; // P or V unmerged empty
+
+                    if (!subsequent)
                     {
                         // First row for road
 
+                        string? code = GetCodeFromNode(cellList[0]);
+
+                        if (code == null) throw new Exception();
+                        
                         if (!Regex.IsMatch(code, codePattern)) throw new Exception();
 
                         string name = cellList[1].InnerText.Trim();
 
-                        double length = GetLengthFromNode(cellList[2]);
+                        double length = GetLengthFromNode(cellList[2 + offset]);
 
                         //Console.WriteLine(code + " - " + length);
 
                         roads.Add(new ActiveRoad(code, name, length));
 
-                        GatherNotes(code, cellList[10], sharedSegments);
+                        GatherNotes(code, cellList[10 + offset], sharedSegments);
                     }
                     else
                     {
                         // Subsequent row for road - distances and notes
 
-                        GatherNotes(roads.Last().Code, cellList[10], sharedSegments);
+                        if (cells.Count is 12 or 10) // secondary row of A, which is merged (as opposed to P and V which aren't)
+                            GatherNotes(roads.Last().Code, cellList[10 - 1], sharedSegments);
+                        else // P or V unmerged
+                            GatherNotes(roads.Last().Code, cellList[10], sharedSegments);
                     }
 
                     break;
                 }
 
-                case 2:
-                {
-                    // Removed
-
-                    List<HtmlNode> cellList = cells.ToList();
-
-                    if (!cellList[1].SelectSingleNode(".//span").InnerText.Contains("Svītrots")) throw new Exception();
-
-                    string code = cellList[0].SelectSingleNode(".//p").InnerText.Trim();
-
-                    if (!Regex.IsMatch(code, codePattern)) throw new Exception();
-
-                    roads.Add(new StrickenRoad(code));
-
-                    break;
-                }
-
-                case 4 or 5:
-                    // Header
-                    break;
+                // There are no more "Svītrots" entries in the latest law revision
+                // case 2:
+                // {
+                //     // Removed
+                //
+                //     List<HtmlNode> cellList = cells.ToList();
+                //
+                //     if (!cellList[1].SelectSingleNode(".//span").InnerText.Contains("Svītrots")) throw new Exception();
+                //
+                //     string code = cellList[0].SelectSingleNode(".//p").InnerText.Trim();
+                //
+                //     if (!Regex.IsMatch(code, codePattern)) throw new Exception();
+                //
+                //     roads.Add(new StrickenRoad(code));
+                //
+                //     break;
+                // }
 
                 default:
                     throw new Exception();

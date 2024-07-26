@@ -40,7 +40,7 @@ public class CitroShopsAnalysisData : ShopListAnalysisData
 
         MatchCollection matches = Regex.Matches(
             source, 
-            @"\{\s*coords:\{([^\}]+)\},\s*shopLogo:'([^']+)',\s+content:'([^']+)'\s*\},",
+            @"\{\s*coords:\s*\{([^\}]+)\},\s*shopLogo:\s*'([^']+)',\s*content:\s*'([^']+)'\s*\},",
             RegexOptions.Singleline
         );
         
@@ -51,10 +51,10 @@ public class CitroShopsAnalysisData : ShopListAnalysisData
                 
         foreach (Match match in matches)
         {
-            // {
-            //     coords:{lat: 57.068828, lng: 22.294163},
-            //     shopLogo:'https://citro.lv/wp-content/themes/citro/app/assets/img/logo-xs-mini.svg',
-            //     content:'<p style="margin:0 0 5px 0;font-size:16px;"><strong>"Saktas", Rendas pag., Kuldīgas nov.</strong></p><p>Darba laiks: 8:00-22:00  Automatizēta taras pieņemšana</p>'
+            //       {
+            //     coords: {lat: 56.684224, lng: 22.565775},
+            //     shopLogo: 'https://citro.lv/wp-content/themes/citro/app/assets/img/logo-xs.svg',
+            //     content: '<p style="margin:0 0 5px 0;font-size:16px;"><strong>Lielcieceres iela 2a, Brocēni</strong></p><p>Darba laiks: 8:00-22:00  Automatizēta taras pieņemšana</p>'
             // },
 
             string coordContent = match.Groups[1].ToString();

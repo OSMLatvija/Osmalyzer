@@ -27,7 +27,7 @@ public static class Runner
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
             // new RigasSatiksmeAnalyzer(),
-            new RigasSatiksmeTicketVendingAnalyzer(), // embeded GMaps URL is 404, so nothing can be done atm
+            // new RigasSatiksmeTicketVendingAnalyzer(), // embeded GMaps URL is 404, so nothing can be done atm
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
@@ -47,7 +47,7 @@ public static class Runner
             // new AibeShopAnalyzer(),
             // new VeskoShopAnalyzer(),
             // new SparShopAnalyzer(),
-            // new CitroShopAnalyzer(),
+            new CitroShopAnalyzer(),
             // new TopShopAnalyzer(),
             // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),

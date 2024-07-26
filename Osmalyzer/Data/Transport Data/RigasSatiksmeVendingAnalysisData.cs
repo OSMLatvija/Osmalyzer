@@ -13,7 +13,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
 {
     public override string Name => "Rīgas Satiksme ticket vending machines";
 
-    public override string ReportWebLink => @"https://www.rigassatiksme.lv/lv/biletes/bilesu-tirdzniecibas-vietas/bilesu-automati";
+    public override string ReportWebLink => @"https://www.rigassatiksme.lv/lv/biletes/bilesu-tirdzniecibas-vietas/tirdzniecibas-vietas/";
 
     public override bool NeedsPreparation => true;
 
@@ -63,7 +63,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
             {
                 // RS site is geoblocked in US, where GitHub runner is,
                 // so fail gracefully and just hard-code the ID, since we are only checking the site for the id anyway
-                return "1fHZLaJ1t5cPs9PbaUotV_-IlwVs";
+                return "zyg34wpl1-Bk.kKd944OiyVNA";
                 //throw new Exception("Failed to read RS page", e);
             }
 
@@ -84,7 +84,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
 
                 // RS site is geoblocked in US, where GitHub runner is,
                 // so fail gracefully and just hard-code the ID, since we are only checking the site for the id anyway
-                return "1fHZLaJ1t5cPs9PbaUotV_-IlwVs";
+                return "zyg34wpl1-Bk.kKd944OiyVNA";
                 //throw new Exception("Couldn't parse RS site html for the Google Maps KML ID (saved html dump in output 'RS-vending-html-dump.html' and headers in 'RS-vending-header-dump.html')");
             }
 
@@ -106,13 +106,16 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
         {
             if (placemark.Geometry is Point point)
             {
-                string? location = SanitizeLocation(placemark.Description?.Text);
+                if (placemark.Name != "Biļešu automāts")
+                    continue; // map includes all the shops that sell tickets, not just vending machines
+                
+                (string? address, string? location) = ExtractLocation(placemark.Description?.Text);
                 
                 VendingMachines.Add(
                     new TicketVendingMachine(
                         new OsmCoord(point.Coordinate.Latitude, point.Coordinate.Longitude),
                         location,
-                        placemark.Name // name is address in this list for some reason
+                        address
                     )
                 );
             }
@@ -121,29 +124,33 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
 
     
     [Pure]
-    private static string? SanitizeLocation(string? value)
+    private static (string? address, string? location) ExtractLocation(string? value)
     {
         if (value == null)
-            return null;
+            return (null, null);
         
-        if (value == "Biļešu automāts") // useless value, 1 instance as of writing this
-            return null;
+        // 13. janvāra iela, Rīga     Biļešu automāts atrodas Prāgas-Vaļņu ielas tunelī, Vecrīgas pusē
 
-        // All the rest seem to be prefixed with a semi-useless string, so just trim it
+        Match match = Regex.Match(value, @"(?<addr>.+?)\s+Biļešu automāts atrodas (?<loc>.+)");
         
-        const string prefix = "Biļešu automāts atrodas ";
+        // Valdeķu iela 56, Rīga. <br>Biļešu automāts atrodas veikalā "Mego"
+        
+        if (!match.Success)
+            match = Regex.Match(value, @"(?<addr>.+?)\s?<br>\s?Biļešu automāts atrodas (?<loc>.+)");
 
-        if (!value.StartsWith(prefix)) // currently, all do, but future-proof
-            return value;
+        // Biļešu automāts atrodas netālu no slimnīcas “Gaiļezers” galvenās ieejas, pie lauksaimnieku tirgus vietām <br>Hipokrāta iela 2
         
-        value = value[prefix.Length..];
-                            
-        if (value.Length > 0)
-            value = char.ToUpper(value[0]) + value[1..];
+        if (!match.Success)
+            match = Regex.Match(value, @"Biļešu automāts atrodas (?<loc>.+?)\s?<br>(?<addr>.+)");
         
-        // We could theoretically parse more
-        // "p/v "Mežaparks"" - implcit psv stop, about half the entries are like this
-
-        return value;
+        // Nometņu iela 64 automāts atrodas p/v "Āgenskalna tirgus"
+        
+        if (!match.Success)
+            match = Regex.Match(value, @"(?<addr>.+?)\s+automāts atrodas (?<loc>.+)");
+        
+        if (!match.Success)
+            return (null, value);
+        
+        return (match.Groups["addr"].ToString(), match.Groups["loc"].ToString());
     }
 }

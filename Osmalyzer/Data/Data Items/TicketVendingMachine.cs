@@ -6,10 +6,10 @@ public class TicketVendingMachine : IDataItem
     
     public string? Location { get; }
     
-    public string Address { get; }
+    public string? Address { get; }
 
 
-    public TicketVendingMachine(OsmCoord coord, string? location, string address)
+    public TicketVendingMachine(OsmCoord coord, string? location, string? address)
     {
         Coord = coord;
         Location = location;
@@ -20,9 +20,9 @@ public class TicketVendingMachine : IDataItem
     public string ReportString()
     {
         return
-            Location != null ?
-                "`" + Location + "` (`" + Address + "`)"
-                :
-                "`" + Address + "`";
+            Location != null && Address != null ? "`" + Address + "` (`" + Location + "`)"
+            : Address != null                   ? "`" + Address + "`"
+            : Location != null                  ? "`" + Location + "`"
+                                                  : "unspecified location";
     }
 }

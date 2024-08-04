@@ -193,6 +193,14 @@ public static class OsmKnowledge
             if (leisure is "pitch" or "park" or "playground" or "fitness_station")
                 return ("leisure", leisure);
         }
+        
+        string? place = element.GetValue("place");
+
+        if (place != null)
+        {
+            if (place is "isolated_dwelling")
+                return ("place", place);
+        }
 
         return null;
     }

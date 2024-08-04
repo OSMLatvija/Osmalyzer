@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using FlatGeobuf.NTS;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
@@ -67,7 +68,7 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IUndatedAnalysisDa
 
                 object[] values = feature.Attributes.GetValues();
 
-                string name = values[nameIndex].ToString()!.Trim(); // there are some with newlines in name
+                string name = CleanName(values[nameIndex].ToString()!);
                 string monRefValue = values[monRefIndex].ToString()!;
                 int? monRef = null;
                 if (monRefValue != "") // there are some with missing id
@@ -79,5 +80,20 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IUndatedAnalysisDa
                     Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
             }
         }
+    }
+
+    
+    [Pure]
+    private static string CleanName(string name)
+    {
+        name = name.Replace("\r\n", " ");
+        name = name.Replace("\n", " ");
+        name = name.Replace("\r", " ");
+        name = name.Replace("\t", " ");
+        name = name.Replace("<br>", " ");
+        
+        name = Regex.Replace(name, @"\s{2,}", " ");
+        
+        return name.Trim();
     }
 }

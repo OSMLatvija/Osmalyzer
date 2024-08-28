@@ -22,7 +22,7 @@ public static class BoundaryHelper
     public static OsmPolygon GetRigaPolygon(OsmMasterData osmData)
     {
         if (_rigaPolygon == null)
-            _rigaPolygon = GetAdminRelationPolygon(osmData, "6", "Rīga");
+            _rigaPolygon = GetAdminRelationPolygon(osmData, "5", "Rīga");
         
         return _rigaPolygon;
     }
@@ -31,7 +31,7 @@ public static class BoundaryHelper
     public static OsmPolygon GetDaugavpilsPolygon(OsmMasterData osmData)
     {
         if (_daugavpilsPolygon == null)
-            _daugavpilsPolygon = GetAdminRelationPolygon(osmData, "6", "Daugavpils");
+            _daugavpilsPolygon = GetAdminRelationPolygon(osmData, "5", "Daugavpils");
         
         return _daugavpilsPolygon;
     }

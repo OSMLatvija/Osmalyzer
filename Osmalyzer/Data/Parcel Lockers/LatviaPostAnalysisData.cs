@@ -14,7 +14,7 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
 
     public override bool NeedsPreparation => true;
 
-    public override string ReportWebLink => @"https://pasts.lv/lv/kategorija/pasta_nodalas/";
+    public override string ReportWebLink => @"https://www.pasts.lv/lv/kategorija/pasta_nodalas/";
 
     protected override string DataFileIdentifier => "latvia-post";
 
@@ -37,7 +37,9 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
     protected override void Download()
     {
         // list at https://pasts.lv/lv/kategorija/pasta_nodalas/
-        // query to get json data at https://pasts.lv/ajax/module:post_office/
+        // direct query to get json data at https://pasts.lv/ajax/module:post_office/
+        // but this isn't reliable and can be blocked as "attack", then ip-filtered, even just accessing it a few times
+        // accessing this without actually going through the main page seems to trigger their protection stuff
 
         WebsiteBrowsingHelper.DownloadPage( // direct download can fail both locally and on remote
             "https://pasts.lv/ajax/module:post_office/", 

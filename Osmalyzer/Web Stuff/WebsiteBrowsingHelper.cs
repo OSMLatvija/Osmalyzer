@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
@@ -46,7 +47,7 @@ public static class WebsiteBrowsingHelper
                 driver.Manage().Cookies.AddCookie(new Cookie(name, value));
         //driver.Manage().Cookies.AddCookie(new Cookie(name, value, new Uri(url).Host, "", null)); -- can't set this before navigate apparently
         
-        if (browsingActions.Length> 0)
+        if (browsingActions.Length > 0)
         {
             foreach (BrowsingAction browsingAction in browsingActions)
             {
@@ -190,6 +191,10 @@ public static class WebsiteBrowsingHelper
         
         void OnDevToolsEventReceived(object? sender, DevToolsEventReceivedEventArgs e)
         {
+            // Debug.WriteLine("!!!!!!!! DevTools event: " + e.EventName);
+            // Debug.WriteLine("!!!!!!!! DevTools domain name: " + e.DomainName);
+            // Debug.WriteLine("!!!!!!!! DevTools data: " + e.EventData);
+            
             if (e.EventName == "requestWillBeSentExtraInfo")
             {
                 JsonNode? requestHeaders = e.EventData["headers"];
@@ -201,7 +206,7 @@ public static class WebsiteBrowsingHelper
                 JsonNode? responseHeaders = e.EventData["headers"];
                 if (responseHeaders != null)
                     RecentResponseHeaders.Add(responseHeaders.ToString());            
-            }  
+            }
         }
     }
 }

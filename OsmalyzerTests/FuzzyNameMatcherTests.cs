@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Osmalyzer;
 
 namespace OsmalyzerTests;
@@ -13,7 +14,7 @@ public class FuzzyNameMatcherTests
     {
         bool doesMatch = FuzzyNameMatcher.Matches(name1, name2);
 
-        Assert.IsTrue(doesMatch);
+        ClassicAssert.IsTrue(doesMatch);
     }    
     
     [TestCase("A", "B")]
@@ -21,6 +22,6 @@ public class FuzzyNameMatcherTests
     {
         bool doesMatch = FuzzyNameMatcher.Matches(name1, name2);
 
-        Assert.IsFalse(doesMatch);
+        ClassicAssert.IsFalse(doesMatch);
     }
 }

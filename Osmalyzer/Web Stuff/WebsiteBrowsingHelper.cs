@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
@@ -191,13 +192,13 @@ public static class WebsiteBrowsingHelper
         {
             if (e.EventName == "requestWillBeSentExtraInfo")
             {
-                JToken? requestHeaders = e.EventData["headers"];
+                JsonNode? requestHeaders = e.EventData["headers"];
                 if (requestHeaders != null)
                     RecentRequestHeaders.Add(requestHeaders.ToString());
             }
             else if (e.EventName == "responseReceivedExtraInfo")
             {
-                JToken? responseHeaders = e.EventData["headers"];
+                JsonNode? responseHeaders = e.EventData["headers"];
                 if (responseHeaders != null)
                     RecentResponseHeaders.Add(responseHeaders.ToString());            
             }  

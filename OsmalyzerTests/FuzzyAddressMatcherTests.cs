@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Osmalyzer;
 
 namespace OsmalyzerTests;
@@ -16,7 +17,7 @@ public class FuzzyAddressMatcherTests
     {
         bool doesMatch = FuzzyAddressMatcher.Matches(tagStreet, tagHouseNumber, fullAddress);
 
-        Assert.IsTrue(doesMatch);
+        ClassicAssert.IsTrue(doesMatch);
     }    
     
     [TestCase("Rīgas gatve 37", "Rīgas gatve", "15")]
@@ -25,6 +26,6 @@ public class FuzzyAddressMatcherTests
     {
         bool doesMatch = FuzzyAddressMatcher.Matches(tagStreet, tagHouseNumber, fullAddress);
 
-        Assert.IsFalse(doesMatch);
+        ClassicAssert.IsFalse(doesMatch);
     }
 }

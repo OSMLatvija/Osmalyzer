@@ -47,14 +47,28 @@ public class PublicTransportRoutes
             List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
 
             string id = segments[idIndex];
-            string name = segments[longNameIndex].Substring(1, segments[longNameIndex].Length - 2).Replace("\"\"", "\"");
-            string number = segments[shortNameIndex].Substring(1, segments[1].Length - 2);
+            string name = GetName(segments, longNameIndex);
+            string number = GetName(segments, shortNameIndex);
 
             string type = TypeFromId(id);
                 
             PublicTransportRoute route = new PublicTransportRoute(id, name, number, type);
 
             _routes.TryAdd(route.Id, route);
+        }
+
+        return;
+
+        
+        [Pure]
+        static string GetName(List<string> segments, int i)
+        {
+            if (segments[i].Length <= 2) return segments[i];
+            
+            if (segments[i].StartsWith('"') && segments[i].EndsWith('"'))
+                return segments[i].Substring(1, segments[i].Length - 2).Replace("\"\"", "\"");
+            
+            return segments[i];
         }
     }
 

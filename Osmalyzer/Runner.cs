@@ -26,11 +26,11 @@ public static class Runner
             // new HighwaySeasonalSpeedsAnalyzer(),
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
-            new RigasSatiksmeAnalyzer(),
-            new LiepajasTransportsAnalyzer(),
-            new RezeknesSatiksmeAnalyzer(),
-            new JurmalasSatiksmeAnalyzer(),
-            new AutotransportaDirekcijaAnalyzer(),
+            // new RigasSatiksmeAnalyzer(),
+            // new LiepajasTransportsAnalyzer(),
+            // new RezeknesSatiksmeAnalyzer(),
+            // new JurmalasSatiksmeAnalyzer(),
+            // new AutotransportaDirekcijaAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why
@@ -77,7 +77,8 @@ public static class Runner
             // new LidlShopAnalyzer(),
             // new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer(),
-            // new DuplicatePlatformsAnalyzer()
+            // new DuplicatePlatformsAnalyzer(),
+            new LoneCrossingAnalyzer(),
         };
 #endif
 

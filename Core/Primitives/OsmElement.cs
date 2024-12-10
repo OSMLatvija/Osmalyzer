@@ -147,7 +147,10 @@ public abstract class OsmElement : IChunkerItem
             return value == actualValue;
         else
             return string.Equals(value, actualValue, StringComparison.OrdinalIgnoreCase);
-    } 
+    }
+    
+    [Pure]
+    public bool HasValue(string key, params string[] values) => HasValue(key, (IEnumerable<string>)values);
         
     [Pure]
     public bool HasValue(string key, IEnumerable<string> values, bool caseSensitive = true)

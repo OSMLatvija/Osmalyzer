@@ -83,3 +83,4 @@ whitewater	good	exact	nwr
 canoe	good	exact	nwr
 raceway	good	exact	n	raceway=start/finish
 geological	good	exact	nwr	geological	meteor_crater
+maritime	good	exact	w	maritime=yes on coastline ways

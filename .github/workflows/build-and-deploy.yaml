@@ -46,7 +46,7 @@ jobs:
     #  with:
     #    path: ./whyareyouslow.nettrace
        
-    - uses: actions/upload-pages-artifact@v1
+    - uses: actions/upload-pages-artifact@v4
       with:
         path: output/
         
@@ -66,4 +66,4 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/deploy-pages@v1
+      - uses: actions/deploy-pages@v4

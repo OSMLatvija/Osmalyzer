@@ -78,7 +78,8 @@ public static class Runner
             // new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer(),
             // new DuplicatePlatformsAnalyzer(),
-            new LoneCrossingAnalyzer(),
+            //new LoneCrossingAnalyzer(),
+            new InfoboardAnalyzer(),
         };
 #endif
 

@@ -63,7 +63,7 @@ public class LoneCrossingAnalyzer : Analyzer
             {
                 foreach (OsmWay parentWay in node.Ways)
                 {
-                    if (parentWay.HasValue("highway", "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "living_street", "service", "track"))
+                    if (parentWay.HasValue("highway", "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "living_street", "pedestrian", "service", "track"))
                         hasRoad = true;
                     
                     if (parentWay.HasValue("highway", "footway", "path", "pedestrian"))

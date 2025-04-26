@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Osmalyzer;
 
-[UsedImplicitly]
+[UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 public abstract class ShopAnalyzer<TShop, TOsm> : Analyzer
     where TShop : ShopListAnalysisData 
     where TOsm : OsmAnalysisData

@@ -2,6 +2,7 @@
 
 namespace Osmalyzer;
 
+[DisabledAnalyzer]
 public class AibeLithuaniaShopAnalyzer : ShopAnalyzer<AibeLithuaniaShopsAnalysisData, LithuaniaOsmAnalysisData>
 {
     protected override string ShopName => "Aibė";

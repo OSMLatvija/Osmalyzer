@@ -3,14 +3,14 @@
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class ItellaParcelLockerAnalyzer : ParcelLockerAnalyzer<ItellaParcelLockerAnalysisData>
+public class SmartPostiParcelLockerAnalyzer : ParcelLockerAnalyzer<ItellaParcelLockerAnalysisData>
 {
-    protected override string Operator => "Itella";
+    protected override string Operator => "SmartPosti";
 
     protected override List<ValidationRule> LockerValidationRules => new List<ValidationRule>
     {
-        new ValidateElementHasValue("brand", "Smartpost"), // Itella - operator, Smartpost - brand
-        new ValidateElementHasValue("operator", Operator),
+        new ValidateElementHasValue("brand", Operator), // used to be Itella - operator, Smartpost - brand
+        new ValidateElementHasValue("brand:wikidata", "Q132157239"),
     };
 
     protected override List<ValidationRule> PickupPointValidationRules => new List<ValidationRule>()

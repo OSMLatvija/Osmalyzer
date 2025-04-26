@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 namespace Osmalyzer;
 
 [UsedImplicitly]
+[DisabledAnalyzer]
 public class AibeLithuaniaShopsAnalysisData : ShopListAnalysisData
 {
     public override string Name => "Aibė (Lithuania) Shops";

@@ -16,6 +16,7 @@ public static class Runner
                 typeof(Analyzer)
                     .Assembly.GetTypes()
                     .Where(type => type.IsSubclassOf(typeof(Analyzer)) && !type.IsAbstract)
+                    .Where(type => type.GetCustomAttributes(typeof(DisabledAnalyzerAttribute), true).Length == 0)
                     .Select(Activator.CreateInstance)
                     .Cast<Analyzer>()
                     .ToList();

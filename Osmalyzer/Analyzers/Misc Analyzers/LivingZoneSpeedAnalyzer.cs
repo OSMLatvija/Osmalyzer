@@ -14,14 +14,14 @@ public class LivingZoneSpeedAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Road;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData) };
 
         
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 

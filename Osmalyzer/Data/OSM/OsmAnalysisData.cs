@@ -1,30 +1,33 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class OsmAnalysisData : AnalysisData, IDatedAnalysisData
+public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData
 {
     public override string Name => "OSM";
 
-    public override string ReportWebLink => @"https://download.geofabrik.de/europe/latvia.html";
+    public override string ReportWebLink => @"https://download.geofabrik.de/" + DownloadUrlSubpage;
 
     public override bool NeedsPreparation => true;
 
 
     public bool DataDateHasDayGranularity => true;
 
-    protected override string DataFileIdentifier => "osm-latvia";
-
 
     public OsmMasterData MasterData { get; private set; } = null!; // only null during initialization
 
 
+    protected abstract string DownloadUrlSubpage { get; }
+    
+    protected abstract string DownloadUrlFile { get; }
+
+
     public DateTime RetrieveDataDate()
     {
-        string result = WebsiteDownloadHelper.Read("https://download.geofabrik.de/europe/latvia.html", true);
+        string result = WebsiteDownloadHelper.Read("https://download.geofabrik.de/" + DownloadUrlSubpage, true);
                 
         Match match = Regex.Match(result, @"contains all OSM data up to ([^\.]+)\.");
         string newestDateString = match.Groups[1].ToString(); // will be something like "2023-06-12T20:21:53Z"
@@ -35,7 +38,7 @@ public class OsmAnalysisData : AnalysisData, IDatedAnalysisData
     protected override void Download()
     {
         WebsiteDownloadHelper.Download(
-            "https://download.geofabrik.de/europe/latvia-latest.osm.pbf", 
+            "https://download.geofabrik.de/" + DownloadUrlFile, 
             Path.Combine(CacheBasePath, DataFileIdentifier + @".osm.pbf")
         );
     }

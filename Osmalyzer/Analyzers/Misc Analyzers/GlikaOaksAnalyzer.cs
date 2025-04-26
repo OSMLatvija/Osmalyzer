@@ -13,14 +13,14 @@ public class GlikaOaksAnalyzer : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(GlikaOzoliAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(GlikaOzoliAnalysisData) };
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 

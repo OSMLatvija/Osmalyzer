@@ -20,7 +20,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() 
     {
-        typeof(OsmAnalysisData),
+        typeof(LatviaOsmAnalysisData),
         typeof(FeatureNameQualifiersAnalysisData)
     };
 
@@ -44,7 +44,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
         FeatureNameQualifiersAnalysisData nameQualifiersData = datas.OfType<FeatureNameQualifiersAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;

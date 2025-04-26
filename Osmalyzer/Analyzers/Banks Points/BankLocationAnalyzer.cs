@@ -14,7 +14,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
 
     public override AnalyzerGroup Group => AnalyzerGroups.Bank;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(TData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(TData) };
 
 
     protected abstract string BankName { get; }
@@ -24,7 +24,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 

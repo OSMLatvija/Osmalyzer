@@ -18,7 +18,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
-        typeof(OsmAnalysisData),
+        typeof(LatviaOsmAnalysisData),
         typeof(RigasSatiksmeVendingAnalysisData)
     };
 
@@ -27,7 +27,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmDataExtract osmTicketVendingMachines = osmData.MasterData.Filter(
             new HasValue("amenity", "vending_machine"),

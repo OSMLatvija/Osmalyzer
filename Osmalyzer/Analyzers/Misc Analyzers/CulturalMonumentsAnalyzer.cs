@@ -20,7 +20,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
-        typeof(OsmAnalysisData),
+        typeof(LatviaOsmAnalysisData),
         typeof(CulturalMonumentsMapAnalysisData),
         typeof(CulturalMonumentsWikidataData)
     };
@@ -30,7 +30,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 

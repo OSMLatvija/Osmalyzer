@@ -23,7 +23,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
-        typeof(OsmAnalysisData),
+        typeof(LatviaOsmAnalysisData),
         typeof(ParcelLockerOperatorAnalysisData), 
         typeof(T)
     };
@@ -38,7 +38,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
                 

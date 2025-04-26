@@ -19,7 +19,7 @@ public class MicroReservesAnalyzer : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(MicroReserveAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(MicroReserveAnalysisData) };
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -169,7 +169,7 @@ public class MicroReservesAnalyzer : Analyzer
 
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
         OsmMasterData osmMasterData = osmData.MasterData;
 

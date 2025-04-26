@@ -16,7 +16,7 @@ public class UnknownParcelLockerAnalyzer : Analyzer
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
-        typeof(OsmAnalysisData),
+        typeof(LatviaOsmAnalysisData),
         typeof(ParcelLockerOperatorAnalysisData)
     };
         
@@ -29,7 +29,7 @@ public class UnknownParcelLockerAnalyzer : Analyzer
 
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 

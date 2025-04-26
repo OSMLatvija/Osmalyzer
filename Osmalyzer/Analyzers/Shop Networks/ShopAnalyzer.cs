@@ -23,7 +23,7 @@ public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
-        typeof(OsmAnalysisData), 
+        typeof(LatviaOsmAnalysisData), 
         typeof(T) // shop list data
     };
         
@@ -32,7 +32,7 @@ public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
                 

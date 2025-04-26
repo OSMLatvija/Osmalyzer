@@ -9,27 +9,28 @@ public class InfoboardAnalyzer : Analyzer
 {
     public override string Name => "Infoboards";
 
-    public override string Description => "This report check informaion boards.";
+    public override string Description => "This report checks information boards.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData) };
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
         
         OsmDataExtract osmElements = osmMasterData.Filter(
             new HasValue("tourism", "information"),
             new HasAnyValue("information", "board", "map"),
-            new DoesntHaveValue("board_type", "welcome_sign"), // not a actual board (likely)
-            new DoesntHaveValue("board_type", "public_transport"), // basically, departures/routes board
+            new DoesntHaveValue("board_type", "welcome_sign"), // not an actual board (likely)
+            new DoesntHaveValue("board_type", "public_transport"), // basically, departures/routes board/timetable
+            new DoesntHaveValue("board_type", "notice"), // notice board, although should be `advertising=board`
             new DoesntHaveValue("indoor", "yes"), // ignoring indoor maps and such
             new DoesntHaveKey("level"), // implies indoor
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)

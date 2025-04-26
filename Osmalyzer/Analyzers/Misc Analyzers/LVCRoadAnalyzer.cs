@@ -15,7 +15,7 @@ public class LVCRoadAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Road;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(RoadLawAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(RoadLawAnalysisData) };
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -28,7 +28,7 @@ public class LVCRoadAnalyzer : Analyzer
 
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         List<OsmDataExtract> osmDataExtracts = osmData.MasterData.Filter(
             new List<OsmFilter[]>()

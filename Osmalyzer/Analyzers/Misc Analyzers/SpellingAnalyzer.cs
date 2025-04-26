@@ -17,7 +17,7 @@ public class SpellingAnalyzer : Analyzer
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>() 
     {
-        typeof(OsmAnalysisData),
+        typeof(LatviaOsmAnalysisData),
         typeof(LatvianHunspellDictionaryAnalysisData),
         typeof(LatvianCustomDictionaryAnalysisData)
     };
@@ -27,7 +27,7 @@ public class SpellingAnalyzer : Analyzer
     {
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
         
         OsmMasterData osmMasterData = osmData.MasterData;
 

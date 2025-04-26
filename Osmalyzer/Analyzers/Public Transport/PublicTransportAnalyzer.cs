@@ -13,7 +13,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
     
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(OsmAnalysisData), typeof(T) };
+    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(T) };
 
 
     /// <summary> Very short label for report texts </summary>
@@ -30,7 +30,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             
         // Load OSM data
 
-        OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
 

@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class CitroShopAnalyzer : ShopAnalyzer<CitroShopsAnalysisData>
+public class CitroShopAnalyzer : ShopAnalyzer<CitroShopsAnalysisData, LatviaOsmAnalysisData>
 {
     protected override string ShopName => "Citro";
     

@@ -44,7 +44,8 @@ public static class Runner
             // new RimiShopAnalyzer(),
             // new MaximaShopAnalyzer(),
             // new MegoShopAnalyzer(),
-            // new AibeShopAnalyzer(),
+            new AibeLatviaShopAnalyzer(),
+            new AibeLithuaniaShopAnalyzer(),
             // new VeskoShopAnalyzer(),
             // new SparShopAnalyzer(),
             // new CitroShopAnalyzer(),
@@ -79,7 +80,7 @@ public static class Runner
             // new SpellingAnalyzer(),
             // new DuplicatePlatformsAnalyzer(),
             //new LoneCrossingAnalyzer(),
-            new InfoboardAnalyzer(),
+            // new InfoboardAnalyzer(),
         };
 #endif
 

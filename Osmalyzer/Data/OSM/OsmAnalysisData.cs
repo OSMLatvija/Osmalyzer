@@ -7,7 +7,7 @@ namespace Osmalyzer;
 [UsedImplicitly]
 public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData
 {
-    public override string Name => "OSM";
+    public override string Name => "OSM (" + CountryName + ")";
 
     public override string ReportWebLink => @"https://download.geofabrik.de/" + DownloadUrlSubpage;
 
@@ -19,6 +19,8 @@ public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData
 
     public OsmMasterData MasterData { get; private set; } = null!; // only null during initialization
 
+
+    protected abstract string CountryName { get; }
 
     protected abstract string DownloadUrlSubpage { get; }
     

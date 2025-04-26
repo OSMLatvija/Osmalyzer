@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class MegoShopAnalyzer : ShopAnalyzer<MegoShopsAnalysisData>
+public class MegoShopAnalyzer : ShopAnalyzer<MegoShopsAnalysisData, LatviaOsmAnalysisData>
 {
     protected override string ShopName => "Mego";
     

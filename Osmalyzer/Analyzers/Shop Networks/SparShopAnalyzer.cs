@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class SparShopAnalyzer : ShopAnalyzer<SparShopsAnalysisData>
+public class SparShopAnalyzer : ShopAnalyzer<SparShopsAnalysisData, LatviaOsmAnalysisData>
 {
     protected override string ShopName => "Spar";
     

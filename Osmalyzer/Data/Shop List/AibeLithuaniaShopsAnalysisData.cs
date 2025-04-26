@@ -6,14 +6,14 @@ using System.Text.RegularExpressions;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class AibeShopsAnalysisData : ShopListAnalysisData
+public class AibeLithuaniaShopsAnalysisData : ShopListAnalysisData
 {
-    public override string Name => "Aibe Shops";
+    public override string Name => "Aibė (Lithuania) Shops";
 
-    public override string ReportWebLink => @"https://aibe.lv/veikali/";
+    public override string ReportWebLink => @"https://aibe.lt/parduotuves/";
 
 
-    protected override string DataFileIdentifier => "shops-aibe";
+    protected override string DataFileIdentifier => "shops-aibe-lithuania";
 
 
     public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
@@ -27,7 +27,7 @@ public class AibeShopsAnalysisData : ShopListAnalysisData
     protected override void Download()
     {
         WebsiteDownloadHelper.Download(
-            "https://aibe.lv/veikali/", 
+            "https://aibe.lt/parduotuves/", 
             DataFileName
         );
     }
@@ -41,7 +41,7 @@ public class AibeShopsAnalysisData : ShopListAnalysisData
             @"\[([\d\.]+),([\d\.]+),""([^""]+)"",""([^""]+)"",[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,""([^""]+)"",[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+\]"
         );
         
-        // [56.95491,24.19849,"Dzelzavas iela 76, R\u012bga","V-980, Ankami SIA","08:00","22:00","08:00","22:00","08:00","22:00","R\u012bga","riga","partner","false","false","0","Partneris","29619824","","riga","","","","","","","riga"]
+        // [56.0260816,21.0833377,"Pu\u0161yno g. 6, \u0160ilgali\u0173 k.","P-1967 Us\u0117nai, UAB","","","","","","","Taurag\u0117s apskritis","taurages-apskritis","shop","false","false","0","Parduotuv\u0117s","","","taurages-apskritis","","","","","","","silgaliu-k"]
 
         if (matches.Count == 0)
             throw new Exception("Did not match any items on webpage");
@@ -73,9 +73,9 @@ public class AibeShopsAnalysisData : ShopListAnalysisData
             {
                 _shops.Add(
                     new ShopData(
-                        "Aibe",
+                        "Aibė",
                         (company != null ? company + ", " : "") + address,
-                         new OsmCoord(lat, lon)
+                        new OsmCoord(lat, lon)
                     )
                 );
             }

@@ -5,9 +5,13 @@ using System.Linq;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
+public abstract class ShopAnalyzer<TShop, TOsm> : Analyzer
+    where TShop : ShopListAnalysisData 
+    where TOsm : OsmAnalysisData
 {
-    public override string Name => ShopName + " Shops";
+    public override string Name => ShopName + (ShopNameDisambiguator != null ? " (" + ShopNameDisambiguator + ")" : "") + " Shops";
+
+    protected virtual string? ShopNameDisambiguator => null;
 
     public override string Description => "This report checks that all " + ShopName + " shops listed on brand's website are found on the map." + Environment.NewLine +
                                           "This supposes that brand shops are tagged correctly to match among multiple."  + Environment.NewLine +
@@ -23,8 +27,8 @@ public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
 
     public override List<Type> GetRequiredDataTypes() => new List<Type>()
     {
-        typeof(LatviaOsmAnalysisData), 
-        typeof(T) // shop list data
+        typeof(TOsm), 
+        typeof(TShop) // shop list data
     };
         
 
@@ -32,7 +36,7 @@ public abstract class ShopAnalyzer<T> : Analyzer where T : ShopListAnalysisData
     {
         // Load OSM data
 
-        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
+        TOsm osmData = datas.OfType<TOsm>().First();
 
         OsmMasterData osmMasterData = osmData.MasterData;
                 

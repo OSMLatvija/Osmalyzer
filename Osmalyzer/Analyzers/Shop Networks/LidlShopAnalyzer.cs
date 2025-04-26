@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class LidlShopAnalyzer : ShopAnalyzer<LidlShopsAnalysisData>
+public class LidlShopAnalyzer : ShopAnalyzer<LidlShopsAnalysisData, LatviaOsmAnalysisData>
 {
     protected override string ShopName => "Lidl";
 

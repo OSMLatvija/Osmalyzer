@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class ElviShopAnalyzer : ShopAnalyzer<ElviShopsAnalysisData>
+public class ElviShopAnalyzer : ShopAnalyzer<ElviShopsAnalysisData, LatviaOsmAnalysisData>
 {
     protected override string ShopName => "Elvi";
     

@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class LatsShopAnalyzer : ShopAnalyzer<LatsShopsAnalysisData>
+public class LatsShopAnalyzer : ShopAnalyzer<LatsShopsAnalysisData, LatviaOsmAnalysisData>
 {
     protected override string ShopName => "LaTS";
 

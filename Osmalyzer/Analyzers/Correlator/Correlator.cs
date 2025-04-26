@@ -82,25 +82,26 @@ public class Correlator<T> where T : IDataItem
                 continue;
             }
             
-            if (OutOfBounds(item.Coord))
-            {
-                outOfBoundsItems.Add(item);
-                continue;
-            }
+            // todo: I would have to know the country for this
+            // if (OutOfBounds(item.Coord))
+            // {
+            //     outOfBoundsItems.Add(item);
+            //     continue;
+            // }
 
             itemsToBeMatched.Add(item);
             continue;
 
 
-            [Pure]
-            static bool OutOfBounds(OsmCoord coord)
-            {
-                return
-                    coord.lat < 55.0 ||
-                    coord.lat > 59.0 ||
-                    coord.lon < 20.0 ||
-                    coord.lon > 29.0;
-            }
+            // [Pure]
+            // static bool OutOfBounds(OsmCoord coord)
+            // {
+            //     return
+            //         coord.lat < 55.0 ||
+            //         coord.lat > 59.0 ||
+            //         coord.lon < 20.0 ||
+            //         coord.lon > 29.0;
+            // }
         }
 
         Dictionary<OsmElement, Match> allMatchedElements = new Dictionary<OsmElement, Match>();
@@ -433,7 +434,7 @@ public class Correlator<T> where T : IDataItem
                 new IssueReportEntry(
                     "Not matching " + 
                     dataItem.ReportString() +
-                    " outside Latvia bounds at " + dataItem.Coord.OsmUrl
+                    " outside country bounds at " + dataItem.Coord.OsmUrl
                 )
             );
         }

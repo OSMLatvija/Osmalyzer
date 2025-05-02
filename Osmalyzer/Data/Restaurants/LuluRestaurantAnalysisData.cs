@@ -38,8 +38,12 @@ public class LuluRestaurantAnalysisData : RestaurantListAnalysisData
 
         MatchCollection matches = Regex.Matches(
             source,
-            @"https:\/\/maps\.google\.com\?q=(\d\d\.\d+),(\d\d\.\d+)"
+            @">([^>&]+?)&nbsp;\s*<a href=""https:\/\/maps\.google\.com\?q=(\d\d\.\d+),(\d\d\.\d+)"""
         );
+        /* <div class="text-small pizza-house-address">
+                                Rīga, Kurzemes prospekts 21                                &nbsp;
+                                <a href="https://maps.google.com?q=56.96326065,24.03173637" rel="nofollow" target="_blank">Karte</a>
+                            </div> */
 
         if (matches.Count == 0)
             throw new Exception("Did not match any items on webpage");
@@ -48,16 +52,14 @@ public class LuluRestaurantAnalysisData : RestaurantListAnalysisData
 
         foreach (Match match in matches)
         {
-            double lat = double.Parse(Regex.Unescape(match.Groups[1].ToString()));
-            double lon = double.Parse(Regex.Unescape(match.Groups[2].ToString()));
-
-            string display = "";
-
+            string address = match.Groups[1].ToString().Trim();
+            double lat = double.Parse(match.Groups[2].ToString());
+            double lon = double.Parse(match.Groups[3].ToString());
 
             _restaurants.Add(
                 new RestaurantData(
                     "Lulu",
-                    !string.IsNullOrWhiteSpace(display) ? display : null,
+                    !string.IsNullOrWhiteSpace(address) ? address : null,
                     new OsmCoord(lat, lon)
                 )
             );

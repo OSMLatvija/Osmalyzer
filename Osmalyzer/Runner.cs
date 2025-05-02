@@ -68,7 +68,7 @@ public static class Runner
             // new BottleDepositPointsAnalyzer(),
             // new VenipakParcelLockerAnalyzer(),
             // new OmnivaParcelLockerAnalyzer(),
-            new SmartPostiParcelLockerAnalyzer(),
+            // new SmartPostiParcelLockerAnalyzer(),
             // new DPDParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
             // new LatviaPostLockerAnalyzer(),
@@ -82,39 +82,41 @@ public static class Runner
             // new DuplicatePlatformsAnalyzer(),
             //new LoneCrossingAnalyzer(),
             // new InfoboardAnalyzer(),
+
+            new LuluRestaurantAnalyzer(),
         };
 #endif
 
         Console.WriteLine("Running with " + analyzers.Count + " analyzers...");
-        
-        
+
+
         // Prepare reporter
         // This also makes sure the output folder exists in case we want to add some extra stuff/debug there "manually"
         //Reporter reporter = new TextFileReporter();
         Reporter reporter = new HtmlFileReporter();
 
-            
+
         List<Type> requestedDataTypes = new List<Type>();
         List<List<Type>> perAnalyzerRequestedDataTypes = new List<List<Type>>();
-            
+
         foreach (Analyzer analyzer in analyzers)
         {
             List<Type> analyzerRequiredDataTypes = analyzer.GetRequiredDataTypes();
 
             perAnalyzerRequestedDataTypes.Add(analyzerRequiredDataTypes);
-                
+
             foreach (Type dataType in analyzerRequiredDataTypes)
                 if (!requestedDataTypes.Contains(dataType))
                     requestedDataTypes.Add(dataType);
         }
 
-            
+
         List<AnalysisData> requestedDatas = new List<AnalysisData>();
 
         foreach (Type type in requestedDataTypes)
             requestedDatas.Add((AnalysisData)Activator.CreateInstance(type)!);
 
-            
+
         Console.WriteLine("Retrieving data...");
 
         if (!Directory.Exists(AnalysisData.CacheBasePath))
@@ -133,7 +135,7 @@ public static class Runner
         }
 
         WebsiteDownloadHelper.BrowsingEnabled = true;
-        
+
         for (int i = 0; i < requestedDatas.Count; i++)
         {
             Console.WriteLine("Retrieving " + requestedDatas[i].Name + " data [" + (i + 1) + "/" + requestedDatas.Count + "]...");
@@ -146,7 +148,7 @@ public static class Runner
 
             Console.WriteLine("(" + retrieveStopwatch.ElapsedMilliseconds + " ms)");
         }
-        
+
         WebsiteDownloadHelper.BrowsingEnabled = false;
 
 
@@ -172,7 +174,7 @@ public static class Runner
 
 
         Console.WriteLine("Parsing...");
-            
+
         for (int i = 0; i < analyzers.Count; i++)
         {
             List<AnalysisData> datas = new List<AnalysisData>();
@@ -186,18 +188,18 @@ public static class Runner
 
                 reporter.AddSkippedReport(analyzers[i].Name, "missing data");
                 // todo: which one and why
-                    
+
                 continue;
             }
 
             Console.Write("Parsing " + analyzers[i].Name + " analyzer [" + (i + 1) + "/" + analyzers.Count + "]... ");
-                
+
             Report report = new Report(analyzers[i], datas);
-                
+
             Stopwatch parseStopwatch = Stopwatch.StartNew();
 
             analyzers[i].Run(datas, report);
-                
+
             parseStopwatch.Stop();
 
             Console.WriteLine(" (" + parseStopwatch.ElapsedMilliseconds + " ms)");
@@ -205,18 +207,18 @@ public static class Runner
             reporter.AddReport(report);
         }
 
-                
+
         Stopwatch reportStopwatch = Stopwatch.StartNew();
 
         Console.WriteLine("Writing reports...");
-            
+
         reporter.Save();
-            
+
         reportStopwatch.Stop();
-            
+
         Console.WriteLine("(" + reportStopwatch.ElapsedMilliseconds + " ms)");
 
-            
+
         Console.WriteLine("Done.");
     }
 }

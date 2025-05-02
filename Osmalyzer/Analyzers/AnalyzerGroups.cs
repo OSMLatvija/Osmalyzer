@@ -13,6 +13,8 @@ public static class AnalyzerGroups
     public static AnalyzerGroup Misc { get; } = new AnalyzerGroup("Miscellaneous");
     public static AnalyzerGroup ParcelLocker { get; } = new AnalyzerGroup("Parcel Lockers");
 
+    public static AnalyzerGroup Restaurants { get; } = new AnalyzerGroup("Restaurants");
+
 
     [Pure]
     public static IEnumerable<AnalyzerGroup> GetAllGroups()

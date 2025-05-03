@@ -64,52 +64,92 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         // Parse routes
 
         // GTFS groups by route and service
-        // Websites group by "pattern"
-        // We want to group by pattern to match how users and OSM would expect them
+        // Websites (like RS) group by stop pattern/variant
+        // We want to group by such variant to match how users and OSM would expect them
         
+        List<RouteVariant> skippedVariants = new List<RouteVariant>();
+
+        const int minTripCountToInclude = 5;
+
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
         {
-            string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number + "" + " \"" + gtfsRoute.Name + "\" ";
+            foreach (RouteVariant variant in ExtractVariants(gtfsRoute).OrderByDescending(mt => mt.TripCount))
+            {
+                if (variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
+                {
+                    // Not enough to report as a "full" route, presumably first/final depo routes 
+                    skippedVariants.Add(variant);
+                    continue;
+                }
                 
-            report.AddGroup(gtfsRoute, header);
+                string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name;
+                // e.g. "Bus #2: Mangaļsala => Abrenes iela"
 
-            foreach (MergedTrips mergedTrips in MergeTrips(gtfsRoute.AllTrips))
-                report.AddEntry(gtfsRoute, new GenericReportEntry(string.Join(",", mergedTrips.Trips.Select(t => t.Id)) + ": " + string.Join(", ", mergedTrips.Stops.Select(s => "[" + s.Id + "] " + s.Name))));
+                report.AddGroup(variant, header);
+
+                
+                report.AddEntry(variant, new GenericReportEntry("This route has " + variant.TripCount + " trips with the unqiue sequence/pattern of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name))));
+            }
+        }
+
+        if (skippedVariants.Count > 0)
+        {
+            report.AddGroup(GroupDesignation.SkippedVariants, "Skipped route variants");
+
+            report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("These routes have less than " + minTripCountToInclude + " trips with their unqiue sequence/pattern of stops, so they are skipped from full analysis."));
+
+            foreach (RouteVariant variant in skippedVariants)
+            {
+                report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("The route " + variant.Route.CleanType + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name + " has " + variant.TripCount + " trips with the sequence of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name))));
+            }
         }
     }
 
     [Pure]
-    private static IEnumerable<MergedTrips> MergeTrips(IEnumerable<GTFSTrip> trips)
+    private static IEnumerable<RouteVariant> ExtractVariants(GTFSRoute route)
     {
-        List<MergedTrips> mergedTrips = new List<MergedTrips>();
+        List<RouteVariant> variants = new List<RouteVariant>();
 
-        foreach (GTFSTrip trip in trips)
+        foreach (GTFSTrip trip in route.AllTrips)
         {
-            MergedTrips? existing = mergedTrips.Find(mt => mt.Stops.SequenceEqual(trip.Stops));
+            RouteVariant? existing = variants.Find(mt => mt.Stops.SequenceEqual(trip.Stops));
 
             if (existing != null)
                 existing.AddTrip(trip);
             else
-                mergedTrips.Add(new MergedTrips(trip, trip.Stops));
+                variants.Add(new RouteVariant(route, trip, trip.Stops));
         }
         
-        return mergedTrips;
+        return variants;
     }
 
-    private class MergedTrips
+    private class RouteVariant
     {
+        public GTFSRoute Route { get; }
+        
         public IEnumerable<GTFSTrip> Trips => _trips;
 
-        public IEnumerable<GTFSStop> Stops { get; }
+        public IEnumerable<GTFSStop> Stops => _stops;
 
+        public GTFSStop FirstStop => _stops[0];
         
+        public GTFSStop LastStop => _stops[^1];
+        
+        public int StopCount => _stops.Count;
+        
+        public int TripCount => _trips.Count;
+
+
         private readonly List<GTFSTrip> _trips;
-
         
-        public MergedTrips(GTFSTrip trip, IEnumerable<GTFSStop> stops)
+        private readonly List<GTFSStop> _stops;
+
+
+        public RouteVariant(GTFSRoute route, GTFSTrip trip, IEnumerable<GTFSStop> stops)
         {
+            Route = route;
             _trips = new List<GTFSTrip> { trip };
-            Stops = stops.ToList();
+            _stops = stops.ToList();
         }
 
         
@@ -348,4 +388,9 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     //     WeakMatch = 1,
     //     Match = 2
     // }
+    
+    private enum GroupDesignation
+    {
+        SkippedVariants
+    }
 }

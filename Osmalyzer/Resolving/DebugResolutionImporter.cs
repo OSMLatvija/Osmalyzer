@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public class DebugResolutionImporter : ResolutionImporter
 {

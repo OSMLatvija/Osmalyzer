@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// A user-applyable manual resolution to a <see cref="Resolvable"/> reported issue.

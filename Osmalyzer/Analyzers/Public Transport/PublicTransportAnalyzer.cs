@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public abstract class PublicTransportAnalyzer<T> : Analyzer
     where T : GTFSAnalysisData, new()
@@ -13,7 +7,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
     
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(T) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(T) ];
 
 
     /// <summary> Very short label for report texts </summary>
@@ -35,27 +29,24 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
-            new List<OsmFilter[]>()
-            {
-                new OsmFilter[]
-                {
+            [
+                [
                     new IsNode(),
                     new OrMatch(
                         new HasValue("highway", "bus_stop"),
                         new HasValue("railway", "tram_stop"),
                         new HasValue("disused:railway", "tram_stop") // still valid, if not in active use - Rigas Satiksme data seems to have these too
                     )
-                },
-                new OsmFilter[]
-                {
+                ],
+                [
                     new IsRelation(),
                     new HasValue("type", "route"),
                     new OrMatch(
                         new HasAnyValue("route", "tram", "bus", "trolleybus"),
                         new HasAnyValue("disused:route", "tram", "bus", "trolleybus")
                     )
-                }
-            }
+                ]
+            ]
         );
             
         OsmDataExtract osmStops = osmDataExtracts[0];
@@ -108,7 +99,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     [Pure]
     private static IEnumerable<RouteVariant> ExtractVariants(GTFSRoute route)
     {
-        List<RouteVariant> variants = new List<RouteVariant>();
+        List<RouteVariant> variants = [ ];
 
         foreach (GTFSTrip trip in route.AllTrips)
         {
@@ -148,7 +139,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         public RouteVariant(GTFSRoute route, GTFSTrip trip, IEnumerable<GTFSStop> stops)
         {
             Route = route;
-            _trips = new List<GTFSTrip> { trip };
+            _trips = [ trip ];
             _stops = stops.ToList();
         }
 

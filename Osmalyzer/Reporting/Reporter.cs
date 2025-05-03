@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Osmalyzer;
 
 public abstract class Reporter

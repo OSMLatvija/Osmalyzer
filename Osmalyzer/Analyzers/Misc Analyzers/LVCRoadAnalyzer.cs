@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-
 namespace Osmalyzer;
 
 [UsedImplicitly]
@@ -15,7 +10,7 @@ public class LVCRoadAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Road;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(RoadLawAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(RoadLawAnalysisData) ];
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -31,10 +26,8 @@ public class LVCRoadAnalyzer : Analyzer
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
         List<OsmDataExtract> osmDataExtracts = osmData.MasterData.Filter(
-            new List<OsmFilter[]>()
-            {
-                new OsmFilter[]
-                {
+            [
+                [
                     new IsWay(),
                     new HasKey("highway"),
                     new HasKey("ref"),
@@ -42,16 +35,16 @@ public class LVCRoadAnalyzer : Analyzer
                     new DoesntHaveKey("abandoned:aeroway"), // some old aeroways are also tagged as highways
                     new DoesntHaveKey("disused:aeroway"), // some old aeroways are also tagged as highways
                     new DoesntHaveKey("railway") // there's a few "railway=platform" and "railway=rail" with "highway=footway"
-                },
-                new OsmFilter[]
-                {
+                ],
+
+                [
                     new IsRelation(),
                     new HasValue("type", "route"),
                     new HasValue("route", "road"),
                     new HasKey("ref"),
                     new SplitValuesCheck("ref", IsValidRef)
-                }
-            }
+                ]
+            ]
         );
 
         OsmDataExtract reffedRoads = osmDataExtracts[0];

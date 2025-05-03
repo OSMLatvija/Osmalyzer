@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class LatviaPostOfficeAnalyzer : Analyzer
@@ -16,12 +12,12 @@ public class LatviaPostOfficeAnalyzer : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
         typeof(LatviaPostAnalysisData),
         typeof(PostOfficeOperatorAnalysisData)
-    };
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

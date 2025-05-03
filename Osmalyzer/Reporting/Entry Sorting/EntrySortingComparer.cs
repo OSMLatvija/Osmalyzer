@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// Provides comparison logic between <see cref="SortableReportEntry"/>s that potentially have <see cref="EntrySortingRule"/> defined.

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Osmalyzer;
 
@@ -21,7 +18,7 @@ public class DPDParcelLockerAnalysisData : ParcelLockerAnalysisData
 
     public override IEnumerable<ParcelPickupPoint>? PickupPoints => null; // TODO: !!!!!!!!!!!!!!!!!
     public override PickupPointAmenity? PickupPointLocation => PickupPointAmenity.GasStation;
-    public override string? PickupPointLocationName => "Circle K";
+    public override string PickupPointLocationName => "Circle K";
 
 
     private List<ParcelLocker> _parcelLockers = null!; // only null until prepared

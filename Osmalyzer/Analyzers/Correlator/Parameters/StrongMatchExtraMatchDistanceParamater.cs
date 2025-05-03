@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// In addition to <see cref="MatchDistanceParamater"/> and <see cref="MatchFarDistanceParamater"/>,

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class UnknownParcelLockerAnalyzer : Analyzer
@@ -14,11 +10,11 @@ public class UnknownParcelLockerAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.ParcelLocker;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
         typeof(ParcelLockerOperatorAnalysisData)
-    };
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

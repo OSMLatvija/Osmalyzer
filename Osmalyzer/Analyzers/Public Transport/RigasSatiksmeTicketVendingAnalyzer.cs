@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Osmalyzer;
 
 [UsedImplicitly]
@@ -16,11 +12,11 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
         typeof(RigasSatiksmeVendingAnalysisData)
-    };
+    ];
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

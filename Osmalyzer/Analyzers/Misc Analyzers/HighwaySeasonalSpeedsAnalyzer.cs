@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-
 namespace Osmalyzer;
 
 [UsedImplicitly]
@@ -15,7 +10,7 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Road;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];
 
         
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

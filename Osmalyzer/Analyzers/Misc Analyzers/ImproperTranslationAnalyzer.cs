@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using F23.StringSimilarity;
+﻿using F23.StringSimilarity;
 
 namespace Osmalyzer;
 
@@ -18,19 +13,19 @@ public class ImproperTranslationAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() 
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
         typeof(FeatureNameQualifiersAnalysisData)
-    };
+    ];
 
     /// <summary> These are the languages we check and know about </summary>
-    private readonly List<KnownLanguage> _knownLanguages = new List<KnownLanguage>()
-    {
+    private readonly List<KnownLanguage> _knownLanguages =
+    [
         new KnownLanguage("Russian", "ru"),
         new KnownLanguage("English", "en"),
         new KnownLanguage("Latvian", "lv")
-    };
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -76,7 +71,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             new HasValue("boundary", "administrative"),
             new HasKey("name"),
             // filter out cross border objects
-            new CustomMatch(_ => _.HasKey("name") && !Regex.Match(_.GetValue("name")!, @" [-—/] ").Success),
+            new CustomMatch(e => e.HasKey("name") && !Regex.Match(e.GetValue("name")!, @" [-—/] ").Success),
             new HasKeyPrefixed("name:"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
         );
@@ -172,7 +167,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             "List of items that were not checked, because their name was not recognized (for example streets that don't have recognized translatable nomenclature)"
         );
 
-        foreach (string n in ignoredNames.Distinct().Where(_ => !_.Contains("—")))
+        foreach (string n in ignoredNames.Distinct().Where(n => !n.Contains('—')))
         {
             report.AddEntry(
                 GenericReportGroup.OtherNames,
@@ -255,7 +250,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
                             if (latvianNameSuffix != null)
                             {
-                                List<string> expectedRuPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
+                                List<string> expectedRuPrefixes = nameQualifiersData.Names[latvianNameSuffix][language];
 
                                 foreach (string expectedPrefix in expectedRuPrefixes)
                                 {
@@ -291,7 +286,7 @@ public class ImproperTranslationAnalyzer : Analyzer
 
                             if (latvianNameSuffix != null)
                             {
-                                List<string> expectedEnPrefixes = nameQualifiersData.Names[latvianNameSuffix!][language];
+                                List<string> expectedEnPrefixes = nameQualifiersData.Names[latvianNameSuffix][language];
 
                                 // Expect exact name with only translation for the nomenclature
                                 foreach (string expectedPrefix in expectedEnPrefixes)

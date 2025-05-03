@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public class ValidateElementValueMatchesDataItemValue<T> : ValidationRule where T : IDataItem
 {

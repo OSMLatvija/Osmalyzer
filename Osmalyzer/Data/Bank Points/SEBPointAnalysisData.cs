@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class SEBPointAnalysisData : BankPointAnalysisData

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class NonDefiningTaggingAnalyzer : Analyzer
@@ -15,7 +10,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

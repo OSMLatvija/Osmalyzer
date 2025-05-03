@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class CulturalMonumentsAnalyzer : Analyzer
@@ -18,12 +11,12 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
         typeof(CulturalMonumentsMapAnalysisData),
         typeof(CulturalMonumentsWikidataData)
-    };
+    ];
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -50,27 +43,27 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 )
             )
         );
-        
+
         // Get monument data
 
         List<CulturalMonument> monuments = datas.OfType<CulturalMonumentsMapAnalysisData>().First().Monuments;
-        
+
         // Known/ignored names
-        
+
 #if !REMOTE_EXECUTION
-        
+
         string ignoredNameFileName = @"data/cultural monument ignored names.tsv";
 
         if (!File.Exists(ignoredNameFileName))
             ignoredNameFileName = @"../../../../" + ignoredNameFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
-            
+
         string[] ignoredNames = File.ReadAllLines(ignoredNameFileName, Encoding.UTF8);
-        
+
         string knownNameFileName = @"data/cultural monument known names.tsv";
 
         if (!File.Exists(knownNameFileName))
             knownNameFileName = @"../../../../" + knownNameFileName; // "exit" Osmalyzer\bin\Debug\net6.0\ folder and grab it from root data\
-            
+
         string[] knownNames = File.ReadAllLines(knownNameFileName, Encoding.UTF8);
 
         List<string> ignoredMatch = new List<string>() { "name\tignored matches" };
@@ -85,7 +78,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
             List<string> knownMatches = knownNames.Where(inm => Regex.IsMatch(monument.Name, inm, RegexOptions.IgnoreCase)).ToList();
             bool known = knownMatches.Any();
-            
+
             if (ignored && known)
                 conflictMatch.Add(monument.Name + "\t" + string.Join("; ", knownMatches.Select(m => "\"" + m + "\"")) + "\t" + string.Join("; ", ignoredMatches.Select(m => "\"" + m + "\"")));
             else if (ignored)
@@ -95,19 +88,19 @@ public class CulturalMonumentsAnalyzer : Analyzer
             else
                 unknownMatch.Add(monument.Name);
         }
-        
+
         File.WriteAllLines("cmdump-ignored.txt", ignoredMatch);
         File.WriteAllLines("cmdump-known.txt", knownMatch);
         File.WriteAllLines("cmdump-conflict.txt", conflictMatch);
         File.WriteAllLines("cmdump-unknown.txt", unknownMatch);
-           
+
 #endif
-        
+
         // Assign Wikidata to monument data
 
         CulturalMonumentsWikidataData wikidataData = datas.OfType<CulturalMonumentsWikidataData>().First();
         wikidataData.Assign(monuments);
-        
+
         // Prepare data comparer/correlator
 
         Correlator<CulturalMonument> correlator = new Correlator<CulturalMonument>(
@@ -121,18 +114,18 @@ public class CulturalMonumentsAnalyzer : Analyzer
             new OsmElementPreviewValue("name", false),
             new LoneElementAllowanceParameter(IsOsmElementHeritagePoiByItself)
         );
-        
+
         [Pure]
         MatchStrength DoesOsmNodeMatchMonument(CulturalMonument monument, OsmElement osmElement)
         {
             // name
-           
+
             if (FuzzyNameMatcher.Matches(osmElement, "name", monument.Name) ||
                 FuzzyNameMatcher.Matches(osmElement, "old_name", monument.Name))
                 return MatchStrength.Strong;
-            
+
             // ref:LV:vkpai
-            
+
             string? osmRefStr = osmElement.GetValue("ref:LV:vkpai");
 
             if (osmRefStr != null)
@@ -140,12 +133,12 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 if (int.TryParse(osmRefStr, out int osmRef))
                     if (osmRef == monument.ReferenceID)
                         return MatchStrength.Strong;
-                
+
                 return MatchStrength.Good;
             }
-            
+
             // heritage
-            
+
             string? heritageStr = osmElement.GetValue("heritage");
 
             if (heritageStr != null)
@@ -153,12 +146,12 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 if (int.TryParse(osmRefStr, out int osmRef))
                     if (osmRef == 2)
                         return MatchStrength.Good;
-                
+
                 return MatchStrength.Regular;
             }
 
             // heritage:operator
-            
+
             string? herOperStr = osmElement.GetValue("heritage:operator");
 
             if (herOperStr != null)
@@ -168,10 +161,10 @@ public class CulturalMonumentsAnalyzer : Analyzer
                 if (herOperStr.Contains("vkpai") ||
                     herOperStr.Contains("valsts kultūras pieminekļu aizsardzības inspekcija"))
                     return MatchStrength.Good;
-                
+
                 return MatchStrength.Regular;
             }
-            
+
             // Wikidata ID
 
             if (monument.WikidataItem != null)
@@ -195,14 +188,14 @@ public class CulturalMonumentsAnalyzer : Analyzer
         bool IsOsmElementHeritagePoiByItself(OsmElement osmElement)
         {
             // ref:LV:vkpai
-            
+
             string? osmRefStr = osmElement.GetValue("ref:LV:vkpai");
 
             if (osmRefStr != null)
                 return true;
 
             // heritage:operator
-            
+
             string? herOper = osmElement.GetValue("heritage:operator");
 
             if (herOper != null)
@@ -213,7 +206,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
                     herOper.Contains("valsts kultūras pieminekļu aizsardzības inspekcija"))
                     return true;
             }
-            
+
             // Wikidata ID
             // If our wikidata item was loaded as a wikidata item with cultural heritage ID, then we must be one
 
@@ -232,7 +225,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
             return false;
         }
-            
+
         // Parse and report primary matching and location correlation
 
         CorrelatorReport correlatorReport = correlator.Parse(
@@ -254,7 +247,7 @@ public class CulturalMonumentsAnalyzer : Analyzer
             true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasAcceptableValue("ref:LV:vkpai", IsKnownMonumentRefID, "known monument ID")
         );
-        
+
         [Pure]
         bool IsKnownMonumentRefID(string id)
         {

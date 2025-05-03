@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class PostCodeAnalyzer : Analyzer
@@ -17,7 +12,7 @@ public class PostCodeAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];
 
     
     private static OsmPolygon _latviaPolygon = null!;

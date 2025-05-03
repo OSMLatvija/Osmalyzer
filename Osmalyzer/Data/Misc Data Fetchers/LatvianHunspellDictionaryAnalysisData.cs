@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using WeCantSpell.Hunspell;
+﻿using WeCantSpell.Hunspell;
 
 namespace Osmalyzer;
 

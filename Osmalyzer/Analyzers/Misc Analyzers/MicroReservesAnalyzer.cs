@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using NetTopologySuite.Geometries;
+﻿using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
@@ -19,7 +14,7 @@ public class MicroReservesAnalyzer : Analyzer
 
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(MicroReserveAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(MicroReserveAnalysisData) ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

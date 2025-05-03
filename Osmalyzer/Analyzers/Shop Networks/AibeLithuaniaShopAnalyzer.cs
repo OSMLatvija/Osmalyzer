@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [DisabledAnalyzer]
 public class AibeLithuaniaShopAnalyzer : ShopAnalyzer<AibeLithuaniaShopsAnalysisData, LithuaniaOsmAnalysisData>

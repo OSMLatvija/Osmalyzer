@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class SpellingAnalyzer : Analyzer
@@ -15,12 +10,12 @@ public class SpellingAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() 
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
         typeof(LatvianHunspellDictionaryAnalysisData),
         typeof(LatvianCustomDictionaryAnalysisData)
-    };
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

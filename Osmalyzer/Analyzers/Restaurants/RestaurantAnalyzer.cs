@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Osmalyzer;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
@@ -25,11 +21,11 @@ public abstract class RestaurantAnalyzer<TRestaurant, TOsm> : Analyzer
     protected abstract List<string> RestaurantOsmNames { get; }
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(TOsm),
-        typeof(TRestaurant) // restaurant list data
-    };
+        typeof(TRestaurant)
+    ];
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

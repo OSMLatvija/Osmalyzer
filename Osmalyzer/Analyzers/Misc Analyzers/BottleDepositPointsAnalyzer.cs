@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class BottleDepositPointsAnalyzer : Analyzer
@@ -16,11 +12,11 @@ public class BottleDepositPointsAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Misc;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
         typeof(DepositPointsAnalysisData)
-    };
+    ];
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

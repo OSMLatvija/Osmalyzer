@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Osmalyzer;
 
 [UsedImplicitly]
@@ -14,7 +10,7 @@ public class TrolleybusWireAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];
 
         
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -25,19 +21,11 @@ public class TrolleybusWireAnalyzer : Analyzer
 
         OsmMasterData osmMasterData = osmData.MasterData;
 
-        List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
-            new List<OsmFilter[]>()
-            {
-                new OsmFilter[]
-                {
-                    new IsRelation(),
-                    new HasValue("type", "route"),
-                    new HasValue("route", "trolleybus")
-                }
-            }
+        OsmDataExtract routes = osmMasterData.Filter(
+            new IsRelation(), 
+            new HasValue("type", "route"), 
+            new HasValue("route", "trolleybus")
         );
-
-        OsmDataExtract routes = osmDataExtracts[0];
 
         // Process
 

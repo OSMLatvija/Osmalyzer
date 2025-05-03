@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace Osmalyzer;
 
 public class TextFileReportWriter : ReportWriter

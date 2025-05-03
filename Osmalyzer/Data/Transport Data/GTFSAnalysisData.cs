@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public abstract class GTFSAnalysisData : AnalysisData, IDatedAnalysisData
 {

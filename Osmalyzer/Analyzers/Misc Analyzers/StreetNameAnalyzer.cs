@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class StreetNameAnalyzer : Analyzer
@@ -18,7 +11,7 @@ public class StreetNameAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroups.Road;
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(RoadLawAnalysisData), typeof(KuldigaRoadsAnalysisData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(RoadLawAnalysisData), typeof(KuldigaRoadsAnalysisData) ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

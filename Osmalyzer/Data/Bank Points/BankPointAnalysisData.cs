@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public abstract class BankPointAnalysisData : AnalysisData, IUndatedAnalysisData
 {

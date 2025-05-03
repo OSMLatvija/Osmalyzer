@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// Reported via/batched into <see cref="MatchedLoneOsmBatch"/> (note that there is no "unmatched" version - such elements are simply ignored).

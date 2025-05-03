@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public class ElviShopAnalyzer : ShopAnalyzer<ElviShopsAnalysisData, LatviaOsmAnalysisData>
 {

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Text.RegularExpressions;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Osmalyzer;
 
@@ -19,7 +16,7 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
 
     public override IEnumerable<ParcelLocker> ParcelLockers => _parcelLockers;
 
-    public override IEnumerable<ParcelPickupPoint>? PickupPoints => _pickupPoints;
+    public override IEnumerable<ParcelPickupPoint> PickupPoints => _pickupPoints;
     public override PickupPointAmenity? PickupPointLocation => PickupPointAmenity.Kiosk;
     public override string PickupPointLocationName => "Narvessen";
 
@@ -36,7 +33,7 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
 
         WebsiteDownloadHelper.DownloadPost(
             "https://itella.lv/wp-admin/admin-ajax.php",
-            new[] {("action","ld_get_baltics_lockers")},
+            [ ("action","ld_get_baltics_lockers") ],
             DataFileName
         );
     }

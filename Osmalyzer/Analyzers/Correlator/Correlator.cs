@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// Match OSM elements to custom data items, such as coming from some source.
@@ -70,8 +66,8 @@ public class Correlator<T> where T : IDataItem
 
         // Match from data item perspective (i.e. find best OSM element to fit each)
 
-        List<T> itemsToBeMatched = new List<T>();
-        List<T> outOfBoundsItems = new List<T>();
+        List<T> itemsToBeMatched = [ ];
+        List<T> outOfBoundsItems = [ ];
         
         foreach (T item in _dataItems)
         {
@@ -90,7 +86,6 @@ public class Correlator<T> where T : IDataItem
             // }
 
             itemsToBeMatched.Add(item);
-            continue;
 
 
             // [Pure]
@@ -106,7 +101,7 @@ public class Correlator<T> where T : IDataItem
 
         Dictionary<OsmElement, Match> allMatchedElements = new Dictionary<OsmElement, Match>();
         
-        List<T> unmatchableItems = new List<T>();
+        List<T> unmatchableItems = [ ];
 
         do
         {
@@ -201,9 +196,9 @@ public class Correlator<T> where T : IDataItem
         
         // Match from OSM element perspective
 
-        List<OsmElement> unmatchableElements = new List<OsmElement>();
+        List<OsmElement> unmatchableElements = [ ];
 
-        List<OsmElement> matchedLoneElements = new List<OsmElement>();
+        List<OsmElement> matchedLoneElements = [ ];
 
         foreach (OsmElement osmElement in _osmElements.Elements)
         {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLockerListProvider
 {
@@ -21,12 +17,12 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
     protected abstract List<ValidationRule>? PickupPointValidationRules { get; }
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
+    public override List<Type> GetRequiredDataTypes() =>
+    [
         typeof(LatviaOsmAnalysisData),
-        typeof(ParcelLockerOperatorAnalysisData), 
+        typeof(ParcelLockerOperatorAnalysisData),
         typeof(T)
-    };
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

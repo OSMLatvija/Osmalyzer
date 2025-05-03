@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
 namespace Osmalyzer;
@@ -31,13 +27,12 @@ public class TopShopsAnalysisData : ShopListAnalysisData
 
             WebsiteDownloadHelper.DownloadPost(
                 "https://www.toppartika.lv/d/",
-                new[]
-                {
+                [
                     ("action", "getShops"), // could also be action=getShop&id=185, which returns html
                     ("reg", i.ToString()), // this is "reģions", 0 for all, 1-5 for Kurzeme Zemgale Rīgas reģions Vidzeme Latgale
                     ("nov", "0"), // this is "novads", breaks down regions
                     ("s", "") // no idea what this is
-                },
+                ],
                 fileName
             );
             
@@ -63,7 +58,7 @@ public class TopShopsAnalysisData : ShopListAnalysisData
 
     protected override void DoPrepare()
     {
-        _shops = new List<ShopData>();
+        _shops = [ ];
 
         for (int i = 1; i <= 5; i++)
         {

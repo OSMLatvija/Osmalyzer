@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankPointAnalysisData
@@ -14,7 +10,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
 
     public override AnalyzerGroup Group => AnalyzerGroups.Bank;
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>() { typeof(LatviaOsmAnalysisData), typeof(TData) };
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(TData) ];
 
 
     protected abstract string BankName { get; }

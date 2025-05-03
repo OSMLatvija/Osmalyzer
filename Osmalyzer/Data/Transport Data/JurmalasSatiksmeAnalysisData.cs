@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class JurmalasSatiksmeAnalysisData : GTFSAnalysisData

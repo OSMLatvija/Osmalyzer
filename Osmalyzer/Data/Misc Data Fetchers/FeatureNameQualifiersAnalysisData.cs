@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class FeatureNameQualifiersAnalysisData : AnalysisData
@@ -17,7 +11,7 @@ public class FeatureNameQualifiersAnalysisData : AnalysisData
     
     protected override string DataFileIdentifier => "";
 
-    private readonly string[] locales = new string[] { "ru", "en" };
+    private readonly string[] locales = [ "ru", "en" ];
 
     public Dictionary<string, Dictionary<string, List<string>>> Names { get; private set; } = null!; // only null until downloaded
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 public abstract class ShopAnalyzer<TShop, TOsm> : Analyzer
@@ -25,11 +21,11 @@ public abstract class ShopAnalyzer<TShop, TOsm> : Analyzer
     protected abstract List<string> ShopOsmNames { get; }
 
 
-    public override List<Type> GetRequiredDataTypes() => new List<Type>()
-    {
-        typeof(TOsm), 
-        typeof(TShop) // shop list data
-    };
+    public override List<Type> GetRequiredDataTypes() =>
+    [
+        typeof(TOsm),
+        typeof(TShop)
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)

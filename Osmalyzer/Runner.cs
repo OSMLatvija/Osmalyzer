@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 
 namespace Osmalyzer;
 
@@ -21,13 +17,9 @@ public static class Runner
                     .Cast<Analyzer>()
                     .ToList();
 #else
-        List<Analyzer> analyzers = new List<Analyzer>()
-        {
-            // new CommonBrandsAnalyzer(),
-            // new HighwaySeasonalSpeedsAnalyzer(),
-            // new LivingZoneSpeedAnalyzer(),
-            // new LVCRoadAnalyzer(),
-            new RigasSatiksmeAnalyzer(),
+        List<Analyzer> analyzers =
+        [
+            new RigasSatiksmeAnalyzer()
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
@@ -83,7 +75,7 @@ public static class Runner
             // new LoneCrossingAnalyzer(),
             // new InfoboardAnalyzer(),
             // new LuluRestaurantAnalyzer(),
-        };
+        ];
 #endif
 
         Console.WriteLine("Running with " + analyzers.Count + " analyzers...");
@@ -95,8 +87,8 @@ public static class Runner
         Reporter reporter = new HtmlFileReporter();
 
 
-        List<Type> requestedDataTypes = new List<Type>();
-        List<List<Type>> perAnalyzerRequestedDataTypes = new List<List<Type>>();
+        List<Type> requestedDataTypes = [ ];
+        List<List<Type>> perAnalyzerRequestedDataTypes = [ ];
 
         foreach (Analyzer analyzer in analyzers)
         {
@@ -110,7 +102,7 @@ public static class Runner
         }
 
 
-        List<AnalysisData> requestedDatas = new List<AnalysisData>();
+        List<AnalysisData> requestedDatas = [ ];
 
         foreach (Type type in requestedDataTypes)
             requestedDatas.Add((AnalysisData)Activator.CreateInstance(type)!);
@@ -176,7 +168,7 @@ public static class Runner
 
         for (int i = 0; i < analyzers.Count; i++)
         {
-            List<AnalysisData> datas = new List<AnalysisData>();
+            List<AnalysisData> datas = [ ];
 
             foreach (Type dataType in perAnalyzerRequestedDataTypes[i])
                 datas.Add(requestedDatas.First(rd => rd.GetType() == dataType));

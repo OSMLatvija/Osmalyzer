@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace Osmalyzer;
 
 public abstract class ReportWriter

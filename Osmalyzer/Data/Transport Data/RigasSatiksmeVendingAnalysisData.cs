@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using SharpKml.Dom;
+﻿using SharpKml.Dom;
 using SharpKml.Engine;
 
 namespace Osmalyzer;
@@ -59,7 +54,7 @@ public class RigasSatiksmeVendingAnalysisData : AnalysisData, IUndatedAnalysisDa
                     true
                 );
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // RS site is geoblocked in US, where GitHub runner is,
                 // so fail gracefully and just hard-code the ID, since we are only checking the site for the id anyway

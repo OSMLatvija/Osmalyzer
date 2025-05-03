@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text.RegularExpressions;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData

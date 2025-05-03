@@ -1,5 +1,3 @@
-using System;
-
 namespace Osmalyzer;
 
 [AttributeUsage(AttributeTargets.Class)]

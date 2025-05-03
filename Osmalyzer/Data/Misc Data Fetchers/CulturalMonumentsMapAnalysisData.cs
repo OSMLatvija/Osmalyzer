@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using FlatGeobuf.NTS;
+﻿using FlatGeobuf.NTS;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 

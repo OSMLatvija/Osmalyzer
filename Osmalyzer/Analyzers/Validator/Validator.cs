@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public class Validator<T> where T : IDataItem
 {

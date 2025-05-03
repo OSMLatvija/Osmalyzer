@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 public class VeskoShopAnalyzer : ShopAnalyzer<VeskoShopsAnalysisData, LatviaOsmAnalysisData>
 {

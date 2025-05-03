@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Osmalyzer;
 
@@ -16,6 +17,9 @@ public class GTFSRoute
     public string CleanType { get; }
 
     public IEnumerable<GTFSService> Services => _services.AsReadOnly();
+
+    /// <summary> Trips (unique) from all <see cref="Services"/> </summary>
+    public IEnumerable<GTFSTrip> AllTrips => _services.SelectMany(service => service.Trips).Distinct();
 
 
     private readonly List<GTFSService> _services = new List<GTFSService>();

@@ -63,19 +63,18 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
         // Parse routes
 
+        // GTFS groups by route and service
+        // Websites group by "pattern"
+        // We want to group by pattern to match how users and OSM would expect them
+        
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
         {
-            foreach (GTFSService gtfsService in gtfsRoute.Services)
-            {
-                string header =
-                    gtfsRoute.CleanType + " \"" + gtfsRoute.Name + "\" [" + gtfsRoute.Id + "]" + " - " +
-                    "[" + gtfsService.Id + "]";
+            string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number + "" + " \"" + gtfsRoute.Name + "\" ";
                 
-                report.AddGroup(gtfsService, header);
+            report.AddGroup(gtfsRoute, header);
 
-                foreach (GTFSTrip gtfsTrip in gtfsService.Trips)
-                    report.AddEntry(gtfsService, new GenericReportEntry(gtfsTrip.Id + ": " + string.Join(", ", gtfsTrip.Stops.Select(s => "[" + s.Id + "] " + s.Name))));
-            }
+            foreach (GTFSTrip gtfsTrip in gtfsRoute.AllTrips)
+                report.AddEntry(gtfsRoute, new GenericReportEntry(gtfsTrip.Id + ": " + string.Join(", ", gtfsTrip.Stops.Select(s => "[" + s.Id + "] " + s.Name))));
         }
     }
 

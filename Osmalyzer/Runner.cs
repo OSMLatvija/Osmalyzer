@@ -82,8 +82,8 @@ public static class Runner
             // new DuplicatePlatformsAnalyzer(),
             //new LoneCrossingAnalyzer(),
             // new InfoboardAnalyzer(),
-
-            new LuluRestaurantAnalyzer(),
+            // new LuluRestaurantAnalyzer(),
+            new HesburgerRestaurantAnalyzer()
         };
 #endif
 

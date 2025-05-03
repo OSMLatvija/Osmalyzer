@@ -73,8 +73,49 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 
             report.AddGroup(gtfsRoute, header);
 
-            foreach (GTFSTrip gtfsTrip in gtfsRoute.AllTrips)
-                report.AddEntry(gtfsRoute, new GenericReportEntry(gtfsTrip.Id + ": " + string.Join(", ", gtfsTrip.Stops.Select(s => "[" + s.Id + "] " + s.Name))));
+            foreach (MergedTrips mergedTrips in MergeTrips(gtfsRoute.AllTrips))
+                report.AddEntry(gtfsRoute, new GenericReportEntry(string.Join(",", mergedTrips.Trips.Select(t => t.Id)) + ": " + string.Join(", ", mergedTrips.Stops.Select(s => "[" + s.Id + "] " + s.Name))));
+        }
+    }
+
+    [Pure]
+    private static IEnumerable<MergedTrips> MergeTrips(IEnumerable<GTFSTrip> trips)
+    {
+        List<MergedTrips> mergedTrips = new List<MergedTrips>();
+
+        foreach (GTFSTrip trip in trips)
+        {
+            MergedTrips? existing = mergedTrips.Find(mt => mt.Stops.SequenceEqual(trip.Stops));
+
+            if (existing != null)
+                existing.AddTrip(trip);
+            else
+                mergedTrips.Add(new MergedTrips(trip, trip.Stops));
+        }
+        
+        return mergedTrips;
+    }
+
+    private class MergedTrips
+    {
+        public IEnumerable<GTFSTrip> Trips => _trips;
+
+        public IEnumerable<GTFSStop> Stops { get; }
+
+        
+        private readonly List<GTFSTrip> _trips;
+
+        
+        public MergedTrips(GTFSTrip trip, IEnumerable<GTFSStop> stops)
+        {
+            _trips = new List<GTFSTrip> { trip };
+            Stops = stops.ToList();
+        }
+
+        
+        public void AddTrip(GTFSTrip trip)
+        {
+            _trips.Add(trip);
         }
     }
 

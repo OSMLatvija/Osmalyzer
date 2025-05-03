@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Osmalyzer;
 
-public class PublicTransportRoute
+public class GTFSRoute
 {
     public string Id { get; }
         
@@ -15,13 +15,13 @@ public class PublicTransportRoute
 
     public string CleanType { get; }
 
-    public IEnumerable<PublicTransportService> Services => _services.AsReadOnly();
+    public IEnumerable<GTFSService> Services => _services.AsReadOnly();
 
 
-    private readonly List<PublicTransportService> _services = new List<PublicTransportService>();
+    private readonly List<GTFSService> _services = new List<GTFSService>();
 
         
-    public PublicTransportRoute(string id, string name, string number, string type)
+    public GTFSRoute(string id, string name, string number, string type)
     {
         Id = id;
         Name = name;
@@ -31,7 +31,7 @@ public class PublicTransportRoute
     }
 
 
-    public void AddService(PublicTransportService service)
+    public void AddService(GTFSService service)
     {
         _services.Add(service);
     }

@@ -7,40 +7,40 @@ namespace Osmalyzer;
 /// Example RS Data https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam
 /// GTFS format Spec https://developers.google.com/transit/gtfs/reference/
 /// </summary>
-public class PublicTransportNetwork
+public class GTFSNetwork
 {
-    public PublicTransportStops Stops { get; }
+    public GTFSStops Stops { get; }
         
-    public PublicTransportRoutes Routes { get; }
+    public GTFSRoutes Routes { get; }
         
-    public PublicTransportServices Services { get; }
+    public GTFSServices Services { get; }
         
-    public PublicTransportTrips Trips { get; }
+    public GTFSTrips Trips { get; }
         
-    public PublicTransportPoints Points { get; }
+    public GTFSPoints Points { get; }
 
 
-    public PublicTransportNetwork(string dataPath)
+    public GTFSNetwork(string dataPath)
     {
-        Stops = new PublicTransportStops(Path.Combine(dataPath, "stops.txt"));
+        Stops = new GTFSStops(Path.Combine(dataPath, "stops.txt"));
             
-        Routes = new PublicTransportRoutes(Path.Combine(dataPath, "routes.txt"));
+        Routes = new GTFSRoutes(Path.Combine(dataPath, "routes.txt"));
             
-        Services = new PublicTransportServices(Path.Combine(dataPath, "calendar.txt"));
+        Services = new GTFSServices(Path.Combine(dataPath, "calendar.txt"));
             
-        Trips = new PublicTransportTrips(Path.Combine(dataPath, "trips.txt"), Routes, Services);
+        Trips = new GTFSTrips(Path.Combine(dataPath, "trips.txt"), Routes, Services);
             
-        Points = new PublicTransportPoints(Path.Combine(dataPath, "stop_times.txt"), Stops, Trips);
+        Points = new GTFSPoints(Path.Combine(dataPath, "stop_times.txt"), Stops, Trips);
 
         // Post-process
 
-        foreach (PublicTransportRoute route in Routes.Routes)
+        foreach (GTFSRoute route in Routes.Routes)
         {
-            foreach (PublicTransportService service in route.Services)
+            foreach (GTFSService service in route.Services)
             {
-                foreach (PublicTransportTrip trip in service.Trips)
+                foreach (GTFSTrip trip in service.Trips)
                 {
-                    foreach (PublicTransportStop stop in trip.Stops)
+                    foreach (GTFSStop stop in trip.Stops)
                     {
                         switch (route.Type)
                         {

@@ -4,17 +4,17 @@ using System.Linq;
 
 namespace Osmalyzer;
 
-public class PublicTransportTrips
+public class GTFSTrips
 {
-    public IEnumerable<PublicTransportTrip> Trips => _trips.Values.AsEnumerable();
+    public IEnumerable<GTFSTrip> Trips => _trips.Values.AsEnumerable();
 
         
-    private readonly Dictionary<string, PublicTransportTrip> _trips;
+    private readonly Dictionary<string, GTFSTrip> _trips;
 
         
-    public PublicTransportTrips(string dataFileName, PublicTransportRoutes routes, PublicTransportServices services)
+    public GTFSTrips(string dataFileName, GTFSRoutes routes, GTFSServices services)
     {
-        _trips = new Dictionary<string, PublicTransportTrip>();
+        _trips = new Dictionary<string, GTFSTrip>();
 
         string[] lines = File.ReadAllLines(dataFileName);
 
@@ -41,9 +41,9 @@ public class PublicTransportTrips
             string tripId = segments[2];
             string serviceId = segments[1];
 
-            PublicTransportService? service = services.GetService(serviceId);
+            GTFSService? service = services.GetService(serviceId);
 
-            PublicTransportTrip trip = new PublicTransportTrip(tripId, service);
+            GTFSTrip trip = new GTFSTrip(tripId, service);
             _trips.TryAdd(trip.Id, trip);
 
             if (service != null)
@@ -55,7 +55,7 @@ public class PublicTransportTrips
                 // And vice-verse - add route to service (if not known)
 
                 string routeId = segments[0];
-                PublicTransportRoute route = routes.GetRoute(routeId);
+                GTFSRoute route = routes.GetRoute(routeId);
                 if (route.Services.All(s => s != service))
                     route.AddService(service);
 
@@ -67,9 +67,9 @@ public class PublicTransportTrips
 
         
     [Pure]
-    public PublicTransportTrip? GetTrip(string id)
+    public GTFSTrip? GetTrip(string id)
     {
-        if (_trips.TryGetValue(id, out PublicTransportTrip? s))
+        if (_trips.TryGetValue(id, out GTFSTrip? s))
             return s;
             
         return null;

@@ -4,19 +4,19 @@ using System.Linq;
 
 namespace Osmalyzer;
 
-public class PublicTransportStops
+public class GTFSStops
 {
-    public IEnumerable<PublicTransportStop> Stops => _stops.Values.AsEnumerable();
+    public IEnumerable<GTFSStop> Stops => _stops.Values.AsEnumerable();
 
         
-    private readonly Dictionary<string, PublicTransportStop> _stops;
+    private readonly Dictionary<string, GTFSStop> _stops;
 
         
-    public PublicTransportStops(string dataFileName)
+    public GTFSStops(string dataFileName)
     {
         string[] lines = File.ReadAllLines(dataFileName);
 
-        _stops = new Dictionary<string, PublicTransportStop>();
+        _stops = new Dictionary<string, GTFSStop>();
 
         for (int i = 0; i < lines.Length; i++)
         {
@@ -46,7 +46,7 @@ public class PublicTransportStops
             if (!double.TryParse(segments[5], out double lon)) 
                 continue; // broken data
 
-            PublicTransportStop stop = new PublicTransportStop(id, name, new OsmCoord(lat, lon));
+            GTFSStop stop = new GTFSStop(id, name, new OsmCoord(lat, lon));
 
             _stops.TryAdd(stop.Id, stop);
             // Latvijas Autobuss has duplicates, e.g.
@@ -59,9 +59,9 @@ public class PublicTransportStops
 
         
     [Pure]
-    public PublicTransportStop? GetStop(string id)
+    public GTFSStop? GetStop(string id)
     {
-        _stops.TryGetValue(id, out PublicTransportStop? stop);
+        _stops.TryGetValue(id, out GTFSStop? stop);
         return stop;
     }
 }

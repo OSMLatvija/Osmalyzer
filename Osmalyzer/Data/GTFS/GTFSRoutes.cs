@@ -5,19 +5,19 @@ using System.Linq;
 
 namespace Osmalyzer;
 
-public class PublicTransportRoutes
+public class GTFSRoutes
 {
-    public IEnumerable<PublicTransportRoute> Routes => _routes.Values.AsEnumerable();
+    public IEnumerable<GTFSRoute> Routes => _routes.Values.AsEnumerable();
 
         
-    private readonly Dictionary<string, PublicTransportRoute> _routes;
+    private readonly Dictionary<string, GTFSRoute> _routes;
 
         
-    public PublicTransportRoutes(string dataFileName)
+    public GTFSRoutes(string dataFileName)
     {
         string[] lines = File.ReadAllLines(dataFileName);
 
-        _routes = new Dictionary<string, PublicTransportRoute>();
+        _routes = new Dictionary<string, GTFSRoute>();
 
         int idIndex = 0;
         int shortNameIndex = 0;
@@ -52,7 +52,7 @@ public class PublicTransportRoutes
 
             string type = TypeFromId(id);
                 
-            PublicTransportRoute route = new PublicTransportRoute(id, name, number, type);
+            GTFSRoute route = new GTFSRoute(id, name, number, type);
 
             _routes.TryAdd(route.Id, route);
         }
@@ -73,7 +73,7 @@ public class PublicTransportRoutes
     }
 
     [Pure]
-    public PublicTransportRoute GetRoute(string id)
+    public GTFSRoute GetRoute(string id)
     {
         return _routes[id];
     }

@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class PublicTransportStop
+public class GTFSStop
 {
     public string Id { get; }
 
@@ -15,7 +15,7 @@ public class PublicTransportStop
     public bool Tram { get; set; }
 
 
-    public PublicTransportStop(string id, string name, OsmCoord coord)
+    public GTFSStop(string id, string name, OsmCoord coord)
     {
         Id = id;
         Name = name;

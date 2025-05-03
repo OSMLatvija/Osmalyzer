@@ -4,17 +4,17 @@ using System.Linq;
 
 namespace Osmalyzer;
 
-public class PublicTransportPoints
+public class GTFSPoints
 {
-    public IEnumerable<PublicTransportPoint> Points => _points.AsReadOnly();
+    public IEnumerable<GTFSPoint> Points => _points.AsReadOnly();
 
         
-    private readonly List<PublicTransportPoint> _points;
+    private readonly List<GTFSPoint> _points;
 
         
-    public PublicTransportPoints(string dataFileName, PublicTransportStops stops, PublicTransportTrips trips)
+    public GTFSPoints(string dataFileName, GTFSStops stops, GTFSTrips trips)
     {
-        _points = new List<PublicTransportPoint>();
+        _points = new List<GTFSPoint>();
             
         string[] lines = File.ReadAllLines(dataFileName);
 
@@ -38,14 +38,14 @@ public class PublicTransportPoints
             // drop_off_type - 0
 
             string tripId = segments[0];
-            PublicTransportTrip? trip = trips.GetTrip(tripId);
+            GTFSTrip? trip = trips.GetTrip(tripId);
 
             string stopId = segments[3];
-            PublicTransportStop? stop = stops.GetStop(stopId);
+            GTFSStop? stop = stops.GetStop(stopId);
             if (stop == null) 
                 continue; // broken data?
 
-            PublicTransportPoint newPoint = new PublicTransportPoint(trip, stop);
+            GTFSPoint newPoint = new GTFSPoint(trip, stop);
 
             _points.Add(newPoint);
 

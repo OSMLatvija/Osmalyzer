@@ -27,7 +27,7 @@ public static class Runner
             // new HighwaySeasonalSpeedsAnalyzer(),
             // new LivingZoneSpeedAnalyzer(),
             // new LVCRoadAnalyzer(),
-            // new RigasSatiksmeAnalyzer(),
+            new RigasSatiksmeAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
@@ -80,10 +80,9 @@ public static class Runner
             // new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer(),
             // new DuplicatePlatformsAnalyzer(),
-            //new LoneCrossingAnalyzer(),
+            // new LoneCrossingAnalyzer(),
             // new InfoboardAnalyzer(),
-
-            new LuluRestaurantAnalyzer(),
+            // new LuluRestaurantAnalyzer(),
         };
 #endif
 

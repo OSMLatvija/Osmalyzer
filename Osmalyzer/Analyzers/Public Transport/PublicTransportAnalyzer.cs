@@ -26,7 +26,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
         GTFSAnalysisData ptData = datas.OfType<T>().First();
 
-        PublicTransportNetwork ptNetwork = new PublicTransportNetwork(Path.GetFullPath(ptData.ExtractionFolder));
+        GTFSNetwork ptNetwork = new GTFSNetwork(Path.GetFullPath(ptData.ExtractionFolder));
             
         // Load OSM data
 
@@ -82,9 +82,9 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         List<OsmNode> matchedOsmStops = new List<OsmNode>();
         // so that we don't match the same stop multiple times
 
-        Dictionary<PublicTransportStop, OsmNode> fullyMatchedStops = new Dictionary<PublicTransportStop, OsmNode>();
+        Dictionary<GTFSStop, OsmNode> fullyMatchedStops = new Dictionary<GTFSStop, OsmNode>();
 
-        foreach (PublicTransportStop ptStop in ptNetwork.Stops.Stops)
+        foreach (GTFSStop ptStop in ptNetwork.Stops.Stops)
         {
             // Find all potential OSM stops in range
             List<OsmNode> closestStops = osmStops.GetClosestNodesTo(ptStop.Coord, maxSearchDistance);
@@ -204,7 +204,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             
         // Parse routes
 
-        foreach (PublicTransportRoute ptRoute in ptNetwork.Routes.Routes)
+        foreach (GTFSRoute ptRoute in ptNetwork.Routes.Routes)
         {
             List<OsmRelation> matchingOsmRoutes = osmRoutes.Elements.Cast<OsmRelation>().Where(e => MatchesRoute(e, ptRoute)).ToList();
 
@@ -214,20 +214,20 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
             if (matchingOsmRoutes.Count == 0)
             {
-                List<PublicTransportStop> endStops = new List<PublicTransportStop>();
+                List<GTFSStop> endStops = new List<GTFSStop>();
                     
-                foreach (PublicTransportService service in ptRoute.Services)
+                foreach (GTFSService service in ptRoute.Services)
                 {
-                    foreach (PublicTransportTrip trip in service.Trips)
+                    foreach (GTFSTrip trip in service.Trips)
                     {
                         if (!trip.Points.Any())
                             continue; // broken data?
                         
-                        PublicTransportStop firstStop = trip.Points.First().Stop;
+                        GTFSStop firstStop = trip.Points.First().Stop;
                         if (!endStops.Contains(firstStop))
                             endStops.Add(firstStop);
                             
-                        PublicTransportStop lastStop = trip.Points.First().Stop;
+                        GTFSStop lastStop = trip.Points.First().Stop;
                         if (!endStops.Contains(lastStop))
                             endStops.Add(lastStop);
                     }
@@ -249,7 +249,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 {
                     List<OsmNode> routeStops = osmRoute.Elements.OfType<OsmNode>().Where(n => osmStops.Elements.Contains(n)).ToList();
 
-                    (PublicTransportTrip trip, float match) = FindBestTripMatch(ptRoute, routeStops);
+                    (GTFSTrip trip, float match) = FindBestTripMatch(ptRoute, routeStops);
 
 #if !REMOTE_EXECUTION
                     // Debug.WriteLine("* \"" + osmRoute.GetValue("name") + "\" best match at " + (match * 100f).ToString("F1") + "% for " + trip);
@@ -257,10 +257,10 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
                     if (match >= 0)
                     {
-                        List<PublicTransportStop> missingPtStops = new List<PublicTransportStop>();
+                        List<GTFSStop> missingPtStops = new List<GTFSStop>();
                         List<OsmElement> missingOsmStops = new List<OsmElement>();
                             
-                        foreach (PublicTransportStop ptStop in trip.Stops)
+                        foreach (GTFSStop ptStop in trip.Stops)
                         {
                             if (fullyMatchedStops.TryGetValue(ptStop, out OsmNode? expectedOsmStop))
                             {
@@ -312,7 +312,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                             }
                         }
 
-                        foreach (PublicTransportStop ptStop in missingPtStops)
+                        foreach (GTFSStop ptStop in missingPtStops)
                         {
                             OsmElement? possibleRematch = missingOsmStops.FirstOrDefault(s => s.HasKey("name") && IsStopNameMatchGoodEnough(ptStop.Name, s.GetValue("name")!));
 
@@ -356,23 +356,23 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 // TODO: match services to routes - this may be nigh impossible unless I can distinguish expected regular and optional non-regular trips/services - it's a mess - OSM only has regular for most
                     
                     
-                (PublicTransportTrip service, float bestMatch) FindBestTripMatch(PublicTransportRoute route, List<OsmNode> stops)
+                (GTFSTrip service, float bestMatch) FindBestTripMatch(GTFSRoute route, List<OsmNode> stops)
                 {
                     // I have to do fuzyz matching, because I don't actually know which service and which trip OSM is representing
                     // That is, I don't know which GTFS trip is the regular normal trip and which are random depo and alternate trips
                     // OSM may even have alternate trips, so I need to match them in that case
                     // So this matches the route with the best stop match - more stop matches, better match
                         
-                    PublicTransportTrip? bestTrip = null;
+                    GTFSTrip? bestTrip = null;
                     float bestMatch = 0f;
                         
-                    foreach (PublicTransportService ptService in route.Services)
+                    foreach (GTFSService ptService in route.Services)
                     {
-                        foreach (PublicTransportTrip ptTrip in ptService.Trips)
+                        foreach (GTFSTrip ptTrip in ptService.Trips)
                         {
                             int matchedStops = 0;
 
-                            foreach (PublicTransportStop ptStop in ptTrip.Stops)
+                            foreach (GTFSStop ptStop in ptTrip.Stops)
                             {
                                 if (fullyMatchedStops.TryGetValue(ptStop, out OsmNode? expectedOsmStop))
                                 {
@@ -400,7 +400,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
 
     [Pure]
-    private static bool MatchesRoute(OsmRelation osmRoute, PublicTransportRoute route)
+    private static bool MatchesRoute(OsmRelation osmRoute, GTFSRoute route)
     {
         // OSM
         // from	Preču 2
@@ -466,7 +466,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     }
 
     [Pure]
-    private static StopNameMatching DoStopsMatch(OsmNode osmStop, PublicTransportStop ptStop)
+    private static StopNameMatching DoStopsMatch(OsmNode osmStop, GTFSStop ptStop)
     {
         string? stopName = osmStop.GetValue("name");
 

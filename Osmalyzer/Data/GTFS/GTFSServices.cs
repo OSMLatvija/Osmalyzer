@@ -4,17 +4,17 @@ using System.Linq;
 
 namespace Osmalyzer;
 
-public class PublicTransportServices
+public class GTFSServices
 {
-    public IEnumerable<PublicTransportService> Services => _services.Values.AsEnumerable();
+    public IEnumerable<GTFSService> Services => _services.Values.AsEnumerable();
 
         
-    private readonly Dictionary<string, PublicTransportService> _services;
+    private readonly Dictionary<string, GTFSService> _services;
 
         
-    public PublicTransportServices(string dataFileName)
+    public GTFSServices(string dataFileName)
     {
-        _services = new Dictionary<string, PublicTransportService>();
+        _services = new Dictionary<string, GTFSService>();
 
         string[] lines = File.ReadAllLines(dataFileName);
 
@@ -42,16 +42,16 @@ public class PublicTransportServices
 
             string serviceId = segments[0];
 
-            PublicTransportService service = new PublicTransportService(serviceId);
+            GTFSService service = new GTFSService(serviceId);
             _services.TryAdd(service.Id, service);
         }
     }
 
         
     [Pure]
-    public PublicTransportService? GetService(string id)
+    public GTFSService? GetService(string id)
     {
-        if (_services.TryGetValue(id, out PublicTransportService? s))
+        if (_services.TryGetValue(id, out GTFSService? s))
             return s;
             
         return null;

@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Osmalyzer;
 
+/// <summary>
+/// "Trips for each route. A trip is a sequence of two or more stops that occur during a specific time period."
+/// </summary>
 public class GTFSTrips
 {
     public IEnumerable<GTFSTrip> Trips => _trips.Values.AsEnumerable();

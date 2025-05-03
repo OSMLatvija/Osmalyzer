@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Osmalyzer;
 
+/// <summary>
+/// "Times that a vehicle arrives at and departs from stops for each trip."
+/// </summary>
 public class GTFSPoints
 {
     public IEnumerable<GTFSPoint> Points => _points.AsReadOnly();

@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Osmalyzer;
 
+/// <summary>
+/// "Stops where vehicles pick up or drop off riders. Also defines stations and station entrances."
+/// </summary>
 public class GTFSStops
 {
     public IEnumerable<GTFSStop> Stops => _stops.Values.AsEnumerable();

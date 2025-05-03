@@ -6,6 +6,7 @@ namespace Osmalyzer;
 ///
 /// Example RS Data https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam
 /// GTFS format Spec https://developers.google.com/transit/gtfs/reference/
+/// Tech docs https://gtfs.org/documentation/schedule/reference/
 /// </summary>
 public class GTFSNetwork
 {

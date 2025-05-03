@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace Osmalyzer;
 
+/// <summary>
+/// "Transit routes. A route is a group of trips that are displayed to riders as a single service."
+/// </summary>
 public class GTFSRoutes
 {
     public IEnumerable<GTFSRoute> Routes => _routes.Values.AsEnumerable();

@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Osmalyzer;
 
+/// <summary>
+/// "Service dates specified using a weekly schedule with start and end dates."
+/// </summary>
 public class GTFSServices
 {
     public IEnumerable<GTFSService> Services => _services.Values.AsEnumerable();

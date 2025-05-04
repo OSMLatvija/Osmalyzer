@@ -3,7 +3,12 @@
 public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     where T : GTFSAnalysisData, new()
 {
-    public override string Description => "This checks the public transport route issues for " + Name;
+    public override string Description => 
+        "This checks public transport routes for " + Name + " operator. " +
+        "Each operator's route is matched against OSM routes based on the expected stops. " +
+        "Note that this might result in poor and incorrect matches if OSM doesn't have a matching route mapped " +
+        "or some other route matches it instead (because of similar stops). " +
+        "Each route is shown in its own section so it can be compared with the matched OSM route, if any.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
     
@@ -613,6 +618,10 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             // Stops never really differ by capitalization, so just lower them and avoid weird capitalization in addition to everything else
             // Rezekne "18.Novembra iela" vs OSM "18. novembra iela"
             name = name.ToLower();
+
+            // Remove errornous spaces
+            // e.g. ATD "DS  Salūts"
+            name = Regex.Replace(name, @"\s{2,}", @" ");
             
             // Trim parenthesis from OSM
             // Jurmalas OSM stops have a lot of parenthesis, like JS "Majoru stacija" vs OSM "Majoru stacija (Majori)"

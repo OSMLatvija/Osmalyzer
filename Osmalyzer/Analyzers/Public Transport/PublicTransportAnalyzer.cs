@@ -100,7 +100,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 skippedVariants.Add(variant);
                 continue;
             }
-
+            
             string header = variant.Route.CleanType + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name;
             // e.g. "Bus #2: Mangaļsala => Abrenes iela"
 
@@ -403,7 +403,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 {
                     RoutePair? previousOsmRouteMatch = foundRoutePairs.Find(rp => rp.OsmRoute == bestMatch);
 
-                    if (previousOsmRouteMatch != null)
+                    if (previousOsmRouteMatch != null && previousOsmRouteMatch.Score < bestScore)
                     {
                         // The OSM route we chose is a better match for us than it was to the variant that matched it before,
                         // so we want to "take over" the match and ask the previous variant to find a new match
@@ -431,9 +431,11 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         List<OsmElement> osmRouteStops = ExtractOsmRouteStops(osmRoute);
         List<string?> osmRouteStopNames = ExtractOsmRouteStopNames(osmRouteStops);
 
-        (float score, List<StopPair> stopPairs) quick = Score(false);
+        const float goodMatchScoreThreshold = 0.2f;
 
-        if (quick.score < 0.2f) // poor match, don't other with better matching
+        (float score, List<StopPair> stopPairs) quick = Score(false);
+        
+        if (quick.score < goodMatchScoreThreshold) // poor match, don't other with better matching
             return quick;
         
         return Score(true);
@@ -445,7 +447,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             // We just want to "find the route on OSM"
 
             // This is how many stops we have
-            int matchCount = Math.Max(variant.StopCount, osmRouteStopNames.Count);
+            int matchCount = Math.Max(variant.StopCount, osmRouteStops.Count);
 
             float matchedStopScore = 0;
 
@@ -453,10 +455,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             
             for (int i = 0; i < variant.Stops.Count; i++)
             {
-                int matchIndex =
-                    expensive ?
-                        osmRouteStopNames.FindIndex(sn => sn != null && IsStopNameMatchGoodEnough(variant.Stops[i].Name, sn)) :
-                        osmRouteStopNames.FindIndex(sn => sn != null && sn == variant.Stops[i].Name);
+                int matchIndex = FindBestStopMatch(variant.Stops[i]);
 
                 if (matchIndex != -1)
                 {
@@ -469,11 +468,48 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
                     matchedStopScore += stopScore / matchCount;
                     
+                    if (!expensive)
+                        if (matchedStopScore >= goodMatchScoreThreshold)
+                            return (matchedStopScore, null!); // we already have a good match, so we can retry with full expensive logic
+                    
                     stopPairs.Add(new StopPair(variant.Stops[i], osmRouteStops[matchIndex]));
                 }
             }
 
             return (matchedStopScore, stopPairs);
+
+            
+            [Pure]
+            int FindBestStopMatch(GTFSStop routeStop)
+            {
+                if (!expensive)
+                    return osmRouteStopNames.FindIndex(sn => sn != null && sn == routeStop.Name);
+
+                int? bestMatchIndex = null;
+                double bestDistance = 0f;
+
+                for (int i = 0; i < osmRouteStopNames.Count; i++)
+                {
+                    if (osmRouteStopNames[i] != null)
+                    {
+                        if (IsStopNameMatchGoodEnough(routeStop.Name, osmRouteStopNames[i]!))
+                        {
+                            double distance = OsmGeoTools.DistanceBetween(
+                                routeStop.Coord,
+                                osmRouteStops[i].GetAverageCoord()
+                            );
+
+                            if (bestMatchIndex == null || distance < bestDistance)
+                            {
+                                bestMatchIndex = i;
+                                bestDistance = distance;
+                            }
+                        }
+                    }
+                }
+
+                return bestMatchIndex ?? -1;
+            }
         }
     }
 
@@ -681,7 +717,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     [Pure]
     private static bool IsStopNameMatchGoodEnough(string ptStopName, string osmStopName)
     {
-        // Stops never differ by capitalization, so just lower them and avoid weird capitalization in additon to everything else
+        // Stops never differ by capitalization, so just lower them and avoid weird capitalization in addition to everything else
         // Rezekne "18.Novembra iela" vs OSM "18. novembra iela"
         ptStopName = ptStopName.ToLower();
         osmStopName = osmStopName.ToLower();

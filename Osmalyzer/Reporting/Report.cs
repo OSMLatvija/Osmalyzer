@@ -27,9 +27,9 @@ public class Report
     }
 
 
-    public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null, bool showImportantEntryCount = true)
+    public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null, bool showImportantEntryCount = true, bool shouldClusterMapPointEntries = true)
     {
-        ReportGroup newGroup = new ReportGroup(id, title, showImportantEntryCount);
+        ReportGroup newGroup = new ReportGroup(id, title, showImportantEntryCount, shouldClusterMapPointEntries);
             
         _groups.Add(newGroup);
             

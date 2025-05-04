@@ -64,7 +64,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
         {
-            foreach (RouteVariant variant in ExtractVariants(gtfsRoute).OrderByDescending(mt => mt.TripCount))
+            foreach (RouteVariant variant in ExtractVariantsFromRoute(gtfsRoute).OrderByDescending(mt => mt.TripCount))
             {
                 if (variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
                 {
@@ -76,10 +76,34 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name;
                 // e.g. "Bus #2: Mangaļsala => Abrenes iela"
 
-                report.AddGroup(variant, header);
+                report.AddGroup(
+                    variant, 
+                    header, 
+                    null, 
+                    null, 
+                    false,
+                    false // don't cluster stops, we want "discrete" preview
+                );
 
                 
-                report.AddEntry(variant, new GenericReportEntry("This route has " + variant.TripCount + " trips with the unqiue sequence/pattern of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name))));
+                report.AddEntry(
+                    variant, 
+                    new GenericReportEntry("This route has " + variant.TripCount + " trips with the unqiue sequence/pattern of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name)))
+                );
+
+                for (int i = 0; i < variant.StopCount; i++)
+                {
+                    GTFSStop gtfsStop = variant.Stops[i];
+
+                    report.AddEntry(
+                        variant,
+                        new MapPointReportEntry(
+                            gtfsStop.Coord,
+                            gtfsStop.Name + " [" + gtfsStop.Id + "] (" + (i + 1) + "/" + variant.StopCount + ")",
+                            MapPointStyle.BusStopOriginal
+                        )
+                    );
+                }
             }
         }
 
@@ -97,7 +121,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     }
 
     [Pure]
-    private static IEnumerable<RouteVariant> ExtractVariants(GTFSRoute route)
+    private static IEnumerable<RouteVariant> ExtractVariantsFromRoute(GTFSRoute route)
     {
         List<RouteVariant> variants = [ ];
 
@@ -118,9 +142,9 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     {
         public GTFSRoute Route { get; }
         
-        public IEnumerable<GTFSTrip> Trips => _trips;
+        public IList<GTFSTrip> Trips => _trips;
 
-        public IEnumerable<GTFSStop> Stops => _stops;
+        public IList<GTFSStop> Stops => _stops;
 
         public GTFSStop FirstStop => _stops[0];
         

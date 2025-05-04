@@ -14,6 +14,8 @@ public class ReportGroup
     
     public bool ShowImportantEntryCount { get; }
 
+    public bool ShouldClusterMapPointEntries { get; }
+
 
     public DescriptionReportEntry? DescriptionEntry { get; private set; }
 
@@ -48,19 +50,20 @@ public class ReportGroup
     public bool NeedMap => _mapPointEntries.Count > 0;
 
 
-    private readonly List<GenericReportEntry> _genericEntries = new List<GenericReportEntry>();
+    private readonly List<GenericReportEntry> _genericEntries = [ ];
             
-    private readonly List<IssueReportEntry> _issuesEntries = new List<IssueReportEntry>();
+    private readonly List<IssueReportEntry> _issuesEntries = [ ];
     // todo: should I merge issue with generic? add some sort of "issue rating"?
             
-    private readonly List<MapPointReportEntry> _mapPointEntries = new List<MapPointReportEntry>();
+    private readonly List<MapPointReportEntry> _mapPointEntries = [ ];
 
 
-    public ReportGroup(object id, string title, bool showImportantEntryCount)
+    public ReportGroup(object id, string title, bool showImportantEntryCount, bool shouldClusterMapPointEntries)
     {
         ID = id;
         Title = title;
         ShowImportantEntryCount = showImportantEntryCount;
+        ShouldClusterMapPointEntries = shouldClusterMapPointEntries;
     }
 
             

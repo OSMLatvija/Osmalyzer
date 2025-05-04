@@ -37,7 +37,7 @@ public static class EmbeddedIcons
             LeafletIcon.IconGroup.Main, 
             ColorGroup.Red,
             MapPointStyle.Okay,
-             MapPointStyle.CorrelatorOsmUnmatched
+            MapPointStyle.CorrelatorOsmUnmatched
         ),
         
         new LeafletIcon(
@@ -56,6 +56,23 @@ public static class EmbeddedIcons
             ColorGroup.Other, // we don't expect it clustered in Sub group
             MapPointStyle.CorrelatorPairMatchedOffsetOrigin, MapPointStyle.CorrelatorPairMatchedFarOrigin
         ),
+        
+        new LeafletIcon(
+            "blueBus.png", 
+            16, 
+            LeafletIcon.IconGroup.Main, 
+            ColorGroup.Other, // we don't expect it to be clustered
+            MapPointStyle.BusStopOriginal
+        ),
+        
+        new LeafletIcon(
+            "greenBus.png", 
+            16, 
+            LeafletIcon.IconGroup.Main, 
+            ColorGroup.Other, // we don't expect it to be clustered
+            MapPointStyle.BusStopMatched
+        ),
+        
         
         new LeafletClusterIcon(
             "grayCircle.png",

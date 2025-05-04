@@ -111,7 +111,7 @@ public class HtmlFileReportWriter : ReportWriter
                     str.AppendLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
 
             if (group.MapPointEntries.Count > 0)
-                str.AppendLine(MakeMapContent(group.MapPointEntries, g));
+                str.AppendLine(MakeMapContent(group.MapPointEntries, g, group.ShouldClusterMapPointEntries));
 
             if (group.IssueEntryCount > 0)
             {
@@ -143,11 +143,9 @@ public class HtmlFileReportWriter : ReportWriter
 
         
         [Pure]
-        string MakeMapContent(IList<MapPointReportEntry> entries, int index)
+        string MakeMapContent(IList<MapPointReportEntry> entries, int index, bool clustered)
         {
             string mapContent = GetMapTemplate();
-
-            bool clustered = true; // entries.Count > 100; // todo: per-report? - it works really well, so not sure when not to use
 
             if (clustered)
             {

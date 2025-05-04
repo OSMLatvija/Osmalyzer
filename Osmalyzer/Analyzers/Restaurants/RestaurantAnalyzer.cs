@@ -37,7 +37,7 @@ public abstract class RestaurantAnalyzer<TRestaurant, TOsm> : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract osmRestaurants = osmMasterData.Filter(
-            new HasAnyValue("amenity", "fast_food")
+            new HasAnyValue("amenity", "fast_food", "cafe")
         );
 
         OsmDataExtract brandRestaurants = osmRestaurants.Filter(

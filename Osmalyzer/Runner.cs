@@ -75,6 +75,8 @@ public static class Runner
             // new LoneCrossingAnalyzer(),
             // new InfoboardAnalyzer(),
             // new LuluRestaurantAnalyzer(),
+            // new CaffeineRestaurantAnalyzer()
+            // new HesburgerRestaurantAnalyzer()
         ];
 #endif
 

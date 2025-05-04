@@ -431,85 +431,65 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         List<OsmElement> osmRouteStops = ExtractOsmRouteStops(osmRoute);
         List<string?> osmRouteStopNames = ExtractOsmRouteStopNames(osmRouteStops);
 
-        const float goodMatchScoreThreshold = 0.2f;
+        // Note that this is deliberately naive matching, only names and not actually matching OSM stop positions
+        // We just want to "find the route on OSM"
 
-        (float score, List<StopPair> stopPairs) quick = Score(false);
-        
-        if (quick.score < goodMatchScoreThreshold) // poor match, don't other with better matching
-            return quick;
-        
-        return Score(true);
+        // This is how many stops we have
+        int matchCount = Math.Max(variant.StopCount, osmRouteStops.Count);
 
+        float matchedStopScore = 0;
 
-        (float score, List<StopPair> stopPairs) Score(bool expensive)
+        List<StopPair> stopPairs = [ ];
+            
+        for (int i = 0; i < variant.Stops.Count; i++)
         {
-            // Note that this is deliberately naive matching, only names and not actually matching OSM stop positions
-            // We just want to "find the route on OSM"
+            int matchIndex = FindBestStopMatch(variant.Stops[i]);
 
-            // This is how many stops we have
-            int matchCount = Math.Max(variant.StopCount, osmRouteStops.Count);
-
-            float matchedStopScore = 0;
-
-            List<StopPair> stopPairs = [ ];
-            
-            for (int i = 0; i < variant.Stops.Count; i++)
+            if (matchIndex != -1)
             {
-                int matchIndex = FindBestStopMatch(variant.Stops[i]);
+                // Stop score is based on how proportionally close it is to its "true position" in the data route
+                // (otherwise we would match reversed or routes with extra/missing stops the same)
+                float stopScore = 1f - Math.Abs(i - matchIndex) / (float)variant.StopCount;
 
-                if (matchIndex != -1)
-                {
-                    // Stop score is based on how proportionally close it is to its "true position" in the data route
-                    // (otherwise we would match reversed or routes with extra/missing stops the same)
-                    float stopScore = 1f - Math.Abs(i - matchIndex) / (float)variant.StopCount;
+                if (stopScore < 0f)
+                    stopScore = 0f;
 
-                    if (stopScore < 0f)
-                        stopScore = 0f;
-
-                    matchedStopScore += stopScore / matchCount;
+                matchedStopScore += stopScore / matchCount;
                     
-                    if (!expensive)
-                        if (matchedStopScore >= goodMatchScoreThreshold)
-                            return (matchedStopScore, null!); // we already have a good match, so we can retry with full expensive logic
-                    
-                    stopPairs.Add(new StopPair(variant.Stops[i], osmRouteStops[matchIndex]));
-                }
+                stopPairs.Add(new StopPair(variant.Stops[i], osmRouteStops[matchIndex]));
             }
+        }
 
-            return (matchedStopScore, stopPairs);
+        return (matchedStopScore, stopPairs);
 
             
-            [Pure]
-            int FindBestStopMatch(GTFSStop routeStop)
+        [Pure]
+        int FindBestStopMatch(GTFSStop routeStop)
+        {
+            int? bestMatchIndex = null;
+            double bestDistance = 0f;
+
+            for (int i = 0; i < osmRouteStopNames.Count; i++)
             {
-                if (!expensive)
-                    return osmRouteStopNames.FindIndex(sn => sn != null && sn == routeStop.Name);
-
-                int? bestMatchIndex = null;
-                double bestDistance = 0f;
-
-                for (int i = 0; i < osmRouteStopNames.Count; i++)
+                if (osmRouteStopNames[i] != null)
                 {
-                    if (osmRouteStopNames[i] != null)
+                    if (IsStopNameMatchGoodEnough(routeStop.Name, osmRouteStopNames[i]!))
                     {
-                        if (IsStopNameMatchGoodEnough(routeStop.Name, osmRouteStopNames[i]!))
-                        {
-                            double distance = OsmGeoTools.DistanceBetween(
-                                routeStop.Coord,
-                                osmRouteStops[i].GetAverageCoord()
-                            );
+                        double distance = OsmGeoTools.DistanceBetween(
+                            routeStop.Coord,
+                            osmRouteStops[i].GetAverageCoord()
+                        );
 
-                            if (bestMatchIndex == null || distance < bestDistance)
-                            {
-                                bestMatchIndex = i;
-                                bestDistance = distance;
-                            }
+                        if (bestMatchIndex == null || distance < bestDistance)
+                        {
+                            bestMatchIndex = i;
+                            bestDistance = distance;
                         }
                     }
                 }
-
-                return bestMatchIndex ?? -1;
             }
+
+            return bestMatchIndex ?? -1;
         }
     }
 

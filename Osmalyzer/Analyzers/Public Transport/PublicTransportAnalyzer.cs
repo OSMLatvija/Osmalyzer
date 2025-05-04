@@ -52,13 +52,15 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         OsmDataExtract osmStops = osmDataExtracts[0];
         OsmDataExtract osmRoutes = osmDataExtracts[1];
 
-        // Parse routes
+        // Parse routes into variants
 
-        // GTFS groups by route and service
-        // Websites (like RS) group by stop pattern/variant
-        // We want to group by such variant to match how users and OSM would expect them
-        
-        List<RouteVariant> skippedVariants = new List<RouteVariant>();
+        // GTFS is grouped by route and service, but these don't actually represent a "route" the way a user might expect.
+        // Websites (like RS) group by stop pattern/variant, which are matching trips in GTFS.
+        // So we want to group by such "variants" to match how users and OSM would expect them.
+
+        List<RouteVariant> routeVariants = [ ];
+
+        List<RouteVariant> skippedVariants = [ ];
 
         const int minTripCountToInclude = 5;
 
@@ -68,45 +70,63 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             {
                 if (variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
                 {
+                    // todo: skip only if not found in OSM?
+                    
                     // Not enough to report as a "full" route, presumably first/final depo routes 
                     skippedVariants.Add(variant);
                     continue;
                 }
-                
-                string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name;
-                // e.g. "Bus #2: Mangaļsala => Abrenes iela"
 
-                report.AddGroup(
-                    variant, 
-                    header, 
-                    null, 
-                    null, 
-                    false,
-                    false // don't cluster stops, we want "discrete" preview
-                );
+                routeVariants.Add(variant);
+            }
+        }
+        
+        // Show results for each route variant
 
-                
+        foreach (RouteVariant variant in routeVariants)
+        {
+            if (variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
+            {
+                // Not enough to report as a "full" route, presumably first/final depo routes 
+                skippedVariants.Add(variant);
+                continue;
+            }
+
+            string header = variant.Route.CleanType + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name;
+            // e.g. "Bus #2: Mangaļsala => Abrenes iela"
+
+            report.AddGroup(
+                variant,
+                header,
+                null,
+                null,
+                false,
+                false // don't cluster stops, we want "discrete" preview
+            );
+
+
+            report.AddEntry(
+                variant,
+                new GenericReportEntry("This route has " + variant.TripCount + " trips with the unqiue sequence/pattern of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name)))
+            );
+
+            for (int i = 0; i < variant.StopCount; i++)
+            {
+                GTFSStop gtfsStop = variant.Stops[i];
+
                 report.AddEntry(
-                    variant, 
-                    new GenericReportEntry("This route has " + variant.TripCount + " trips with the unqiue sequence/pattern of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name)))
+                    variant,
+                    new MapPointReportEntry(
+                        gtfsStop.Coord,
+                        gtfsStop.Name + " [" + gtfsStop.Id + "] (" + (i + 1) + "/" + variant.StopCount + ")",
+                        MapPointStyle.BusStopOriginal
+                    )
                 );
-
-                for (int i = 0; i < variant.StopCount; i++)
-                {
-                    GTFSStop gtfsStop = variant.Stops[i];
-
-                    report.AddEntry(
-                        variant,
-                        new MapPointReportEntry(
-                            gtfsStop.Coord,
-                            gtfsStop.Name + " [" + gtfsStop.Id + "] (" + (i + 1) + "/" + variant.StopCount + ")",
-                            MapPointStyle.BusStopOriginal
-                        )
-                    );
-                }
             }
         }
 
+        // List skipped variants
+        
         if (skippedVariants.Count > 0)
         {
             report.AddGroup(GroupDesignation.SkippedVariants, "Skipped route variants");

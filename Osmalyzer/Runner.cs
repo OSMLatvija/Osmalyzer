@@ -84,6 +84,7 @@ public static class Runner
             // new InfoboardAnalyzer(),
             // new LuluRestaurantAnalyzer(),
             new CaffeineRestaurantAnalyzer()
+            new HesburgerRestaurantAnalyzer()
         };
 #endif
 

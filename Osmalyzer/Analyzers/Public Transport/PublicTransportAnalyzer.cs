@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using System.Diagnostics;
+
+namespace Osmalyzer;
 
 public abstract class PublicTransportAnalyzer<T> : Analyzer
     where T : GTFSAnalysisData, new()
@@ -354,39 +356,73 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     [Pure]
     private static List<RoutePair> MatchOsmRoutesToRouteVariants(OsmDataExtract osmRoutes, List<RouteVariant> routeVariants)
     {
-        List<RoutePair> routePairs = [ ];
+        List<RouteVariant> remainingVariants = routeVariants.ToList();
 
-        foreach (OsmRelation osmRoute in osmRoutes.Relations)
+        List<RoutePair> foundRoutePairs = [ ];
+
+        while (remainingVariants.Count > 0)
         {
-            RouteVariant? bestMatch = null;
-            float bestScore = 0f; 
-            List<StopPair> bestMatchStopPairs = [ ];
-            
-            foreach (RouteVariant variant in routeVariants)
+            for (int i = 0; i < remainingVariants.Count; i++)
             {
-                //if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 50000) // 50 km (althogh for AD this may still not be enough)
-                //    continue; // too far away, skip
+                RouteVariant variant = remainingVariants[i];
 
-                (float score, List<StopPair> stopPairs) = GetOsmRouteAndRouteMatchScore(osmRoute, variant); // 0..1
+                OsmRelation? bestMatch = null;
+                float bestScore = 0f;
+                List<StopPair> bestMatchStopPairs = [ ];
 
-                if (score > 0.1f) // skip routes that have very little in common
+                foreach (OsmRelation osmRoute in osmRoutes.Relations)
                 {
-                    if (bestMatch == null || score > bestScore)
+                    if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 50000) // 50 km (although for ATD this may still not be enough)
+                        continue; // too far away, skip
+
+                    (float score, List<StopPair> stopPairs) = GetOsmRouteAndRouteMatchScore(osmRoute, variant);
+
+                    if (score > 0.1f)
                     {
-                        bestMatch = variant;
-                        bestScore = score;
-                        bestMatchStopPairs = stopPairs;
+                        if (bestMatch == null || score > bestScore)
+                        {
+                            // Check if we have already previously matched this OSM route to another variant
+                            // and don't try to match if unless we are actually better than the previous match
+                            RoutePair? previousOsmRouteMatch = foundRoutePairs.Find(rp => rp.OsmRoute == osmRoute);
+                            if (previousOsmRouteMatch != null)
+                                if (previousOsmRouteMatch.Score > score)
+                                    continue; // this osm route was previously better matched to another variant, so we can never "take it over"
+                            
+                            bestMatch = osmRoute;
+                            bestScore = score;
+                            bestMatchStopPairs = stopPairs;
+                        }
                     }
                 }
-            }
 
-            if (bestMatch != null)
-            {
-                routePairs.Add(new RoutePair(osmRoute, bestMatch, bestMatchStopPairs, bestScore));
+                // Whether we matched or not, we are done for now
+                remainingVariants.RemoveAt(i);
+                i--;
+
+                if (bestMatch != null)
+                {
+                    RoutePair? previousOsmRouteMatch = foundRoutePairs.Find(rp => rp.OsmRoute == bestMatch);
+
+                    if (previousOsmRouteMatch != null)
+                    {
+                        // The OSM route we chose is a better match for us than it was to the variant that matched it before,
+                        // so we want to "take over" the match and ask the previous variant to find a new match
+                                    
+                        // Remove the old match - we will add our own instead
+                        foundRoutePairs.Remove(previousOsmRouteMatch);
+                        
+                        // Readd the previous variant to the pending list so it's rematched
+                        remainingVariants.Add(previousOsmRouteMatch.RouteVariant);
+                    }
+                    
+                    // Add our match as a pair
+                    foundRoutePairs.Add(new RoutePair(bestMatch, variant, bestMatchStopPairs, bestScore));
+                    // For now, this is the best match for this OSM route, but another variant may determined to be better later (in which case we'll try for another route) 
+                }
             }
         }
-        
-        return routePairs;
+
+        return foundRoutePairs;
     }
 
     [Pure]

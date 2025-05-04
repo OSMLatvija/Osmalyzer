@@ -7,4 +7,10 @@ public class JelgavasAutobusuParksAnalyzer : PublicTransportAnalyzer<JelgavasAut
 
         
     protected override string Label => "JAP";
+    
+    
+    protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
+    {
+        // We don't have any known global issues
+    }
 }

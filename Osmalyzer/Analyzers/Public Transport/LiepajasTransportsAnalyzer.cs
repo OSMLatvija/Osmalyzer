@@ -7,4 +7,10 @@ public class LiepajasTransportsAnalyzer : PublicTransportAnalyzer<LiepajasTransp
 
 
     protected override string Label => "LST";
+    
+    
+    protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
+    {
+        // We don't have any known global issues
+    }
 }

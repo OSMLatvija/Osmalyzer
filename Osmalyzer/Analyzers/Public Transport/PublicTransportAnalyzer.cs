@@ -84,7 +84,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         
         // Clean up GTFS data
 
-        gtfsNetwork.CleanStopNames(CleanRouteStopName);
+        CleanUpGtfsData(gtfsNetwork);
         
         // Match OSM routes to data routes
 
@@ -257,6 +257,9 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     }
 
     
+    protected abstract void CleanUpGtfsData(GTFSNetwork gtfsNetwork);
+
+
     [Pure]
     private static (RoutePair? routePair, List<StopMatch> stopMatches) GetStopMatches(List<RoutePair> routePairs, RouteVariant variant)
     {
@@ -682,17 +685,6 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     //     return StopNameMatching.Mismatch;
     // }
     //
-
-    [Pure]
-    private static string CleanRouteStopName(string ptStopName)
-    {
-        // Rezeknes almost all stops have "uc" and "nc" like suffixes like "Brīvības iela nc" and "Brīvības iela uc" - probably route direction "no centra"/"uz centru"?
-        ptStopName = Regex.Replace(ptStopName, @" (uc|nc|mv)$", @"");
-
-        // todo: move more here from IsStopNameMatchGoodEnough
-        
-        return ptStopName;
-    }
 
     [Pure]
     private static bool IsStopNameMatchGoodEnough(string ptStopName, string osmStopName)

@@ -7,4 +7,10 @@ public class AutotransportaDirekcijaAnalyzer : PublicTransportAnalyzer<Autotrans
 
         
     protected override string Label => "ATD";
+    
+    
+    protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
+    {
+        // We don't have any known global issues
+    }
 }

@@ -7,4 +7,10 @@ public class JurmalasSatiksmeAnalyzer : PublicTransportAnalyzer<JurmalasSatiksme
 
         
     protected override string Label => "JS";
+    
+    
+    protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
+    {
+        // We don't have any known global issues
+    }
 }

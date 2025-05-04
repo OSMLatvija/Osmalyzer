@@ -8,6 +8,8 @@ public abstract class GTFSAnalysisData : AnalysisData, IDatedAnalysisData
 
     public override bool NeedsPreparation => true;
 
+    public GTFSNetwork Network { get; set; } = null!; // only null until prepared
+
         
     protected abstract string DataURL { get; }
 
@@ -35,5 +37,7 @@ public abstract class GTFSAnalysisData : AnalysisData, IDatedAnalysisData
             DataFileName,
             ExtractionFolder
         );
+        
+        Network = new GTFSNetwork(Path.GetFullPath(ExtractionFolder));
     }
 }

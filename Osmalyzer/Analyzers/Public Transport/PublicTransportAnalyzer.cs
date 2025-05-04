@@ -20,7 +20,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
         GTFSAnalysisData gtfsData = datas.OfType<T>().First();
 
-        GTFSNetwork gtfsNetwork = new GTFSNetwork(Path.GetFullPath(gtfsData.ExtractionFolder));
+        GTFSNetwork gtfsNetwork = gtfsData.Network;
             
         // Load OSM data
 

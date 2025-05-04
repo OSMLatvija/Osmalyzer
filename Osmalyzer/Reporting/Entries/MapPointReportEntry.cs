@@ -59,6 +59,7 @@ public enum MapPointStyle
     CorrelatorLoneOsmMatched,
     CorrelatorLoneOsmUnmatched,
     
-    BusStopOriginal,
-    BusStopMatched
+    BusStopMatchedWell,
+    BusStopOriginalUnmatched,
+    BusStopOsmUnmatched
 }

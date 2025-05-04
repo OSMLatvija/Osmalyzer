@@ -108,31 +108,15 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 false // don't cluster stops, we want "discrete" preview
             );
 
-            // Route map
+            (RoutePair? routePair, List<StopMatch> stopMatches) = GetStopMatches(routePairs, variant);
+
+            // Route and match generic info
 
             report.AddEntry(
                 variant,
-                new GenericReportEntry("This route has " + variant.TripCount + " trips with the unqiue sequence/pattern of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name)))
+                new GenericReportEntry("This route has " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => "`" + s.Name + "`")))
             );
-
-            for (int i = 0; i < variant.StopCount; i++)
-            {
-                GTFSStop gtfsStop = variant.Stops[i];
-
-                report.AddEntry(
-                    variant,
-                    new MapPointReportEntry(
-                        gtfsStop.Coord,
-                        gtfsStop.Name + " [" + gtfsStop.Id + "] (" + (i + 1) + "/" + variant.StopCount + ")",
-                        MapPointStyle.BusStopOriginal
-                    )
-                );
-            }
             
-            // OSM route match
-
-            RoutePair? routePair = routePairs.Find(rp => rp.RouteVariant == variant);
-
             if (routePair != null)
             {
                 string? osmRouteName = routePair.OsmRoute.GetValue("name");
@@ -142,34 +126,17 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                     new GenericReportEntry(
                         "This route matches OSM route " + 
                         (osmRouteName != null ? "`" + osmRouteName + "`" : "") + 
-                        " with a " + (routePair.Score * 100).ToString("F0") + "% match - " +
-                        routePair.OsmRoute.OsmViewUrl
+                        " with a " + (routePair.Score * 100).ToString("F0") + "% match (matched " + routePair.Stops.Count + "/" + variant.StopCount + " stops) - " + routePair.OsmRoute.OsmViewUrl
                     )
                 );
-
-                foreach (OsmRelationMember routeMember in routePair.OsmRoute.Members)
-                {
-                    if (routeMember.Element == null)
-                        continue;
-                    
-                    if (routeMember.Role is not ("platform" or "platform_entry_only" or "platform_exit_only"))
-                        continue;
-                    
-                    string? osmStopName = routeMember.Element!.GetValue("name");
-                    string? osmStopRef = routeMember.Element.GetValue("ref");
-                    
-                    report.AddEntry(
-                        variant,
-                        new MapPointReportEntry(
-                            routeMember.Element!.GetAverageCoord(),
-                            routeMember.Element.GetValue("name") +
-                            (osmStopName != null ? " `" + osmStopName + "`" : "Unnamed") +
-                            (osmStopRef != null ? " [`" + routeMember.Element.Id + "`]" : ""),
-                            routeMember.Element,
-                            MapPointStyle.BusStopMatched
-                        )
-                    );
-                }
+                
+                report.AddEntry(
+                    variant,
+                    new GenericReportEntry(
+                        "OSM route has these stops: " + 
+                        string.Join(", ", ExtractOsmRouteStops(routePair.OsmRoute).Select(OsmStopMapPointLabel))
+                    )
+                );
             }
             else
             {
@@ -177,6 +144,95 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                     variant,
                     new IssueReportEntry("No matching OSM route found that uses similar stops as the route in the data.")
                 );
+            }
+
+            // Stop map and matching
+
+            foreach (StopMatch stopMatch in stopMatches)
+            {
+                switch (stopMatch)
+                {
+                    case FullStopMatch fullStopMatch:
+                        report.AddEntry(
+                            variant,
+                            new MapPointReportEntry(
+                                fullStopMatch.OsmStop.GetAverageCoord(),
+                                "Route stop and OSM stop match: " +
+                                " Route stop " + 
+                                RouteStopMapPointLabel(fullStopMatch.RouteStop) +
+                                " matching OSM stop " +
+                                OsmStopMapPointLabel(fullStopMatch.OsmStop) + " - " + fullStopMatch.OsmStop.OsmViewUrl,
+                                fullStopMatch.OsmStop,
+                                MapPointStyle.BusStopMatchedWell
+                            )
+                        );
+                        // todo: original location
+                        // todo: distant matches
+                        break;
+
+                    case OsmOnlyStopMatch osmOnlyStopMatch:
+                        report.AddEntry(
+                            variant,
+                            new MapPointReportEntry(
+                                osmOnlyStopMatch.OsmStop.GetAverageCoord(),
+                                "OSM stop not in route: " +
+                                OsmStopMapPointLabel(osmOnlyStopMatch.OsmStop) + " - " + osmOnlyStopMatch.OsmStop.OsmViewUrl,
+                                osmOnlyStopMatch.OsmStop,
+                                MapPointStyle.BusStopOsmUnmatched
+                            )
+                        );
+                        break;
+
+                    case RouteOnlyStopMatch routeOnlyStopMatch:
+                        report.AddEntry(
+                            variant,
+                            new MapPointReportEntry(
+                                routeOnlyStopMatch.RouteStop.Coord,
+                                (routePair != null ? "Route stop not in OSM: " : "Route stop: ") +
+                                RouteStopMapPointLabel(routeOnlyStopMatch.RouteStop),
+                                MapPointStyle.BusStopOriginalUnmatched
+                            )
+                        );
+                        // todo: likely matches we can use
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(stopMatch));
+                }
+            }
+            
+            // Stop order
+            
+            // TODO: ...
+            
+            // OSM route way geometry validation 
+            
+            // TODO: gaps/unconnected
+            // TODO: stop reaching
+            // TODO: stop order matches way order -- might be too complicated
+            
+            // Generic matches
+            
+            // todo: names
+            // todo: to / via / from
+            // todo: stop tranport mode match
+                
+
+            [Pure]
+            static string RouteStopMapPointLabel(GTFSStop routeStop)
+            {
+                return "`" + routeStop.Name + "` [`" + routeStop.Id + "`]";
+            }
+                
+            [Pure]
+            static string OsmStopMapPointLabel(OsmElement osmStop)
+            {
+                string? osmStopName = osmStop.GetValue("name");
+                string? osmStopRef = osmStop.GetValue("ref");
+
+                return
+                    (osmStopName != null ? " `" + osmStopName + "`" : "Unnamed") +
+                    (osmStopRef != null ? " [`" + osmStopRef + "`]" : "");
             }
         }
 
@@ -194,6 +250,42 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             }
         }
     }
+
+    
+    [Pure]
+    private static (RoutePair? routePair, List<StopMatch> stopMatches) GetStopMatches(List<RoutePair> routePairs, RouteVariant variant)
+    {
+        RoutePair? routePair = routePairs.Find(rp => rp.RouteVariant == variant);
+
+        if (routePair == null) // osm route not matched, so all stops are data route only
+            return (null, variant.Stops.Select(s => new RouteOnlyStopMatch(s)).ToList<StopMatch>());
+
+        List<StopMatch> stopMatches = [ ];
+            
+        foreach (StopPair stopPair in routePair.Stops)
+            stopMatches.Add(new FullStopMatch(stopPair.OsmStop, stopPair.RouteStop));
+            
+        foreach (GTFSStop routeStop in variant.Stops)
+            if (routePair.Stops.All(s => s.RouteStop != routeStop))
+                stopMatches.Add(new RouteOnlyStopMatch(routeStop));
+
+        foreach (OsmRelationMember routeMember in routePair.OsmRoute.Members)
+            if (routeMember.Element != null)
+                if (routeMember.Role is "platform" or "platform_entry_only" or "platform_exit_only")
+                    if (routePair.Stops.All(s => s.OsmStop != routeMember.Element))
+                        stopMatches.Add(new OsmOnlyStopMatch(routeMember.Element));
+
+        return (routePair, stopMatches);
+    }
+
+    private abstract record StopMatch;
+
+    private record FullStopMatch(OsmElement OsmStop, GTFSStop RouteStop) : StopMatch;
+    
+    private record RouteOnlyStopMatch(GTFSStop RouteStop) : StopMatch;
+    
+    private record OsmOnlyStopMatch(OsmElement OsmStop) : StopMatch;
+
 
     [Pure]
     private static IEnumerable<RouteVariant> ExtractVariantsFromRoute(GTFSRoute route)
@@ -265,13 +357,14 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         {
             RouteVariant? bestMatch = null;
             float bestScore = 0f; 
+            List<StopPair> bestMatchStopPairs = [ ];
             
             foreach (RouteVariant variant in routeVariants)
             {
                 if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 10000)
                     continue; // too far away, skip
 
-                float score = GetOsmRouteAndRouteMatchScore(osmRoute, variant); // 0..1
+                (float score, List<StopPair> stopPairs) = GetOsmRouteAndRouteMatchScore(osmRoute, variant); // 0..1
 
                 if (score > 0.1f) // skip routes that have very little in common
                 {
@@ -279,13 +372,14 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                     {
                         bestMatch = variant;
                         bestScore = score;
+                        bestMatchStopPairs = stopPairs;
                     }
                 }
             }
 
             if (bestMatch != null)
             {
-                routePairs.Add(new RoutePair(osmRoute, bestMatch, bestScore));
+                routePairs.Add(new RoutePair(osmRoute, bestMatch, bestMatchStopPairs, bestScore));
             }
         }
         
@@ -293,18 +387,20 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     }
 
     [Pure]
-    private static float GetOsmRouteAndRouteMatchScore(OsmRelation osmRoute, RouteVariant variant)
+    private static (float score, List<StopPair> stopPairs) GetOsmRouteAndRouteMatchScore(OsmRelation osmRoute, RouteVariant variant)
     {
-        List<string> osmRouteStopNames = ExtractOsmRouteStopNames(osmRoute);
+        List<OsmElement> osmRouteStops = ExtractOsmRouteStops(osmRoute);
+        List<string?> osmRouteStopNames = ExtractOsmRouteStopNames(osmRouteStops);
 
-        float score = Score(false);
+        (float score, List<StopPair> stopPairs) quick = Score(false);
+
+        if (quick.score < 0.2f) // poor match, don't other with better matching
+            return quick;
         
-        if (score > 0.2f) // good match, score more accurately
-            score = Score(true);
+        return Score(true);
 
-        return score;
 
-        float Score(bool expensive)
+        (float score, List<StopPair> stopPairs) Score(bool expensive)
         {
             // Note that this is deliberately naive matching, only names and not actually matching OSM stop positions
             // We just want to "find the route on OSM"
@@ -314,12 +410,14 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
             float matchedStopScore = 0;
 
+            List<StopPair> stopPairs = [ ];
+            
             for (int i = 0; i < variant.Stops.Count; i++)
             {
                 int matchIndex =
                     expensive ?
-                        osmRouteStopNames.FindIndex(sn => IsStopNameMatchGoodEnough(variant.Stops[i].Name, sn)) :
-                        osmRouteStopNames.FindIndex(sn => sn == variant.Stops[i].Name);
+                        osmRouteStopNames.FindIndex(sn => sn != null && IsStopNameMatchGoodEnough(variant.Stops[i].Name, sn)) :
+                        osmRouteStopNames.FindIndex(sn => sn != null && sn == variant.Stops[i].Name);
 
                 if (matchIndex != -1)
                 {
@@ -331,33 +429,55 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                         stopScore = 0f;
 
                     matchedStopScore += stopScore / matchCount;
+                    
+                    stopPairs.Add(new StopPair(variant.Stops[i], osmRouteStops[matchIndex]));
                 }
             }
 
-            return matchedStopScore;
+            return (matchedStopScore, stopPairs);
         }
     }
 
     [Pure]
-    private static List<string> ExtractOsmRouteStopNames(OsmRelation osmRoute)
+    private static List<OsmElement> ExtractOsmRouteStops(OsmRelation osmRoute)
     {
-        List<string> stopNames = [ ];
+        List<OsmElement> stops = [ ];
 
         foreach (OsmRelationMember member in osmRoute.Members)
         {
-            if (member.Role is "platform" or "platform_entry_only" or "platform_exit_only")
+            if (member.Element != null)
             {
-                string? name = member.Element?.GetValue("name");
-                
-                if (name != null)
-                    stopNames.Add(name);
+                if (member.Role is "platform" or "platform_entry_only" or "platform_exit_only")
+                {
+                    stops.Add(member.Element);
+                }
             }
+        }
+        
+        return stops;
+    }
+
+    [Pure]
+    private static List<string?> ExtractOsmRouteStopNames(List<OsmElement> osmStops)
+    {
+        List<string?> stopNames = [ ];
+
+        foreach (OsmElement osmStop in osmStops)
+        {
+            string? name = osmStop.GetValue("name");
+            
+            if (name != null)
+                stopNames.Add(name);
+            else
+                stopNames.Add(null);
         }
         
         return stopNames;
     }
 
-    private record RoutePair(OsmRelation OsmRoute, RouteVariant RouteVariant, float Score);
+    private record RoutePair(OsmRelation OsmRoute, RouteVariant RouteVariant, List<StopPair> Stops, float Score);
+    
+    private record StopPair(GTFSStop RouteStop, OsmElement OsmStop);
 
     // private (GTFSTrip service, float bestMatch) FindBestTripMatch(GTFSRoute route, List<OsmNode> stops)
     // {

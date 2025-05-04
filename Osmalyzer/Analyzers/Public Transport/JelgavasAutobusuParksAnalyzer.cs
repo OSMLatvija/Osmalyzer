@@ -11,6 +11,17 @@ public class JelgavasAutobusuParksAnalyzer : PublicTransportAnalyzer<JelgavasAut
     
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
     {
-        // We don't have any known global issues
+        gtfsNetwork.CleanStopNames(CleanRouteStopName);
+
+        [Pure]
+        static string CleanRouteStopName(string ptStopName)
+        {
+            // Jelgavas AP has depot/terminal stops with "GP" suffix like "Tušķi GP"
+            ptStopName = Regex.Replace(ptStopName, @" GP$", @"");
+
+            // todo: move more here from IsStopNameMatchGoodEnough
+        
+            return ptStopName;
+        }
     }
 }

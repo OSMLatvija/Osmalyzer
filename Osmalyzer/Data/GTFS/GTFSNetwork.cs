@@ -60,4 +60,9 @@ public class GTFSNetwork
             }
         }
     }
+
+    public void CleanStopNames(Func<string, string> callback)
+    {
+        Stops.CleanNames(callback);
+    }
 }

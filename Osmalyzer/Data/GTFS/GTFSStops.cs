@@ -63,4 +63,10 @@ public class GTFSStops
         _stops.TryGetValue(id, out GTFSStop? stop);
         return stop;
     }
+
+    public void CleanNames(Func<string, string> callback)
+    {
+        foreach (GTFSStop stop in _stops.Values)
+            stop.CleanName(callback);
+    }
 }

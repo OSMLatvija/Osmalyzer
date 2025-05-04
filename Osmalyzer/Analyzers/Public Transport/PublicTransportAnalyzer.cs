@@ -81,6 +81,10 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             }
         }
         
+        // Clean up GTFS data
+
+        gtfsNetwork.CleanStopNames(CleanRouteStopName);
+        
         // Match OSM routes to data routes
 
         List<RoutePair> routePairs = MatchOsmRoutesToRouteVariants(osmRoutes, routeVariants);
@@ -242,7 +246,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         {
             report.AddGroup(GroupDesignation.SkippedVariants, "Skipped route variants");
 
-            report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("These routes have less than " + minTripCountToInclude + " trips with their unqiue sequence/pattern of stops, so they are skipped from full analysis."));
+            report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("These routes have less than " + minTripCountToInclude + " trips with their unique sequence/pattern of stops, so they are skipped from full analysis."));
 
             foreach (RouteVariant variant in skippedVariants)
             {
@@ -361,7 +365,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             
             foreach (RouteVariant variant in routeVariants)
             {
-                if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 10000)
+                if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 50000) // 50 km (althogh for AD this may still not be enough)
                     continue; // too far away, skip
 
                 (float score, List<StopPair> stopPairs) = GetOsmRouteAndRouteMatchScore(osmRoute, variant); // 0..1
@@ -627,7 +631,18 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     //     return StopNameMatching.Mismatch;
     // }
     //
-    
+
+    [Pure]
+    private static string CleanRouteStopName(string ptStopName)
+    {
+        // Rezeknes almost all stops have "uc" and "nc" like suffixes like "Brīvības iela nc" and "Brīvības iela uc" - probably route direction "no centra"/"uz centru"?
+        ptStopName = Regex.Replace(ptStopName, @" (uc|nc|mv)$", @"");
+
+        // todo: move more here from IsStopNameMatchGoodEnough
+        
+        return ptStopName;
+    }
+
     [Pure]
     private static bool IsStopNameMatchGoodEnough(string ptStopName, string osmStopName)
     {
@@ -639,10 +654,6 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         // Quick check first, may be we don't need to do anything
         if (ptStopName == osmStopName)
             return true;
-    
-        // Rezeknes almost all stops have "uc" and "nc" suffixes like "Brīvības iela nc" and "Brīvības iela uc" - probably route direction?
-        ptStopName = Regex.Replace(ptStopName, @" uc$", @"");
-        ptStopName = Regex.Replace(ptStopName, @" nc$", @"");
             
         // Trim parenthesis from OSM
         // Jurmalas OSM stops have a lot of parenthesis, like JS "Majoru stacija" vs OSM "Majoru stacija (Majori)"

@@ -4,7 +4,7 @@ public class GTFSStop
 {
     public string Id { get; }
 
-    public string Name { get; }
+    public string Name { get; private set; }
         
     public OsmCoord Coord { get; }
         
@@ -20,5 +20,11 @@ public class GTFSStop
         Id = id;
         Name = name;
         Coord = coord;
+    }
+
+    
+    public void CleanName(Func<string, string> callback)
+    {
+        Name = callback(Name);
     }
 }

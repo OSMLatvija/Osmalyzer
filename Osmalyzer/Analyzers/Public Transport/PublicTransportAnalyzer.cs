@@ -63,22 +63,10 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         List<RouteVariant> skippedVariants = [ ];
 
         const int minTripCountToInclude = 5;
-        // todo: skip only if not found in OSM
 
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
-        {
             foreach (RouteVariant variant in ExtractVariantsFromRoute(gtfsRoute).OrderByDescending(mt => mt.TripCount))
-            {
-                if (variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
-                {
-                    // Not enough to report as a "full" route, presumably something like first/final depot routes 
-                    skippedVariants.Add(variant);
-                    continue;
-                }
-
                 routeVariants.Add(variant);
-            }
-        }
         
         // Clean up GTFS data
 
@@ -92,12 +80,19 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
         foreach (RouteVariant variant in routeVariants)
         {
-            if (variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
+            (RoutePair? routePair, List<StopMatch> stopMatches) = GetStopMatches(routePairs, variant);
+
+            // Skip route if we don't have a match and it's not frequent enough
+            
+            if (routePair == null && // no OSM route matched, so we might not want to even show if it's infrequent
+                variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
             {
                 // Not enough to report as a "full" route, presumably first/final depo routes 
                 skippedVariants.Add(variant);
                 continue;
             }
+            
+            // Display this route
             
             string header = variant.Route.CleanType + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name;
             // e.g. "Bus #2: Mangaļsala => Abrenes iela"
@@ -110,8 +105,6 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                 false,
                 false // don't cluster stops, we want "discrete" preview
             );
-
-            (RoutePair? routePair, List<StopMatch> stopMatches) = GetStopMatches(routePairs, variant);
 
             // Route and match generic info
 
@@ -245,7 +238,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         {
             report.AddGroup(GroupDesignation.SkippedVariants, "Skipped route variants");
 
-            report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("These routes have less than " + minTripCountToInclude + " trips with their unique sequence/pattern of stops, so they are skipped from full analysis."));
+            report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("These routes aren't matched to any OSM route have less than " + minTripCountToInclude + " trips with their unique sequence/pattern of stops, so they are skipped from full analysis."));
 
             foreach (RouteVariant variant in skippedVariants)
             {

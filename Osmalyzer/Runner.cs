@@ -19,11 +19,12 @@ public static class Runner
 #else
         List<Analyzer> analyzers =
         [
-            new RigasSatiksmeAnalyzer(),
-            new LiepajasTransportsAnalyzer(),
-            new RezeknesSatiksmeAnalyzer(),
-            new JurmalasSatiksmeAnalyzer(),
-            new AutotransportaDirekcijaAnalyzer(),
+            //new RigasSatiksmeAnalyzer(),
+            //new LiepajasTransportsAnalyzer(),
+            //new RezeknesSatiksmeAnalyzer(),
+            //new JurmalasSatiksmeAnalyzer(),
+            //new AutotransportaDirekcijaAnalyzer(),
+            new JelgavasAutobusuParksAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why

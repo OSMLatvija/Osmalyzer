@@ -26,16 +26,21 @@ public static class OsmGeoTools
     [Pure]
     public static OsmCoord GetAverageCoord(IEnumerable<OsmElement> elements)
     {
+        return GetAverageCoord(elements.Select(e => e.GetAverageCoord()));
+    }
+
+    [Pure]
+    public static OsmCoord GetAverageCoord(IEnumerable<OsmCoord> coords)
+    {
+        List<OsmCoord> clone = coords.ToList();
+
         double averageLat = 0.0;
         double averageLon = 0.0;
 
-        List<OsmElement> elementList = elements.ToList();
-            
-        foreach (OsmElement element in elementList)
+        foreach (OsmCoord coord in clone)
         {
-            OsmCoord coord = element.GetAverageCoord(); // todo: recursion on circular relations will kill us
-            averageLat += coord.lat / elementList.Count;
-            averageLon += coord.lon / elementList.Count;
+            averageLat += coord.lat / clone.Count;
+            averageLon += coord.lon / clone.Count;
         }
 
         return new OsmCoord(averageLat, averageLon);

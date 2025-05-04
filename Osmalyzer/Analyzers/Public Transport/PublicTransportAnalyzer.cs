@@ -81,6 +81,10 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             }
         }
         
+        // Match OSM routes to data routes
+
+        List<RoutePair> routePairs = MatchOsmRoutesToRouteVariants(osmRoutes, routeVariants);
+        
         // Show results for each route variant
 
         foreach (RouteVariant variant in routeVariants)
@@ -104,6 +108,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                 false // don't cluster stops, we want "discrete" preview
             );
 
+            // Route map
 
             report.AddEntry(
                 variant,
@@ -121,6 +126,56 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
                         gtfsStop.Name + " [" + gtfsStop.Id + "] (" + (i + 1) + "/" + variant.StopCount + ")",
                         MapPointStyle.BusStopOriginal
                     )
+                );
+            }
+            
+            // OSM route match
+
+            RoutePair? routePair = routePairs.Find(rp => rp.RouteVariant == variant);
+
+            if (routePair != null)
+            {
+                string? osmRouteName = routePair.OsmRoute.GetValue("name");
+                
+                report.AddEntry(
+                    variant,
+                    new GenericReportEntry(
+                        "This route matches OSM route " + 
+                        (osmRouteName != null ? "`" + osmRouteName + "`" : "") + 
+                        " with a " + (routePair.Score * 100).ToString("F0") + "% match - " +
+                        routePair.OsmRoute.OsmViewUrl
+                    )
+                );
+
+                foreach (OsmRelationMember routeMember in routePair.OsmRoute.Members)
+                {
+                    if (routeMember.Element == null)
+                        continue;
+                    
+                    if (routeMember.Role is not ("platform" or "platform_entry_only" or "platform_exit_only"))
+                        continue;
+                    
+                    string? osmStopName = routeMember.Element!.GetValue("name");
+                    string? osmStopRef = routeMember.Element.GetValue("ref");
+                    
+                    report.AddEntry(
+                        variant,
+                        new MapPointReportEntry(
+                            routeMember.Element!.GetAverageCoord(),
+                            routeMember.Element.GetValue("name") +
+                            (osmStopName != null ? " `" + osmStopName + "`" : "Unnamed") +
+                            (osmStopRef != null ? " [`" + routeMember.Element.Id + "`]" : ""),
+                            routeMember.Element,
+                            MapPointStyle.BusStopMatched
+                        )
+                    );
+                }
+            }
+            else
+            {
+                report.AddEntry(
+                    variant,
+                    new IssueReportEntry("No matching OSM route found that uses similar stops as the route in the data.")
                 );
             }
         }
@@ -147,6 +202,9 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
 
         foreach (GTFSTrip trip in route.AllTrips)
         {
+            if (trip.Stops.Count() < 2)
+                continue; // skip degenerate trips (probably data error)
+            
             RouteVariant? existing = variants.Find(mt => mt.Stops.SequenceEqual(trip.Stops));
 
             if (existing != null)
@@ -174,6 +232,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         
         public int TripCount => _trips.Count;
 
+        public OsmCoord AverageCoord { get; }
+
 
         private readonly List<GTFSTrip> _trips;
         
@@ -185,6 +245,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             Route = route;
             _trips = [ trip ];
             _stops = stops.ToList();
+
+            AverageCoord = OsmGeoTools.GetAverageCoord(_stops.Select(s => s.Coord));
         }
 
         
@@ -193,6 +255,109 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             _trips.Add(trip);
         }
     }
+
+    [Pure]
+    private static List<RoutePair> MatchOsmRoutesToRouteVariants(OsmDataExtract osmRoutes, List<RouteVariant> routeVariants)
+    {
+        List<RoutePair> routePairs = [ ];
+
+        foreach (OsmRelation osmRoute in osmRoutes.Relations)
+        {
+            RouteVariant? bestMatch = null;
+            float bestScore = 0f; 
+            
+            foreach (RouteVariant variant in routeVariants)
+            {
+                if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 10000)
+                    continue; // too far away, skip
+
+                float score = GetOsmRouteAndRouteMatchScore(osmRoute, variant); // 0..1
+
+                if (score > 0.1f) // skip routes that have very little in common
+                {
+                    if (bestMatch == null || score > bestScore)
+                    {
+                        bestMatch = variant;
+                        bestScore = score;
+                    }
+                }
+            }
+
+            if (bestMatch != null)
+            {
+                routePairs.Add(new RoutePair(osmRoute, bestMatch, bestScore));
+            }
+        }
+        
+        return routePairs;
+    }
+
+    [Pure]
+    private static float GetOsmRouteAndRouteMatchScore(OsmRelation osmRoute, RouteVariant variant)
+    {
+        List<string> osmRouteStopNames = ExtractOsmRouteStopNames(osmRoute);
+
+        float score = Score(false);
+        
+        if (score > 0.2f) // good match, score more accurately
+            score = Score(true);
+
+        return score;
+
+        float Score(bool expensive)
+        {
+            // Note that this is deliberately naive matching, only names and not actually matching OSM stop positions
+            // We just want to "find the route on OSM"
+
+            // This is how many stops we have
+            int matchCount = Math.Max(variant.StopCount, osmRouteStopNames.Count);
+
+            float matchedStopScore = 0;
+
+            for (int i = 0; i < variant.Stops.Count; i++)
+            {
+                int matchIndex =
+                    expensive ?
+                        osmRouteStopNames.FindIndex(sn => IsStopNameMatchGoodEnough(variant.Stops[i].Name, sn)) :
+                        osmRouteStopNames.FindIndex(sn => sn == variant.Stops[i].Name);
+
+                if (matchIndex != -1)
+                {
+                    // Stop score is based on how proportionally close it is to its "true position" in the data route
+                    // (otherwise we would match reversed or routes with extra/missing stops the same)
+                    float stopScore = 1f - Math.Abs(i - matchIndex) / (float)variant.StopCount;
+
+                    if (stopScore < 0f)
+                        stopScore = 0f;
+
+                    matchedStopScore += stopScore / matchCount;
+                }
+            }
+
+            return matchedStopScore;
+        }
+    }
+
+    [Pure]
+    private static List<string> ExtractOsmRouteStopNames(OsmRelation osmRoute)
+    {
+        List<string> stopNames = [ ];
+
+        foreach (OsmRelationMember member in osmRoute.Members)
+        {
+            if (member.Role is "platform" or "platform_entry_only" or "platform_exit_only")
+            {
+                string? name = member.Element?.GetValue("name");
+                
+                if (name != null)
+                    stopNames.Add(name);
+            }
+        }
+        
+        return stopNames;
+    }
+
+    private record RoutePair(OsmRelation OsmRoute, RouteVariant RouteVariant, float Score);
 
     // private (GTFSTrip service, float bestMatch) FindBestTripMatch(GTFSRoute route, List<OsmNode> stops)
     // {
@@ -342,80 +507,82 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     //     return StopNameMatching.Mismatch;
     // }
     //
-    // [Pure]
-    // private static bool IsStopNameMatchGoodEnough(string ptStopName, string osmStopName)
-    // {
-    //     // Stops never differ by capitalization, so just lower them and avoid weird capitalization in additon to everything else
-    //     // Rezekne "18.Novembra iela" vs OSM "18. novembra iela"
-    //     ptStopName = ptStopName.ToLower();
-    //     osmStopName = osmStopName.ToLower();
-    //         
-    //     // Quick check first, may be we don't need to do anything
-    //     if (ptStopName == osmStopName)
-    //         return true;
-    //
-    //     // Rezeknes almost all stops have "uc" and "nc" suffixes like "Brīvības iela nc" and "Brīvības iela uc" - probably route direction?
-    //     ptStopName = Regex.Replace(ptStopName, @" uc$", @"");
-    //     ptStopName = Regex.Replace(ptStopName, @" nc$", @"");
-    //         
-    //     // Trim parenthesis from OSM
-    //     // Jurmalas OSM stops have a lot of parenthesis, like JS "Majoru stacija" vs OSM "Majoru stacija (Majori)"
-    //     osmStopName = Regex.Replace(osmStopName, @" \([^\(\)]+\)$", @"");
-    //     // todo: return if the match was poor quality this way and the name should be checked
-    //     // todo: what if GTFS data DOES have the parenthesis?
-    //
-    //     // Trim brackets from GTFS
-    //     // A couple Jurmalas GTFS stops have brackets, like JS "Promenādes iela [Promenādes iela]" and "Promenādes iela [Rīgas iela]" vs OSM "Promenādes iela" and "Promenādes iela"
-    //     ptStopName = Regex.Replace(ptStopName, @" \[[^\[\]]+\]$", @"");
-    //         
-    //     // Both OSM and RS stops are inconsistent about spacing around characters
-    //     // "2.trolejbusu parks" or "Jaunciema 2.šķērslīnija" (also all the abbreviated "P.Lejiņa iela" although this won't match)
-    //     // "Upesgrīvas iela/ Spice"
-    //     // OSM "TEC-2 pārvalde" vs RS "TEC- 2 pārvalde" or OSM "Preču-2" vs RS "Preču - 2"
-    //     if (Regex.Replace(Regex.Replace(osmStopName, @"([\./-])(?! )", @"$1 "), @"(?<! )([\./-])", @" $1") == 
-    //         Regex.Replace( Regex.Replace(ptStopName, @"([\./-])(?! )", @"$1 "), @"(?<! )([\./-])", @" $1"))
-    //         return true;
-    //         
-    //     // Sometimes proper quotes are inconsistent between the two
-    //     // OSM "Arēna "Rīga"" vs RS "Arēna Rīga" or OSM ""Bērnu pasaule"" vs RS "Bērnu pasaule"
-    //     // or opposite OSM "Dzintars" vs RS ""Dzintars""
-    //     if (osmStopName.Replace("\"", "") == ptStopName.Replace("\"", ""))
-    //         return true;
-    //         
-    //     // RS likes to abbreviate names for stops while OSM spells them out
-    //     // OSM "Eduarda Smiļģa iela" vs RS "E.Smiļģa iela"
-    //     // Because there are so many like this, I will consider them correct for now, even if they aren't technically accurate 
-    //     if (ptStopName.Contains('.') && !osmStopName.Contains('.'))
-    //     {
-    //         string[] ptSplit = ptStopName.Split('.');
-    //         if (ptSplit.Length == 2)
-    //         {
-    //             string ptPrefix = ptSplit[0].TrimEnd(); // "E"
-    //             string ptSuffiix = ptSplit[1].TrimStart(); // "Smiļģa iela"
-    //
-    //             if (osmStopName.StartsWith(ptPrefix) && osmStopName.EndsWith(ptSuffiix)) // not a perfect check, but good enough
-    //                 return true;
-    //         }
-    //     }
-    //         
-    //     // RS also has some double names for some reason when OSM and real-life has just one "part"
-    //     // RS "Botāniskais dārzs/Rīgas Stradiņa universitāte" vs OSM "Botāniskais dārzs
-    //     if (ptStopName.Contains('/'))
-    //     {
-    //         string[] ptSplit = ptStopName.Split('/');
-    //         if (ptSplit.Length == 2)
-    //         {
-    //             string ptFirst = ptSplit[0].TrimEnd(); // "Botāniskais dārzs"
-    //             string ptSecond = ptSplit[1].TrimStart(); // "Rīgas Stradiņa universitāte"
-    //
-    //             if (osmStopName == ptFirst || osmStopName == ptSecond)
-    //                 return true;
-    //         }
-    //     }
-    //         
-    //     // Couldn't match anything
-    //     return false;
-    // }
+    
+    [Pure]
+    private static bool IsStopNameMatchGoodEnough(string ptStopName, string osmStopName)
+    {
+        // Stops never differ by capitalization, so just lower them and avoid weird capitalization in additon to everything else
+        // Rezekne "18.Novembra iela" vs OSM "18. novembra iela"
+        ptStopName = ptStopName.ToLower();
+        osmStopName = osmStopName.ToLower();
+            
+        // Quick check first, may be we don't need to do anything
+        if (ptStopName == osmStopName)
+            return true;
+    
+        // Rezeknes almost all stops have "uc" and "nc" suffixes like "Brīvības iela nc" and "Brīvības iela uc" - probably route direction?
+        ptStopName = Regex.Replace(ptStopName, @" uc$", @"");
+        ptStopName = Regex.Replace(ptStopName, @" nc$", @"");
+            
+        // Trim parenthesis from OSM
+        // Jurmalas OSM stops have a lot of parenthesis, like JS "Majoru stacija" vs OSM "Majoru stacija (Majori)"
+        osmStopName = Regex.Replace(osmStopName, @" \([^\(\)]+\)$", @"");
+        // todo: return if the match was poor quality this way and the name should be checked
+        // todo: what if GTFS data DOES have the parenthesis?
+    
+        // Trim brackets from GTFS
+        // A couple Jurmalas GTFS stops have brackets, like JS "Promenādes iela [Promenādes iela]" and "Promenādes iela [Rīgas iela]" vs OSM "Promenādes iela" and "Promenādes iela"
+        ptStopName = Regex.Replace(ptStopName, @" \[[^\[\]]+\]$", @"");
+            
+        // Both OSM and RS stops are inconsistent about spacing around characters
+        // "2.trolejbusu parks" or "Jaunciema 2.šķērslīnija" (also all the abbreviated "P.Lejiņa iela" although this won't match)
+        // "Upesgrīvas iela/ Spice"
+        // OSM "TEC-2 pārvalde" vs RS "TEC- 2 pārvalde" or OSM "Preču-2" vs RS "Preču - 2"
+        if (Regex.Replace(Regex.Replace(osmStopName, @"([\./-])(?! )", @"$1 "), @"(?<! )([\./-])", @" $1") == 
+            Regex.Replace( Regex.Replace(ptStopName, @"([\./-])(?! )", @"$1 "), @"(?<! )([\./-])", @" $1"))
+            return true;
+            
+        // Sometimes proper quotes are inconsistent between the two
+        // OSM "Arēna "Rīga"" vs RS "Arēna Rīga" or OSM ""Bērnu pasaule"" vs RS "Bērnu pasaule"
+        // or opposite OSM "Dzintars" vs RS ""Dzintars""
+        if (osmStopName.Replace("\"", "") == ptStopName.Replace("\"", ""))
+            return true;
+            
+        // RS likes to abbreviate names for stops while OSM spells them out
+        // OSM "Eduarda Smiļģa iela" vs RS "E.Smiļģa iela"
+        // Because there are so many like this, I will consider them correct for now, even if they aren't technically accurate 
+        if (ptStopName.Contains('.') && !osmStopName.Contains('.'))
+        {
+            string[] ptSplit = ptStopName.Split('.');
+            if (ptSplit.Length == 2)
+            {
+                string ptPrefix = ptSplit[0].TrimEnd(); // "E"
+                string ptSuffiix = ptSplit[1].TrimStart(); // "Smiļģa iela"
+    
+                if (osmStopName.StartsWith(ptPrefix) && osmStopName.EndsWith(ptSuffiix)) // not a perfect check, but good enough
+                    return true;
+            }
+        }
+            
+        // RS also has some double names for some reason when OSM and real-life has just one "part"
+        // RS "Botāniskais dārzs/Rīgas Stradiņa universitāte" vs OSM "Botāniskais dārzs
+        if (ptStopName.Contains('/'))
+        {
+            string[] ptSplit = ptStopName.Split('/');
+            if (ptSplit.Length == 2)
+            {
+                string ptFirst = ptSplit[0].TrimEnd(); // "Botāniskais dārzs"
+                string ptSecond = ptSplit[1].TrimStart(); // "Rīgas Stradiņa universitāte"
+    
+                if (osmStopName == ptFirst || osmStopName == ptSecond)
+                    return true;
+            }
+        }
+            
+        // Couldn't match anything
+        return false;
+    }
+    
     //
     // private enum StopNameMatching // order used by sorting
     // {

@@ -39,7 +39,7 @@ public class GTFSStops
             // parent_station - 
 
             string id = segments[0];
-            string name = segments[2].Substring(1, segments[2].Length - 2).Replace("\"\"", "\"");
+            string name = GetName(segments, 2);
             if (!double.TryParse(segments[4], out double lat)) 
                 continue; // broken data
             if (!double.TryParse(segments[5], out double lon)) 
@@ -53,6 +53,22 @@ public class GTFSStops
             // 7123k,,"Majori",,56.97155,23.79636,https://www.marsruti.lv/jurmala/index.html#stop/7123k,,
             // (second has paired 7123l,,"Majori",,56.97149,23.79807,https://www.marsruti.lv/jurmala/index.html#stop/7123l,,)
             // todo: report these as problems? only if coord different? store both names?
+        }
+
+        return;
+
+
+        [Pure]
+        static string GetName(List<string> segments, int i)
+        {
+            string segment = segments[i];
+            
+            if (segment.Length <= 2) return segment;
+            
+            if (segment.StartsWith('"') && segment.EndsWith('"'))
+                return segment.Substring(1, segment.Length - 2).Replace("\"\"", "\"");
+            
+            return segment;
         }
     }
 

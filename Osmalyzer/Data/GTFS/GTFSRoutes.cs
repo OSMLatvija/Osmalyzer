@@ -41,6 +41,9 @@ public class GTFSRoutes
                 
             // route_id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color
             // 5800064, 58, 6079, "Ventspils-Ziras", , 3, , , 
+            
+            // route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+            // JAP:Line:1,JAP:Operator:JAP,1,Tušķi GP - Ozolnieku vidusskola,,3,,4A55A0,000000
 
             List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
 
@@ -61,12 +64,14 @@ public class GTFSRoutes
         [Pure]
         static string GetName(List<string> segments, int i)
         {
-            if (segments[i].Length <= 2) return segments[i];
+            string segment = segments[i];
             
-            if (segments[i].StartsWith('"') && segments[i].EndsWith('"'))
-                return segments[i].Substring(1, segments[i].Length - 2).Replace("\"\"", "\"");
+            if (segment.Length <= 2) return segment;
             
-            return segments[i];
+            if (segment.StartsWith('"') && segment.EndsWith('"'))
+                return segment.Substring(1, segment.Length - 2).Replace("\"\"", "\"");
+            
+            return segment;
         }
     }
 

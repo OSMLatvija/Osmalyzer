@@ -63,6 +63,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
         List<RouteVariant> skippedVariants = [ ];
 
         const int minTripCountToInclude = 5;
+        // todo: skip only if not found in OSM
 
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
         {
@@ -70,9 +71,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             {
                 if (variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
                 {
-                    // todo: skip only if not found in OSM?
-                    
-                    // Not enough to report as a "full" route, presumably first/final depo routes 
+                    // Not enough to report as a "full" route, presumably something like first/final depot routes 
                     skippedVariants.Add(variant);
                     continue;
                 }
@@ -296,7 +295,7 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
     {
         List<RouteVariant> variants = [ ];
 
-        foreach (GTFSTrip trip in route.AllTrips)
+        foreach (GTFSTrip trip in route.Trips)
         {
             if (trip.Stops.Count() < 2)
                 continue; // skip degenerate trips (probably data error)
@@ -365,8 +364,8 @@ public abstract class PublicTransportAnalyzer<T> : Analyzer
             
             foreach (RouteVariant variant in routeVariants)
             {
-                if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 50000) // 50 km (althogh for AD this may still not be enough)
-                    continue; // too far away, skip
+                //if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 50000) // 50 km (althogh for AD this may still not be enough)
+                //    continue; // too far away, skip
 
                 (float score, List<StopPair> stopPairs) = GetOsmRouteAndRouteMatchScore(osmRoute, variant); // 0..1
 

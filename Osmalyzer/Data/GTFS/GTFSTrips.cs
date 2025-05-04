@@ -38,12 +38,17 @@ public class GTFSTrips
             // wheelchair_accessible -
 
             string tripId = segments[2];
+            string routeId = segments[0];
             string serviceId = segments[1];
+
+            GTFSRoute route = routes.GetRoute(routeId);
 
             GTFSService? service = services.GetService(serviceId);
 
-            GTFSTrip trip = new GTFSTrip(tripId, service);
+            GTFSTrip trip = new GTFSTrip(tripId, route, service);
             _trips.TryAdd(trip.Id, trip);
+            
+            route.AddTrip(trip);
 
             if (service != null)
             {
@@ -53,8 +58,6 @@ public class GTFSTrips
                 // Service may be used for several routes, i.e. different bus numbers do the same service on different days/times or something
                 // And vice-verse - add route to service (if not known)
 
-                string routeId = segments[0];
-                GTFSRoute route = routes.GetRoute(routeId);
                 if (route.Services.All(s => s != service))
                     route.AddService(service);
 

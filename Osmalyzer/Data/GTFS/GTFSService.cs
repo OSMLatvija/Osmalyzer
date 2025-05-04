@@ -12,9 +12,9 @@ public class GTFSService
     public IEnumerable<GTFSRoute> Routes => _routes.AsReadOnly();
 
 
-    private readonly List<GTFSTrip> _trips = new List<GTFSTrip>();
+    private readonly List<GTFSTrip> _trips = [ ];
         
-    private readonly List<GTFSRoute> _routes = new List<GTFSRoute>();
+    private readonly List<GTFSRoute> _routes = [ ];
 
 
     public GTFSService(string id)

@@ -13,7 +13,7 @@ public class GTFSPoints
         
     public GTFSPoints(string dataFileName, GTFSStops stops, GTFSTrips trips)
     {
-        _points = new List<GTFSPoint>();
+        _points = [ ];
             
         string[] lines = File.ReadAllLines(dataFileName);
 

@@ -4,6 +4,8 @@ public class GTFSTrip
 {
     public string Id { get; }
         
+    public GTFSRoute Route { get; }
+    
     public GTFSService? Service { get; }
 
     public IEnumerable<GTFSPoint> Points => _points.AsReadOnly();
@@ -14,9 +16,10 @@ public class GTFSTrip
     private readonly List<GTFSPoint> _points = new List<GTFSPoint>();
 
 
-    public GTFSTrip(string id, GTFSService? service)
+    public GTFSTrip(string id, GTFSRoute route, GTFSService? service)
     {
         Id = id;
+        Route = route;
         Service = service;
     }
 
@@ -29,6 +32,8 @@ public class GTFSTrip
 
     public override string ToString()
     {
-        return "Trip #" + Id + " for " + (Service != null ? "service #" + Service.Id : "no service");
+        return 
+            "Trip #" + Id + " for route #" + Route.Id + " " +
+            (Service != null ? "and service #" + Service.Id : "and no service");
     }
 }

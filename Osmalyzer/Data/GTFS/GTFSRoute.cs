@@ -14,11 +14,15 @@ public class GTFSRoute
 
     public IEnumerable<GTFSService> Services => _services.AsReadOnly();
 
-    /// <summary> Trips (unique) from all <see cref="Services"/> </summary>
-    public IEnumerable<GTFSTrip> AllTrips => _services.SelectMany(service => service.Trips).Distinct();
+    /// <summary>
+    /// Trips that point back to this route
+    /// </summary>
+    public IEnumerable<GTFSTrip> Trips => _trips.AsReadOnly();
+    
 
+    private readonly List<GTFSService> _services = [ ];
 
-    private readonly List<GTFSService> _services = new List<GTFSService>();
+    private readonly List<GTFSTrip> _trips = [ ];
 
         
     public GTFSRoute(string id, string name, string number, string type)
@@ -36,7 +40,13 @@ public class GTFSRoute
         _services.Add(service);
     }
 
-        
+
+    public void AddTrip(GTFSTrip trip)
+    {
+        _trips.Add(trip);
+    }
+
+    
     [Pure]
     private static string TypeToCleanType(string type)
     {

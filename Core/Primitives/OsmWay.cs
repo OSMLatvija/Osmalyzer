@@ -24,6 +24,9 @@ public class OsmWay : OsmElement
         
     internal readonly long[] nodeIds;
 
+    
+    private OsmCoord? _cachedAverageCoord;
+
 
     internal OsmWay(OsmGeo rawElement)
         : base(rawElement)
@@ -34,7 +37,7 @@ public class OsmWay : OsmElement
         
     public override OsmCoord GetAverageCoord()
     {
-        return OsmGeoTools.GetAverageCoord(nodes);
+        return _cachedAverageCoord ??= OsmGeoTools.GetAverageCoord(nodes);
     }
     
     [Pure]

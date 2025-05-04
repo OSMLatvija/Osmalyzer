@@ -23,6 +23,9 @@ public class OsmRelation : OsmElement
         
         
     internal readonly List<OsmRelationMember> members;
+    
+    
+    private OsmCoord? _cachedAverageCoord;
 
 
     internal OsmRelation(OsmGeo rawElement)
@@ -47,7 +50,7 @@ public class OsmRelation : OsmElement
     [Pure]
     public List<OsmWay> GetOuterWays()
     {
-        List<OsmWay> outerWays = new List<OsmWay>();
+        List<OsmWay> outerWays = [ ];
 
         foreach (OsmRelationMember member in Members)
         {
@@ -63,7 +66,7 @@ public class OsmRelation : OsmElement
     [Pure]
     public override OsmCoord GetAverageCoord()
     {
-        return OsmGeoTools.GetAverageCoord(Elements);
+        return _cachedAverageCoord ??= OsmGeoTools.GetAverageCoord(Elements);
     }
 
     [Pure]

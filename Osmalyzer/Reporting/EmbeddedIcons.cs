@@ -66,6 +66,14 @@ public static class EmbeddedIcons
         ),
         
         new LeafletIcon(
+            "orangeBus.png", 
+            16, 
+            LeafletIcon.IconGroup.Main, 
+            ColorGroup.Other, // we don't expect it to be clustered
+            MapPointStyle.BusStopMatchedPoorly
+        ),
+        
+        new LeafletIcon(
             "blueBus.png", 
             16, 
             LeafletIcon.IconGroup.Main, 

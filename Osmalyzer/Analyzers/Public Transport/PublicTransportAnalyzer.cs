@@ -153,12 +153,12 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             {
                 switch (stopMatch)
                 {
-                    case FullStopMatch fullStopMatch:
+                    case GoodRouteAndOsmStopMatch fullStopMatch:
                         report.AddEntry(
                             variant,
                             new MapPointReportEntry(
                                 fullStopMatch.OsmStop.GetAverageCoord(),
-                                "Route stop and OSM stop match: " +
+                                "Route stop and OSM stop match well: " +
                                 " Route stop " + 
                                 RouteStopMapPointLabel(fullStopMatch.RouteStop) +
                                 " matching OSM stop " +
@@ -167,8 +167,22 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                                 MapPointStyle.BusStopMatchedWell
                             )
                         );
-                        // todo: original location
-                        // todo: distant matches
+                        break;
+
+                    case PoorRouteAndOsmStopMatch fullStopMatch:
+                        report.AddEntry(
+                            variant,
+                            new MapPointReportEntry(
+                                fullStopMatch.OsmStop.GetAverageCoord(),
+                                "Route stop and OSM stop match, but poorly: " +
+                                " Route stop " + 
+                                RouteStopMapPointLabel(fullStopMatch.RouteStop) +
+                                " matching OSM stop " +
+                                OsmStopMapPointLabel(fullStopMatch.OsmStop) + " - " + fullStopMatch.OsmStop.OsmViewUrl,
+                                fullStopMatch.OsmStop,
+                                MapPointStyle.BusStopMatchedPoorly
+                            )
+                        );
                         break;
 
                     case OsmOnlyStopMatch osmOnlyStopMatch:
@@ -253,6 +267,11 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     }
 
     
+    /// <summary>
+    /// Ask inheritor to apply their specific known fixes to GTFS that are unique to the operator.
+    /// Basically, GTFS data is messy and each provider has their own quirks.
+    /// This gets called before data is used for matching.
+    /// </summary>
     protected abstract void CleanUpGtfsData(GTFSNetwork gtfsNetwork);
 
 
@@ -265,26 +284,147 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             return (null, variant.Stops.Select(s => new RouteOnlyStopMatch(s)).ToList<StopMatch>());
 
         List<StopMatch> stopMatches = [ ];
-            
+
+        List<OsmElement> osmStops = CollectOsmStops();
+
+        // Match directly to quickly-identified name matching pairs
+        
         foreach (StopPair stopPair in routePair.Stops)
-            stopMatches.Add(new FullStopMatch(stopPair.OsmStop, stopPair.RouteStop));
+            stopMatches.Add(new GoodRouteAndOsmStopMatch(stopPair.OsmStop, stopPair.RouteStop));
             
         foreach (GTFSStop routeStop in variant.Stops)
             if (routePair.Stops.All(s => s.RouteStop != routeStop))
                 stopMatches.Add(new RouteOnlyStopMatch(routeStop));
 
-        foreach (OsmRelationMember routeMember in routePair.OsmRoute.Members)
-            if (routeMember.Element != null)
-                if (routeMember.Role is "platform" or "platform_entry_only" or "platform_exit_only")
-                    if (routePair.Stops.All(s => s.OsmStop != routeMember.Element))
-                        stopMatches.Add(new OsmOnlyStopMatch(routeMember.Element));
+        foreach (OsmElement osmStop in osmStops)
+            if (routePair.Stops.All(s => s.OsmStop != osmStop))
+                stopMatches.Add(new OsmOnlyStopMatch(osmStop));
+        
+        // Try other matching logic
+
+        bool changedSomething;
+        
+        do
+        {
+            changedSomething = false;
+            
+            // Try to assume OSM stop as probably correct if it fits with the route
+            // This happens when the name mismatches (or is missing or something) for some reason
+            
+            foreach (OsmOnlyStopMatch osmOnlyStopMatch in stopMatches.OfType<OsmOnlyStopMatch>())
+            {
+                // What stop came before that matched?
+                
+                // todo: after?
+                // todo: multiple gap?
+                
+                // Scenario:
+                //                 ..->   [ONLY OSM]
+                // -->  [COMMON]               ?
+                //                 ''->   [ONLY GTFS]
+                // 
+                // We want to see if [ONLY OSM] pairs up with an [ONLY GTFS].
+                // So we take [ONLY OSM], find previous OSM stop, and see if it's a [COMMON] one.
+                // If so, we take gtfs stop from [COMMON] and find next gtfs stop and see if it is an [ONLY GTFS].
+                // In other words - we have a "pair" of stops by themselves but both are supposed to follow previous entry,
+                // so we can assume they are probably supposed to be the same stop.
+                // todo: This can also apply "backwards" or even for multiple stops.
+                
+                OsmElement? previousOsmStop = GetPreviousOsmStop(osmOnlyStopMatch.OsmStop);
+                if (previousOsmStop != null)
+                {
+                    RouteAndOsmStopMatch? previousCommonMatch = stopMatches.OfType<RouteAndOsmStopMatch>().FirstOrDefault(m => m.OsmStop == previousOsmStop);
+                    if (previousCommonMatch != null)
+                    {
+                        GTFSStop? pairingRouteStop = GetNextRouteStopMatch(previousCommonMatch.RouteStop);
+                        if (pairingRouteStop != null)
+                        {
+                            RouteOnlyStopMatch? routeOnlyMatch = stopMatches.OfType<RouteOnlyStopMatch>().FirstOrDefault(m => m.RouteStop == pairingRouteStop);
+                            if (routeOnlyMatch != null)
+                            {
+                                if (OsmGeoTools.DistanceBetween(
+                                        osmOnlyStopMatch.OsmStop.GetAverageCoord(),
+                                        routeOnlyMatch.RouteStop.Coord
+                                    ) < 70) // too far, probably actually different, so skip
+                                {
+                                    stopMatches.Remove(osmOnlyStopMatch);
+                                    stopMatches.Remove(routeOnlyMatch);
+
+                                    PoorRouteAndOsmStopMatch replacementMatch = new PoorRouteAndOsmStopMatch(
+                                        osmOnlyStopMatch.OsmStop,
+                                        routeOnlyMatch.RouteStop
+                                    );
+
+                                    stopMatches.Add(replacementMatch);
+
+                                    //Console.WriteLine("Replaced individual matches with pair match: " + routeOnlyMatch.RouteStop.Name + " <=> " + osmOnlyStopMatch.OsmStop.GetValue("name"));
+
+                                    changedSomething = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // todo: when too far - bad match
+                // todo: can above be wrong in other ways even when name matches?
+            }
+            
+        } while (changedSomething);
 
         return (routePair, stopMatches);
+
+
+        [Pure]
+        List<OsmElement> CollectOsmStops()
+        {
+            List<OsmElement> osmStops = [ ];
+            
+            foreach (OsmRelationMember routeMember in routePair.OsmRoute.Members)
+                if (routeMember.Element != null)
+                    if (routeMember.Role is "platform" or "platform_entry_only" or "platform_exit_only")
+                        osmStops.Add(routeMember.Element);
+            
+            return osmStops;
+        }
+
+        [Pure]
+        OsmElement? GetPreviousOsmStop(OsmElement osmStop)
+        {
+            int givenIndex = osmStops.FindIndex(s => s == osmStop);
+            
+            if (givenIndex == -1)
+                return null; // not found
+            
+            if (givenIndex == 0)
+                return null; // first stop, no previous
+            
+            return osmStops[givenIndex - 1];
+        }
+        
+        [Pure]
+        GTFSStop? GetNextRouteStopMatch(GTFSStop routeStop)
+        {
+            int givenIndex = routePair.RouteVariant.Stops.ToList().FindIndex(s => s == routeStop);
+            
+            if (givenIndex == -1)
+                return null; // not found
+            
+            if (givenIndex == routePair.RouteVariant.Stops.Count - 1)
+                return null; // last stop, no next
+            
+            return routePair.RouteVariant.Stops[givenIndex + 1];
+        }
     }
 
     private abstract record StopMatch;
 
-    private record FullStopMatch(OsmElement OsmStop, GTFSStop RouteStop) : StopMatch;
+    private abstract record RouteAndOsmStopMatch(OsmElement OsmStop, GTFSStop RouteStop) : StopMatch;
+    
+    private record GoodRouteAndOsmStopMatch(OsmElement OsmStop, GTFSStop RouteStop) : RouteAndOsmStopMatch(OsmStop, RouteStop);
+    
+    private record PoorRouteAndOsmStopMatch(OsmElement OsmStop, GTFSStop RouteStop) : RouteAndOsmStopMatch(OsmStop, RouteStop);
     
     private record RouteOnlyStopMatch(GTFSStop RouteStop) : StopMatch;
     

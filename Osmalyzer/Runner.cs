@@ -20,11 +20,11 @@ public static class Runner
         List<Analyzer> analyzers =
         [
             new RigasSatiksmeAnalyzer(),
-            new LiepajasTransportsAnalyzer(),
-            new RezeknesSatiksmeAnalyzer(),
-            new JurmalasSatiksmeAnalyzer(),
-            new AutotransportaDirekcijaAnalyzer(),
-            new JelgavasAutobusuParksAnalyzer(),
+            // new LiepajasTransportsAnalyzer(),
+            // new RezeknesSatiksmeAnalyzer(),
+            // new JurmalasSatiksmeAnalyzer(),
+            // new AutotransportaDirekcijaAnalyzer(),
+            // new JelgavasAutobusuParksAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why

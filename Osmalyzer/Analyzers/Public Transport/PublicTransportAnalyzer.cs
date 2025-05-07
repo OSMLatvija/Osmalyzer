@@ -516,7 +516,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
                     (float score, List<StopPair> stopPairs) = GetOsmRouteAndRouteMatchScore(osmRoute, variant);
 
-                    if (score > 0.1f)
+                    if (score > 0.4f)
                     {
                         if (bestMatch == null || score > bestScore)
                         {

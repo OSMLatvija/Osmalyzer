@@ -113,9 +113,14 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
             // Route and match generic info
 
+            int routeVariantCount = routeVariants.Count(rv => rv.Route == variant.Route);
+
             report.AddEntry(
                 variant,
-                new GenericReportEntry("This route has " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => "`" + s.Name + "`")))
+                new GenericReportEntry(
+                    "This route variant/pattern has " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => "`" + s.Name + "`")) + ". " +
+                    "This variant/pattern appears " + variant.TripCount + " times as a trip in GTFS data (out of " + variant.Route.Trips.Count() + " total trips for " + routeVariantCount + " variants)."
+                )
             );
             
             if (routePair != null)

@@ -5,10 +5,12 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 {
     public override string Description => 
         "This checks public transport routes for " + Name + " operator. " +
-        "Each operator's route is matched against OSM routes based on the expected stops. " +
+        "Each operator's GTFS route is matched against OSM routes based on the expected stops. " +
         "Note that this might result in poor and incorrect matches if OSM doesn't have a matching route mapped " +
         "or some other route matches it instead (because of similar stops). " +
-        "Each route is shown in its own section so it can be compared with the matched OSM route, if any.";
+        "Each route is shown in its own section so it can be compared with the matched OSM route, if any. " +
+        "Note that GTFS stores routes differently than OSM and not neccessarilly all should be mapped. " +
+        "Technically, GTFS doesn't have route \"variants\" - the ones below are collected from repeating unique stop sequences.";
 
     public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
     
@@ -81,7 +83,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
         {
-            string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number;
+            string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number + " \"" + gtfsRoute.Name + "\"";
 
             report.AddGroup(
                 gtfsRoute, // supergroup "ID" as parent for variants
@@ -114,8 +116,15 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             
             // Display this route
             
-            string header = variant.Route.CleanType + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name;
-            // e.g. "Bus #2: Mangaļsala => Abrenes iela"
+            string header = variant.Route.CleanType + " #" + variant.Route.Number + " from " + variant.FirstStop.Name + " to " + variant.LastStop.Name;
+
+            if (routePair != null)
+            {
+                string? osmRouteName = routePair.OsmRoute.GetValue("name");
+
+                if (osmRouteName != null)
+                    header += " — \"" + osmRouteName + "\"";
+            }
 
             report.AddGroup(
                 variant, // our group "ID"

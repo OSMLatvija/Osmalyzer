@@ -53,6 +53,9 @@ public class HtmlFileReportWriter : ReportWriter
             str.AppendLine("<ul class=\"custom-list toc-list\">");
             for (int g = 0; g < groups.Count; g++)
             {
+                if (groups[g].ParentGroupId != null)
+                    continue; // don't draw child groups, presumably we don't want that many (or we need to implement toc levels) 
+                
                 int importantEntryCount = groups[g].ImportantEntryCount;
                 
                 str.Append(@"<li><a href=""#g" + (g + 1) + @""">" + groups[g].Title + "</a>");
@@ -98,13 +101,15 @@ public class HtmlFileReportWriter : ReportWriter
         {
             ReportGroup group = groups[g];
 
+            int level = group.ParentGroupId == null ? 3 : 4;
+            
             if (needTOC)
-                str.AppendLine(@"<h3 id=""g" + (g + 1) + @""">" + group.Title + "</h3>");
+                str.AppendLine(@$"<h{level} id=""g{g+1}"">" + group.Title + $"</h{level}>");
             else
-                str.AppendLine("<h3>" + group.Title + "</h3>");
+                str.AppendLine($"<h{level}>{group.Title}</h{level}>");
 
             if (group.DescriptionEntry != null)
-                str.AppendLine("<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");
+                str.AppendLine($"<p>" + PolishLine(group.DescriptionEntry.Text) + "</p>");
 
             if (!group.HaveAnyContentEntries)
                 if (group.PlaceholderEntry != null)

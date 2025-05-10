@@ -9,7 +9,13 @@ public class ReportGroup
     /// This will also be used for sorting the groups if possible, so using an ordered enum would work well.  
     /// </summary>
     public object ID { get; }
-            
+
+    /// <summary>
+    /// The ID of the "parent" group that should visually "contain" us.
+    /// This doesn't organzie entries or anything else, this is just the user-facing organization.
+    /// </summary>
+    public object? ParentGroupId { get; }
+
     public string Title { get; }
     
     public bool ShowImportantEntryCount { get; }
@@ -58,9 +64,13 @@ public class ReportGroup
     private readonly List<MapPointReportEntry> _mapPointEntries = [ ];
 
 
-    public ReportGroup(object id, string title, bool showImportantEntryCount, bool shouldClusterMapPointEntries)
+    public ReportGroup(object id, object? parentGroupId, string title, bool showImportantEntryCount, bool shouldClusterMapPointEntries)
     {
+        if (id == null) throw new ArgumentNullException(nameof(id));
+        if (id == parentGroupId) throw new ArgumentException("Group ID and parent group ID cannot be the same!", nameof(parentGroupId));
+        
         ID = id;
+        ParentGroupId = parentGroupId;
         Title = title;
         ShowImportantEntryCount = showImportantEntryCount;
         ShouldClusterMapPointEntries = shouldClusterMapPointEntries;

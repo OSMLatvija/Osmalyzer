@@ -77,6 +77,21 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
         CleanUpGtfsData(gtfsNetwork);
         
+        // Add "supergroups" for routes since there are so many
+
+        foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
+        {
+            string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number;
+
+            report.AddGroup(
+                gtfsRoute, // supergroup "ID" as parent for variants
+                header,
+                null,
+                null,
+                false
+            );
+        }
+        
         // Match OSM routes to data routes
 
         List<RoutePair> routePairs = MatchOsmRoutesToRouteVariants(osmRoutes, routeVariants);
@@ -103,7 +118,8 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             // e.g. "Bus #2: Mangaļsala => Abrenes iela"
 
             report.AddGroup(
-                variant,
+                variant, // our group "ID"
+                variant.Route, // parent group "ID"
                 header,
                 null,
                 null,

@@ -29,7 +29,12 @@ public class Report
 
     public void AddGroup(object id, string title, string? descriptionEntry = null, string? placeholderEntry = null, bool showImportantEntryCount = true, bool shouldClusterMapPointEntries = true)
     {
-        ReportGroup newGroup = new ReportGroup(id, title, showImportantEntryCount, shouldClusterMapPointEntries);
+        AddGroup(id, null, title, descriptionEntry, placeholderEntry, showImportantEntryCount, shouldClusterMapPointEntries);
+    }
+    
+    public void AddGroup(object id, object? parentGroupId, string title, string? descriptionEntry = null, string? placeholderEntry = null, bool showImportantEntryCount = true, bool shouldClusterMapPointEntries = true)
+    {
+        ReportGroup newGroup = new ReportGroup(id, parentGroupId, title, showImportantEntryCount, shouldClusterMapPointEntries);
             
         _groups.Add(newGroup);
             
@@ -50,20 +55,59 @@ public class Report
         group.AddEntry(newEntry);
     }
 
+    [Pure]
     public List<ReportGroup> CollectGroups()
     {
-        return _groups.OrderBy(g => GetSortOrder(g.ID)).ToList();
+        List<ReportGroup> parentGroups =
+            _groups
+                .Where(g => g.ParentGroupId != null)
+                .Select(g => g.ParentGroupId)
+                .Distinct()
+                .Select(pgid => _groups.FirstOrDefault(g => g.ID == pgid))
+                .Where(pg => pg != null)
+                .ToList()!;
 
-            
-        static int GetSortOrder(object value)
+        List<ReportGroup> unparentedGroups =
+            _groups
+                .Where(g => g.ParentGroupId == null || parentGroups.All(pg => pg.ID != g.ParentGroupId))
+                .ToList();
+
+        List<ReportGroup> topGroups = parentGroups.Concat(unparentedGroups).OrderBy(GetSortOrder).ToList();
+        
+        List<ReportGroup> groups = [ ];
+
+        foreach (ReportGroup topGroup in topGroups)
         {
-            if (value is int pureValue)
-                return pureValue;
-                
-            if (value.GetType().IsEnum)
-                return (int)value;
+            groups.Add(topGroup);
 
-            return 0; // stays in the "middle"
+            groups.AddRange(
+                _groups
+                    .Where(g => g.ParentGroupId == topGroup.ID)
+                    .OrderBy(GetSortOrder)
+                    .ToList()
+            );
+        }
+
+        return groups;
+
+
+        [Pure]
+        static int GetSortOrder(ReportGroup reportGroup)
+        {
+            return GetGroupIDValue(reportGroup);
+
+
+            [Pure]
+            static int GetGroupIDValue(ReportGroup reportGroup)
+            {
+                if (reportGroup.ID is int pureValue)
+                    return pureValue;
+
+                if (reportGroup.ID.GetType().IsEnum)
+                    return (int)reportGroup.ID;
+
+                return 0; // stays in the "middle" or doesn't get moved
+            }
         }
     }
 

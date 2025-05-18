@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -191,15 +192,15 @@ public static class WebsiteBrowsingHelper
             
             if (e.EventName == "requestWillBeSentExtraInfo")
             {
-                JsonNode? requestHeaders = e.EventData["headers"];
-                if (requestHeaders != null)
-                    RecentRequestHeaders.Add(requestHeaders.ToString());
+                JsonElement eventData = e.EventData;
+                if (eventData.TryGetProperty("headers", out JsonElement headers))
+                    RecentRequestHeaders.Add(headers.ToString());
             }
             else if (e.EventName == "responseReceivedExtraInfo")
             {
-                JsonNode? responseHeaders = e.EventData["headers"];
-                if (responseHeaders != null)
-                    RecentResponseHeaders.Add(responseHeaders.ToString());            
+                JsonElement eventData = e.EventData;
+                if (eventData.TryGetProperty("headers", out JsonElement headers))
+                    RecentResponseHeaders.Add(headers.ToString());
             }
         }
     }

@@ -40,7 +40,7 @@ public class GlikaOzoliAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void DoPrepare()
     {
-        Oaks = new List<GlikaOak>();
+        Oaks = [ ];
 
         using FileStream fileStream = File.OpenRead(Path.Combine(CacheBasePath, DataFileIdentifier + @".kml"));
             
@@ -48,8 +48,8 @@ public class GlikaOzoliAnalysisData : AnalysisData, IUndatedAnalysisData
 
         IEnumerable<Placemark> placemarks = kmlFile.Root.Flatten().OfType<Placemark>();
 
-        List<string> names = new List<string>();
-        List<string> repeats = new List<string>();
+        List<string> names = [ ];
+        List<string> repeats = [ ];
             
         foreach (Placemark placemark in placemarks)
         {

@@ -32,8 +32,8 @@ public static class Runner
             // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
-            new GlikaOaksAnalyzer(),
-            //new CityMeadowsAnalyzer(),
+            // new GlikaOaksAnalyzer(),
+            // new CityMeadowsAnalyzer(),
             // new ElviShopAnalyzer(),
             // new LatsShopAnalyzer(),
             // new RimiShopAnalyzer(),
@@ -79,6 +79,7 @@ public static class Runner
             // new LuluRestaurantAnalyzer(),
             // new CaffeineRestaurantAnalyzer()
             // new HesburgerRestaurantAnalyzer()
+            new LVCRoadAnalyzer()
         ];
 #endif
 

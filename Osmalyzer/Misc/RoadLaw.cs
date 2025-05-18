@@ -17,106 +17,70 @@ public class RoadLaw
         HtmlDocument doc = new HtmlDocument();
         doc.Load(dataFileName, Encoding.UTF8);
 
-        HtmlNodeCollection rows = doc.DocumentNode.SelectNodes(".//tr[contains(@class,'tv_html')]");
+        HtmlNodeCollection? rows = doc.DocumentNode.SelectNodes(".//tr[contains(@class,'tv_html')]");
+        if (rows == null) throw new Exception();
         if (rows.Count == 0) throw new Exception();
 
-        roads = new List<Road>();
+        roads = [ ];
 
         Dictionary<string, List<string>> sharedSegments = new Dictionary<string, List<string>>();
 
         foreach (HtmlNode row in rows)
         {
-            HtmlNodeCollection cells = row.SelectNodes(".//td");
+            if (row.InnerText == "&nbsp;")
+                continue; // empty/spacer row
+            
+            HtmlNodeCollection? cells = row.SelectNodes(".//td");
+            if (cells == null) throw new Exception();
             if (cells.Count == 0) throw new Exception();
 
-            if (cells[0].InnerText.Contains("Autoceļa maršruta indekss"))
-                continue; // header, first row
-
-            if (cells[0].InnerText.Contains("maršruta kopgarums"))
-                continue; // header, second row (of merged stuff)
-
-            if (cells[0].InnerText.Contains("posmi ārpus pilsētām"))
-                continue; // header, third row (of merged stuff)
-
-            if (cells[0].InnerText == "no")
-                continue; // header, fourth row (of merged stuff)
-
-            if (cells[0].InnerText == "1")
-                continue; // column index row
+            string firstCellInnerText = cells[0].InnerText.Trim();
             
-            switch (cells.Count)
+            if (firstCellInnerText.Contains("Indekss") || // header, first row
+                firstCellInnerText.Contains("kopgarums") || // header, second row (of merged stuff)
+                firstCellInnerText.Contains("posmi ārpus pilsētām") || // header, third row (of merged stuff)
+                firstCellInnerText == "1") // column index row
+                continue;
+
+            List<HtmlNode> cellList = cells.ToList();
+
+            const int columnCountVMain = 11; // V
+            const int columnCountVSubsequent = columnCountVMain - 1; // -1 as road name gets merged down across rows
+            const int columnCountAPMain = 14; // A and P
+            const int columnCountAPSubsequent = columnCountAPMain - 1; // road name gets merged down across rows
+            
+            bool subsequent = cells.Count is columnCountAPSubsequent or columnCountVSubsequent;
+            // i.e., the first column of the row is merged with the "primary" row where the road code is, which is shared for all these subsequent rows
+            
+            if (!subsequent)
             {
-                case 10  // P and V secondary when merged
-                    or 11 // P and V first or secondary when unmerged
-                    or 12 // A secondary merged 
-                    or 13: // A first
-                {
-                    // Regular
-
-                    List<HtmlNode> cellList = cells.ToList();
-
-                    int offset = 0;
-
-                    bool subsequent =
-                        cells.Count == 12 || // A merged
-                        cells.Count == 10 || // P or V merged
-                        HttpUtility.HtmlDecode(cellList[0].InnerText).Trim() == ""; // P or V unmerged empty
-
-                    if (!subsequent)
-                    {
-                        // First row for road
-
-                        string? code = GetCodeFromNode(cellList[0]);
-
-                        if (code == null) throw new Exception();
-                        
-                        if (!Regex.IsMatch(code, codePattern)) throw new Exception();
-
-                        string name = cellList[1].InnerText.Trim();
-
-                        double length = GetLengthFromNode(cellList[2 + offset]);
-
-                        //Console.WriteLine(code + " - " + length);
-
-                        roads.Add(new ActiveRoad(code, name, length));
-
-                        GatherNotes(code, cellList[10 + offset], sharedSegments);
-                    }
-                    else
-                    {
-                        // Subsequent row for road - distances and notes
-
-                        if (cells.Count is 12 or 10) // secondary row of A, which is merged (as opposed to P and V which aren't)
-                            GatherNotes(roads.Last().Code, cellList[10 - 1], sharedSegments);
-                        else // P or V unmerged
-                            GatherNotes(roads.Last().Code, cellList[10], sharedSegments);
-                    }
-
-                    break;
-                }
-
-                // There are no more "Svītrots" entries in the latest law revision
-                // case 2:
-                // {
-                //     // Removed
-                //
-                //     List<HtmlNode> cellList = cells.ToList();
-                //
-                //     if (!cellList[1].SelectSingleNode(".//span").InnerText.Contains("Svītrots")) throw new Exception();
-                //
-                //     string code = cellList[0].SelectSingleNode(".//p").InnerText.Trim();
-                //
-                //     if (!Regex.IsMatch(code, codePattern)) throw new Exception();
-                //
-                //     roads.Add(new StrickenRoad(code));
-                //
-                //     break;
-                // }
-
-                default:
+                // First row for road
+            
+                if (!Regex.IsMatch(firstCellInnerText, codePattern)) // only rows we expect are for road entries
                     throw new Exception();
+
+                string code = firstCellInnerText;
+
+                string name = cellList[1].InnerText.Trim();
+
+                double length = GetLengthFromNode(cellList[2]);
+
+                //Console.WriteLine(code + " - " + length);
+
+                roads.Add(new ActiveRoad(code, name, length));
+
+                GatherNotes(code, cellList[10], sharedSegments);
+            }
+            else
+            {
+                // Subsequent row for road - distances and notes
+
+                GatherNotes(roads.Last().Code, cellList[10 - 1], sharedSegments);
             }
         }
+        
+        if (roads.Count == 0)
+            throw new Exception("Failed to find any roads");
 
         SharedSegments = sharedSegments;
 
@@ -209,7 +173,7 @@ public class RoadLaw
         roads.Add(new HistoricRoad("V1041"));
         roads.Add(new HistoricRoad("V1040"));
 
-        // And now we are on the current version
+        // todo: new versions
     }
 
         

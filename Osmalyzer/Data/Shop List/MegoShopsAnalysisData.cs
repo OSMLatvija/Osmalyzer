@@ -5,7 +5,7 @@ public class MegoShopsAnalysisData : ShopListAnalysisData
 {
     public override string Name => "Mego Shops";
 
-    public override string ReportWebLink => @"https://mego.lv/kontakti";
+    public override string ReportWebLink => @"https://mego.lv/kontakti/";
 
 
     protected override string DataFileIdentifier => "shops-mego";
@@ -21,8 +21,8 @@ public class MegoShopsAnalysisData : ShopListAnalysisData
 
     protected override void Download()
     {
-        WebsiteDownloadHelper.Download(
-            "https://mego.lv/kontakti", 
+        WebsiteBrowsingHelper.DownloadPage(
+            "https://mego.lv/kontakti/", 
             DataFileName
         );
     }

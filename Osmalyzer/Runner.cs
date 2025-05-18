@@ -38,7 +38,7 @@ public static class Runner
             // new LatsShopAnalyzer(),
             // new RimiShopAnalyzer(),
             // new MaximaShopAnalyzer(),
-            // new MegoShopAnalyzer(),
+            new MegoShopAnalyzer(),
             // new AibeLatviaShopAnalyzer(),
             // todo new AibeLithuaniaShopAnalyzer(),
             // new VeskoShopAnalyzer(),
@@ -79,7 +79,7 @@ public static class Runner
             // new LuluRestaurantAnalyzer(),
             // new CaffeineRestaurantAnalyzer()
             // new HesburgerRestaurantAnalyzer()
-            new LVCRoadAnalyzer()
+            // new LVCRoadAnalyzer()
         ];
 #endif
 

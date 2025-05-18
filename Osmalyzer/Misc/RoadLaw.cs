@@ -5,15 +5,13 @@ namespace Osmalyzer;
 
 public class RoadLaw
 {
-    public List<Road> roads;
+    public readonly List<Road> roads;
 
-    public Dictionary<string, List<string>> SharedSegments { get; }
+    public readonly Dictionary<string, List<string>> sharedSegments;
 
 
     public RoadLaw(string dataFileName)
     {
-        const string codePattern = @"^[AVP][1-9][0-9]{0,3}$";
-
         HtmlDocument doc = new HtmlDocument();
         doc.Load(dataFileName, Encoding.UTF8);
 
@@ -23,7 +21,7 @@ public class RoadLaw
 
         roads = [ ];
 
-        Dictionary<string, List<string>> sharedSegments = new Dictionary<string, List<string>>();
+        sharedSegments = new Dictionary<string, List<string>>();
 
         foreach (HtmlNode row in rows)
         {
@@ -56,6 +54,8 @@ public class RoadLaw
             {
                 // First row for road
             
+                const string codePattern = @"^[AVP][1-9][0-9]{0,3}$";
+
                 if (!Regex.IsMatch(firstCellInnerText, codePattern)) // only rows we expect are for road entries
                     throw new Exception();
 
@@ -67,7 +67,7 @@ public class RoadLaw
 
                 //Console.WriteLine(code + " - " + length);
 
-                roads.Add(new ActiveRoad(code, name, length));
+                roads.Add(new Road(code, name, length));
 
                 GatherNotes(code, cellList[10], sharedSegments);
             }
@@ -82,98 +82,8 @@ public class RoadLaw
         if (roads.Count == 0)
             throw new Exception("Failed to find any roads");
 
-        SharedSegments = sharedSegments;
-
         // foreach (KeyValuePair<string,List<string>> segment in sharedSegments)
         //     Console.WriteLine(segment.Key + " shared with " + string.Join(", ", segment.Value));
-
-        // Since old laws no longer change, we can just hard-code all the road numbers that were removed across the years and revisions
-        // And, yes, it's only "V" roads that have changed
-
-        // "First" (as far as OSM is concerned) list 245
-        // https://likumi.lv/ta/id/77328-grozijumi-ministru-kabineta-1999-gada-6-julija-noteikumos-nr-245-noteikumi-par-valsts-autocelu-sarakstiem-
-
-        // Stricken in changes
-        // https://likumi.lv/ta/id/84045-grozijumi-ministru-kabineta-1999-gada-6-julija-noteikumos-nr-245-noteikumi-par-valsts-autocelu-sarakstiem-
-        roads.Add(new HistoricRoad("V1014"));
-        roads.Add(new HistoricRoad("V1438"));
-        roads.Add(new HistoricRoad("V1465"));
-        roads.Add(new HistoricRoad("V1466"));
-        roads.Add(new HistoricRoad("V1467"));
-        roads.Add(new HistoricRoad("V1469"));
-        roads.Add(new HistoricRoad("V1470"));
-        roads.Add(new HistoricRoad("V1471"));
-
-        // Stricken in changes
-        // https://likumi.lv/ta/id/93754-grozijumi-ministru-kabineta-1999-gada-6-julija-noteikumos-nr-245-noteikumi-par-valsts-autocelu-sarakstiem-
-        roads.Add(new HistoricRoad("V263"));
-        roads.Add(new HistoricRoad("V639"));
-        roads.Add(new HistoricRoad("V897"));
-        roads.Add(new HistoricRoad("V1483"));
-
-        // Stricken in changes
-        // https://likumi.lv/ta/id/110186-grozijumi-ministru-kabineta-1999-gada-6-julija-noteikumos-nr-245-noteikumi-par-valsts-autocelu-sarakstiem-
-        roads.Add(new HistoricRoad("V29"));
-        roads.Add(new HistoricRoad("V720"));
-        roads.Add(new HistoricRoad("V721"));
-        roads.Add(new HistoricRoad("V1189"));
-        roads.Add(new HistoricRoad("V1228"));
-
-        // Stricken in changes
-        // https://likumi.lv/ta/id/141192-grozijumi-ministru-kabineta-1999-gada-6-julija-noteikumos-nr-245-noteikumi-par-valsts-autocelu-sarakstiem-
-        roads.Add(new HistoricRoad("V77"));
-
-        // New list 245 -> 809
-        // https://likumi.lv/ta/id/167195-valsts-autocelu-un-valsts-autocelu-marsruta-ietverto-pasvaldibam-piederoso-autocelu-posmu-saraksts
-
-        roads.Add(new HistoricRoad("V897"));
-        roads.Add(new HistoricRoad("V77"));
-        roads.Add(new HistoricRoad("V721"));
-        roads.Add(new HistoricRoad("V720"));
-        roads.Add(new HistoricRoad("V639"));
-        roads.Add(new HistoricRoad("V367"));
-        roads.Add(new HistoricRoad("V328"));
-        roads.Add(new HistoricRoad("V29"));
-        roads.Add(new HistoricRoad("V263"));
-        roads.Add(new HistoricRoad("V1483"));
-        roads.Add(new HistoricRoad("V1471"));
-        roads.Add(new HistoricRoad("V1470"));
-        roads.Add(new HistoricRoad("V1469"));
-        roads.Add(new HistoricRoad("V1467"));
-        roads.Add(new HistoricRoad("V1466"));
-        roads.Add(new HistoricRoad("V1465"));
-        roads.Add(new HistoricRoad("V1438"));
-        roads.Add(new HistoricRoad("V1387"));
-        roads.Add(new HistoricRoad("V1370"));
-        roads.Add(new HistoricRoad("V136"));
-        roads.Add(new HistoricRoad("V1267"));
-        roads.Add(new HistoricRoad("V1228"));
-        roads.Add(new HistoricRoad("V1189"));
-        roads.Add(new HistoricRoad("V1133"));
-        roads.Add(new HistoricRoad("V1063"));
-        roads.Add(new HistoricRoad("V1014"));
-
-        // New list 809 -> 1104
-        // https://likumi.lv/ta/id/198589-noteikumi-par-valsts-autocelu-un-valsts-autocelu-marsruta-ietverto-pasvaldibam-piederoso-autocelu-posmu-sarakstiem
-
-        roads.Add(new HistoricRoad("V901"));
-        roads.Add(new HistoricRoad("V704"));
-        roads.Add(new HistoricRoad("V53"));
-        roads.Add(new HistoricRoad("V44"));
-        roads.Add(new HistoricRoad("V41"));
-        roads.Add(new HistoricRoad("V40"));
-        roads.Add(new HistoricRoad("V37"));
-        roads.Add(new HistoricRoad("V1320"));
-        roads.Add(new HistoricRoad("V1227"));
-        roads.Add(new HistoricRoad("V1187"));
-        roads.Add(new HistoricRoad("V1170"));
-        roads.Add(new HistoricRoad("V1132"));
-        roads.Add(new HistoricRoad("V1043"));
-        roads.Add(new HistoricRoad("V1042"));
-        roads.Add(new HistoricRoad("V1041"));
-        roads.Add(new HistoricRoad("V1040"));
-
-        // todo: new versions
     }
 
         
@@ -181,134 +91,109 @@ public class RoadLaw
     {
         string? notes = GetNotesFromNode(node);
 
-        if (notes != null)
-        {
-            const string matchingString = @"[Ss]akrītošais posms ar ";
-            const string doubleNameMatchPattern = @"^([^(]+) \(([^)]+)\)$";
-            const string segmentTwoMatchPattern = "^" + matchingString + @"([APV]\d+) un ([APV]\d+)$";
-            const string segmentThreeMatchPattern = "^" + matchingString + @"([APV]\d+), ([APV]\d+) un ([APV]\d+)$";
+        if (notes == null)
+            return;
+        
+        const string matchingString = @"[Ss]akrītošais posms ar ";
+        const string doubleNameMatchPattern = @"^([^(]+) \(([^)]+)\)$";
+        const string segmentTwoMatchPattern = "^" + matchingString + @"([APV]\d+) un ([APV]\d+)$";
+        const string segmentThreeMatchPattern = "^" + matchingString + @"([APV]\d+), ([APV]\d+) un ([APV]\d+)$";
            
-            string sanitizedNotes = Regex.Replace(notes, @"(\d+),(\d+)", @"$1.$2");
-            sanitizedNotes = sanitizedNotes.TrimEnd(',');
+        string sanitizedNotes = Regex.Replace(notes, @"(\d+),(\d+)", @"$1.$2");
+        sanitizedNotes = sanitizedNotes.TrimEnd(',');
 
-            if (Regex.IsMatch(sanitizedNotes, segmentThreeMatchPattern))
-            {
-                Match match = Regex.Match(sanitizedNotes, segmentThreeMatchPattern);
-
-                string code1 = match.Groups[1].ToString();
-                string code2 = match.Groups[2].ToString();
-                string code3 = match.Groups[3].ToString();
-
-                AppendSharedCode(code1);
-                AppendSharedCode(code2);
-                AppendSharedCode(code3);
-            }
-            else if (Regex.IsMatch(sanitizedNotes, segmentTwoMatchPattern))
-            {
-                Match match = Regex.Match(sanitizedNotes, segmentTwoMatchPattern);
-
-                string code1 = match.Groups[1].ToString();
-                string code2 = match.Groups[2].ToString();
-
-                AppendSharedCode(code1);
-                AppendSharedCode(code2);
-            }
-            else
-            {
-                string[] noteEntries = sanitizedNotes.Split(',');
-
-                foreach (string noteEntry in noteEntries)
-                {
-                    string trimmedEntry = noteEntry.Trim();
-
-                    if (Regex.IsMatch(trimmedEntry, segmentTwoMatchPattern))
-                    {
-                        Match match = Regex.Match(trimmedEntry, segmentTwoMatchPattern);
-
-                        string code1 = match.Groups[1].ToString();
-                        string code2 = match.Groups[2].ToString();
-
-                        AppendSharedCode(code1);
-                        AppendSharedCode(code2);
-                    }
-                    else if (Regex.IsMatch(trimmedEntry, @"^" + matchingString)) // starts with
-                    {
-                        Match match = Regex.Match(trimmedEntry, @"^" + matchingString);
-
-                        string singleCode = trimmedEntry.Substring(match.Length);
-
-                        AppendSharedCode(singleCode);
-                    }
-                    else if (FuzzyAddressMatcher.EndsWithStreetNameSuffix(trimmedEntry) ||
-                             trimmedEntry == "Tilts") // hmmm
-                    {
-                        //string streetName = trimmedEntry;
-                    }
-                    else if (Regex.IsMatch(trimmedEntry, doubleNameMatchPattern))
-                    {
-                        //Match match = Regex.Match(trimmedEntry, doubleNameMatchPattern);
-                        //string streetName = match.Groups[1].ToString();
-                        //string altStreetName = match.Groups[2].ToString();
-                    }
-                    else if (trimmedEntry.Contains("īpašnieks"))
-                    {
-                        // don't care
-                    }
-                    else
-                    {
-                        throw new Exception();
-                    }
-                }
-            }
-
-
-            void AppendSharedCode(string c)
-            {
-                if (!sharedSegments.ContainsKey(code))
-                    sharedSegments.Add(code, new List<string>() { c });
-                else if (!sharedSegments[code].Contains(c))
-                    sharedSegments[code].Add(c);
-            }
-        }
-    }
-
-    private static string? GetCodeFromNode(HtmlNode cell)
-    {
-        string? code;
-
-        HtmlNode paraNode = cell.SelectSingleNode(".//p");
-
-        if (paraNode != null)
+        if (Regex.IsMatch(sanitizedNotes, segmentThreeMatchPattern))
         {
-            code = paraNode.InnerText;
+            Match match = Regex.Match(sanitizedNotes, segmentThreeMatchPattern);
+
+            string code1 = match.Groups[1].ToString();
+            string code2 = match.Groups[2].ToString();
+            string code3 = match.Groups[3].ToString();
+
+            AppendSharedCode(code1);
+            AppendSharedCode(code2);
+            AppendSharedCode(code3);
+        }
+        else if (Regex.IsMatch(sanitizedNotes, segmentTwoMatchPattern))
+        {
+            Match match = Regex.Match(sanitizedNotes, segmentTwoMatchPattern);
+
+            string code1 = match.Groups[1].ToString();
+            string code2 = match.Groups[2].ToString();
+
+            AppendSharedCode(code1);
+            AppendSharedCode(code2);
         }
         else
         {
-            code = cell.InnerText;
+            string[] noteEntries = sanitizedNotes.Split(',');
+
+            foreach (string noteEntry in noteEntries)
+            {
+                string trimmedEntry = noteEntry.Trim();
+
+                if (Regex.IsMatch(trimmedEntry, segmentTwoMatchPattern))
+                {
+                    Match match = Regex.Match(trimmedEntry, segmentTwoMatchPattern);
+
+                    string code1 = match.Groups[1].ToString();
+                    string code2 = match.Groups[2].ToString();
+
+                    AppendSharedCode(code1);
+                    AppendSharedCode(code2);
+                }
+                else if (Regex.IsMatch(trimmedEntry, @"^" + matchingString)) // starts with
+                {
+                    Match match = Regex.Match(trimmedEntry, @"^" + matchingString);
+
+                    string singleCode = trimmedEntry.Substring(match.Length);
+
+                    AppendSharedCode(singleCode);
+                }
+                else if (FuzzyAddressMatcher.EndsWithStreetNameSuffix(trimmedEntry) ||
+                         trimmedEntry == "Tilts") // e.g. "Kurzemes iela, Tilts, Neretas iela"
+                {
+                    //string streetName = trimmedEntry;
+                }
+                else if (Regex.IsMatch(trimmedEntry, doubleNameMatchPattern))
+                {
+                    //Match match = Regex.Match(trimmedEntry, doubleNameMatchPattern);
+                    //string streetName = match.Groups[1].ToString();
+                    //string altStreetName = match.Groups[2].ToString();
+                }
+                else if (trimmedEntry.Contains("īpašnieks")) // e.g. "posma 77,4.–77,9. km īpašnieks – akciju sabiedrība "Latvenergo""
+                {
+                    // don't care
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
         }
 
-        code = HttpUtility.HtmlDecode(code).Trim(); // can have stuff like &nbsp;
+        return;
 
-        if (code == string.Empty)
-            code = null;
 
-        return code;
+        void AppendSharedCode(string c)
+        {
+            if (!sharedSegments.ContainsKey(code))
+                sharedSegments.Add(code, [ c ]);
+            else if (!sharedSegments[code].Contains(c))
+                sharedSegments[code].Add(c);
+        }
     }
 
     private static double GetLengthFromNode(HtmlNode cell)
     {
         string lengthString;
 
-        HtmlNode paraNode = cell.SelectSingleNode(".//p");
+        HtmlNode? paraNode = cell.SelectSingleNode(".//p");
 
         if (paraNode != null)
-        {
             lengthString = paraNode.InnerText;
-        }
         else
-        {
             lengthString = cell.InnerText;
-        }
 
         lengthString = HttpUtility.HtmlDecode(lengthString).Trim(); // can have stuff like &nbsp;
 
@@ -339,52 +224,18 @@ public class RoadLaw
     }
 }
 
-public abstract class Road
+
+public class Road
 {
     public string Code { get; }
-
-
-    protected Road(string code)
-    {
-        Code = code;
-    }
-}
-
-public class ActiveRoad : Road
-{
     public string Name { get; }
-
     public double Length { get; }
 
-
-    public ActiveRoad(string code, string name, double length)
-        : base(code)
+    
+    public Road(string code, string name, double length)
     {
+        Code = code;
         Name = name;
         Length = length;
-    }
-}
-
-public abstract class FormerRoad : Road
-{
-    protected FormerRoad(string code)
-        : base(code)
-    {
-    }
-}
-
-public class StrickenRoad : FormerRoad
-{
-    public StrickenRoad(string code)
-        : base(code)
-    {
-    }
-}
-
-public class HistoricRoad : FormerRoad
-{
-    public HistoricRoad(string code)
-        : base(code)
-    {
     }
 }

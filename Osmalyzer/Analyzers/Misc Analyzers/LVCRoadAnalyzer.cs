@@ -77,18 +77,14 @@ public class LVCRoadAnalyzer : Analyzer
 
         foreach (OsmGroup osmGroup in roadsByRef.groups)
         {
-            bool foundInLaw = roadLaw.roads.OfType<ActiveRoad>().Any(r => r.Code == osmGroup.Value);
+            bool foundInLaw = roadLaw.roads.Any(r => r.Code == osmGroup.Value);
 
             if (!foundInLaw)
             {
-                bool foundAsStricken = roadLaw.roads.OfType<StrickenRoad>().Any(r => r.Code == osmGroup.Value);
-                bool foundAsHistoric = roadLaw.roads.OfType<HistoricRoad>().Any(r => r.Code == osmGroup.Value);
-
                 report.AddEntry(
                     ReportGroup.MappedRoadsNotFoundInLaw,
                     new IssueReportEntry(
-                        "The OSM road `" + osmGroup.Value + "` is on the map, but " +
-                        (foundAsStricken ? "marked as stricken in law" : foundAsHistoric ? "formerly stricken from law" : "not in the law") + 
+                        "The OSM road `" + osmGroup.Value + "` is on the map, but not in the law" + 
                         " - " + ReportEntryFormattingHelper.ListElements(osmGroup.Elements)
                     )
                 );
@@ -97,9 +93,9 @@ public class LVCRoadAnalyzer : Analyzer
 
         // Road in law but not on map
 
-        List<string> lawedRoadsNotFoundOnMap = new List<string>();
+        List<string> lawedRoadsNotFoundOnMap = [ ];
 
-        foreach (ActiveRoad road in roadLaw.roads.OfType<ActiveRoad>())
+        foreach (Road road in roadLaw.roads.OfType<Road>())
         {
             bool foundInOsm = roadsByRef.groups.Any(g => g.Value == road.Code);
 
@@ -125,15 +121,15 @@ public class LVCRoadAnalyzer : Analyzer
 
         // Check shared segments
 
-        List<(string, List<string>)> unsharedSegments = new List<(string, List<string>)>();
+        List<(string, List<string>)> unsharedSegments = [ ];
 
-        foreach (KeyValuePair<string, List<string>> entry in roadLaw.SharedSegments)
+        foreach (KeyValuePair<string, List<string>> entry in roadLaw.sharedSegments)
         {
             List<OsmElement> matchingRoads = recognizedReffedRoads.Elements.Where(e => TagUtils.SplitValue(e.GetValue("ref")!).Contains(entry.Key)).ToList();
 
             if (matchingRoads.Count > 0)
             {
-                List<string> sharingsNotFound = new List<string>();
+                List<string> sharingsNotFound = [ ];
 
                 foreach (string shared in entry.Value)
                 {
@@ -179,7 +175,7 @@ public class LVCRoadAnalyzer : Analyzer
             );
         }
 
-        List<(string, string, List<OsmElement>)> uniqueRefPairs = new List<(string, string, List<OsmElement>)>();
+        List<(string, string, List<OsmElement>)> uniqueRefPairs = [ ];
 
         foreach (OsmElement reffedRoad in reffedRoads.Elements)
         {
@@ -202,7 +198,7 @@ public class LVCRoadAnalyzer : Analyzer
                         if (existing.Item3 != null)
                             existing.Item3.Add(reffedRoad);
                         else
-                            uniqueRefPairs.Add((refA, refB, new List<OsmElement>() { reffedRoad }));
+                            uniqueRefPairs.Add((refA, refB, [ reffedRoad ]));
                     }
                 }
             }
@@ -210,14 +206,14 @@ public class LVCRoadAnalyzer : Analyzer
 
         report.AddGroup(ReportGroup.SharedRefsNotInLaw, "Roads with shared ref segments not in the law", "The law has a list of routes that overlap, but this list is not accurate, especially for minor connections like viaducts. Roundabouts are ignored.", "There are no roads with shared refs that are not in the law.");
 
-        List<(string, string)> roundaboutOnlyShared = new List<(string, string)>();
+        List<(string, string)> roundaboutOnlyShared = [ ];
             
         for (int i = 0; i < uniqueRefPairs.Count; i++)
         {
             string refA = uniqueRefPairs[i].Item1;
             string refB = uniqueRefPairs[i].Item2;
 
-            bool found = roadLaw.SharedSegments.Any(ss =>
+            bool found = roadLaw.sharedSegments.Any(ss =>
                                                         ss.Key == refA && ss.Value.Contains(refB) ||
                                                         ss.Key == refB && ss.Value.Contains(refA));
 
@@ -269,9 +265,9 @@ public class LVCRoadAnalyzer : Analyzer
 
         //
 
-        List<string> missingRelations = new List<string>();
+        List<string> missingRelations = [ ];
 
-        List<List<OsmElement>> relationsWithSameRef = new List<List<OsmElement>>();
+        List<List<OsmElement>> relationsWithSameRef = [ ];
 
         foreach (OsmGroup refGroup in roadsByRef.groups)
         {

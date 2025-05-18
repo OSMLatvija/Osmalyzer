@@ -322,7 +322,7 @@ public class StreetNameAnalyzer : Analyzer
 
             // Match against the law route list
                 
-            ActiveRoad? foundLawRoad = roadLaw.roads.OfType<ActiveRoad>().FirstOrDefault(r => IsNameMatch(r.Name, wayName, out bool _));
+            Road? foundLawRoad = roadLaw.roads.OfType<Road>().FirstOrDefault(r => IsNameMatch(r.Name, wayName, out bool _));
 
             if (foundLawRoad != null)
             {

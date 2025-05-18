@@ -49,6 +49,8 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IUndatedAnalysisDa
 
             AsyncFeatureEnumerator enumerator = AsyncFeatureEnumerator.Create(File.OpenRead(filePath)).Result;
 
+            //int count = 0;
+            
             while (enumerator.MoveNextAsync().Result)
             {
                 IFeature feature = enumerator.Current;
@@ -74,7 +76,11 @@ public class CulturalMonumentsMapAnalysisData : AnalysisData, IUndatedAnalysisDa
                 // There are repeats, so keep each only once
                 if (!Monuments.Any(m => m.Name == name && m.ReferenceID == monRef))
                     Monuments.Add(new CulturalMonument(coord, name, monRef, variant));
+
+                //count++;
             }
+            
+            //Console.WriteLine("Got " + count + " monuments from " + variant + " variant.");
         }
     }
 

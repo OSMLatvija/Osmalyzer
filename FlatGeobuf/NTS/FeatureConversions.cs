@@ -168,7 +168,12 @@ namespace FlatGeobuf.NTS
                         case ColumnType.DateTime:
                         case ColumnType.String:
                             int len = reader.ReadInt32();
-                            string str = Encoding.UTF8.GetString(memoryStream.ToArray(), (int) memoryStream.Position, len);
+                            string str;
+                            if (memoryStream.Position + len > memoryStream.Length)
+                                // TODO: TERRIBLE HACK, BUT THE CULTURAL MONUMENTS DATA HAS INVALID VALUE HERE FOR LENGTH, THIS LETS US PARSE IT GRACEFULLY
+                                str = "";
+                            else
+                                str = Encoding.UTF8.GetString(memoryStream.ToArray(), (int)memoryStream.Position, len);
                             memoryStream.Position += len;
                             attributesTable.Add(name, str);
                             break;

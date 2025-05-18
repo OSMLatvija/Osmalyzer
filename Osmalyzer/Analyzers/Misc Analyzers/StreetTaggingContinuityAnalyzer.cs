@@ -1,9 +1,9 @@
 ﻿namespace Osmalyzer;
 
 [UsedImplicitly]
-public class StreetTaggingContinuationAnalyzer : Analyzer
+public class StreetTaggingContinuityAnalyzer : Analyzer
 {
-    public override string Name => "Street Tagging Continuation";
+    public override string Name => "Street Tagging Continuity";
 
     public override string Description => "This report checks that streets with certain tags that apply to the whole street are applied consistently.";
 

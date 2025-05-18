@@ -56,7 +56,7 @@ public static class Runner
             // new TerminatingWaysAnalyzer(),
             // new DoubleMappedFeaturesAnalyzer(),
             // new CrossingConsistencyAnalyzer(),
-            // new StreetTaggingContinuationAnalyzer(),
+            // new StreetTaggingContinuityAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
             // new BottleDepositPointsAnalyzer(),

@@ -45,7 +45,7 @@ public static class Runner
             // new SparShopAnalyzer(),
             // new CitroShopAnalyzer(),
             // new TopShopAnalyzer(),
-            new CulturalMonumentsAnalyzer(),
+            // new CulturalMonumentsAnalyzer(),
             // new SwedbankLocationAnalyzer(),
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
@@ -75,6 +75,7 @@ public static class Runner
             // new SpellingAnalyzer(),
             // new DuplicatePlatformsAnalyzer(),
             // new LoneCrossingAnalyzer(),
+            new BarrierAnalyzer(),
             // new InfoboardAnalyzer(),
             // new LuluRestaurantAnalyzer(),
             // new CaffeineRestaurantAnalyzer()

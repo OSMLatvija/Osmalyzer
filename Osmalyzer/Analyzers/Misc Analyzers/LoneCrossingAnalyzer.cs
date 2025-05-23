@@ -45,9 +45,9 @@ public class LoneCrossingAnalyzer : Analyzer
                         "These crossings have a footway but no road.",
                         "No crossings are footway-only.");
 
-        List<StrayCrossingNode> strayCrossingNodes = new List<StrayCrossingNode>();
-        List<RaodOnlyCrossingNode> roadOnlyCrossingNodes = new List<RaodOnlyCrossingNode>();
-        List<FootwayOnlyCrossingNode> footwayOnlyCrossingNodes = new List<FootwayOnlyCrossingNode>();
+        List<StrayCrossingNode> strayCrossingNodes = [ ];
+        List<RoadOnlyCrossingNode> roadOnlyCrossingNodes = [ ];
+        List<FootwayOnlyCrossingNode> footwayOnlyCrossingNodes = [ ];
 
         foreach (OsmNode node in osmCrossingNodes.Nodes)
         {
@@ -74,7 +74,7 @@ public class LoneCrossingAnalyzer : Analyzer
 
             if (hasRoad && !hasPerson)
             {
-                roadOnlyCrossingNodes.Add(new RaodOnlyCrossingNode(node));
+                roadOnlyCrossingNodes.Add(new RoadOnlyCrossingNode(node));
             }
             else if (!hasRoad && hasPerson)
             {
@@ -99,7 +99,7 @@ public class LoneCrossingAnalyzer : Analyzer
             );
         }
         
-        foreach (RaodOnlyCrossingNode roadOnlyCrossingNode in roadOnlyCrossingNodes)
+        foreach (RoadOnlyCrossingNode roadOnlyCrossingNode in roadOnlyCrossingNodes)
         {
             report.AddEntry(
                 ReportGroup.RoadOnlyCrossings,
@@ -127,7 +127,7 @@ public class LoneCrossingAnalyzer : Analyzer
     
     private record StrayCrossingNode(OsmNode Node);
     
-    private record RaodOnlyCrossingNode(OsmNode Node);
+    private record RoadOnlyCrossingNode(OsmNode Node);
     
     private record FootwayOnlyCrossingNode(OsmNode Node);
         

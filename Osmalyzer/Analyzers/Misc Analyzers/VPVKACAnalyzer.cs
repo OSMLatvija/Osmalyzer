@@ -149,31 +149,36 @@ public class VPVKACAnalyzer : Analyzer
         List<IFeature> features = [ ];
         GeometryFactory geometryFactory = new GeometryFactory();
 
-        foreach (UnmatchedItemCorrelation<LocatedVPVKACOffice> node in correlation.Correlations.OfType<UnmatchedItemCorrelation<LocatedVPVKACOffice>>())
+        //foreach (LocatedVPVKACOffice node in correlation.Correlations.OfType<UnmatchedItemCorrelation<LocatedVPVKACOffice>>().Select(n => n.DataItem))
+        foreach (LocatedVPVKACOffice node in locatedOffices)
         {
-            Point? point = geometryFactory.CreatePoint(new Coordinate(node.DataItem.Coord.lon, node.DataItem.Coord.lat));
+            Point? point = geometryFactory.CreatePoint(new Coordinate(node.Coord.lon, node.Coord.lat));
             AttributesTable attributes = new AttributesTable()
             {
-                { "name", ShortenName(node.DataItem.Office.Name) },
-                { "official_name", FullName(node.DataItem.Office.Name) },
+                { "name", ShortenName(node.Office.Name) },
+                { "official_name", FullName(node.Office.Name) },
                 { "office", "government" },
-                { "government", "public_service" }
+                { "government", "public_service" },
+                { "email", node.Office.Email },
+                { "phone", node.Office.Phone },
+                { "opening_hours", node.Office.OpeningHours }
             };
 
             [Pure]
             string FullName(string officeName)
             {
-                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> 'Cēsu novada Vecpiebalgas pagasta valsts un pašvaldības vienotais klientu apkalpošanas centrs"
+                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Cēsu novada Vecpiebalgas pagasta valsts un pašvaldības vienotais klientu apkalpošanas centrs"
                 return officeName.Replace("VPVKAC", "valsts un pašvaldības vienotais klientu apkalpošanas centrs");
             }
             
             [Pure]
             string ShortenName(string officeName)
             {
-                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> 'Vecpiebalgas VPVKAC"
+                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas VPVKAC"
+                // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas VPVKAC"
                 return Regex.Replace(
                     officeName,
-                    @"^(?:[A-Z][a-z]+) novada ([A-Z][a-z]+) pagasta VPVKAC",
+                    @"^(?:.+?) novada (.+?) (?:pagasta|pilsētas) VPVKAC",
                     @"$1 VPVKAC"
                 );
             }

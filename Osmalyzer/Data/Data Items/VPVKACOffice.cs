@@ -5,12 +5,21 @@ public class VPVKACOffice
     public string Name { get; }
     
     public VPVKACAddress Address { get; }
+    
+    public string Email { get; }
+    
+    public string Phone { get; }
+    
+    public string OpeningHours { get; }
 
 
-    public VPVKACOffice(string name, VPVKACAddress address)
+    public VPVKACOffice(string name, VPVKACAddress address, string email, string phone, string openingHours)
     {
         Name = name;
         Address = address;
+        Email = email;
+        Phone = phone;
+        OpeningHours = openingHours;
     }
         
         

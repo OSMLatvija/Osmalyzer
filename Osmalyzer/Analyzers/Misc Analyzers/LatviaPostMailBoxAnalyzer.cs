@@ -10,7 +10,7 @@ public class LatviaPostMailBoxAnalyzer : Analyzer
     public override string Description => "This report checks that all " + Operator + " mail boxes listed on company's website are found on the map." + Environment.NewLine +
                                           "Note that Latvijas pasts' website can and does have errors: mainly incorrect positions, but sometimes missing or phantom items too.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.POIs;
 
     public override List<Type> GetRequiredDataTypes() =>
     [

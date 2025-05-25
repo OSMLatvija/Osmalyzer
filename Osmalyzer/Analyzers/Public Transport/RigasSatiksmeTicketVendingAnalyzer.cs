@@ -9,7 +9,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
     public override string Description => "This report checks that all Rīgas satiksme ticket vending machines are found on the map.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
+    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransport;
 
 
     public override List<Type> GetRequiredDataTypes() =>

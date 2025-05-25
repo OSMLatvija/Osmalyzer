@@ -7,7 +7,7 @@ public class DuplicatePlatformsAnalyzer : Analyzer
 
     public override string Description => "This report finds public transport platforms that are mapped in duplicate, such as node + way.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
+    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransport;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

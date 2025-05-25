@@ -7,7 +7,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
 
     public override string Description => "This report lists features that only have tags that do not strongly define the feature.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

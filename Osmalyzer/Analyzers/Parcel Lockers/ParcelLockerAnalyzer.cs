@@ -7,7 +7,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
     public override string Description => "This report checks that all " + Operator + " parcel lockers listed on company's website are found on the map." + Environment.NewLine +
                                           "Note that parcel locker websites can and do have errors: mainly incorrect position, but sometimes lockers are missing too.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.ParcelLocker;
+    public override AnalyzerGroup Group => AnalyzerGroup.ParcelLockers;
 
 
     protected abstract string Operator { get; }

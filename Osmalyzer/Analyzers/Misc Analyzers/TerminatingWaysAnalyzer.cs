@@ -7,7 +7,7 @@ public class TerminatingWaysAnalyzer : Analyzer
 
     public override string Description => "This report shows locations where ways terminate at the edge of areas and do not route through it.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

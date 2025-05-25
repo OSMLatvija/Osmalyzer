@@ -9,7 +9,7 @@ public class LoneCrossingAnalyzer : Analyzer
                                           "That is, it is unclear what the crossing represents. " +
                                           "These are not errors if the mapping detail is simply missing/lacking. Ideally, ways should be drawn.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Road;
+    public override AnalyzerGroup Group => AnalyzerGroup.Roads;
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];
         

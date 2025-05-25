@@ -7,7 +7,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
 
     public override string Description => "This report checks that ways with public transport routes have expected and valid access values.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
+    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransport;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

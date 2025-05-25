@@ -9,7 +9,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
                                           "Note that deposit points website has errors: large offsets, missing locations " +
                                           "and incorrect number of taromats in place.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.POIs;
 
 
     public override List<Type> GetRequiredDataTypes() =>

@@ -12,7 +12,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         "Note that GTFS stores routes differently than OSM and not neccessarilly all should be mapped. " +
         "Technically, GTFS doesn't have route \"variants\" - the ones below are collected from repeating unique stop sequences.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.PublicTransport;
+    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransport;
     
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(T) ];
 

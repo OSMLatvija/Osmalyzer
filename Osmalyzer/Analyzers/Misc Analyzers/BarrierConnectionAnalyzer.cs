@@ -7,7 +7,7 @@ public class BarrierConnectionAnalyzer : Analyzer
 
     public override string Description => "This report checks how barriers and other ways are connected and if there is a potential (routing) problem.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

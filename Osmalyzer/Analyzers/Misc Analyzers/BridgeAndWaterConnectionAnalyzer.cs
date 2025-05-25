@@ -7,7 +7,7 @@ public class BridgeAndWaterConnectionAnalyzer : Analyzer
 
     public override string Description => "This report shows locations where a bridge and a waterway connect unexpectedly.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

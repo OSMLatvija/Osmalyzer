@@ -8,7 +8,7 @@ public class StreetNameAnalyzer : Analyzer
     public override string Description => "Finds all named roads and reports those that aren't recognized as likely street or road names." + Environment.NewLine +
                                           "Note that most of these are likely correct. This report just narrows down the scope of names that need to be checked manually.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Road;
+    public override AnalyzerGroup Group => AnalyzerGroup.Roads;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(RoadLawAnalysisData), typeof(KuldigaRoadsAnalysisData) ];

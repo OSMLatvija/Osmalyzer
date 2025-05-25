@@ -7,7 +7,7 @@ public class BarrierAnalyzer : Analyzer
 
     public override string Description => "This report checks issues and completness of mapped barriers (gates, blocks, etc.).";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Road;
+    public override AnalyzerGroup Group => AnalyzerGroup.Roads;
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];
         

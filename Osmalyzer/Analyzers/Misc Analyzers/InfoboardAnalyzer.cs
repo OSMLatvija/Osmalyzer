@@ -7,7 +7,7 @@ public class InfoboardAnalyzer : Analyzer
 
     public override string Description => "This report checks information boards.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.POIs;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

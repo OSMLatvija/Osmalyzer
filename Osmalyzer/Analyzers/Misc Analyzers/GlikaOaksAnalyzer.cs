@@ -7,7 +7,7 @@ public class GlikaOaksAnalyzer : Analyzer
 
     public override string Description => "This report checks that all Glika Ozoli oak trees are mapped.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.POIs;
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(GlikaOzoliAnalysisData) ];
 

@@ -7,7 +7,7 @@ public class StreetTaggingContinuityAnalyzer : Analyzer
 
     public override string Description => "This report checks that streets with certain tags that apply to the whole street are applied consistently.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

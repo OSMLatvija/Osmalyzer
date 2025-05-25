@@ -13,7 +13,7 @@ public abstract class RestaurantAnalyzer<TRestaurant, TOsm> : Analyzer
                                           "This supposes that brand restaurants are tagged correctly to match among multiple." + Environment.NewLine +
                                           "Note that websites can and do have errors, mainly large offsets, but also missing or incorrect locations.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Restaurants;
+    public override AnalyzerGroup Group => AnalyzerGroup.Restaurants;
 
 
     protected abstract string RestaurantName { get; }

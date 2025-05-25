@@ -13,7 +13,7 @@ public abstract class ShopAnalyzer<TShop, TOsm> : Analyzer
                                           "This supposes that brand shops are tagged correctly to match among multiple."  + Environment.NewLine +
                                           "Note that shop websites can and do have errors, mainly large offsets, but also missing or incorrect locations.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Shop;
+    public override AnalyzerGroup Group => AnalyzerGroup.Shops;
 
 
     protected abstract string ShopName { get; }

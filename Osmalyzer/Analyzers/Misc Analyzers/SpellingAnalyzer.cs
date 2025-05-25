@@ -7,7 +7,7 @@ public class SpellingAnalyzer : Analyzer
 
     public override string Description => "This analyzer checks spelling. WIP.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
 
     public override List<Type> GetRequiredDataTypes() =>

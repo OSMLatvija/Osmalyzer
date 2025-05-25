@@ -7,7 +7,7 @@ public class UnknownParcelLockerAnalyzer : Analyzer
 
     public override string Description => "This report finds parcel lockers that do not appear to match to any known parcel locker brands.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.ParcelLocker;
+    public override AnalyzerGroup Group => AnalyzerGroup.ParcelLockers;
 
 
     public override List<Type> GetRequiredDataTypes() =>

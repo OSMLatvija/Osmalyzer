@@ -9,7 +9,7 @@ public class PostCodeAnalyzer : Analyzer
                                           "Note that this assumes the post office services the same region as its own address post code. " +
                                           "This also assumes addresses were assigned correctly to the nodes (e.g. post offices are at the right location).";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Miscellaneous;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData) ];

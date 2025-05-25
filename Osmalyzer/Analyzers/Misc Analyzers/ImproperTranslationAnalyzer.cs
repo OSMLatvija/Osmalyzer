@@ -10,7 +10,7 @@ public class ImproperTranslationAnalyzer : Analyzer
     public override string Description => "This analyzer checks for improper translations/transliterations of things like street names. " + Environment.NewLine +
                                           "Note that proposed/expected transliteration is generated automatically and has false positives as it makes mistakes.";
 
-    public override AnalyzerGroup Group => AnalyzerGroups.Misc;
+    public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
 
     public override List<Type> GetRequiredDataTypes() =>

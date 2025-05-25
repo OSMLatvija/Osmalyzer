@@ -1,11 +1,11 @@
 ﻿namespace Osmalyzer;
 
-public class LoneCorrelation : Correlation
+public class LoneOsmCorrelation : Correlation
 {
     public OsmElement OsmElement { get; set; }
 
     
-    public LoneCorrelation(OsmElement osmElement)
+    public LoneOsmCorrelation(OsmElement osmElement)
     {
         OsmElement = osmElement;
     }

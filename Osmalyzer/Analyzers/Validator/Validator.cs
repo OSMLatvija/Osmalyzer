@@ -35,12 +35,12 @@ public class Validator<T> where T : IDataItem
                     dataItem = matchedCorrelation.DataItem;
                     break;
 
-                case LoneCorrelation loneCorrelation:
+                case LoneOsmCorrelation loneCorrelation:
                     osmElement = loneCorrelation.OsmElement;
                     dataItem = default;
                     break;
                 
-                case UnmatchedCorrelation unmatchedCorrelation:
+                case UnmatchedOsmCorrelation unmatchedCorrelation:
                     if (!validateUnmatchedElements)
                         continue;
                     

@@ -1,4 +1,9 @@
-﻿namespace Osmalyzer;
+﻿using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class VPVKACAnalyzer : Analyzer
@@ -104,7 +109,7 @@ public class VPVKACAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        correlator.Parse(
+        CorrelatorReport correlation = correlator.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
@@ -137,6 +142,51 @@ public class VPVKACAnalyzer : Analyzer
         // Validate additional issues
 
         // todo:
+
+#if !REMOTE_EXECUTION
+        // Export all offices
+        
+        List<IFeature> features = [ ];
+        GeometryFactory geometryFactory = new GeometryFactory();
+
+        foreach (UnmatchedItemCorrelation<LocatedVPVKACOffice> node in correlation.Correlations.OfType<UnmatchedItemCorrelation<LocatedVPVKACOffice>>())
+        {
+            Point? point = geometryFactory.CreatePoint(new Coordinate(node.DataItem.Coord.lon, node.DataItem.Coord.lat));
+            AttributesTable attributes = new AttributesTable()
+            {
+                { "name", ShortenName(node.DataItem.Office.Name) },
+                { "official_name", FullName(node.DataItem.Office.Name) },
+                { "office", "government" },
+                { "government", "public_service" }
+            };
+
+            [Pure]
+            string FullName(string officeName)
+            {
+                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> 'Cēsu novada Vecpiebalgas pagasta valsts un pašvaldības vienotais klientu apkalpošanas centrs"
+                return officeName.Replace("VPVKAC", "valsts un pašvaldības vienotais klientu apkalpošanas centrs");
+            }
+            
+            [Pure]
+            string ShortenName(string officeName)
+            {
+                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> 'Vecpiebalgas VPVKAC"
+                return Regex.Replace(
+                    officeName,
+                    @"^(?:[A-Z][a-z]+) novada ([A-Z][a-z]+) pagasta VPVKAC",
+                    @"$1 VPVKAC"
+                );
+            }
+
+            features.Add(new Feature(point, attributes));
+        }
+
+        FeatureCollection featureCollection = new FeatureCollection(features);
+
+        JsonSerializer? serializer = GeoJsonSerializer.Create();
+        using StreamWriter writer = new StreamWriter("VPVKAC offices.geojson");
+        serializer.Serialize(writer, featureCollection);
+#endif
     }
 
 

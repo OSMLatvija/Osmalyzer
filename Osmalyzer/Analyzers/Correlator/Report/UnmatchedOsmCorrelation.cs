@@ -1,11 +1,11 @@
 ﻿namespace Osmalyzer;
 
-public class UnmatchedCorrelation : Correlation
+public class UnmatchedOsmCorrelation : Correlation
 {
     public OsmElement OsmElement { get; set; }
 
     
-    public UnmatchedCorrelation(OsmElement osmElement)
+    public UnmatchedOsmCorrelation(OsmElement osmElement)
     {
         OsmElement = osmElement;
     }

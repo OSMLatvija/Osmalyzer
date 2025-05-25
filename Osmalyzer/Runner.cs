@@ -75,12 +75,13 @@ public static class Runner
             // new SpellingAnalyzer(),
             // new DuplicatePlatformsAnalyzer(),
             // new LoneCrossingAnalyzer(),
-            new BarrierAnalyzer(),
+            // new BarrierAnalyzer(),
             // new InfoboardAnalyzer(),
             // new LuluRestaurantAnalyzer(),
-            // new CaffeineRestaurantAnalyzer()
-            // new HesburgerRestaurantAnalyzer()
-            // new LVCRoadAnalyzer()
+            // new CaffeineRestaurantAnalyzer(),
+            // new HesburgerRestaurantAnalyzer(),
+            // new LVCRoadAnalyzer(),
+            new VPVKACAnalyzer(),
         ];
 #endif
 

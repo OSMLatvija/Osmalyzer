@@ -59,7 +59,7 @@ public static class Runner
             // new StreetTaggingContinuityAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
-            // new BottleDepositPointsAnalyzer(),
+            new BottleDepositPointsAnalyzer(),
             // new VenipakParcelLockerAnalyzer(),
             // new OmnivaParcelLockerAnalyzer(),
             // new SmartPostiParcelLockerAnalyzer(),
@@ -81,7 +81,7 @@ public static class Runner
             // new CaffeineRestaurantAnalyzer(),
             // new HesburgerRestaurantAnalyzer(),
             // new LVCRoadAnalyzer(),
-            new VPVKACAnalyzer(),
+            // new VPVKACAnalyzer(),
         ];
 #endif
 

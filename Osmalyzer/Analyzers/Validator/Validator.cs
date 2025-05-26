@@ -47,6 +47,10 @@ public class Validator<T> where T : IDataItem
                     osmElement = unmatchedCorrelation.OsmElement;
                     dataItem = default;
                     break;
+                
+                case UnmatchedItemCorrelation<T>:
+                    // No OSM element to validate, just a data item
+                    continue;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(match));

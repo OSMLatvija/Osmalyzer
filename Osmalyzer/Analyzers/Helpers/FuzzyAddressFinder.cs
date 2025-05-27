@@ -44,19 +44,36 @@ public static class FuzzyAddressFinder
         }
 
         List<OsmElement> matchedElements = [ ];
+        int bestMatchedScore = 0;
         
         foreach (OsmElement element in addressables!)
         {
-            if (DoesElementMatch())
-                matchedElements.Add(element);
-            
+            if (DoesElementMatch(out int matchScore))
+            {
+                if (matchedElements.Count == 0)
+                {
+                    matchedElements.Add(element);
+                    bestMatchedScore = matchScore;
+                }
+                else if (matchScore > bestMatchedScore)
+                {
+                    matchedElements.Clear();
+                    matchedElements.Add(element);
+                    bestMatchedScore = matchScore;
+                }
+                else if (matchScore == bestMatchedScore)
+                {
+                    matchedElements.Add(element);
+                }
+            }
+
             continue;
 
 
             [Pure]
-            bool DoesElementMatch()
+            bool DoesElementMatch(out int score)
             {
-                int score = 0;
+                score = 0;
                 
                 // Street "line" - house name or street + number
                 
@@ -74,9 +91,9 @@ public static class FuzzyAddressFinder
                 // Location
                 
                 if (location != null && element.GetValue("addr:city") == location)
-                    score += 10;
+                    score += 15;
                 else if (pagasts != null && element.GetValue("addr:subdistrict") == pagasts)
-                    score += 10;
+                    score += 12;
                 else if (element.GetValue("addr:postcode") == postalCode) // fallback, basically
                     score += 10;
                 

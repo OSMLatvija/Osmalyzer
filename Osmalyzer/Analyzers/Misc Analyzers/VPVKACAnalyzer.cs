@@ -69,6 +69,11 @@ public class VPVKACAnalyzer : Analyzer
         [Pure]
         MatchStrength GetMatchStrength(LocatedVPVKACOffice office, OsmElement osmElement)
         {
+            string? official_name = osmElement.GetValue("official_name");
+
+            if (official_name == office.Office.Name)
+                return MatchStrength.Strong; // exact match on name
+            
             string? name = osmElement.GetValue("name");
 
             if (name == office.Office.Name)

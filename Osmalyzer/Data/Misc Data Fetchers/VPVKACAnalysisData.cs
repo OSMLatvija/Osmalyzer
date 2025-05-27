@@ -86,6 +86,8 @@ Piektdiena: 8:30 - 14:00</td>
 
             VPVKACOffice.VPVKACAddress? address = CleanAddress(addressMatches[1].Groups[1].ToString().Trim());
             if (address == null) throw new Exception();
+            
+            address = AdjustAddress(address);
 
             Match openingHoursMatch = Regex.Match(rowText, @"<td class=""text-left"">(.+?)<\/td>", RegexOptions.Singleline);
             if (!openingHoursMatch.Success) throw new Exception();
@@ -450,7 +452,17 @@ Piektdiena: 8:30 - 14:00</td>
         }
     }
 
-    
+    [Pure]
+    private static VPVKACOffice.VPVKACAddress AdjustAddress(VPVKACOffice.VPVKACAddress address)
+    {
+        // No idea what the "10" is here, but "Tērces" seems to match well
+        if (address.Name == "\"Tērces-10\"")
+            return address with { Name = "\"Tērces\"" };
+
+        return address;
+    }
+
+
     [Pure]
     private static string TryCleanName(string name)
     {

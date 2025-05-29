@@ -81,7 +81,8 @@ public static class Runner
             // new CaffeineRestaurantAnalyzer(),
             // new HesburgerRestaurantAnalyzer(),
             // new LVCRoadAnalyzer(),
-            new VPVKACAnalyzer(),
+            // new VPVKACAnalyzer(),
+            new VillageAnalyzer()
         ];
 #endif
 

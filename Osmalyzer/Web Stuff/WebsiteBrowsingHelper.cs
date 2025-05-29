@@ -124,6 +124,15 @@ public static class WebsiteBrowsingHelper
         File.WriteAllText(fileName, Read(url, canUseCache, null, browsingActions));
     }
 
+    public static void DownloadTarget(string url, string fileName)
+    {
+        if (!WebsiteDownloadHelper.BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
+        // TODO:
+        throw new NotImplementedException();
+    }
+
     public static string TryUnwrapJsonFromBoilerplateHtml(string source)
     {
         // On remote it could be wrapped like this:

@@ -34,6 +34,8 @@ public class Report
     
     public void AddGroup(object id, object? parentGroupId, string title, string? descriptionEntry = null, string? placeholderEntry = null, bool showImportantEntryCount = true, bool shouldClusterMapPointEntries = true)
     {
+        //if (_groups.Any(g => g.Title == title)) throw new InvalidOperationException("Group with title \"" + title + "\" already exists!");
+        
         ReportGroup newGroup = new ReportGroup(id, parentGroupId, title, showImportantEntryCount, shouldClusterMapPointEntries);
             
         _groups.Add(newGroup);

@@ -520,6 +520,12 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         {
             _trips.Add(trip);
         }
+
+
+        public override string ToString()
+        {
+            return Route.Name;
+        }
     }
 
     [Pure]

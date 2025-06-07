@@ -84,7 +84,11 @@ Piektdiena: 8:30 - 14:00</td>
             // This will match both <a> - name and address
             if (addressMatches.Count != 2) throw new Exception();
 
-            VPVKACOffice.VPVKACAddress? address = CleanAddress(addressMatches[1].Groups[1].ToString().Trim());
+            string rawAddress = addressMatches[1].Groups[1].ToString().Trim();
+            if (rawAddress == "") 
+                continue; // address not (yet) specified, ignoring entry
+                
+            VPVKACOffice.VPVKACAddress? address = CleanAddress(rawAddress);
             if (address == null) throw new Exception();
             
             address = AdjustAddress(address);
@@ -109,10 +113,6 @@ Piektdiena: 8:30 - 14:00</td>
             string phone = phoneMatch.Groups[1].ToString().Trim();
             
             phone = PhonesToOsmSyntax(phone);
-
-            // todo: opening hours
-            // todo: email
-            // todo: phone
             
             Offices.Add(new VPVKACOffice(name, address, email, phone, openingHours));
         }
@@ -201,6 +201,8 @@ Piektdiena: 8:30 - 14:00</td>
                 // e.g. "Sestdiena: 10:00 - 14:00 (no septembra līdz maijam)"
                 // e.g. "Piektdiena: Slēgts"
                 // e.g. "Piektdiena: slēgts"
+                // e.g. "Otrdiena: Slēgts (atrodas Rugāju pagasta pārvaldē)"
+                // e.g. "Otrdiena: Slēgts (apkalpošana ārpus telpām)"
                 // e.g. "Katra mēneša otrā trešdiena - metodiskā diena"
 
                 // Skip closed days

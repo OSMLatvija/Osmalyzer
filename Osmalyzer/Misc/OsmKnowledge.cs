@@ -88,7 +88,37 @@ public static class OsmKnowledge
 
             if (place != null)
             {
-                if (place == "square") return "square";
+                if (place == "country") return "country";	
+                if (place == "state") return "state";	
+                if (place == "region") return "region";	
+                if (place == "province") return "province";	
+                if (place == "district") return "district";	
+                if (place == "county") return "county";	
+                if (place == "subdistrict") return "subdistrict";	
+                if (place == "municipality") return "municipality";
+                if (place == "city") return "city";		
+                if (place == "borough") return "borough";		
+                if (place == "suburb") return "suburb";		
+                if (place == "quarter") return "quarter";		
+                if (place == "neighbourhood") return "neighbourhood";		
+                if (place == "city_block") return "city block";		
+                if (place == "plot") return "plot";
+                if (place == "city") return "city";	
+                if (place == "town") return "town";	
+                if (place == "village") return "village";	
+                if (place == "hamlet") return "hamlet";	
+                if (place == "isolated_dwelling") return "isolated dwelling";	
+                if (place == "farm") return "farm";	
+                if (place == "allotments") return "allotments";
+                if (place == "continent") return "continent";	
+                if (place == "archipelago") return "archipelago";	
+                if (place == "island") return "island";	
+                if (place == "islet") return "islet";	
+                if (place == "square") return "square";	
+                if (place == "locality") return "locality";	
+                if (place == "polder") return "polder";	
+                if (place == "sea") return "sea";	
+                if (place == "ocean") return "ocean";
             }
         
             string? highway = element.GetValue("highway");

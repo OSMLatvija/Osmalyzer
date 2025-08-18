@@ -53,6 +53,9 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
 
         foreach (OsmWay area in areas.Ways)
         {
+            if (!IncludeArea(area))
+                continue;
+            
             RedundantFeature? redundantFeature = null;
             
             foreach (OsmNode node in nodes.Nodes)
@@ -98,6 +101,16 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
                 )
             );
         }
+    }
+
+    [Pure]
+    private static bool IncludeArea(OsmWay area)
+    {
+        // Ignore isolated dwellings, there is not yet consensus on how to treat these being double mapped - one with node and name, one with area for landuse layout
+        if (area.HasValue("place", "isolated_dwelling"))
+            return false;
+        
+        return true;
     }
 
 

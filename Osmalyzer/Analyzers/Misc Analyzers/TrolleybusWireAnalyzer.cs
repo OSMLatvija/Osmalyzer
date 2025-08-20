@@ -78,7 +78,7 @@ public class TrolleybusWireAnalyzer : Analyzer
                         ReportGroup.Issues,
                         new IssueReportEntry(
                             "Conflicting `trolley_wire:xxx` subvalue(s) with main `trolley_wire` value on " + roadSegment.OsmViewUrl,
-                            roadSegment.GetAverageCoord(),
+                            roadSegment.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -92,7 +92,7 @@ public class TrolleybusWireAnalyzer : Analyzer
                             ReportGroup.Issues,
                             new IssueReportEntry(
                                 "`trolley_wire` unknown value \"" + trolley_wire + "\" on " + roadSegment.OsmViewUrl,
-                                roadSegment.GetAverageCoord(),
+                                roadSegment.AverageCoord,
                                 MapPointStyle.Problem
                             )
                         );
@@ -107,7 +107,7 @@ public class TrolleybusWireAnalyzer : Analyzer
                             ReportGroup.Issues,
                             new IssueReportEntry(
                                 "`trolley_wire:forward` unknown value \"" + trolley_wire_forward + "\" on " + roadSegment.OsmViewUrl,
-                                roadSegment.GetAverageCoord(),
+                                roadSegment.AverageCoord,
                                 MapPointStyle.Problem
                             )
                         );
@@ -120,7 +120,7 @@ public class TrolleybusWireAnalyzer : Analyzer
                             ReportGroup.Issues,
                             new IssueReportEntry(
                                 "`trolley_wire:backward` unknown value \"" + trolley_wire_backward + "\" on " + roadSegment.OsmViewUrl,
-                                roadSegment.GetAverageCoord(),
+                                roadSegment.AverageCoord,
                                 MapPointStyle.Problem
                             )
                         );                                    
@@ -133,7 +133,7 @@ public class TrolleybusWireAnalyzer : Analyzer
                         ReportGroup.Issues,
                         new IssueReportEntry(
                             "`trolley_wire` missing on " + roadSegment.OsmViewUrl,
-                            roadSegment.GetAverageCoord(),
+                            roadSegment.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );

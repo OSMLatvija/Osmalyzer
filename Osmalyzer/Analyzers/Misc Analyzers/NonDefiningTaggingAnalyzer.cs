@@ -239,7 +239,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.PoorlyDefining,
                         new MapPointReportEntry( // there are a ton of these, don't care to write a line for each
-                            element.GetAverageCoord(),
+                            element.AverageCoord,
                             "Element only has poorly-defining keys for " + element.OsmViewUrl,
                             element,
                             MapPointStyle.Dubious
@@ -276,7 +276,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                     new IssueReportEntry(
                         "Element only has non-defining keys " + keys + " for " + element.OsmViewUrl,
                         new SortEntryAsc(keys), 
-                        element.GetAverageCoord(),
+                        element.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );

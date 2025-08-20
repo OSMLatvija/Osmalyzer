@@ -49,7 +49,7 @@ public class OsmPolygon
 
             case OsmWay way:
             {
-                OsmCoord averageCoord = way.GetAverageCoord();
+                OsmCoord averageCoord = way.AverageCoord;
                 return ContainsCoord(averageCoord);
             }
                 

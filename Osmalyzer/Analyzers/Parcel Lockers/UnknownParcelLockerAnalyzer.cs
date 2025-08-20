@@ -59,7 +59,7 @@ public class UnknownParcelLockerAnalyzer : Analyzer
                     new IssueReportEntry(
                         "Parcel locker " + element.OsmViewUrl + " doesn't seem to belong to a known brand" +
                         (comparedValues.Count > 0 ? " (compared values: " + string.Join(", ", comparedValues.Select(v => "`" + v + "`")) + ")" : ""),
-                        element.GetAverageCoord(),
+                        element.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );

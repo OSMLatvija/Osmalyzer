@@ -303,7 +303,7 @@ public class LVCRoadAnalyzer : Analyzer
                     ReportGroup.ExtraRelations,
                     new IssueReportEntry(
                         "The route relation `" + code + "` doesn't have a any road segment with such code - " + routeElement.OsmViewUrl,
-                        routeElement.GetAverageCoord(),
+                        routeElement.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );

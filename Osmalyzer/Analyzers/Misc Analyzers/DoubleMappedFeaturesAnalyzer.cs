@@ -48,7 +48,7 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
         
         // Parse
 
-        List<RedundantFeature> redundantFeatures = new List<RedundantFeature>();
+        List<RedundantFeature> redundantFeatures = [ ];
 
 
         foreach (OsmWay area in areas.Ways)
@@ -60,12 +60,16 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
             
             foreach (OsmNode node in nodes.Nodes)
             {
+                // Ignore distant features, about 1 km
+                if (OsmGeoTools.DistanceBetweenCheap(area.AverageCoord, node.AverageCoord) > 1000) 
+                    continue;
+
                 if (OsmKnowledge.AreSameAreaFeatures(area, node))
                 {
                     if (area.ContainsCoord(node.coord))
                     {
                         if (redundantFeature == null)
-                            redundantFeature = new RedundantFeature(area, new List<OsmNode>() { node });
+                            redundantFeature = new RedundantFeature(area, [ node ], OsmKnowledge.GetFeatureLabel(area, "area", false));
                         else
                             redundantFeature.Nodes.Add(node);
                     }
@@ -79,14 +83,14 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
 
         if (redundantFeatures.Count > 0)
         {
-            foreach (RedundantFeature redundantFeature in redundantFeatures)
+            foreach (RedundantFeature redundantFeature in redundantFeatures.OrderBy(rf => rf.Descriptor))
             {
                 report.AddEntry(
                     ReportGroup.NodeOverArea,
                     new IssueReportEntry(
-                        OsmKnowledge.GetFeatureLabel(redundantFeature.Area, "Area", true) + " " + redundantFeature.Area.OsmViewUrl + " has same feature node" + (redundantFeature.Nodes.Count > 1 ? "s" : "") + " on top of it: " +
+                        OsmKnowledge.GetFeatureLabel(redundantFeature.Area, "Area", true) + " (" + OsmGeoTools.GetAreaSize(redundantFeature.Area).ToString("F3") + "km2) " + redundantFeature.Area.OsmViewUrl + " has same feature node" + (redundantFeature.Nodes.Count > 1 ? "s" : "") + " on top of it: " +
                         string.Join("; ", redundantFeature.Nodes.Select(n => n.OsmViewUrl)),
-                        redundantFeature.Nodes.Count == 1 ? redundantFeature.Nodes[0].coord : redundantFeature.Area.GetAverageCoord(),
+                        redundantFeature.Nodes.Count == 1 ? redundantFeature.Nodes[0].coord : redundantFeature.Area.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
@@ -106,6 +110,10 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
     [Pure]
     private static bool IncludeArea(OsmWay area)
     {
+        // Ignore huge areas
+        if (OsmGeoTools.GetAreaSize(area) > 0.3) // km^2
+            return false;
+        
         // Ignore isolated dwellings, there is not yet consensus on how to treat these being double mapped - one with node and name, one with area for landuse layout
         if (area.HasValue("place", "isolated_dwelling"))
             return false;
@@ -114,7 +122,7 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
     }
 
 
-    private record RedundantFeature(OsmWay Area, List<OsmNode> Nodes);
+    private record RedundantFeature(OsmWay Area, List<OsmNode> Nodes, string Descriptor);
     
     
     private enum ReportGroup

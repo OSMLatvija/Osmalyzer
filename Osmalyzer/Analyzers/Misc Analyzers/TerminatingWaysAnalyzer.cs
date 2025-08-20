@@ -144,7 +144,7 @@ public class TerminatingWaysAnalyzer : Analyzer
                         OsmKnowledge.GetFeatureLabel(badConnection.Area, "Area", true) + "  " + badConnection.Area.OsmViewUrl + 
                         " has " + badConnection.Points.Count + " unrouted terminating ways: " + 
                         string.Join("; ", badConnection.Points.Select(p => p.Way.OsmViewUrl + " at " + p.Node.OsmViewUrl)),
-                        badConnection.Area.GetAverageCoord(),
+                        badConnection.Area.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );

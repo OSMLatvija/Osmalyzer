@@ -63,10 +63,9 @@ public class OsmRelation : OsmElement
         return outerWays;
     }
 
-    [Pure]
-    public override OsmCoord GetAverageCoord()
+    public override OsmCoord AverageCoord
     {
-        return _cachedAverageCoord ??= OsmGeoTools.GetAverageCoord(Elements);
+        [Pure] get { return _cachedAverageCoord ??= OsmGeoTools.GetAverageCoord(Elements); }
     }
 
     [Pure]

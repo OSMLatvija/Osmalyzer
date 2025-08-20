@@ -140,7 +140,7 @@ public class Correlator<T> where T : IDataItem
                         _ => throw new ArgumentOutOfRangeException()
                     };
 
-                    double actualDistance = OsmGeoTools.DistanceBetween(dataItem.Coord, osmElement.GetAverageCoord());
+                    double actualDistance = OsmGeoTools.DistanceBetween(dataItem.Coord, osmElement.AverageCoord);
 
                     if (actualDistance <= allowedDistance)
                         matchableOsmElements.Add((osmElement, strength, actualDistance));
@@ -275,7 +275,7 @@ public class Correlator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
-                            osmElement.GetAverageCoord(),
+                            osmElement.AverageCoord,
                             "No " + dataItemLabelSingular + " expected in " + unmatchDistance + " m range of OSM element " +
                             OsmElementReportText(osmElement), 
                             osmElement,
@@ -307,7 +307,7 @@ public class Correlator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
-                            match.Element.GetAverageCoord(),
+                            match.Element.AverageCoord,
                             match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
@@ -359,7 +359,7 @@ public class Correlator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
-                            match.Element.GetAverageCoord(),
+                            match.Element.AverageCoord,
                             match.Item.ReportString() + " " + 
                             MatchStrengthLabel(match.MatchStrength) + " OSM element " +
                             OsmElementReportText(match.Element) +
@@ -403,7 +403,7 @@ public class Correlator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.CorrelationResults,
                         new MapPointReportEntry(
-                            osmElement.GetAverageCoord(),
+                            osmElement.AverageCoord,
                             "Matched OSM element " +
                             OsmElementReportText(osmElement) +
                             " by itself",

@@ -55,11 +55,6 @@ public static class OsmKnowledge
         {
             // TODO: all the others
             
-            if (element.HasKey("building")) return "building";
-            
-            if (element.HasValue("amenity", "parking")) return "parking";
-            if (element.HasValue("place", "square")) return "square";
-            
             string? amenity = element.GetValue("amenity");
 
             if (amenity != null)
@@ -69,6 +64,9 @@ public static class OsmKnowledge
                     case "parking":      return "parking";
                     case "fuel":         return "fuel station";
                     case "kindergarten": return "kindergarten";
+                    case "school":       return "school";
+                    case "college":      return "college";
+                    case "university":   return "university";
                 }
             }        
         
@@ -76,11 +74,19 @@ public static class OsmKnowledge
 
             if (leisure != null)
             {
+                if (leisure == "fitness_station")
+                {
+                    if (element.HasKey("fitness_station"))
+                        return "fitness equipment"; // subkey implies individual equipment, not a station as a whole
+
+                    return "fitness station";
+                }
+                
                 switch (leisure)
                 {
-                    case "pitch":      return "sports pitch";
-                    case "park":         return "park";
-                    case "playground": return "playground";
+                    case "pitch":           return "sports pitch";
+                    case "park":            return "park";
+                    case "playground":      return "playground";
                 }
             }    
         
@@ -88,39 +94,41 @@ public static class OsmKnowledge
 
             if (place != null)
             {
-                if (place == "country") return "country";	
-                if (place == "state") return "state";	
-                if (place == "region") return "region";	
-                if (place == "province") return "province";	
-                if (place == "district") return "district";	
-                if (place == "county") return "county";	
-                if (place == "subdistrict") return "subdistrict";	
-                if (place == "municipality") return "municipality";
-                if (place == "city") return "city";		
-                if (place == "borough") return "borough";		
-                if (place == "suburb") return "suburb";		
-                if (place == "quarter") return "quarter";		
-                if (place == "neighbourhood") return "neighbourhood";		
-                if (place == "city_block") return "city block";		
-                if (place == "plot") return "plot";
-                if (place == "city") return "city";	
-                if (place == "town") return "town";	
-                if (place == "village") return "village";	
-                if (place == "hamlet") return "hamlet";	
-                if (place == "isolated_dwelling") return "isolated dwelling";	
-                if (place == "farm") return "farm";	
-                if (place == "allotments") return "allotments";
-                if (place == "continent") return "continent";	
-                if (place == "archipelago") return "archipelago";	
-                if (place == "island") return "island";	
-                if (place == "islet") return "islet";	
-                if (place == "square") return "square";	
-                if (place == "locality") return "locality";	
-                if (place == "polder") return "polder";	
-                if (place == "sea") return "sea";	
-                if (place == "ocean") return "ocean";
+                switch (place)
+                {
+                    case "country":           return "country";
+                    case "state":             return "state";
+                    case "region":            return "region";
+                    case "province":          return "province";
+                    case "district":          return "district";
+                    case "county":            return "county";
+                    case "subdistrict":       return "subdistrict";
+                    case "municipality":      return "municipality";
+                    case "city":              return "city";
+                    case "borough":           return "borough";
+                    case "suburb":            return "suburb";
+                    case "quarter":           return "quarter";
+                    case "neighbourhood":     return "neighbourhood";
+                    case "city_block":        return "city block";
+                    case "plot":              return "plot";
+                    case "town":              return "town";
+                    case "village":           return "village";
+                    case "hamlet":            return "hamlet";
+                    case "isolated_dwelling": return "isolated dwelling";
+                    case "farm":              return "farm";
+                    case "allotments":        return "allotments";
+                    case "continent":         return "continent";
+                    case "archipelago":       return "archipelago";
+                    case "island":            return "island";
+                    case "islet":             return "islet";
+                    case "square":            return "square";
+                    case "locality":          return "locality";
+                    case "polder":            return "polder";
+                    case "sea":               return "sea";
+                    case "ocean":             return "ocean";
+                }
             }
-        
+
             string? highway = element.GetValue("highway");
 
             if (highway != null)
@@ -195,6 +203,10 @@ public static class OsmKnowledge
                 return "barrier";
             }
 
+            // Building as primary tag for last, since many primary tags can be on building, making it two primary tags and building is less important by itself  
+            if (element.HasKey("building")) return "building";
+            // todo: subtypes
+
             return null;
         }
     }
@@ -212,7 +224,14 @@ public static class OsmKnowledge
 
         if (amenity != null)
         {
-            if (amenity is "parking" or "fuel" or "kindergarten")
+            if (amenity 
+                is "parking" 
+                or "fuel" 
+                or "kindergarten"
+                or "school"
+                or "college"
+                or "university"
+                )
                 return ("amenity", amenity);
         }
         
@@ -220,7 +239,13 @@ public static class OsmKnowledge
 
         if (leisure != null)
         {
-            if (leisure is "pitch" or "park" or "playground" or "fitness_station")
+            if (leisure == "fitness_station" && (!element.HasKey("fitness_station") || element.ElementType != OsmElement.OsmElementType.Node))
+                return ("leisure", leisure); // fitness station is a special case, as it can be a single piece of equipment or a whole "station"
+            
+            if (leisure 
+                is "pitch" 
+                or "park" 
+                or "playground")
                 return ("leisure", leisure);
         }
         
@@ -228,7 +253,38 @@ public static class OsmKnowledge
 
         if (place != null)
         {
-            if (place is "isolated_dwelling")
+            if (place 
+                is "isolated_dwelling"
+                or "country"
+                or "state"
+                or "region"
+                or "province"
+                or "district"
+                or "county"
+                or "subdistrict"
+                or "municipality"
+                or "city"
+                or "borough"
+                or "suburb"
+                or "quarter"
+                or "neighbourhood"
+                or "city_block"
+                or "plot"
+                or "town"
+                or "village"
+                or "hamlet"
+                or "farm"
+                or "allotments"
+                or "continent"
+                or "archipelago"
+                or "island"
+                or "islet"
+                or "square"
+                or "locality"
+                or "polder"
+                or "sea"
+                or "ocean"
+                )
                 return ("place", place);
         }
 

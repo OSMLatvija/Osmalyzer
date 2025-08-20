@@ -44,7 +44,7 @@ public class DuplicatePlatformsAnalyzer : Analyzer
             
         foreach (OsmNode platformNode in platformNodes.Nodes)
         {
-            List<OsmWay> closestWays = platformWays.GetClosestWaysTo(platformNode.GetAverageCoord(), duplicateMatchDistance);
+            List<OsmWay> closestWays = platformWays.GetClosestWaysTo(platformNode.AverageCoord, duplicateMatchDistance);
             
             // todo: de-duplicate within groups - closest node to way
             
@@ -73,7 +73,7 @@ public class DuplicatePlatformsAnalyzer : Analyzer
                         "Node " + duplicateGroup.Node.OsmViewUrl +
                         " has " + duplicateGroup.Ways.Count + " duplicate ways nearby: " + 
                         string.Join("; ", duplicateGroup.Ways.Select(w => w.OsmViewUrl)),
-                        duplicateGroup.Node.GetAverageCoord(),
+                        duplicateGroup.Node.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );

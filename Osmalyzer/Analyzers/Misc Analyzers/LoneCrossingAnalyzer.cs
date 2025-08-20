@@ -93,7 +93,7 @@ public class LoneCrossingAnalyzer : Analyzer
                 ReportGroup.StrayCrossings,
                 new IssueReportEntry(
                     "This crossing is neither on a road nor a footway - " + strayCrossingNode.Node.OsmViewUrl,
-                    strayCrossingNode.Node.GetAverageCoord(),
+                    strayCrossingNode.Node.AverageCoord,
                     MapPointStyle.Problem
                 )
             );
@@ -105,7 +105,7 @@ public class LoneCrossingAnalyzer : Analyzer
                 ReportGroup.RoadOnlyCrossings,
                 new IssueReportEntry(
                     "This crossing is on a road but not on a footway - " + roadOnlyCrossingNode.Node.OsmViewUrl,
-                    roadOnlyCrossingNode.Node.GetAverageCoord(),
+                    roadOnlyCrossingNode.Node.AverageCoord,
                     MapPointStyle.Problem
                 )
             );
@@ -117,7 +117,7 @@ public class LoneCrossingAnalyzer : Analyzer
                 ReportGroup.FootwayOnlyCrossings,
                 new IssueReportEntry(
                     "This crossing is on a footway but not on a road - " + footwayOnlyCrossingNode.Node.OsmViewUrl,
-                    footwayOnlyCrossingNode.Node.GetAverageCoord(),
+                    footwayOnlyCrossingNode.Node.AverageCoord,
                     MapPointStyle.Problem
                 )
             );

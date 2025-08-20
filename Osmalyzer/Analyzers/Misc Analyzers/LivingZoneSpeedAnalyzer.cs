@@ -55,7 +55,7 @@ public class LivingZoneSpeedAnalyzer : Analyzer
                 {
                     if (maxspeed != 20)
                     {
-                        OsmCoord coord = livingStreet.GetAverageCoord();
+                        OsmCoord coord = livingStreet.AverageCoord;
 
                         report.AddEntry(
                             ReportGroup.InvalidSpeed,
@@ -70,7 +70,7 @@ public class LivingZoneSpeedAnalyzer : Analyzer
                 }
                 else
                 {
-                    OsmCoord coord = livingStreet.GetAverageCoord();
+                    OsmCoord coord = livingStreet.AverageCoord;
 
                     report.AddEntry(
                         ReportGroup.InvalidSpeed,

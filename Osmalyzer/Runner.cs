@@ -54,7 +54,7 @@ public static class Runner
             // new NonDefiningTaggingAnalyzer(),
             // new BridgeAndWaterConnectionAnalyzer(),
             // new TerminatingWaysAnalyzer(),
-            // new DoubleMappedFeaturesAnalyzer(),
+            new DoubleMappedFeaturesAnalyzer(),
             // new CrossingConsistencyAnalyzer(),
             // new StreetTaggingContinuityAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
@@ -81,7 +81,7 @@ public static class Runner
             // new CaffeineRestaurantAnalyzer(),
             // new HesburgerRestaurantAnalyzer(),
             // new LVCRoadAnalyzer(),
-            new VPVKACAnalyzer(),
+            // new VPVKACAnalyzer(),
             // new VillageAnalyzer()
         ];
 #endif

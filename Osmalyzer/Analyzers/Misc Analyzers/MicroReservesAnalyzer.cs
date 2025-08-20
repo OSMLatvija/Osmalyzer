@@ -107,7 +107,7 @@ public class MicroReservesAnalyzer : Analyzer
                     new IssueReportEntry(
                         "OSM reserve " + osmReserve.OsmViewUrl + " " +
                         "matched to multiple reserves - " + string.Join("; ", matchedReserves.Select(r => r.ToString())) + ".",
-                        osmReserve.GetAverageCoord(),
+                        osmReserve.AverageCoord,
                         MapPointStyle.Dubious
                     )
                 );

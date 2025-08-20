@@ -187,7 +187,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                         report.AddEntry(
                             variant,
                             new MapPointReportEntry(
-                                fullStopMatch.OsmStop.GetAverageCoord(),
+                                fullStopMatch.OsmStop.AverageCoord,
                                 "Route stop and OSM stop match well: " +
                                 " Route stop " + 
                                 RouteStopMapPointLabel(fullStopMatch.RouteStop) +
@@ -203,7 +203,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                         report.AddEntry(
                             variant,
                             new MapPointReportEntry(
-                                fullStopMatch.OsmStop.GetAverageCoord(),
+                                fullStopMatch.OsmStop.AverageCoord,
                                 "Route stop and OSM stop match, but poorly: " +
                                 " Route stop " + 
                                 RouteStopMapPointLabel(fullStopMatch.RouteStop) +
@@ -219,7 +219,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                         report.AddEntry(
                             variant,
                             new MapPointReportEntry(
-                                osmOnlyStopMatch.OsmStop.GetAverageCoord(),
+                                osmOnlyStopMatch.OsmStop.AverageCoord,
                                 "OSM stop not in route: " +
                                 OsmStopMapPointLabel(osmOnlyStopMatch.OsmStop) + " - " + osmOnlyStopMatch.OsmStop.OsmViewUrl,
                                 osmOnlyStopMatch.OsmStop,
@@ -373,7 +373,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                             if (routeOnlyMatch != null)
                             {
                                 if (OsmGeoTools.DistanceBetween(
-                                        osmOnlyStopMatch.OsmStop.GetAverageCoord(),
+                                        osmOnlyStopMatch.OsmStop.AverageCoord,
                                         routeOnlyMatch.RouteStop.Coord
                                     ) < 70) // too far, probably actually different, so skip
                                 {
@@ -547,7 +547,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
                 foreach (OsmRelation osmRoute in osmRoutes.Relations)
                 {
-                    if (OsmGeoTools.DistanceBetween(osmRoute.GetAverageCoord(), variant.AverageCoord) > 50000) // 50 km (although for ATD this may still not be enough)
+                    if (OsmGeoTools.DistanceBetween(osmRoute.AverageCoord, variant.AverageCoord) > 50000) // 50 km (although for ATD this may still not be enough)
                         continue; // too far away, skip
 
                     (float score, List<StopPair> stopPairs) = GetOsmRouteAndRouteMatchScore(osmRoute, variant);
@@ -652,7 +652,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                     {
                         double distance = OsmGeoTools.DistanceBetween(
                             routeStop.Coord,
-                            osmRouteStops[i].GetAverageCoord()
+                            osmRouteStops[i].AverageCoord
                         );
 
                         if (bestMatchIndex == null || distance < bestDistance)

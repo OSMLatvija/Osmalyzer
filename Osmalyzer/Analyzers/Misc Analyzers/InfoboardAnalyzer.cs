@@ -61,7 +61,7 @@ public class InfoboardAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.Photos,
                     new MapPointReportEntry(
-                        element.GetAverageCoord(),
+                        element.AverageCoord,
                         "Infoboard with photo",
                         element,
                         MapPointStyle.Okay
@@ -73,7 +73,7 @@ public class InfoboardAnalyzer : Analyzer
                 report.AddEntry(
                     ReportGroup.Photos,
                     new MapPointReportEntry(
-                        element.GetAverageCoord(),
+                        element.AverageCoord,
                         "Infoboard with no photo",
                         element,
                         MapPointStyle.Problem

@@ -20,7 +20,14 @@ public class OsmWay : OsmElement
     public bool Closed => nodes.Count >= 3 && nodes[0] == nodes[^1];
 
 
-    internal readonly List<OsmNode> nodes = new List<OsmNode>();
+    /// <summary>
+    /// The coord of this element, depending on type. Exact coord for nodes, average coord for ways and relations.
+    /// This is cached on first access, so it's fast to read again.
+    /// </summary>
+    public override OsmCoord AverageCoord => _cachedAverageCoord ??= OsmGeoTools.GetAverageCoord(nodes);
+
+
+    internal readonly List<OsmNode> nodes = [ ];
         
     internal readonly long[] nodeIds;
 
@@ -34,12 +41,6 @@ public class OsmWay : OsmElement
         nodeIds = ((Way)rawElement).Nodes;
     }
 
-        
-    public override OsmCoord GetAverageCoord()
-    {
-        return _cachedAverageCoord ??= OsmGeoTools.GetAverageCoord(nodes);
-    }
-    
     [Pure]
     public OsmPolygon GetPolygon()
     {

@@ -87,7 +87,7 @@ public class StreetTaggingContinuityAnalyzer : Analyzer
                     new IssueReportEntry(
                         "Street/road " + (problematicStreet.Street.Route.HasKey("name") ? "`" + problematicStreet.Street.Route.GetValue("name") + "`" : "unnamed") + " " + problematicStreet.Street.Route.OsmViewUrl + 
                         " has " + ProblemDescription(problematicStreet) + ".",
-                        problematicStreet.Street.Route.GetAverageCoord(),
+                        problematicStreet.Street.Route.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );

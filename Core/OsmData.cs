@@ -229,7 +229,7 @@ public abstract class OsmData
         OsmElement? closest = _chunker.GetClosest(coord.ToCartesian(), maxDistance);
         
         // We also need to return the actual distance
-        closestDistance = closest != null ? OsmGeoTools.DistanceBetween(coord, closest.GetAverageCoord()) : null;
+        closestDistance = closest != null ? OsmGeoTools.DistanceBetween(coord, closest.AverageCoord) : null;
         
         return closest;
     }

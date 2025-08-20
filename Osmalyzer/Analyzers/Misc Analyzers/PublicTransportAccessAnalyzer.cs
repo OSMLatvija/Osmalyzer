@@ -87,7 +87,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                     ReportGroup.BlockingPsv,
                     new IssueReportEntry(
                         "Way has `psv=no` -- " + osmRouteWay.OsmViewUrl,
-                        osmRouteWay.GetAverageCoord(),
+                        osmRouteWay.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
@@ -103,7 +103,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                             ReportGroup.RedundantPsv,
                             new IssueReportEntry(
                                 "Way has no `access` (or `vehicle`) value, but redundant `psv=yes` -- " + osmRouteWay.OsmViewUrl,
-                                osmRouteWay.GetAverageCoord(),
+                                osmRouteWay.AverageCoord,
                                 MapPointStyle.Problem
                             )
                         );
@@ -116,7 +116,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                         ReportGroup.RedundantPsv,
                         new IssueReportEntry(
                             "Way has `access=yes` value, but redundant `psv=yes` -- " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -128,7 +128,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                         ReportGroup.RedundantPsv,
                         new IssueReportEntry(
                             "Way has `vehicle=yes` value, but redundant `psv=yes` -- " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -152,7 +152,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                             ReportGroup.BadPsvOnRestrictedAccess,
                             new IssueReportEntry(
                                 "Way has `access=" + access + "`, but no `psv` value -- " + osmRouteWay.OsmViewUrl,
-                                osmRouteWay.GetAverageCoord(),
+                                osmRouteWay.AverageCoord,
                                 MapPointStyle.Problem
                             )
                         );
@@ -171,7 +171,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                             ReportGroup.BadPsvOnRestrictedAccess,
                             new IssueReportEntry(
                                 "Way has `access=no`, but unexpected `psv=" + psv + "` value -- " + osmRouteWay.OsmViewUrl,
-                                osmRouteWay.GetAverageCoord(),
+                                osmRouteWay.AverageCoord,
                                 MapPointStyle.Problem
                             )
                         );
@@ -187,7 +187,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                         ReportGroup.PsvOverAccessAlreadyPsv,
                         new IssueReportEntry(
                             "Way already has `access=psv`, but also specifies `psv=" + psv + "` -- " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -200,7 +200,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                     ReportGroup.UnexpectedAccess,
                     new IssueReportEntry(
                         "Unexpected `access=" + access + "` value -- " + osmRouteWay.OsmViewUrl,
-                        osmRouteWay.GetAverageCoord(),
+                        osmRouteWay.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
@@ -221,7 +221,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                         ReportGroup.OnewaypsvOnNonOneway,
                         new IssueReportEntry(
                             "Way is `oneway=no`, but has `oneway:psv=" + oneway_psv + "` -- " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -234,7 +234,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                     ReportGroup.UnexpectedOneway,
                     new IssueReportEntry(
                         "Unexpected `oneway=" + oneway + "` value -- " + osmRouteWay.OsmViewUrl,
-                        osmRouteWay.GetAverageCoord(),
+                        osmRouteWay.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
@@ -258,7 +258,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                                 : ""
                             ) + 
                             " on " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -270,7 +270,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                         ReportGroup.BusShouldBePsv,
                         new IssueReportEntry(
                             "Unexpected `bus=" + bus + "` value, instead of `psv` if applicable -- " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -293,7 +293,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                                 : ""
                             ) + 
                             " on " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -305,7 +305,7 @@ public class PublicTransportAccessAnalyzer : Analyzer
                         ReportGroup.BusShouldBePsv,
                         new IssueReportEntry(
                             "Unexpected `oneway:bus=" + oneway_bus + "` value, should be `oneway:psv` if applicable -- " + osmRouteWay.OsmViewUrl,
-                            osmRouteWay.GetAverageCoord(),
+                            osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );

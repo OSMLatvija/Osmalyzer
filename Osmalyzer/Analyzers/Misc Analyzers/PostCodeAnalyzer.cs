@@ -115,7 +115,7 @@ public class PostCodeAnalyzer : Analyzer
                         ReportGroup.InvalidCodes,
                         new IssueReportEntry(
                             "Invalid post code `" + postcode + "` on " + postcodedElement.OsmViewUrl + ".",
-                            postcodedElement.GetAverageCoord(),
+                            postcodedElement.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
@@ -148,8 +148,8 @@ public class PostCodeAnalyzer : Analyzer
         foreach ((string? postcode, List<OsmElement>? elements) in elementsByPostCode)
         {
             OsmCoord averageCoord = new OsmCoord(
-                elements.Average(e => e.GetAverageCoord().lat),
-                elements.Average(e => e.GetAverageCoord().lon)
+                elements.Average(e => e.AverageCoord.lat),
+                elements.Average(e => e.AverageCoord.lon)
             );
             
             averageCoords.Add(postcode, averageCoord);
@@ -197,7 +197,7 @@ public class PostCodeAnalyzer : Analyzer
                     ReportGroup.PostOffices,
                     new IssueReportEntry(
                         "Post office " + postOffice.OsmViewUrl + " has no post code in/or address.",
-                        postOffice.GetAverageCoord(),
+                        postOffice.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
@@ -212,7 +212,7 @@ public class PostCodeAnalyzer : Analyzer
                     new IssueReportEntry(
                         "Post office " + postOffice.OsmViewUrl + " has invalid post code `" + postcode + "`.",
                         new SortEntryAsc(postcode),
-                        postOffice.GetAverageCoord(),
+                        postOffice.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
@@ -256,7 +256,7 @@ public class PostCodeAnalyzer : Analyzer
             report.AddEntry(
                 ReportGroup.PostOffices,
                 new MapPointReportEntry(
-                    postOffice.GetAverageCoord(),
+                    postOffice.AverageCoord,
                     "Post office " + postOffice.OsmViewUrl + " for post code `" + postcode + "`.",
                     postOffice,
                     MapPointStyle.Okay
@@ -288,7 +288,7 @@ public class PostCodeAnalyzer : Analyzer
                     new IssueReportEntry(
                         "Post office " + postOffice.OsmViewUrl + " has a post code `" + postcode + "` that isn't used by any elements.",
                         new SortEntryAsc(postcode),
-                        postOffice.GetAverageCoord(),
+                        postOffice.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
@@ -322,7 +322,7 @@ public class PostCodeAnalyzer : Analyzer
             
             foreach (OsmElement element in elements)
             {
-                double distance = OsmGeoTools.DistanceBetween(averageCoord, element.GetAverageCoord());
+                double distance = OsmGeoTools.DistanceBetween(averageCoord, element.AverageCoord);
                 
                 if (distance > distantElementThreshold)
                 {
@@ -330,7 +330,7 @@ public class PostCodeAnalyzer : Analyzer
                         ReportGroup.DistantElements,
                         new IssueReportEntry(
                             "Element " + element.OsmViewUrl + " is too far away (" + distance + " meters) from the average coord of the post code region `" + postcode + "`.",
-                            element.GetAverageCoord(),
+                            element.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );

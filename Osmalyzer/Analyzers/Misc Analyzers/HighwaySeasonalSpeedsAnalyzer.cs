@@ -55,7 +55,7 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
 
                     if (maxspeed == maxspeedConditional)
                     {
-                        OsmCoord coord = way.GetAverageCoord();
+                        OsmCoord coord = way.AverageCoord;
 
                         report.AddEntry(
                             ReportGroup.Main,
@@ -71,7 +71,7 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
                 {
                     if (!Regex.IsMatch(maxspeedConditionalStr, @"\d+ @ \((\w\w-\w\w )?\d\d:\d\d-\d\d:\d\d\)")) // "30 @ (Mo-Fr 07:00-19:00)" / "90 @ (22:00-07:00)"
                     {
-                        OsmCoord coord = way.GetAverageCoord();
+                        OsmCoord coord = way.AverageCoord;
 
                         report.AddEntry(
                             ReportGroup.Main,
@@ -86,7 +86,7 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
             }
             else
             {
-                OsmCoord coord = way.GetAverageCoord();
+                OsmCoord coord = way.AverageCoord;
 
                 report.AddEntry(
                     ReportGroup.Main,

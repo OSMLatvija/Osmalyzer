@@ -136,7 +136,7 @@ public class BarrierAnalyzer : Analyzer
                 ReportGroup.NonWayBarriers,
                 new IssueReportEntry(
                     "This `" + nonWayBarrier.Barrier.OsmValue + "` barrier is not on a way - " + nonWayBarrier.Node.OsmViewUrl,
-                    nonWayBarrier.Node.GetAverageCoord(),
+                    nonWayBarrier.Node.AverageCoord,
                     nonWayBarrier.Bad ? MapPointStyle.Problem : MapPointStyle.Dubious
                 )
             );

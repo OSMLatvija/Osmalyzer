@@ -30,10 +30,7 @@ public class OsmNode : OsmElement
             rawNode.Longitude!.Value
         );
     }
-        
-        
-    public override OsmCoord GetAverageCoord()
-    {
-        return coord;
-    }
+
+
+    public override OsmCoord AverageCoord => coord;
 }

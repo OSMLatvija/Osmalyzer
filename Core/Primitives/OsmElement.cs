@@ -36,7 +36,7 @@ public abstract class OsmElement : IChunkerItem
     public IReadOnlyList<OsmRelationMember>? Relations => relations?.AsReadOnly();
 
    
-    public (double x, double y) ChunkCoord => GetAverageCoord().ToCartesian();
+    public (double x, double y) ChunkCoord => AverageCoord.ToCartesian();
 
 
     internal List<OsmRelationMember>? relations;
@@ -150,8 +150,13 @@ public abstract class OsmElement : IChunkerItem
     }
     
     [Pure]
-    public bool HasValue(string key, params string[] values) => HasValue(key, (IEnumerable<string>)values);
+    public bool HasValue(string key, params string[] values)
+    {
+        if (values.Length == 0) throw new ArgumentException("At least one value must be provided.", nameof(values));
         
+        return HasValue(key, (IEnumerable<string>)values);
+    }
+
     [Pure]
     public bool HasValue(string key, IEnumerable<string> values, bool caseSensitive = true)
     {
@@ -217,9 +222,8 @@ public abstract class OsmElement : IChunkerItem
     }
 
 
-    [Pure]
-    public abstract OsmCoord GetAverageCoord();
-        
+    public abstract OsmCoord AverageCoord { [Pure] get; }
+
 
     /// <summary>
     /// Speeding up collections with hashing, basically dictionaries

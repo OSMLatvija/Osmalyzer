@@ -28,6 +28,9 @@ public abstract class OsmElement : IChunkerItem
         
     [PublicAPI]
     public IEnumerable<string>? AllValues => _tags?.Values;
+    
+    [PublicAPI]
+    public IEnumerable<(string, string)>? AllTags => _tags?.Select(kv => (kv.Key, kv.Value));
         
     [PublicAPI]
     public bool HasAnyTags => _tags != null;

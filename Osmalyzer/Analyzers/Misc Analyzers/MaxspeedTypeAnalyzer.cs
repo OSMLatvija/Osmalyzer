@@ -124,7 +124,7 @@ public class MaxspeedTypeAnalyzer : Analyzer
         
         foreach (RecognizedTaggedElement taggedElement in highwaysWithMaxspeedType)
         {
-            MaxspeedTypeVariantMatch? match = MatchMaxspeedTypeValue(taggedElement.Value, validMaxspeedTypes);
+            MaxspeedTypeVariantMatch? match = MatchMaxspeedTypeValue(taggedElement.Key, taggedElement.Value, validMaxspeedTypes);
             
             if (match == null)
             {
@@ -375,8 +375,12 @@ public class MaxspeedTypeAnalyzer : Analyzer
     }
 
     [Pure]
-    private static MaxspeedTypeVariantMatch? MatchMaxspeedTypeValue(string value, MaxspeedTypeVariantDefinition[] recognized)
+    private static MaxspeedTypeVariantMatch? MatchMaxspeedTypeValue(string key, string value, MaxspeedTypeVariantDefinition[] recognized)
     {
+        // Advisory can only be from sign
+        if (key == "maxspeed:type:advisory" && value != "sign")
+            return null;
+        
         foreach (MaxspeedTypeVariantDefinition definition in recognized)
         {
             Match match = Regex.Match(value, "^" + definition.Pattern + "$");

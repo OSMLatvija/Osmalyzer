@@ -35,11 +35,22 @@ public static class WebsiteDownloadHelper
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        using HttpClient client = new HttpClient();
-        Uri uri = new Uri(url, UriKind.Absolute);
-        using Task<Stream> stream = client.GetStreamAsync(uri);
-        using FileStream fileStream = new FileStream(fileName, FileMode.Create);
-        stream.Result.CopyTo(fileStream);
+        using HttpClientHandler handler = new HttpClientHandler { AllowAutoRedirect = false };
+        using HttpClient client = new HttpClient(handler);
+        HttpResponseMessage response = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+        // Follow one redirect, i.e. Geobarik https://blog.geofabrik.de/index.php/2025/07/24/download-geofabrik-de-to-use-http-redirects-for-latest-files/
+        if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)
+        {
+            string redirectUrl = response.Headers.Location?.IsAbsoluteUri == true
+                ? response.Headers.Location.ToString()
+                : new Uri(new Uri(url), response.Headers.Location!).ToString();
+            response.Dispose();
+            response = client.GetAsync(redirectUrl, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
+        }
+        response.EnsureSuccessStatusCode();
+        using Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+        using FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
+        stream.CopyTo(fileStream);
     }
 
     public static void DownloadPost(string url, (string, string)[] postFields, string fileName)

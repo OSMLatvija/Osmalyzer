@@ -13,7 +13,7 @@ public class GTFSServices
         
     public GTFSServices(string dataFileName)
     {
-        _services = new Dictionary<string, GTFSService>();
+        _services = new Dictionary<string, GTFSService>(StringComparer.OrdinalIgnoreCase);
 
         string[] lines = File.ReadAllLines(dataFileName);
 

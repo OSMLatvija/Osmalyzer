@@ -15,7 +15,7 @@ public class GTFSRoutes
     {
         string[] lines = File.ReadAllLines(dataFileName);
 
-        _routes = new Dictionary<string, GTFSRoute>();
+        _routes = new Dictionary<string, GTFSRoute>(StringComparer.OrdinalIgnoreCase);
 
         int idIndex = 0;
         int shortNameIndex = 0;

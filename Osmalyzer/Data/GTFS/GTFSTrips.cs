@@ -13,7 +13,7 @@ public class GTFSTrips
         
     public GTFSTrips(string dataFileName, GTFSRoutes routes, GTFSServices services)
     {
-        _trips = new Dictionary<string, GTFSTrip>();
+        _trips = new Dictionary<string, GTFSTrip>(StringComparer.OrdinalIgnoreCase);
 
         string[] lines = File.ReadAllLines(dataFileName);
 

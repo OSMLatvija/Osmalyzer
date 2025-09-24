@@ -15,7 +15,7 @@ public class GTFSStops
     {
         string[] lines = File.ReadAllLines(dataFileName);
 
-        _stops = new Dictionary<string, GTFSStop>();
+        _stops = new Dictionary<string, GTFSStop>(StringComparer.OrdinalIgnoreCase);
 
         for (int i = 0; i < lines.Length; i++)
         {

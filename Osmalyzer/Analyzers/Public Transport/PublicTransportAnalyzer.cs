@@ -83,7 +83,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
         {
-            string header = gtfsRoute.CleanType + " #" + gtfsRoute.Number + " \"" + gtfsRoute.Name + "\"";
+            string header = gtfsRoute.TypeLabel + " #" + gtfsRoute.Number + " \"" + gtfsRoute.Name + "\"";
 
             report.AddGroup(
                 gtfsRoute, // supergroup "ID" as parent for variants
@@ -116,7 +116,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             
             // Display this route
             
-            string header = variant.Route.CleanType + " #" + variant.Route.Number + " from " + variant.FirstStop.Name + " to " + variant.LastStop.Name;
+            string header = variant.Route.TypeLabel + " #" + variant.Route.Number + " from " + variant.FirstStop.Name + " to " + variant.LastStop.Name;
 
             if (routePair != null)
             {
@@ -291,7 +291,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
             foreach (RouteVariant variant in skippedVariants)
             {
-                report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("The route " + variant.Route.CleanType + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name + " has " + variant.TripCount + " trips with the sequence of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name))));
+                report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("The route " + variant.Route.TypeLabel + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name + " has " + variant.TripCount + " trips with the sequence of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name))));
             }
         }
     }

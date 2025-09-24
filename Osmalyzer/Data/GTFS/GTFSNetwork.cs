@@ -43,17 +43,22 @@ public class GTFSNetwork
                     {
                         switch (route.Type)
                         {
-                            case "bus":
+                            case GTFSRouteVehicleType.Bus:
+                            case GTFSRouteVehicleType.NightBus:
+                            case GTFSRouteVehicleType.Minibus:
                                 stop.Bus = true;
                                 break;
                                 
-                            case "trolleybus":
+                            case GTFSRouteVehicleType.Trolleybus:
                                 stop.Trolleybus = true;
                                 break;
                                 
-                            case "tram":
+                            case GTFSRouteVehicleType.Tram:
                                 stop.Tram = true;
                                 break;
+                            
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
                     }
                 }

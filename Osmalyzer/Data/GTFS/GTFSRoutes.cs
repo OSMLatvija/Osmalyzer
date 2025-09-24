@@ -51,7 +51,7 @@ public class GTFSRoutes
             string name = GetName(segments, longNameIndex);
             string number = GetName(segments, shortNameIndex);
 
-            string type = TypeFromId(id);
+            GTFSRouteVehicleType type = TypeFromId(id);
                 
             GTFSRoute route = new GTFSRoute(id, name, number, type);
 
@@ -83,12 +83,12 @@ public class GTFSRoutes
 
         
     [Pure]
-    private static string TypeFromId(string id)
+    private static GTFSRouteVehicleType TypeFromId(string id)
     {
         string[] split = id.Split('_');
 
         if (split.Length == 1)
-            return "bus";
+            return GTFSRouteVehicleType.Bus; // Default to bus if no type found
             
         string rawType = split[1];
         // riga_bus_60
@@ -97,11 +97,12 @@ public class GTFSRoutes
 
         return rawType switch
         {
-            "bus"     => "bus",
-            "trol"    => "trolleybus",
-            "tram"    => "tram",
-            "minibus" => "minibus",
-            _         => throw new ArgumentOutOfRangeException()
+            "bus"      => GTFSRouteVehicleType.Bus,
+            "nightbus" => GTFSRouteVehicleType.NightBus,
+            "trol"     => GTFSRouteVehicleType.Trolleybus,
+            "tram"     => GTFSRouteVehicleType.Tram,
+            "minibus"  => GTFSRouteVehicleType.Minibus,
+            _          => throw new ArgumentOutOfRangeException()
         };
     }
 }

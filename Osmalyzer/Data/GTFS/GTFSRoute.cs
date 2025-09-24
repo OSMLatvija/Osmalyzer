@@ -8,9 +8,9 @@ public class GTFSRoute
         
     public string Number { get; }
 
-    public string Type { get; }
+    public GTFSRouteVehicleType Type { get; }
 
-    public string CleanType { get; }
+    public string TypeLabel { get; }
 
     public IEnumerable<GTFSService> Services => _services.AsReadOnly();
 
@@ -25,13 +25,13 @@ public class GTFSRoute
     private readonly List<GTFSTrip> _trips = [ ];
 
         
-    public GTFSRoute(string id, string name, string number, string type)
+    public GTFSRoute(string id, string name, string number, GTFSRouteVehicleType type)
     {
         Id = id;
         Name = name;
         Number = number;
         Type = type;
-        CleanType = TypeToCleanType(type);
+        TypeLabel = TypeToCleanType(type);
     }
 
 
@@ -48,15 +48,16 @@ public class GTFSRoute
 
     
     [Pure]
-    private static string TypeToCleanType(string type)
+    private static string TypeToCleanType(GTFSRouteVehicleType type)
     {
         return type switch
         {
-            "bus"        => "Bus",
-            "trolleybus" => "Trolleybus",
-            "tram"       => "Tram",
-            "minibus"    => "Minibus",
-            _            => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            GTFSRouteVehicleType.Bus        => "Bus",
+            GTFSRouteVehicleType.NightBus   => "Night bus",
+            GTFSRouteVehicleType.Trolleybus => "Trolleybus",
+            GTFSRouteVehicleType.Tram       => "Tram",
+            GTFSRouteVehicleType.Minibus    => "Minibus",
+            _                               => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
 }

@@ -98,13 +98,15 @@ public class MaxspeedTypeAnalyzer : Analyzer
             new MaxspeedTypeVariantDefinition(MaxspeedTypeVariant.Rural, "LV:rural", "LV:rural"),
             new MaxspeedTypeVariantDefinition(MaxspeedTypeVariant.LivingStreet, "LV:living_street", "LV:living_street"),
             new MaxspeedTypeVariantDefinition(MaxspeedTypeVariant.Zone, "LV:zone([0-9]{1,3})", "LV:zone##"),
-            new MaxspeedTypeVariantDefinition(MaxspeedTypeVariant.Construction, "construction", "construction")
+            new MaxspeedTypeVariantDefinition(MaxspeedTypeVariant.Construction, "construction", "construction"),
+            new MaxspeedTypeVariantDefinition(MaxspeedTypeVariant.ParkingLot, "LV:parking", "LV:parking"),
+            new MaxspeedTypeVariantDefinition(MaxspeedTypeVariant.FuelStation, "LV:fuel_station", "LV:fuel_station")
         ];
         
         report.AddGroup(
             ReportGroup.InvalidValues, 
             "Highways with invalid (unrecognized) maxspeed:type or its variant values.",
-            "Valid/known values are: " + string.Join(", ", validMaxspeedTypes.Select(v => "`" + v.DisplayLabel + "`")) + ". Note that it hasn't been decided what value to use for the fuel stations and apartment courtyards."
+            "Valid/known values are: " + string.Join(", ", validMaxspeedTypes.Select(v => "`" + v.DisplayLabel + "`")) + ". Note that it hasn't been decided what value to use for apartment courtyards."
         );
         
         report.AddGroup(
@@ -408,7 +410,9 @@ public class MaxspeedTypeAnalyzer : Analyzer
         Rural,
         LivingStreet,
         Zone,
-        Construction
+        Construction,
+        ParkingLot,
+        FuelStation
     }
 
     private enum ReportGroup

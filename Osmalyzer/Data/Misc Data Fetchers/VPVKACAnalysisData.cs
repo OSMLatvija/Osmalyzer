@@ -208,11 +208,25 @@ Piektdiena: 8:30 - 14:00</td>
                 // Skip closed days
                 if (part.ToLower().Contains("slēgts"))
                     continue;
+                
+                // Skip closed/by appointment days, not parsing this
+                // "Apkalpošana ārpus bibliotēkas"
+                if (part.ToLower().Contains("ārpus"))
+                    continue;
 
                 // Parse a very specific case
-                if (part == "Katra mēneša otrā trešdiena - metodiskā diena")
+                // "Katra mēneša otrā trešdiena - metodiskā diena"
+                if (part.ToLower().Contains("katra mēneša otrā trešdiena - metodiskā diena"))
                 {
                     extraLast = "We[2] off";
+                    continue;
+                }
+
+                // Parse a very specific case
+                // "*katra mēneša pēdējā trešdiena – metodiskā diena, bibliotēka lasītājiem slēgta."
+                if (part.ToLower().Contains("katra mēneša pēdējā trešdiena – metodiskā diena"))
+                {
+                    extraLast = "We[-1] off";
                     continue;
                 }
 
@@ -260,6 +274,10 @@ Piektdiena: 8:30 - 14:00</td>
                 
                 // Enforce two-digit hours
                 clean = Regex.Replace(clean, @" (\d):", @" 0$1:");
+                
+                // Empty times probably imply closed
+                if (Regex.IsMatch(clean, @"^(Mo|Tu|We|Th|Fr|Sa|Su)-$"))
+                    continue;
                 
                 // At this point, we should have a valid OSM opening hours syntax, so check it
                 if (!Regex.IsMatch(clean, @"^(Mo|Tu|We|Th|Fr|Sa|Su) \d\d:\d\d-\d\d:\d\d(, \d\d:\d\d-\d\d:\d\d)?$"))

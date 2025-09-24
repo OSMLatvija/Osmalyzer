@@ -224,6 +224,38 @@ public class MaxspeedTypeAnalyzer : Analyzer
                             case MaxspeedTypeVariant.Construction:
                                 break;
 
+                            case MaxspeedTypeVariant.FuelStation:
+                                if (maxspeed != 20)
+                                {
+                                    // Mismatched, report
+                                    
+                                    report.AddEntry(
+                                        ReportGroup.MismatchedValues,
+                                        new IssueReportEntry(
+                                            "This highway has a `" + taggedElement.Key + "=" + taggedElement.Value + "`, but the corresponding `" + maxspeedKey + "=" + maxspeedValue + "` value does not match. Expected `" + maxspeedKey + "=20`. " + taggedElement.Element.OsmViewUrl,
+                                            taggedElement.Element.AverageCoord,
+                                            MapPointStyle.Problem
+                                        )
+                                    );
+                                }
+                                break;
+
+                            case MaxspeedTypeVariant.ParkingLot:
+                                if (maxspeed != 20)
+                                {
+                                    // Mismatched, report
+                                    
+                                    report.AddEntry(
+                                        ReportGroup.MismatchedValues,
+                                        new IssueReportEntry(
+                                            "This highway has a `" + taggedElement.Key + "=" + taggedElement.Value + "`, but the corresponding `" + maxspeedKey + "=" + maxspeedValue + "` value does not match. Expected `" + maxspeedKey + "=20`. " + taggedElement.Element.OsmViewUrl,
+                                            taggedElement.Element.AverageCoord,
+                                            MapPointStyle.Problem
+                                        )
+                                    );
+                                }
+                                break;
+
                             default:
                                 throw new ArgumentOutOfRangeException();
                         }

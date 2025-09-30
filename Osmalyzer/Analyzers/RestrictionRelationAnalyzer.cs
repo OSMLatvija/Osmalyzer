@@ -104,11 +104,11 @@ public class RestrictionRelationAnalyzer : Analyzer
         }
         
         // Unknown exception modes
-        
         report.AddGroup(
             ReportGroup.UnknownExceptionModes, 
             "Unknown Exception Modes",
-            "These relations have `except` tags with value(s) for unknown vehicle types / transport modes."
+            "These relations have `except` tags with value(s) for unknown vehicle types / transport modes. " +
+            "Known vehicle types / transport modes: " + string.Join(", ", _knownVehicleModes.Select(m => "`" + m + "`")) + "."
         );
         
         foreach (Restriction restriction in restrictions.Where(r => r.Exception != null && r.Exception.Modes.OfType<ExceptionUnknownVehicle>().Any()))
@@ -231,6 +231,23 @@ public class RestrictionRelationAnalyzer : Analyzer
         return null;
     }
 
+    private static readonly string[] _knownVehicleModes =
+    [
+        "psv",
+        "bicycle",
+        "hgv",
+        "motorcar",
+        "motorcycle",
+        "bus",
+        "caravan",
+        "agricultural",
+        "tractor",
+        "emergency",
+        "hazmat",
+        "taxi",
+        "moped"
+    ];
+
     [Pure]
     private static RestrictionExceptions? TryParseAsException(string key, string value)
     {
@@ -243,20 +260,7 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         foreach (string part in parts)
         {
-            if (part 
-                is "psv"
-                or "bicycle"
-                or "hgv"
-                or "motorcar"
-                or "motorcycle"
-                or "bus"
-                or "caravan"
-                or "agricultural"
-                or "tractor"
-                or "emergency"
-                or "hazmat"
-                or "taxi"
-                or "moped")
+            if (_knownVehicleModes.Contains(part))
             {
                 modes.Add(new ExceptionKnownVehicle(part));
                 continue;

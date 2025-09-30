@@ -30,7 +30,7 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         foreach (OsmRelation osmRelation in restrictionRelations.Relations)
         {
-            List<RestrictionPart> parts = [];
+            List<RestrictionEntry> entries = [];
             List<UnknownTag> unknownTags = [];
             List<DeprecatedTag> deprecatedTags = [];
             RestrictionExceptions? exception = null;
@@ -40,13 +40,13 @@ public class RestrictionRelationAnalyzer : Analyzer
                 // Obviously, ignore the defining tag
                 if (key == "type") continue;
                 
-                // Try parse as restriction part
+                // Try parse as restriction entry
                 
-                RestrictionPart? part = TryParseAsPart(key, value);
+                RestrictionEntry? entry = TryParseAsEntry(key, value);
 
-                if (part != null)
+                if (entry != null)
                 {
-                    parts.Add(part);
+                    entries.Add(entry);
                     continue; // tag recognized
                 }
                 
@@ -85,7 +85,36 @@ public class RestrictionRelationAnalyzer : Analyzer
             
             // todo: coord from via not average
             
-            restrictions.Add(new Restriction(osmRelation, parts, unknownTags, deprecatedTags, exception));
+            restrictions.Add(new Restriction(osmRelation, entries, unknownTags, deprecatedTags, exception));
+        }
+        
+        // Unknown restriction value
+        
+        report.AddGroup(
+            ReportGroup.UnknownRestrictionValues, 
+            "Unknown Restriction Values",
+            "These relations have `restriction` or `restriction:conditional` tags with unknown/unsupported values. " +
+            "Known values are: " + string.Join(", ", _knownRestrictionValues.Select(v => "`" + v + "`")) + ". " +
+            "Known conditionals are simple date/time ranges. " +
+            "In general, if these are complicated conditional cases, then they are probably just not parsed correctly and need manual confirmation."
+        );
+
+        foreach (Restriction restriction in restrictions)
+        {
+            foreach (RestrictionEntry entry in restriction.Entries)
+            {
+                if (entry.Value is RestrictionUnknownValue)
+                {
+                    report.AddEntry(
+                        ReportGroup.UnknownRestrictionValues,
+                        new IssueReportEntry(
+                            $"Relation has unknown restriction value `{entry.Key}={entry.Value.Value}` - " + restriction.Element.OsmViewUrl,
+                            restriction.Element.AverageCoord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
+            }
         }
         
         // Unknown tags
@@ -183,14 +212,14 @@ public class RestrictionRelationAnalyzer : Analyzer
         
         foreach (Restriction restriction in restrictions)
         {
-            if (restriction.Parts.Count == 0)
+            if (restriction.Entries.Count == 0)
             {
                 noTag++;
             }
             else
             {
-                bool hasMainTag = restriction.Parts.Any(p => p is RestrictionPrimaryPart);
-                bool hasConditionalTag = restriction.Parts.Any(p => p is RestrictionConditionalPart);
+                bool hasMainTag = restriction.Entries.Any(p => p is RestrictionPrimaryEntry);
+                bool hasConditionalTag = restriction.Entries.Any(p => p is RestrictionConditionalEntry);
 
                 if (hasMainTag && hasConditionalTag)
                     bothMainAndConditionalTag++;
@@ -245,12 +274,6 @@ public class RestrictionRelationAnalyzer : Analyzer
                 new GenericReportEntry($"{hasDeprecated} have deprecated tags present.")
             );
         }
-
-        // TODO
-        
-        // no_right_turn / no_left_turn / no_u_turn / no_straight_on
-        // only_right_turn / only_left_turn / only_u_turn / only_straight_on
-        // no_entry, no_exit
         
         // TODO
         
@@ -259,18 +282,18 @@ public class RestrictionRelationAnalyzer : Analyzer
 
     
     [Pure]
-    private static RestrictionPart? TryParseAsPart(string key, string value)
+    private static RestrictionEntry? TryParseAsEntry(string key, string value)
     {
         if (key == "restriction")
         {
-            RestrictionValue restrictionValue = TryParseRestrictionValue(value);
-            return new RestrictionPrimaryPart(key, restrictionValue);
+            RestrictionValue restrictionValue = TryParseSimpleRestrictionValue(value);
+            return new RestrictionPrimaryEntry(key, restrictionValue);
         }
 
         if (key == "restriction:conditional")
         {
-            RestrictionValue restrictionValue = TryParseRestrictionValue(value);
-            return new RestrictionConditionalPart(key, restrictionValue);
+            RestrictionValue restrictionValue = TryParseConditionalRestrictionValue(value);
+            return new RestrictionConditionalEntry(key, restrictionValue);
         }
 
         return null;
@@ -301,17 +324,17 @@ public class RestrictionRelationAnalyzer : Analyzer
         
         List<ExceptionVehicle> modes = [ ];
 
-        string[] parts = value.Split(";", StringSplitOptions.TrimEntries);
+        string[] entries = value.Split(";", StringSplitOptions.TrimEntries);
 
-        foreach (string part in parts)
+        foreach (string entry in entries)
         {
-            if (_knownVehicleModes.Contains(part))
+            if (_knownVehicleModes.Contains(entry))
             {
-                modes.Add(new ExceptionKnownVehicle(part));
+                modes.Add(new ExceptionKnownVehicle(entry));
                 continue;
             }
             
-            modes.Add(new ExceptionUnknownVehicle(part));
+            modes.Add(new ExceptionUnknownVehicle(entry));
         }
 
         return new RestrictionExceptions(key, value, modes);
@@ -334,34 +357,83 @@ public class RestrictionRelationAnalyzer : Analyzer
         return null;
     }
 
+    private static readonly string[] _knownRestrictionValues =
+    [
+        "none", // todo: check it's not by itself
+        "no_right_turn",
+        "no_left_turn",
+        "no_u_turn",
+        "no_straight_on",
+        "only_right_turn",
+        "only_left_turn",
+        "only_u_turn",
+        "only_straight_on",
+        "no_entry",
+        "no_exit"
+    ];
+    
+    private static readonly string _knownRestrictionValuesPattern = string.Join("|", _knownRestrictionValues);
+    
     [Pure]
-    private static RestrictionValue TryParseRestrictionValue(string value)
+    private static RestrictionValue TryParseSimpleRestrictionValue(string value)
     {
-        // todo:
+        if (_knownRestrictionValues.Contains(value))
+            return new RestrictionSimpleValue(value);
         
-        return new RestrictionValue(value);
+        return new RestrictionUnknownValue(value);
+    }
+    
+    [Pure]
+    private static RestrictionValue TryParseConditionalRestrictionValue(string value)
+    {
+        // Stuff like
+        // "no_right_turn @ (22:00-07:00)"
+        // "no_right_turn @ (Mo-Fr 07:00-09:00)"
+        // "no_left_turn @ 08:00-21:00"
+        // "no_left_turn @ Mo-Su 08:00-21:00"
+        
+        Match match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) @ \(?(.+)\)?$");
+        
+        // todo: more complex, need a full-on conditional parsing then
+        
+        if (match.Success)
+        {
+            string mainValue = match.Groups[1].Value;
+            string condition = match.Groups[2].Value;
+            
+            return new RestrictionConditionalValue(value, mainValue, condition);
+            
+            // todo: condition parse
+        }
+        
+        return new RestrictionUnknownValue(value);
     }
 
     
     private record Restriction(
         OsmRelation Element,
-        List<RestrictionPart> Parts,
+        List<RestrictionEntry> Entries,
         List<UnknownTag> UnknownTags,
         List<DeprecatedTag> DeprecatedTags,
         RestrictionExceptions? Exception);
     
     
-    private abstract record RestrictionPart(string Key, RestrictionValue Value);
+    private abstract record RestrictionEntry(string Key, RestrictionValue Value);
+    
+    private record RestrictionPrimaryEntry(string Key, RestrictionValue Value) : RestrictionEntry(Key, Value);
+    
+    private record RestrictionConditionalEntry(string Key, RestrictionValue Value) : RestrictionEntry(Key, Value);
+    
+    
+    private abstract record RestrictionValue(string Value);
+    
+    private record RestrictionSimpleValue(string Value) : RestrictionValue(Value);
+    
+    private record RestrictionConditionalValue(string Value, string MainValue, string Condition) : RestrictionValue(Value);
 
-    
-    private record RestrictionPrimaryPart(string Key, RestrictionValue Value) : RestrictionPart(Key, Value);
-    
-    private record RestrictionConditionalPart(string Key, RestrictionValue Value) : RestrictionPart(Key, Value);
-    
-    
-    private record RestrictionValue(string Value);
+    private record RestrictionUnknownValue(string Value) : RestrictionValue(Value);
 
-    
+
     private record RestrictionExceptions(string Key, string Value, List<ExceptionVehicle> Modes);
     
     
@@ -381,6 +453,7 @@ public class RestrictionRelationAnalyzer : Analyzer
     private enum ReportGroup
     {
         Stats,
+        UnknownRestrictionValues,
         DeprecatedTags,
         UnknownTags,
         UnknownExceptionModes

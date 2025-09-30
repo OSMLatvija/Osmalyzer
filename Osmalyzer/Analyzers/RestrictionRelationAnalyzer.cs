@@ -32,6 +32,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         {
             List<RestrictionPart> parts = [];
             List<UnknownTag> unknownTags = [];
+            RestrictionExceptions? exception = null;
 
             foreach ((string key, string value) in osmRelation.AllTags!)
             {
@@ -45,9 +46,18 @@ public class RestrictionRelationAnalyzer : Analyzer
                 if (part != null)
                 {
                     parts.Add(part);
-                    continue;
+                    continue; // tag recognized
                 }
                 
+                // Try parse exceptions
+
+                if (exception == null) // not yet seen
+                {
+                    exception = TryParseAsException(key, value);
+                    if (exception != null)
+                        continue; // tag recognized
+                }
+
                 // Other tags that may be present, but we don't explicitly parse
                 
                 if (key == "note") continue;
@@ -65,7 +75,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             
             // todo: coord from via not average
             
-            restrictions.Add(new Restriction(osmRelation, parts, unknownTags));
+            restrictions.Add(new Restriction(osmRelation, parts, unknownTags, exception));
         }
         
         // Unknown tags
@@ -108,6 +118,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         int justMainTag = 0;
         int justConditionalTag = 0;
         int bothMainAndConditionalTag = 0;
+        int hasExceptions = 0;
         
         foreach (Restriction restriction in restrictions)
         {
@@ -126,6 +137,9 @@ public class RestrictionRelationAnalyzer : Analyzer
                     justMainTag++;
                 else if (hasConditionalTag)
                     justConditionalTag++;
+                
+                if (restriction.Exception != null)
+                    hasExceptions++;
             }
         }
                 
@@ -149,6 +163,14 @@ public class RestrictionRelationAnalyzer : Analyzer
             report.AddEntry(
                 ReportGroup.Stats,
                 new GenericReportEntry($"The remaining {noTag} have no recognized restriction tags.")
+            );
+        }
+        
+        if (hasExceptions > 0)
+        {
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry($"{hasExceptions} have 'except' tag defining exceptions.")
             );
         }
 
@@ -184,14 +206,29 @@ public class RestrictionRelationAnalyzer : Analyzer
         return null;
     }
 
+    [Pure]
+    private static RestrictionExceptions? TryParseAsException(string key, string value)
+    {
+        if (key == "except")
+            return new RestrictionExceptions(key, value);
+        
+        return null;
+    }
 
-    private record Restriction(OsmRelation Element, List<RestrictionPart> Parts, List<UnknownTag> UnknownTags);
+
+    private record Restriction(
+        OsmRelation Element,
+        List<RestrictionPart> Parts,
+        List<UnknownTag> UnknownTags,
+        RestrictionExceptions? Exception);
     
     private abstract record RestrictionPart(string Key, string Value);
 
     private record RestrictionPrimaryPart(string Key, string Value) : RestrictionPart(Key, Value);
     
     private record RestrictionConditionalPart(string Key, string Value) : RestrictionPart(Key, Value);
+
+    private record RestrictionExceptions(string Key, string Value);
     
     
     private record UnknownTag(string Key, string Value);

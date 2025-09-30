@@ -196,9 +196,9 @@ public class RestrictionRelationAnalyzer : Analyzer
         report.AddGroup(
             ReportGroup.PossiblyFlippedConditional,
             @"""Flipped"" Conditionals",
-            @"These relations have a main `restriction=*` together with `restriction:conditional=none @ …`. " +
+            @"These relations have a main `restriction=*` together with uncommon `restriction:conditional=none @ …`. " +
             @"Usually it's expected these to be in reverse to match the traffic signage usage (e.g. ""no left turns during these hours""). " +
-            "These are not incorrect as such, but do imply tagging for the renderer, usually prioritizing the common hour restriction over the off-hour allowance."
+            "These are not logically incorrect as such, but do imply more convoluted tagging for the renderer, prioritizing the common hour restriction over the off-hour allowance."
         );
 
         foreach (Restriction restriction in restrictions)
@@ -213,7 +213,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             if (primary.Value is RestrictionSimpleValue { Value: not "none" } primaryValue &&
                 conditional.Value is RestrictionConditionalValue { MainValue: "none" } conditionalValue)
             {
-                string flipped = "…";
+                string flipped = TryFlipConditionalValue(conditionalValue.Condition);
                 
                 report.AddEntry(
                     ReportGroup.PossiblyFlippedConditional,
@@ -317,7 +317,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         // restriction:hgv, restriction:caravan, restriction:motorcar, restriction:bus, restriction:agricultural, restriction:motorcycle, restriction:bicycle, restriction:hazmat
     }
 
-    
+
     [Pure]
     private static RestrictionEntry? TryParseAsEntry(string key, string value)
     {
@@ -444,6 +444,25 @@ public class RestrictionRelationAnalyzer : Analyzer
         }
         
         return new RestrictionUnknownValue(value);
+    }
+
+    [Pure]
+    private static string TryFlipConditionalValue(string value)
+    {
+        // Make "22:00-07:00" into "07:00-22:00"
+
+        Match match = Regex.Match(value, @"^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$");
+        
+        if (match.Success)
+        {
+            string from = match.Groups[1].Value;
+            string to = match.Groups[2].Value;
+            
+            return $"{to}-{from}";
+        }
+        
+        // Don't know how to do anything else, but no other live example as of making this
+        return "…";
     }
 
     

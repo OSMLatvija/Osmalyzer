@@ -229,6 +229,39 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
         }
         
+        // Inconsistent values of various kind
+        
+        report.AddGroup(
+            ReportGroup.InconsistentRestrictionValues,
+            "Inconsistent Restriction Values",
+            "These relations have internally inconsistent values."
+        );
+
+        foreach (Restriction restriction in restrictions)
+        {
+            RestrictionPrimaryEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().SingleOrDefault();
+            RestrictionConditionalEntry? conditional = restriction.Entries.OfType<RestrictionConditionalEntry>().SingleOrDefault();
+
+            if (primary == null || conditional == null)
+                continue;
+
+            if (primary.Value is RestrictionSimpleValue pv && conditional.Value is RestrictionConditionalValue cv)
+            {
+                if (pv.Value == cv.MainValue)
+                {
+                    report.AddEntry(
+                        ReportGroup.InconsistentRestrictionValues,
+                        new IssueReportEntry(
+                            $"Relation has the same main value in both tags: `restriction={pv.Value}` and `restriction:conditional={cv.MainValue} @ …` - " +
+                            restriction.Element.OsmViewUrl,
+                            restriction.Element.AverageCoord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
+            }
+        }
+        
         // Stats
 
         report.AddGroup(
@@ -592,6 +625,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         UnknownRestrictionValues,
         DeprecatedTags,
         UnknownTags,
+        InconsistentRestrictionValues,
         UnknownExceptionModes,
         PossiblyFlippedConditional
     }

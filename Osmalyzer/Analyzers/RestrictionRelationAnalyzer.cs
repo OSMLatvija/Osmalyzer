@@ -71,8 +71,8 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
             else
             {
-                bool hasMainTag = restriction.Parts.Any(p => p.Key == "restriction");
-                bool hasConditionalTag = restriction.Parts.Any(p => p.Key == "restriction:conditional");
+                bool hasMainTag = restriction.Parts.Any(p => p is RestrictionPrimaryPart);
+                bool hasConditionalTag = restriction.Parts.Any(p => p is RestrictionConditionalPart);
 
                 if (hasMainTag && hasConditionalTag)
                     bothMainAndConditionalTag++;
@@ -130,10 +130,10 @@ public class RestrictionRelationAnalyzer : Analyzer
     private static RestrictionPart? TryParseAsPart(string key, string value)
     {
         if (key == "restriction")
-            return new RestrictionPart(key, value);
+            return new RestrictionPrimaryPart(key, value);
         
         if (key == "restriction:conditional")
-            return new RestrictionPart(key, value);
+            return new RestrictionConditionalPart(key, value);
 
         return null;
     }
@@ -141,7 +141,11 @@ public class RestrictionRelationAnalyzer : Analyzer
 
     private record Restriction(OsmRelation Element, List<RestrictionPart> Parts);
     
-    private record RestrictionPart(string Key, string Value);
+    private abstract record RestrictionPart(string Key, string Value);
+
+    private record RestrictionPrimaryPart(string Key, string Value) : RestrictionPart(Key, Value);
+    
+    private record RestrictionConditionalPart(string Key, string Value) : RestrictionPart(Key, Value);
     
     
     private enum ReportGroup

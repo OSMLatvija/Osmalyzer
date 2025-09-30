@@ -240,19 +240,31 @@ public class RestrictionRelationAnalyzer : Analyzer
         foreach (Restriction restriction in restrictions)
         {
             RestrictionPrimaryEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().SingleOrDefault();
-            RestrictionConditionalEntry? conditional = restriction.Entries.OfType<RestrictionConditionalEntry>().SingleOrDefault();
+            List<RestrictionConditionalEntry> conditionals = restriction.Entries.OfType<RestrictionConditionalEntry>().ToList();
 
-            if (primary == null || conditional == null)
+            if (primary == null || conditionals.Count == 0)
                 continue;
 
-            if (primary.Value is RestrictionSimpleValue pv && conditional.Value is RestrictionConditionalValue cv)
+            if (primary.Value is RestrictionSimpleValue pv)
             {
-                if (pv.Value == cv.MainValue)
+                // Find all conditional entries that conflict with the primary (same main value)
+                List<RestrictionConditionalValue> conflicting = conditionals
+                    .Select(c => c.Value)
+                    .OfType<RestrictionConditionalValue>()
+                    .Where(cv => cv.MainValue == pv.Value)
+                    .ToList();
+
+                if (conflicting.Count > 0)
                 {
+                    string parts = string.Join(
+                        ", ",
+                        conflicting.Select(cv => $"`restriction:conditional={cv.MainValue} @ {cv.Condition}`")
+                    );
+
                     report.AddEntry(
                         ReportGroup.InconsistentRestrictionValues,
                         new IssueReportEntry(
-                            $"Relation has the same main value in both tags: `restriction={pv.Value}` and `restriction:conditional={cv.MainValue} @ …` - " +
+                            $"Relation has the same main value in both tags: `restriction={pv.Value}` and {parts} - the condition is effectively redundant and unlikely intended - " +
                             restriction.Element.OsmViewUrl,
                             restriction.Element.AverageCoord,
                             MapPointStyle.Problem
@@ -365,7 +377,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                             restrictionValueCounts[cval.MainValue] = cnt1 + 1;
 
                         // Count condition string
-                        if (conditionValueCounts.TryGetValue(cval.Condition, out int cnt2))
+                        if (!conditionValueCounts.TryGetValue(cval.Condition, out int cnt2))
                             conditionValueCounts[cval.Condition] = 1;
                         else
                             conditionValueCounts[cval.Condition] = cnt2 + 1;

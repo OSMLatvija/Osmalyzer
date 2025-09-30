@@ -312,6 +312,82 @@ public class RestrictionRelationAnalyzer : Analyzer
             );
         }
         
+        // Unique restriction and condition values
+        Dictionary<string, int> restrictionValueCounts = [ ];
+        Dictionary<string, int> conditionValueCounts = [ ];
+
+        foreach (Restriction restriction in restrictions)
+        {
+            foreach (RestrictionEntry entry in restriction.Entries)
+            {
+                switch (entry.Value)
+                {
+                    case RestrictionConditionalValue cval:
+                    {
+                        // Count main value from conditional
+                        if (!restrictionValueCounts.TryGetValue(cval.MainValue, out int cnt1))
+                            restrictionValueCounts[cval.MainValue] = 1;
+                        else
+                            restrictionValueCounts[cval.MainValue] = cnt1 + 1;
+
+                        // Count condition string
+                        if (conditionValueCounts.TryGetValue(cval.Condition, out int cnt2))
+                            conditionValueCounts[cval.Condition] = 1;
+                        else
+                            conditionValueCounts[cval.Condition] = cnt2 + 1;
+                        break;
+                    }
+                    
+                    case RestrictionSimpleValue:
+                    {
+                        // Primary or unknown values
+                        string v = entry.Value.Value;
+                        if (!restrictionValueCounts.TryGetValue(v, out int cnt))
+                            restrictionValueCounts[v] = 1;
+                        else
+                            restrictionValueCounts[v] = cnt + 1;
+                        break;
+                    }
+                    
+                    case RestrictionUnknownValue:
+                        // Ignore unknown values here, they get fully reported anyway
+                        break;
+                    
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        if (restrictionValueCounts.Count > 0)
+        {
+            List<string> parts = [ ];
+            
+            foreach (KeyValuePair<string, int> kv in restrictionValueCounts.OrderByDescending(kv => kv.Value))
+                parts.Add($"`{kv.Key}` × {kv.Value}");
+            
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry("Restriction values used: " + string.Join(", ", parts) + ".")
+            );
+        }
+
+        if (conditionValueCounts.Count > 0)
+        {
+            List<string> parts = [ ];
+            
+            foreach (KeyValuePair<string, int> kv in conditionValueCounts.OrderByDescending(kv => kv.Value))
+                parts.Add($"`{kv.Key}` × {kv.Value}");
+            
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry("Conditional conditions used: " + string.Join(", ", parts) + ".")
+            );
+        }
+        
+        
+        
+        
         // TODO
         
         // restriction:hgv, restriction:caravan, restriction:motorcar, restriction:bus, restriction:agricultural, restriction:motorcycle, restriction:bicycle, restriction:hazmat
@@ -429,7 +505,10 @@ public class RestrictionRelationAnalyzer : Analyzer
         // "no_left_turn @ 08:00-21:00"
         // "no_left_turn @ Mo-Su 08:00-21:00"
         
-        Match match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) @ \(?(.+)\)?$");
+        Match match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) @ \((.+)\)$");
+        
+        if (!match.Success) // try without brackets (can't do in 1 go) 
+            match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) @ (.+)$");
         
         // todo: more complex, need a full-on conditional parsing then
         

@@ -21,7 +21,9 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         OsmDataExtract restrictionRelations = osmData.MasterData.Filter(
             new IsRelation(),
-            new HasAnyValue("type", "restriction")
+            new RelationMustHaveAllMembersDownloaded(),
+            new HasAnyValue("type", "restriction"),
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
         );
         
         // Parse
@@ -272,6 +274,185 @@ public class RestrictionRelationAnalyzer : Analyzer
                     );
                 }
             }
+        }
+        
+        // Connectivity and member checks
+        
+        report.AddGroup(
+            ReportGroup.Connectivity,
+            "Member Connectivity",
+            "These relations have problems with their members and connectivity."
+        );
+
+        foreach (Restriction restriction in restrictions)
+        {
+            // Gather members (in declared order, which is mostly important for `via`)
+            
+            List<OsmWay> fromWays = [ ];
+            List<OsmWay> toWays = [ ];
+            List<OsmElement> viaChain = [ ];
+            List<OsmRelationMember> invalidRoles = [ ];
+            
+            foreach (OsmRelationMember m in restriction.Element.Members)
+            {
+                switch (m.Role)
+                {
+                    case "from":
+                        if (m.Element is OsmWay fw)
+                            fromWays.Add(fw);
+                        else
+                            invalidRoles.Add(m); // `from` must be way
+                        break;
+                    
+                    case "to":
+                        if (m.Element is OsmWay tw)
+                            toWays.Add(tw);
+                        else
+                            invalidRoles.Add(m); // `to` must be way
+                        break;
+                    
+                    case "via":
+                        if (m.Element is OsmWay or OsmNode)
+                            viaChain.Add(m.Element);
+                        else
+                            invalidRoles.Add(m); // `via` must be way or node
+                        break;
+                    
+                    default:
+                        // Unknown/unsupported role
+                        invalidRoles.Add(m);
+                        break;
+                }
+            }
+
+            // Invalid roles/members (report regardless, although connectivity might still exist fine ignoring these) 
+            
+            foreach (OsmRelationMember invalidMember in invalidRoles)
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        $"Member with invalid or unexpected combo of role `{invalidMember.Role}` and type `{invalidMember.Element!.ElementType.ToString().ToLower()}` - " + restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+            }
+            
+            // Determine main restriction kind (turn vs uturn), if known
+            // todo: more generic during parsing
+            
+            string? mainValue = null;
+            {
+                RestrictionEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().FirstOrDefault();
+                if (primary?.Value is RestrictionSimpleValue psv) mainValue = psv.Value;
+                else
+                {
+                    RestrictionConditionalEntry? cond = restriction.Entries.OfType<RestrictionConditionalEntry>().FirstOrDefault();
+                    if (cond?.Value is RestrictionConditionalValue cv) mainValue = cv.MainValue;
+                    else if (cond?.Value is RestrictionSimpleValue csv) mainValue = csv.Value; // unlikely
+                }
+            }
+            bool isUTurn = mainValue is "no_u_turn" or "only_u_turn";
+            bool isTurn = mainValue is "no_left_turn" or "no_right_turn" or "no_straight_on" or "only_left_turn" or "only_right_turn" or "only_straight_on";
+            bool valueKnown = mainValue != null && _knownRestrictionValues.Contains(mainValue);
+
+            // Missing or multiple critical members
+
+            bool roleMembersFail = false;
+            
+            if (fromWays.Count == 0)
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        "Relation is missing `from` member (way) - " + restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+                roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+            }
+            else if (fromWays.Count > 1)
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        $"Relation has multiple `from` members ({fromWays.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+                roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+            }
+
+            if (toWays.Count == 0)
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        "Relation is missing `to` member (way) - " + restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+                roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+            }
+            else if (toWays.Count > 1)
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        $"Relation has multiple `to` members ({toWays.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+                roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+            }
+
+            if (viaChain.Count == 0)
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        "Relation is missing `via` member(s) (node or way) - " + restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+                roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+            }
+
+            // If basic membership is broken, don't continue with connectivity checks, everything below relies on valid members
+            if (roleMembersFail)
+                continue;
+            
+            // At this point we definitely have exactly one `from` and one `to`, and at least one `via`
+            OsmWay fromWay = fromWays[0];
+            OsmWay toWay = toWays[0];
+            
+            // If it's a turn (not u-turn), require from != to
+            
+            if (valueKnown && isTurn)
+            {
+                if (fromWay == toWay)
+                {
+                    report.AddEntry(
+                        ReportGroup.Connectivity,
+                        new IssueReportEntry(
+                            "Relation has `from` and `to` that are the same way - " + restriction.Element.OsmViewUrl,
+                            restriction.Element.AverageCoord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                    // Still continue to connectivity checks; this is orthogonal
+                }
+            }
+            
+            // Make sure that the elements chain to each other in order - from -> via(s) -> to
+            
+            // todo:
         }
         
         // Stats
@@ -639,6 +820,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         UnknownTags,
         InconsistentRestrictionValues,
         UnknownExceptionModes,
-        PossiblyFlippedConditional
+        PossiblyFlippedConditional,
+        Connectivity
     }
 }

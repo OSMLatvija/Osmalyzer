@@ -7,6 +7,11 @@ using OsmSharp.Tags;
 
 namespace Osmalyzer;
 
+/// <summary>
+///
+/// Note that the same <see cref="OsmData"/> will always have unique instances of <see cref="OsmElement"/>,
+/// i.e. each ID has exactly one corresponding elements.
+/// </summary>
 public abstract class OsmElement : IChunkerItem
 {
     [PublicAPI]

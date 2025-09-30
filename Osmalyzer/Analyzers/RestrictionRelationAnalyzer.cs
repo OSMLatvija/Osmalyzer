@@ -32,6 +32,8 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         foreach (OsmRelation osmRelation in restrictionRelations.Relations)
         {
+            // Tags
+            
             List<RestrictionEntry> entries = [];
             List<UnknownTag> unknownTags = [];
             List<DeprecatedTag> deprecatedTags = [];
@@ -83,11 +85,64 @@ public class RestrictionRelationAnalyzer : Analyzer
                 unknownTags.Add(new UnknownTag(key, value));
             }
             
-            // todo: parse members
+            // Member elements
             
-            // todo: coord from via not average
+            List<RestrictionMember> members = [ ];
+
+            foreach (OsmRelationMember relationMember in osmRelation.Members)
+            {
+                switch (relationMember.Role)
+                {
+                    case "from":
+                        if (relationMember.Element is OsmWay fw)
+                            members.Add(new RestrictionFromMember(relationMember, fw));
+                        else
+                            members.Add(new RestrictionUnknownMember(relationMember, relationMember.Role)); // `from` must be way
+                        break;
+                    
+                    case "to":
+                        if (relationMember.Element is OsmWay tw)
+                            members.Add(new RestrictionToMember(relationMember, tw));
+                        else
+                            members.Add(new RestrictionUnknownMember(relationMember, relationMember.Role)); // `to` must be way
+                        break;
+                    
+                    case "via":
+                        if (relationMember.Element is OsmNode vn)
+                            members.Add(new RestrictionViaNodeMember(relationMember, vn));
+                        else if (relationMember.Element is OsmWay vw)
+                            members.Add(new RestrictionViaWayMember(relationMember, vw));
+                        else
+                            members.Add(new RestrictionUnknownMember(relationMember, relationMember.Role)); // `via` must be node or way
+                        break;
+                    
+                    default:
+                        members.Add(new RestrictionUnknownMember(relationMember, relationMember.Role));
+                        break;
+                }
+            }
             
-            restrictions.Add(new Restriction(osmRelation, entries, unknownTags, deprecatedTags, exception));
+            List<RestrictionFromMember> fromMembers = members.OfType<RestrictionFromMember>().ToList();
+            List<RestrictionToMember> toMembers = members.OfType<RestrictionToMember>().ToList();
+            List<RestrictionViaMember> viaMembers = members.OfType<RestrictionViaMember>().ToList();
+            List<RestrictionUnknownMember> unknownMembers = members.OfType<RestrictionUnknownMember>().ToList();
+
+            // todo: coord from via if possible not average
+            
+            restrictions.Add(
+                new Restriction(
+                    osmRelation,
+                    entries,
+                    unknownTags,
+                    deprecatedTags,
+                    exception,
+                    members,
+                    fromMembers,
+                    toMembers,
+                    viaMembers,
+                    unknownMembers
+                )
+            );
         }
         
         // Unknown restriction value
@@ -286,53 +341,14 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         foreach (Restriction restriction in restrictions)
         {
-            // Gather members (in declared order, which is mostly important for `via`)
-            
-            List<OsmWay> fromWays = [ ];
-            List<OsmWay> toWays = [ ];
-            List<OsmElement> viaChain = [ ];
-            List<OsmRelationMember> invalidRoles = [ ];
-            
-            foreach (OsmRelationMember m in restriction.Element.Members)
-            {
-                switch (m.Role)
-                {
-                    case "from":
-                        if (m.Element is OsmWay fw)
-                            fromWays.Add(fw);
-                        else
-                            invalidRoles.Add(m); // `from` must be way
-                        break;
-                    
-                    case "to":
-                        if (m.Element is OsmWay tw)
-                            toWays.Add(tw);
-                        else
-                            invalidRoles.Add(m); // `to` must be way
-                        break;
-                    
-                    case "via":
-                        if (m.Element is OsmWay or OsmNode)
-                            viaChain.Add(m.Element);
-                        else
-                            invalidRoles.Add(m); // `via` must be way or node
-                        break;
-                    
-                    default:
-                        // Unknown/unsupported role
-                        invalidRoles.Add(m);
-                        break;
-                }
-            }
-
             // Invalid roles/members (report regardless, although connectivity might still exist fine ignoring these) 
             
-            foreach (OsmRelationMember invalidMember in invalidRoles)
+            foreach (RestrictionUnknownMember unknownMember in restriction.UnknownMembers)
             {
                 report.AddEntry(
                     ReportGroup.Connectivity,
                     new IssueReportEntry(
-                        $"Member with invalid or unexpected combo of role `{invalidMember.Role}` and type `{invalidMember.Element!.ElementType.ToString().ToLower()}` - " + restriction.Element.OsmViewUrl,
+                        $"Member with invalid or unexpected combo of role `{unknownMember.Role}` and type `{unknownMember.Member.Element!.ElementType.ToString().ToLower()}` - " + restriction.Element.OsmViewUrl,
                         restriction.Element.AverageCoord,
                         MapPointStyle.Problem
                     )
@@ -361,7 +377,7 @@ public class RestrictionRelationAnalyzer : Analyzer
 
             bool roleMembersFail = false;
             
-            if (fromWays.Count == 0)
+            if (restriction.FromMembers.Count == 0)
             {
                 report.AddEntry(
                     ReportGroup.Connectivity,
@@ -373,12 +389,12 @@ public class RestrictionRelationAnalyzer : Analyzer
                 );
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
-            else if (fromWays.Count > 1)
+            else if (restriction.FromMembers.Count > 1)
             {
                 report.AddEntry(
                     ReportGroup.Connectivity,
                     new IssueReportEntry(
-                        $"Relation has multiple `from` members ({fromWays.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
+                        $"Relation has multiple `from` members ({restriction.FromMembers.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
                         restriction.Element.AverageCoord,
                         MapPointStyle.Problem
                     )
@@ -386,7 +402,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
 
-            if (toWays.Count == 0)
+            if (restriction.ToMembers.Count == 0)
             {
                 report.AddEntry(
                     ReportGroup.Connectivity,
@@ -398,12 +414,12 @@ public class RestrictionRelationAnalyzer : Analyzer
                 );
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
-            else if (toWays.Count > 1)
+            else if (restriction.ToMembers.Count > 1)
             {
                 report.AddEntry(
                     ReportGroup.Connectivity,
                     new IssueReportEntry(
-                        $"Relation has multiple `to` members ({toWays.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
+                        $"Relation has multiple `to` members ({restriction.ToMembers.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
                         restriction.Element.AverageCoord,
                         MapPointStyle.Problem
                     )
@@ -411,7 +427,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
 
-            if (viaChain.Count == 0)
+            if (restriction.ViaMembers.Count == 0)
             {
                 report.AddEntry(
                     ReportGroup.Connectivity,
@@ -429,8 +445,8 @@ public class RestrictionRelationAnalyzer : Analyzer
                 continue;
             
             // At this point we definitely have exactly one `from` and one `to`, and at least one `via`
-            OsmWay fromWay = fromWays[0];
-            OsmWay toWay = toWays[0];
+            RestrictionFromMember fromWay = restriction.FromMembers[0];
+            RestrictionToMember toWay = restriction.ToMembers[0];
             
             // If it's a turn (not u-turn), require from != to
             
@@ -777,9 +793,27 @@ public class RestrictionRelationAnalyzer : Analyzer
         List<RestrictionEntry> Entries,
         List<UnknownTag> UnknownTags,
         List<DeprecatedTag> DeprecatedTags,
-        RestrictionExceptions? Exception);
+        RestrictionExceptions? Exception,
+        List<RestrictionMember> Members,
+        List<RestrictionFromMember> FromMembers,
+        List<RestrictionToMember> ToMembers,
+        List<RestrictionViaMember> ViaMembers,
+        List<RestrictionUnknownMember> UnknownMembers);
     
     
+    private abstract record RestrictionMember(OsmRelationMember Member);
+
+    private record RestrictionFromMember(OsmRelationMember Member, OsmWay Way) : RestrictionMember(Member);
+    
+    private record RestrictionToMember(OsmRelationMember Member, OsmWay Way) : RestrictionMember(Member);
+    
+    private abstract record RestrictionViaMember(OsmRelationMember Member, OsmElement Element) : RestrictionMember(Member);
+    private record RestrictionViaNodeMember(OsmRelationMember Member, OsmNode Node) : RestrictionViaMember(Member, Node);
+    private record RestrictionViaWayMember(OsmRelationMember Member, OsmWay Way) : RestrictionViaMember(Member, Way);
+    
+    private record RestrictionUnknownMember(OsmRelationMember Member, string Role) : RestrictionMember(Member);
+
+
     private abstract record RestrictionEntry(string Key, RestrictionValue Value);
     
     private record RestrictionPrimaryEntry(string Key, RestrictionValue Value) : RestrictionEntry(Key, Value);

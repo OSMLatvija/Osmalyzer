@@ -405,10 +405,38 @@ public class RestrictionRelationAnalyzer : Analyzer
                 roleIssues.Add("is missing `via` member (node or way)");
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
-            else if (restriction.ViaMembers.Count > 1 && restriction.ViaMembers.OfType<RestrictionViaNodeMember>().Any())
+            else
             {
-                roleIssues.Add("has multiple `via` members but not all are ways");
-                roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+                if (restriction.ViaMembers.Count > 1)
+                {
+                    // Multiple `via` is allowed, but only if all are ways (for complex junctions)
+                    if (restriction.ViaMembers.OfType<RestrictionViaNodeMember>().Any())
+                    {
+                        roleIssues.Add("has multiple `via` members but not all are ways");
+                        roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+                    }
+
+                    // Repeats in `via` are not allowed
+                    if (restriction.ViaMembers.Distinct().Count() != restriction.ViaMembers.Count)
+                    {
+                        roleIssues.Add("has repeated members in `via`");
+                        roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+                    }
+                }
+                
+                // `via` cannot repeat `from` or `to`
+                if (restriction.ViaMembers.Any(v => restriction.FromMembers.Any(fm => fm.Member == v.Member)))
+                {
+                    roleIssues.Add("has `via` member that is the same as `from`");
+                    roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+                }
+                if (restriction.ViaMembers.Any(v => restriction.ToMembers.Any(tm => tm.Member == v.Member)))
+                {
+                    roleIssues.Add("has `via` member that is the same as `to`");
+                    roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+                }
+                
+                // `from` and `to` can be the same, but this is a special case fot u-turns, not a general fail
             }
 
             // If basic membership is broken, don't continue with connectivity checks, everything below relies on valid members

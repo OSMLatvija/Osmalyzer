@@ -65,6 +65,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                 if (key == "description") continue;
                 if (key == "check_date") continue;
                 if (key == "source") continue;
+                if (key == "implicit") continue; // todo: check value
                 
                 // Unknown tag
                 

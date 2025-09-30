@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class RestrictionRelationAnalyzer : Analyzer
@@ -34,16 +31,65 @@ public class RestrictionRelationAnalyzer : Analyzer
         foreach (OsmRelation osmRelation in restrictionRelations.Relations)
         {
             List<RestrictionPart> parts = [];
+            List<UnknownTag> unknownTags = [];
 
             foreach ((string key, string value) in osmRelation.AllTags!)
             {
-                RestrictionPart? part = TryParseAsPart(key, value);
+                // Obviously, ignore the defining tag
+                if (key == "type") continue;
                 
+                // Try parse as restriction part
+                
+                RestrictionPart? part = TryParseAsPart(key, value);
+
                 if (part != null)
+                {
                     parts.Add(part);
+                    continue;
+                }
+                
+                // Other tags that may be present, but we don't explicitly parse
+                
+                if (key == "note") continue;
+                if (key == "fixme") continue;
+                if (key == "description") continue;
+                if (key == "check_date") continue;
+                if (key == "source") continue;
+                
+                // Unknown tag
+                
+                unknownTags.Add(new UnknownTag(key, value));
             }
             
-            restrictions.Add(new Restriction(osmRelation, parts));
+            // todo: parse members
+            
+            // todo: coord from via not average
+            
+            restrictions.Add(new Restriction(osmRelation, parts, unknownTags));
+        }
+        
+        // Unknown tags
+        
+        report.AddGroup(
+            ReportGroup.UnknownTags, 
+            "Unknown Tags",
+            "These relations have tags that are not known/expected keys. " +
+            "These are not necessarily errors, just not recognized. " +
+            "These may however be mistakes, typos or invalid tags, so they need manual checking."
+        );
+        
+        foreach (Restriction restriction in restrictions.Where(r => r.UnknownTags.Count > 0))
+        {
+            report.AddEntry(
+                ReportGroup.UnknownTags, 
+                new IssueReportEntry(
+                    $"Relation has {restriction.UnknownTags.Count} unknown tags: " +
+                    string.Join(", ", restriction.UnknownTags.Select(t => $"{t.Key}={t.Value}")) + 
+                    " - " + restriction.Element.OsmViewUrl,
+                    restriction.Element.AverageCoord,
+                    MapPointStyle.Dubious
+                )
+            );
         }
         
         // Stats
@@ -139,7 +185,7 @@ public class RestrictionRelationAnalyzer : Analyzer
     }
 
 
-    private record Restriction(OsmRelation Element, List<RestrictionPart> Parts);
+    private record Restriction(OsmRelation Element, List<RestrictionPart> Parts, List<UnknownTag> UnknownTags);
     
     private abstract record RestrictionPart(string Key, string Value);
 
@@ -148,8 +194,12 @@ public class RestrictionRelationAnalyzer : Analyzer
     private record RestrictionConditionalPart(string Key, string Value) : RestrictionPart(Key, Value);
     
     
+    private record UnknownTag(string Key, string Value);
+    
+    
     private enum ReportGroup
     {
-        Stats
+        Stats,
+        UnknownTags
     }
 }

@@ -376,74 +376,53 @@ public class RestrictionRelationAnalyzer : Analyzer
             // Missing or multiple critical members
 
             bool roleMembersFail = false;
+            List<string> roleIssues = [ ];
             
             if (restriction.FromMembers.Count == 0)
             {
-                report.AddEntry(
-                    ReportGroup.Connectivity,
-                    new IssueReportEntry(
-                        "Relation is missing `from` member (way) - " + restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
+                roleIssues.Add("is missing `from` member (way)");
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
             else if (restriction.FromMembers.Count > 1)
             {
-                report.AddEntry(
-                    ReportGroup.Connectivity,
-                    new IssueReportEntry(
-                        $"Relation has multiple `from` members ({restriction.FromMembers.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
+                roleIssues.Add($"has multiple `from` members ({restriction.FromMembers.Count})");
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
 
             if (restriction.ToMembers.Count == 0)
             {
-                report.AddEntry(
-                    ReportGroup.Connectivity,
-                    new IssueReportEntry(
-                        "Relation is missing `to` member (way) - " + restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
+                roleIssues.Add("is missing `to` member (way)");
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
             else if (restriction.ToMembers.Count > 1)
             {
-                report.AddEntry(
-                    ReportGroup.Connectivity,
-                    new IssueReportEntry(
-                        $"Relation has multiple `to` members ({restriction.ToMembers.Count}) - expected exactly one way - " + restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
+                roleIssues.Add($"has multiple `to` members ({restriction.ToMembers.Count})");
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
 
             if (restriction.ViaMembers.Count == 0)
             {
-                report.AddEntry(
-                    ReportGroup.Connectivity,
-                    new IssueReportEntry(
-                        "Relation is missing `via` member(s) (node or way) - " + restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
+                roleIssues.Add("is missing `via` member (node or way)");
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
 
             // If basic membership is broken, don't continue with connectivity checks, everything below relies on valid members
             if (roleMembersFail)
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        "Relation " +
+                        string.Join(", ", roleIssues) +
+                        " - " + restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+                
                 continue;
-            
+            }
+
             // At this point we definitely have exactly one `from` and one `to`, and at least one `via`
             RestrictionFromMember fromWay = restriction.FromMembers[0];
             RestrictionToMember toWay = restriction.ToMembers[0];

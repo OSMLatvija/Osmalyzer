@@ -182,13 +182,50 @@ public class RestrictionRelationAnalyzer : Analyzer
             report.AddEntry(
                 ReportGroup.UnknownExceptionModes, 
                 new IssueReportEntry(
-                    $"Relation has unknown exception modes: " +
+                    "Relation has unknown exception modes: " +
                     string.Join(", ", exceptionVehicles.Select(m => "`" + m.Value + "`")) + 
                     " - " + restriction.Element.OsmViewUrl,
                     restriction.Element.AverageCoord,
                     MapPointStyle.Dubious
                 )
             );
+        }
+        
+        // "Flipped" restriction logic
+
+        report.AddGroup(
+            ReportGroup.PossiblyFlippedConditional,
+            @"""Flipped"" Conditionals",
+            @"These relations have a main `restriction=*` together with `restriction:conditional=none @ …`. " +
+            @"Usually it's expected these to be in reverse to match the traffic signage usage (e.g. ""no left turns during these hours""). " +
+            "These are not incorrect as such, but do imply tagging for the renderer, usually prioritizing the common hour restriction over the off-hour allowance."
+        );
+
+        foreach (Restriction restriction in restrictions)
+        {
+            // Exactly 1 of each
+            RestrictionPrimaryEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().SingleOrDefault();
+            RestrictionConditionalEntry? conditional = restriction.Entries.OfType<RestrictionConditionalEntry>().SingleOrDefault();
+
+            if (primary == null || conditional == null)
+                continue;
+            
+            if (primary.Value is RestrictionSimpleValue { Value: not "none" } primaryValue &&
+                conditional.Value is RestrictionConditionalValue { MainValue: "none" } conditionalValue)
+            {
+                string flipped = "…";
+                
+                report.AddEntry(
+                    ReportGroup.PossiblyFlippedConditional,
+                    new IssueReportEntry(
+                        $"Relation has `restriction={primaryValue.Value}` together with `restriction:conditional=none @ {conditionalValue.Condition}`, " +
+                        $"expecting simpler syntax with just `restriction:conditional={primaryValue.Value} @ {flipped}` - " +
+                        restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Dubious
+                    )
+                );
+            }
         }
         
         // Stats
@@ -456,6 +493,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         UnknownRestrictionValues,
         DeprecatedTags,
         UnknownTags,
-        UnknownExceptionModes
+        UnknownExceptionModes,
+        PossiblyFlippedConditional
     }
 }

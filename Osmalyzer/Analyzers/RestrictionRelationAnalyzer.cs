@@ -32,6 +32,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         {
             List<RestrictionPart> parts = [];
             List<UnknownTag> unknownTags = [];
+            List<DeprecatedTag> deprecatedTags = [];
             RestrictionExceptions? exception = null;
 
             foreach ((string key, string value) in osmRelation.AllTags!)
@@ -58,6 +59,14 @@ public class RestrictionRelationAnalyzer : Analyzer
                         continue; // tag recognized
                 }
 
+                // Deprecated tags we recognize but consider legacy
+                DeprecatedTag? deprecated = TryParseAsDeprecatedTag(key, value);
+                if (deprecated != null)
+                {
+                    deprecatedTags.Add(deprecated);
+                    continue; // tag recognized as deprecated
+                }
+
                 // Other tags that may be present, but we don't explicitly parse
                 
                 if (key == "note") continue;
@@ -76,7 +85,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             
             // todo: coord from via not average
             
-            restrictions.Add(new Restriction(osmRelation, parts, unknownTags, exception));
+            restrictions.Add(new Restriction(osmRelation, parts, unknownTags, deprecatedTags, exception));
         }
         
         // Unknown tags
@@ -103,7 +112,33 @@ public class RestrictionRelationAnalyzer : Analyzer
             );
         }
         
+        // Deprecated tags
+        
+        report.AddGroup(
+            ReportGroup.DeprecatedTags, 
+            "Deprecated Tags",
+            "These relations have known tags, but are considered deprecated for turn restrictions. " +
+            "For time window `day_on`, `day_off`, `hour_on`, `hour_off` tags, recommended use is `restriction:conditional` instead."
+        );
+        
+        foreach (Restriction restriction in restrictions.Where(r => r.DeprecatedTags.Count > 0))
+        {
+            report.AddEntry(
+                ReportGroup.DeprecatedTags,
+                new IssueReportEntry(
+                    $"Relation has {restriction.DeprecatedTags.Count} deprecated tags: " +
+                    string.Join(", ", restriction.DeprecatedTags.Select(t => $"`{t.Key}={t.Value}`")) +
+                    " - " + restriction.Element.OsmViewUrl,
+                    restriction.Element.AverageCoord,
+                    MapPointStyle.Problem
+                )
+            );
+        }
+        
+        // todo: detect if redundant to :conditional ?
+        
         // Unknown exception modes
+        
         report.AddGroup(
             ReportGroup.UnknownExceptionModes, 
             "Unknown Exception Modes",
@@ -144,6 +179,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         int justConditionalTag = 0;
         int bothMainAndConditionalTag = 0;
         int hasExceptions = 0;
+        int hasDeprecated = 0;
         
         foreach (Restriction restriction in restrictions)
         {
@@ -166,6 +202,9 @@ public class RestrictionRelationAnalyzer : Analyzer
                 if (restriction.Exception != null)
                     hasExceptions++;
             }
+
+            if (restriction.DeprecatedTags.Count > 0)
+                hasDeprecated++;
         }
                 
         report.AddEntry(
@@ -199,19 +238,19 @@ public class RestrictionRelationAnalyzer : Analyzer
             );
         }
 
+        if (hasDeprecated > 0)
+        {
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry($"{hasDeprecated} have deprecated tags present.")
+            );
+        }
+
         // TODO
         
         // no_right_turn / no_left_turn / no_u_turn / no_straight_on
         // only_right_turn / only_left_turn / only_u_turn / only_straight_on
         // no_entry, no_exit
-        
-        // TODO
-        
-        // except = psv / bicycle / hgv / motorcar / emergency
-        
-        // TODO
-        
-        // day_on / day_off / hour_on / hour_off
         
         // TODO
         
@@ -272,11 +311,29 @@ public class RestrictionRelationAnalyzer : Analyzer
         return new RestrictionExceptions(key, value, modes);
     }
 
+    [Pure]
+    private static DeprecatedTag? TryParseAsDeprecatedTag(string key, string value)
+    {
+        // Legacy time window scheme previously often used with restrictions
+        
+        if (key
+            is "day_on"
+            or "day_off"
+            or "hour_on"
+            or "hour_off")
+        {
+            return new DeprecatedTag(key, value);
+        }
+
+        return null;
+    }
+
 
     private record Restriction(
         OsmRelation Element,
         List<RestrictionPart> Parts,
         List<UnknownTag> UnknownTags,
+        List<DeprecatedTag> DeprecatedTags,
         RestrictionExceptions? Exception);
     
     
@@ -299,10 +356,14 @@ public class RestrictionRelationAnalyzer : Analyzer
     
     private record UnknownTag(string Key, string Value);
     
+    // todo:
+    private record DeprecatedTag(string Key, string Value);
+    
     
     private enum ReportGroup
     {
         Stats,
+        DeprecatedTags,
         UnknownTags,
         UnknownExceptionModes
     }

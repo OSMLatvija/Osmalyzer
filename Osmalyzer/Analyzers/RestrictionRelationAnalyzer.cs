@@ -198,7 +198,8 @@ public class RestrictionRelationAnalyzer : Analyzer
             @"""Flipped"" Conditionals",
             @"These relations have a main `restriction=*` together with uncommon `restriction:conditional=none @ …`. " +
             @"Usually it's expected these to be in reverse to match the traffic signage usage (e.g. ""no left turns during these hours""). " +
-            "These are not logically incorrect as such, but do imply more convoluted tagging for the renderer, prioritizing the common hour restriction over the off-hour allowance."
+            "These are however not logically incorrect, just more convoluted as tagging for the renderer, " +
+            "prioritizing the common hour restriction over the off-hour allowance to aid routers that only read the main `restriction`."
         );
 
         foreach (Restriction restriction in restrictions)

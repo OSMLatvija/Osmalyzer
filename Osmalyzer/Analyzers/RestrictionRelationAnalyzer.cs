@@ -405,6 +405,11 @@ public class RestrictionRelationAnalyzer : Analyzer
                 roleIssues.Add("is missing `via` member (node or way)");
                 roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
             }
+            else if (restriction.ViaMembers.Count > 1 && restriction.ViaMembers.OfType<RestrictionViaNodeMember>().Any())
+            {
+                roleIssues.Add("has multiple `via` members but not all are ways");
+                roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+            }
 
             // If basic membership is broken, don't continue with connectivity checks, everything below relies on valid members
             if (roleMembersFail)

@@ -262,10 +262,16 @@ public class RestrictionRelationAnalyzer : Analyzer
     private static RestrictionPart? TryParseAsPart(string key, string value)
     {
         if (key == "restriction")
-            return new RestrictionPrimaryPart(key, value);
-        
+        {
+            RestrictionValue restrictionValue = TryParseRestrictionValue(value);
+            return new RestrictionPrimaryPart(key, restrictionValue);
+        }
+
         if (key == "restriction:conditional")
-            return new RestrictionConditionalPart(key, value);
+        {
+            RestrictionValue restrictionValue = TryParseRestrictionValue(value);
+            return new RestrictionConditionalPart(key, restrictionValue);
+        }
 
         return null;
     }
@@ -328,7 +334,15 @@ public class RestrictionRelationAnalyzer : Analyzer
         return null;
     }
 
+    [Pure]
+    private static RestrictionValue TryParseRestrictionValue(string value)
+    {
+        // todo:
+        
+        return new RestrictionValue(value);
+    }
 
+    
     private record Restriction(
         OsmRelation Element,
         List<RestrictionPart> Parts,
@@ -337,13 +351,17 @@ public class RestrictionRelationAnalyzer : Analyzer
         RestrictionExceptions? Exception);
     
     
-    private abstract record RestrictionPart(string Key, string Value);
+    private abstract record RestrictionPart(string Key, RestrictionValue Value);
 
     
-    private record RestrictionPrimaryPart(string Key, string Value) : RestrictionPart(Key, Value);
+    private record RestrictionPrimaryPart(string Key, RestrictionValue Value) : RestrictionPart(Key, Value);
     
-    private record RestrictionConditionalPart(string Key, string Value) : RestrictionPart(Key, Value);
+    private record RestrictionConditionalPart(string Key, RestrictionValue Value) : RestrictionPart(Key, Value);
+    
+    
+    private record RestrictionValue(string Value);
 
+    
     private record RestrictionExceptions(string Key, string Value, List<ExceptionVehicle> Modes);
     
     

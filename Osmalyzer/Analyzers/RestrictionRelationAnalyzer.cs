@@ -5,7 +5,7 @@ public class RestrictionRelationAnalyzer : Analyzer
 {
     public override string Name => "Turn Restriction Relations";
 
-    public override string Description => "This report checks turn restriction relations.";
+    public override string Description => "This report checks turn restriction relations, i.e. relations with `type=restriction`.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.Validation;
 
@@ -91,10 +91,34 @@ public class RestrictionRelationAnalyzer : Analyzer
         foreach (Restriction restriction in restrictions.Where(r => r.UnknownTags.Count > 0))
         {
             report.AddEntry(
-                ReportGroup.UnknownTags, 
+                ReportGroup.UnknownTags,
                 new IssueReportEntry(
                     $"Relation has {restriction.UnknownTags.Count} unknown tags: " +
-                    string.Join(", ", restriction.UnknownTags.Select(t => $"{t.Key}={t.Value}")) + 
+                    string.Join(", ", restriction.UnknownTags.Select(t => $"`{t.Key}={t.Value}`")) +
+                    " - " + restriction.Element.OsmViewUrl,
+                    restriction.Element.AverageCoord,
+                    MapPointStyle.Dubious
+                )
+            );
+        }
+        
+        // Unknown exception modes
+        
+        report.AddGroup(
+            ReportGroup.UnknownExceptionModes, 
+            "Unknown Exception Modes",
+            "These relations have `except` tags with value(s) for unknown vehicle types / transport modes."
+        );
+        
+        foreach (Restriction restriction in restrictions.Where(r => r.Exception != null && r.Exception.Modes.OfType<ExceptionUnknownVehicle>().Any()))
+        {
+            IEnumerable<ExceptionUnknownVehicle> exceptionVehicles = restriction.Exception!.Modes.OfType<ExceptionUnknownVehicle>();
+            
+            report.AddEntry(
+                ReportGroup.UnknownExceptionModes, 
+                new IssueReportEntry(
+                    $"Relation has unknown exception modes: " +
+                    string.Join(", ", exceptionVehicles.Select(m => "`" + m.Value + "`")) + 
                     " - " + restriction.Element.OsmViewUrl,
                     restriction.Element.AverageCoord,
                     MapPointStyle.Dubious
@@ -145,17 +169,17 @@ public class RestrictionRelationAnalyzer : Analyzer
                 
         report.AddEntry(
             ReportGroup.Stats, 
-            new GenericReportEntry($"{justMainTag} are with just main 'restriction' tag.")
+            new GenericReportEntry($"{justMainTag} are with just main `restriction` tag.")
         );
         
         report.AddEntry(
             ReportGroup.Stats, 
-            new GenericReportEntry($"{justConditionalTag} are with just 'restriction:conditional' tag.")
+            new GenericReportEntry($"{justConditionalTag} are with just `restriction:conditional` tag.")
         );
         
         report.AddEntry(
             ReportGroup.Stats, 
-            new GenericReportEntry($"{bothMainAndConditionalTag} are with both 'restriction' and 'restriction:conditional' tags.")
+            new GenericReportEntry($"{bothMainAndConditionalTag} are with both `restriction` and `restriction:conditional` tags.")
         );
 
         if (noTag > 0)
@@ -170,7 +194,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         {
             report.AddEntry(
                 ReportGroup.Stats,
-                new GenericReportEntry($"{hasExceptions} have 'except' tag defining exceptions.")
+                new GenericReportEntry($"{hasExceptions} have `except` tag defining exceptions.")
             );
         }
 
@@ -209,10 +233,38 @@ public class RestrictionRelationAnalyzer : Analyzer
     [Pure]
     private static RestrictionExceptions? TryParseAsException(string key, string value)
     {
-        if (key == "except")
-            return new RestrictionExceptions(key, value);
+        if (key != "except")
+            return null;
         
-        return null;
+        List<ExceptionVehicle> modes = [ ];
+
+        string[] parts = value.Split(";", StringSplitOptions.TrimEntries);
+
+        foreach (string part in parts)
+        {
+            if (part 
+                is "psv"
+                or "bicycle"
+                or "hgv"
+                or "motorcar"
+                or "motorcycle"
+                or "bus"
+                or "caravan"
+                or "agricultural"
+                or "tractor"
+                or "emergency"
+                or "hazmat"
+                or "taxi"
+                or "moped")
+            {
+                modes.Add(new ExceptionKnownVehicle(part));
+                continue;
+            }
+            
+            modes.Add(new ExceptionUnknownVehicle(part));
+        }
+
+        return new RestrictionExceptions(key, value, modes);
     }
 
 
@@ -222,14 +274,23 @@ public class RestrictionRelationAnalyzer : Analyzer
         List<UnknownTag> UnknownTags,
         RestrictionExceptions? Exception);
     
+    
     private abstract record RestrictionPart(string Key, string Value);
 
+    
     private record RestrictionPrimaryPart(string Key, string Value) : RestrictionPart(Key, Value);
     
     private record RestrictionConditionalPart(string Key, string Value) : RestrictionPart(Key, Value);
 
-    private record RestrictionExceptions(string Key, string Value);
+    private record RestrictionExceptions(string Key, string Value, List<ExceptionVehicle> Modes);
     
+    
+    private abstract record ExceptionVehicle(string Value);
+
+    private record ExceptionKnownVehicle(string Value) : ExceptionVehicle(Value);
+    
+    private record ExceptionUnknownVehicle(string Value) : ExceptionVehicle(Value);
+
     
     private record UnknownTag(string Key, string Value);
     
@@ -237,6 +298,7 @@ public class RestrictionRelationAnalyzer : Analyzer
     private enum ReportGroup
     {
         Stats,
-        UnknownTags
+        UnknownTags,
+        UnknownExceptionModes
     }
 }

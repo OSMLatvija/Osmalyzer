@@ -129,6 +129,23 @@ public class RestrictionRelationAnalyzer : Analyzer
 
             // todo: coord from via if possible not average
 
+            List<string?> modes = entries.Select(e => e.Mode).Distinct().ToList();
+
+            List<string> baseRestrictionValues = [ ];
+            foreach (RestrictionEntry entry in entries)
+            {
+                if (entry.Value is RestrictionSimpleValue simpleValue)
+                {
+                    if (!baseRestrictionValues.Contains(simpleValue.Value))
+                        baseRestrictionValues.Add(simpleValue.Value);
+                }
+                else if (entry.Value is RestrictionConditionalValue conditionalValue)
+                {
+                    if (!baseRestrictionValues.Contains(conditionalValue.MainValue))
+                        baseRestrictionValues.Add(conditionalValue.MainValue);
+                }
+            }
+
             restrictions.Add(
                 new Restriction(
                     osmRelation,
@@ -140,7 +157,9 @@ public class RestrictionRelationAnalyzer : Analyzer
                     fromMembers,
                     toMembers,
                     viaMembers,
-                    unknownMembers
+                    unknownMembers,
+                    modes,
+                    baseRestrictionValues
                 )
             );
         }
@@ -260,10 +279,10 @@ public class RestrictionRelationAnalyzer : Analyzer
         foreach (Restriction restriction in restrictions)
         {
             // Evaluate per mode (including default null mode)
-            foreach (IGrouping<string?, RestrictionEntry> byMode in restriction.Entries.GroupBy(e => e.Mode))
+            foreach (string? mode in restriction.Modes)
             {
-                RestrictionPrimaryEntry? primary = byMode.OfType<RestrictionPrimaryEntry>().FirstOrDefault();
-                RestrictionConditionalEntry? conditional = byMode.OfType<RestrictionConditionalEntry>().FirstOrDefault();
+                RestrictionPrimaryEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().SingleOrDefault(e => e.Mode == mode);
+                RestrictionConditionalEntry? conditional = restriction.Entries.OfType<RestrictionConditionalEntry>().SingleOrDefault(e => e.Mode == mode);
 
                 if (primary == null || conditional == null)
                     continue;
@@ -298,10 +317,10 @@ public class RestrictionRelationAnalyzer : Analyzer
         foreach (Restriction restriction in restrictions)
         {
             // Evaluate per mode (including default null mode)
-            foreach (IGrouping<string?, RestrictionEntry> byMode in restriction.Entries.GroupBy(e => e.Mode))
+            foreach (string? mode in restriction.Modes)
             {
-                RestrictionPrimaryEntry? primary = byMode.OfType<RestrictionPrimaryEntry>().FirstOrDefault();
-                RestrictionConditionalEntry? conditional = byMode.OfType<RestrictionConditionalEntry>().FirstOrDefault();
+                RestrictionPrimaryEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().SingleOrDefault(e => e.Mode == mode);
+                RestrictionConditionalEntry? conditional = restriction.Entries.OfType<RestrictionConditionalEntry>().SingleOrDefault(e => e.Mode == mode);
 
                 // Check if both primary and conditional have the same main value
                 if (primary != null &&
@@ -313,7 +332,9 @@ public class RestrictionRelationAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.InconsistentRestrictionValues,
                         new IssueReportEntry(
-                            $"Relation has the same main value in both tags for mode '{(byMode.Key ?? "default") }': `{primary.Key}={primary.Value}` and `{conditional.Key}={conditional.Value}` - the condition is effectively redundant and unlikely intended - " +
+                            $"Relation has the same main value in both tags for " +
+                            (mode != null ? $"mode `{mode}`" : "default mode") +
+                            $": `{primary.Key}={primary.Value}` and `{conditional.Key}={conditional.Value}` - the condition is effectively redundant and unlikely intended - " +
                             restriction.Element.OsmViewUrl,
                             restriction.Element.AverageCoord,
                             MapPointStyle.Problem
@@ -885,6 +906,21 @@ public class RestrictionRelationAnalyzer : Analyzer
     }
 
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="Element"></param>
+    /// <param name="Entries"></param>
+    /// <param name="UnknownTags"></param>
+    /// <param name="DeprecatedTags"></param>
+    /// <param name="Exception"></param>
+    /// <param name="Members"></param>
+    /// <param name="FromMembers"></param>
+    /// <param name="ToMembers"></param>
+    /// <param name="ViaMembers"></param>
+    /// <param name="UnknownMembers"></param>
+    /// <param name="Modes"></param>
+    /// <param name="BaseRestrictionValues">Different values used like `no_left_turn`, `no_right_turn` etc. Valid (parsable) restriction should have only 1.</param>
     private record Restriction(
         OsmRelation Element,
         List<RestrictionEntry> Entries,
@@ -895,7 +931,9 @@ public class RestrictionRelationAnalyzer : Analyzer
         List<RestrictionFromMember> FromMembers,
         List<RestrictionToMember> ToMembers,
         List<RestrictionViaMember> ViaMembers,
-        List<RestrictionUnknownMember> UnknownMembers);
+        List<RestrictionUnknownMember> UnknownMembers,
+        List<string?> Modes,
+        List<string> BaseRestrictionValues);
 
 
     private abstract record RestrictionMember(OsmRelationMember Member);

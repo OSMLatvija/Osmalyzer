@@ -286,7 +286,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
         }
         
-        // Inconsistent values of various kind
+        // Inconsistent restriction values of various kind
         
         report.AddGroup(
             ReportGroup.InconsistentRestrictionValues,
@@ -328,6 +328,22 @@ public class RestrictionRelationAnalyzer : Analyzer
                         )
                     );
                 }
+            }
+            
+            // Check if primary value is `none` but there are no conditionals
+            if (primary.Value is RestrictionSimpleValue value && 
+                value.Value == "none" && 
+                conditionals.Count == 0)
+            {
+                report.AddEntry(
+                    ReportGroup.InconsistentRestrictionValues,
+                    new IssueReportEntry(
+                        $"Relation has `restriction=none` but no `restriction:conditional` entries making it pointless - " +
+                        restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
             }
         }
         

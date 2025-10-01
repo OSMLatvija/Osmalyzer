@@ -132,6 +132,5 @@ public class OsmAlgorithmsTests
     public void IsChained_Empty_False()
     {
         Assert.That(OsmAlgorithms.IsChained(), Is.False);
-        Assert.That(OsmAlgorithms.IsChained(Enumerable.Empty<OsmElement>()), Is.False);
     }
 }

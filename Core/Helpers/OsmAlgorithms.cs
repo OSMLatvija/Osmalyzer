@@ -103,14 +103,19 @@ public static class OsmAlgorithms
         return nodes;
     }
 
-    public static bool IsChained(params OsmElement[] elements)
+    [Pure]
+    public static bool IsChained(OsmElement headElement, OsmElement[] midElements, OsmElement tailElement)
     {
-        return IsChained((IEnumerable<OsmElement>)elements);
+        OsmElement[] elements = new OsmElement[2 + midElements.Length];
+        elements[0] = headElement;
+        Array.Copy(midElements, 0, elements, 1, midElements.Length);
+        elements[^1] = tailElement;
+        return IsChained(elements);
     }
 
-    public static bool IsChained(IEnumerable<OsmElement> elements)
+    [Pure]
+    public static bool IsChained(params OsmElement[] elements)
     {
-        // Materialize once
         List<OsmElement> chain = elements.ToList();
 
         if (chain.Count == 0)
@@ -128,7 +133,6 @@ public static class OsmAlgorithms
         {
             OsmElement a = chain[i];
             OsmElement b = chain[i + 1];
-
 
             switch (a)
             {

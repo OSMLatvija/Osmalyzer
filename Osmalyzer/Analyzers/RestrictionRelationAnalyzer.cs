@@ -493,17 +493,17 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
             
             // Make sure that the elements chain to each other in order - from -> via(s) -> to
-            
+
             if (!OsmAlgorithms.IsChained(
-                    new [] { (OsmElement)fromWay.Way }
-                        .Concat(restriction.ViaMembers.Select(vm => vm.Element))
-                        .Append(toWay.Way)
+                    fromWay.Way,
+                    restriction.ViaMembers.Select(vm => vm.Element).ToArray(),
+                    toWay.Way
                 ))
             {
                 report.AddEntry(
                     ReportGroup.Connectivity,
                     new IssueReportEntry(
-                        "Relation members do not connect/chain in the order `from` → `via`(s) → `to` order - " + 
+                        "Relation members do not connect/chain in the order `from` → `via`(s) → `to` order - " +
                         restriction.Element.OsmViewUrl,
                         restriction.Element.AverageCoord,
                         MapPointStyle.Problem

@@ -145,11 +145,22 @@ public class RestrictionRelationAnalyzer : Analyzer
                         baseRestrictionValues.Add(conditionalValue.MainValue);
                 }
             }
+            
+            RestrictionKind kind;
+            
+            // Get the single main restriction value e.g. `no_left_turn` (ignoring `none`), otherwise it's not determinable
+            string? mainValue = baseRestrictionValues.SingleOrDefault(v => v != "none");
+            
+            if (mainValue != null)
+                kind = TryParseRestrictionKind(mainValue);
+            else
+                kind = new MixedRestrictionKind();
 
             restrictions.Add(
                 new Restriction(
                     osmRelation,
                     entries,
+                    kind,
                     unknownTags,
                     deprecatedTags,
                     exception,
@@ -424,24 +435,6 @@ public class RestrictionRelationAnalyzer : Analyzer
                 );
             }
 
-            // Determine restriction kinds present (turn vs uturn) across entries
-            HashSet<string> mainValues = [];
-            foreach (RestrictionEntry entry in restriction.Entries)
-            {
-                switch (entry.Value)
-                {
-                    case RestrictionSimpleValue s:
-                        mainValues.Add(s.Value);
-                        break;
-                    case RestrictionConditionalValue c:
-                        mainValues.Add(c.MainValue);
-                        break;
-                }
-            }
-            bool hasUTurn = mainValues.Any(v => v is "no_u_turn" or "only_u_turn");
-            bool hasTurn = mainValues.Any(v => v is "no_left_turn" or "no_right_turn" or "no_straight_on" or "only_left_turn" or "only_right_turn" or "only_straight_on");
-            bool anyKnown = mainValues.Any(v => _knownRestrictionValues.Contains(v));
-
             // Missing or multiple critical members
 
             bool roleMembersFail = false;
@@ -525,29 +518,10 @@ public class RestrictionRelationAnalyzer : Analyzer
 
                 continue;
             }
-
+            
             // At this point we definitely have exactly one `from` and one `to`, and at least one `via`
             RestrictionFromMember fromWay = restriction.FromMembers[0];
             RestrictionToMember toWay = restriction.ToMembers[0];
-
-            // If it's a turn (not u-turn), require from != to
-
-            if (anyKnown && hasTurn && !hasUTurn)
-            {
-                if (fromWay == toWay)
-                {
-                    report.AddEntry(
-                        ReportGroup.Connectivity,
-                        new IssueReportEntry(
-                            "Relation has `from` and `to` that are the same way - " +
-                            restriction.Element.OsmViewUrl,
-                            restriction.Element.AverageCoord,
-                            MapPointStyle.Problem
-                        )
-                    );
-                    // Still continue to connectivity checks; this is orthogonal
-                }
-            }
 
             // Make sure that the elements chain to each other in order - from -> via(s) -> to
 
@@ -566,6 +540,12 @@ public class RestrictionRelationAnalyzer : Analyzer
                         MapPointStyle.Problem
                     )
                 );
+            }
+            else
+            {
+                // Properly chained, so check restriction sanity
+
+                // todo:
             }
         }
 
@@ -985,6 +965,39 @@ public class RestrictionRelationAnalyzer : Analyzer
         // Don't know how to do anything else, but no other live example as of making this
         return "…";
     }
+    
+    [Pure]
+    private static RestrictionKind TryParseRestrictionKind(string value)
+    {
+        switch (value)
+        {
+            case "no_right_turn":
+            case "no_left_turn":
+            case "no_straight_on":
+                return new NoDirectionRestriction(value);
+            
+            case "only_right_turn":
+            case "only_left_turn":
+            case "only_straight_on":
+                return new OnlyDirectionRestriction(value);
+            
+            case "no_u_turn":
+                return new NoUTurnRestriction(value);
+            
+            case "only_u_turn":
+                return new OnlyUTurnRestriction(value);
+            
+            case "no_entry":
+            case "no_exit":
+                return new NoPassRestriction(value);
+            
+            case "none":
+                throw new Exception("Restriction kind cannot be 'none'");
+            
+            default:
+                return new UnknownRestrictionKind(value);
+        }
+    }
 
 
     /// <summary>
@@ -1005,6 +1018,7 @@ public class RestrictionRelationAnalyzer : Analyzer
     private record Restriction(
         OsmRelation Element,
         List<RestrictionEntry> Entries,
+        RestrictionKind Kind,
         List<UnknownTag> UnknownTags,
         List<DeprecatedTag> DeprecatedTags,
         RestrictionExceptions? Exception,
@@ -1068,6 +1082,51 @@ public class RestrictionRelationAnalyzer : Analyzer
 
     // todo:
     private record DeprecatedTag(string Key, string Value);
+    
+    
+    private abstract record RestrictionKind;
+    
+    private abstract record KnownRestrictionKind(string Value) : RestrictionKind;
+
+    private record UnknownRestrictionKind(string Value) : RestrictionKind;
+    
+    private record MixedRestrictionKind : RestrictionKind;
+
+    /// <summary>
+    /// Restriction that only allows something (like `only_right_turn` or `only_u_turn`).
+    /// </summary>
+    private abstract record OnlyRestriction(string Value) : KnownRestrictionKind(Value);
+
+    /// <summary>
+    /// Restriction that restricts a specific something (like `no_left_turn` or `no_u_turn`).
+    /// </summary>
+    private abstract record NoRestriction(string Value) : KnownRestrictionKind(Value);
+    
+    /// <summary>
+    /// Restriction that only allows a specific direction (like `only_right_turn`).
+    /// </summary>
+    private record OnlyDirectionRestriction(string Value) : OnlyRestriction(Value);
+    
+    /// <summary>
+    /// Restriction that restricts a specific direction (like `no_left_turn`).
+    /// </summary>
+    private record NoDirectionRestriction(string Value) : NoRestriction(Value);
+    
+    /// <summary>
+    /// Restriction that only allows u-turns (i.e. `only_u_turn`).
+    /// </summary>
+    private record OnlyUTurnRestriction(string Value) : OnlyRestriction(Value);
+
+    /// <summary>
+    /// Restriction that restricts u-turns (i.e. `no_u_turn`).
+    /// </summary>
+    private record NoUTurnRestriction(string Value) : NoRestriction(Value);
+
+    /// <summary>
+    /// Restriction that restricts entry or exit (i.e. `no_entry` or `no_exit`).
+    /// </summary>
+    private record NoPassRestriction(string Value) : KnownRestrictionKind(Value);
+    
 
 
     private enum ReportGroup

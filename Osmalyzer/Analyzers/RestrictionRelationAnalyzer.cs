@@ -221,8 +221,6 @@ public class RestrictionRelationAnalyzer : Analyzer
             );
         }
         
-        // todo: detect if redundant to :conditional ?
-        
         // Unknown exception modes
         
         report.AddGroup(
@@ -302,14 +300,14 @@ public class RestrictionRelationAnalyzer : Analyzer
             if (primary == null || conditionals.Count == 0)
                 continue;
 
-            if (primary.Value is RestrictionSimpleValue pv)
+            if (primary.Value is RestrictionSimpleValue primarySimpleValue)
             {
                 // Find all conditional entries that conflict with the primary (same main value)
                 List<RestrictionConditionalValue> conflicting = conditionals
-                    .Select(c => c.Value)
-                    .OfType<RestrictionConditionalValue>()
-                    .Where(cv => cv.MainValue == pv.Value)
-                    .ToList();
+                                                                .Select(c => c.Value)
+                                                                .OfType<RestrictionConditionalValue>()
+                                                                .Where(cv => cv.MainValue == primarySimpleValue.Value)
+                                                                .ToList();
 
                 if (conflicting.Count > 0)
                 {
@@ -321,29 +319,28 @@ public class RestrictionRelationAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.InconsistentRestrictionValues,
                         new IssueReportEntry(
-                            $"Relation has the same main value in both tags: `restriction={pv.Value}` and {parts} - the condition is effectively redundant and unlikely intended - " +
+                            $"Relation has the same main value in both tags: `restriction={primarySimpleValue.Value}` and {parts} - the condition is effectively redundant and unlikely intended - " +
                             restriction.Element.OsmViewUrl,
                             restriction.Element.AverageCoord,
                             MapPointStyle.Problem
                         )
                     );
                 }
-            }
-            
-            // Check if primary value is `none` but there are no conditionals
-            if (primary.Value is RestrictionSimpleValue value && 
-                value.Value == "none" && 
-                conditionals.Count == 0)
-            {
-                report.AddEntry(
-                    ReportGroup.InconsistentRestrictionValues,
-                    new IssueReportEntry(
-                        $"Relation has `restriction=none` but no `restriction:conditional` entries making it pointless - " +
-                        restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
+
+                // Check if primary value is `none` but there are no conditionals
+                if (primarySimpleValue.Value == "none" &&
+                    conditionals.Count == 0)
+                {
+                    report.AddEntry(
+                        ReportGroup.InconsistentRestrictionValues,
+                        new IssueReportEntry(
+                            $"Relation has `restriction=none` but no `restriction:conditional` entries making it pointless - " +
+                            restriction.Element.OsmViewUrl,
+                            restriction.Element.AverageCoord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
             }
         }
         

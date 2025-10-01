@@ -259,28 +259,31 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         foreach (Restriction restriction in restrictions)
         {
-            // Exactly 1 of each (otherwise, this mixes modes of transport and is invalid anyway)
-            RestrictionPrimaryEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().SingleOrDefault();
-            RestrictionConditionalEntry? conditional = restriction.Entries.OfType<RestrictionConditionalEntry>().SingleOrDefault();
-
-            if (primary == null || conditional == null)
-                continue;
-
-            if (primary.Value is RestrictionSimpleValue { Value: not "none" } primaryValue &&
-                conditional.Value is RestrictionConditionalValue { MainValue: "none" } conditionalValue)
+            // Evaluate per mode (including default null mode)
+            foreach (IGrouping<string?, RestrictionEntry> byMode in restriction.Entries.GroupBy(e => e.Mode))
             {
-                string flipped = TryFlipConditionalValue(conditionalValue.Condition);
+                RestrictionPrimaryEntry? primary = byMode.OfType<RestrictionPrimaryEntry>().FirstOrDefault();
+                RestrictionConditionalEntry? conditional = byMode.OfType<RestrictionConditionalEntry>().FirstOrDefault();
 
-                report.AddEntry(
-                    ReportGroup.PossiblyFlippedConditional,
-                    new IssueReportEntry(
-                        $"Relation has `restriction={primaryValue.Value}` together with `restriction:conditional=none @ {conditionalValue.Condition}`, " +
-                        $"expecting simpler syntax with just `restriction:conditional={primaryValue.Value} @ {flipped}` - " +
-                        restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Dubious
-                    )
-                );
+                if (primary == null || conditional == null)
+                    continue;
+
+                if (primary.Value is RestrictionSimpleValue { Value: not "none" } primaryValue &&
+                    conditional.Value is RestrictionConditionalValue { MainValue: "none" } conditionalValue)
+                {
+                    string flipped = TryFlipConditionalValue(conditionalValue.Condition);
+
+                    report.AddEntry(
+                        ReportGroup.PossiblyFlippedConditional,
+                        new IssueReportEntry(
+                            $"Relation has `{primary.Key}={primaryValue.Value}` together with `{conditional.Key}=none @ {conditionalValue.Condition}`, " +
+                            $"expecting simpler syntax with just `{primary.Key}:conditional={primaryValue.Value} @ {flipped}` - " +
+                            restriction.Element.OsmViewUrl,
+                            restriction.Element.AverageCoord,
+                            MapPointStyle.Dubious
+                        )
+                    );
+                }
             }
         }
 
@@ -294,43 +297,52 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         foreach (Restriction restriction in restrictions)
         {
-            // Exactly 1 of each (otherwise, this mixes modes of transport and is invalid anyway)
-            RestrictionPrimaryEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().SingleOrDefault();
-            RestrictionConditionalEntry? conditional = restriction.Entries.OfType<RestrictionConditionalEntry>().SingleOrDefault();
-
-            // Check if both primary and conditional have the same main value
-            if (primary != null &&
-                conditional != null &&
-                primary.Value is RestrictionSimpleValue primarySimpleValue &&
-                conditional.Value is RestrictionConditionalValue conditionalValue &&
-                primarySimpleValue.Value == conditionalValue.MainValue)
+            // Evaluate per mode (including default null mode)
+            foreach (IGrouping<string?, RestrictionEntry> byMode in restriction.Entries.GroupBy(e => e.Mode))
             {
-                report.AddEntry(
-                    ReportGroup.InconsistentRestrictionValues,
-                    new IssueReportEntry(
-                        $"Relation has the same main value in both tags: `{primary.Key}={primary.Value}` and `{conditional.Key}={conditional.Value}` - the condition is effectively redundant and unlikely intended - " +
-                        restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
-            }
+                RestrictionPrimaryEntry? primary = byMode.OfType<RestrictionPrimaryEntry>().FirstOrDefault();
+                RestrictionConditionalEntry? conditional = byMode.OfType<RestrictionConditionalEntry>().FirstOrDefault();
 
-            // Check if primary value is `none` but there are no conditionals
-            if (primary != null
-                && conditional == null &&
-                primary.Value is RestrictionSimpleValue { Value: "none" })
-            {
-                report.AddEntry(
-                    ReportGroup.InconsistentRestrictionValues,
-                    new IssueReportEntry(
-                        $"Relation has `restriction=none` but no `restriction:conditional` entries making it pointless - " +
-                        restriction.Element.OsmViewUrl,
-                        restriction.Element.AverageCoord,
-                        MapPointStyle.Problem
-                    )
-                );
+                // Check if both primary and conditional have the same main value
+                if (primary != null &&
+                    conditional != null &&
+                    primary.Value is RestrictionSimpleValue primarySimpleValue &&
+                    conditional.Value is RestrictionConditionalValue conditionalValue &&
+                    primarySimpleValue.Value == conditionalValue.MainValue)
+                {
+                    report.AddEntry(
+                        ReportGroup.InconsistentRestrictionValues,
+                        new IssueReportEntry(
+                            $"Relation has the same main value in both tags for mode '{(byMode.Key ?? "default") }': `{primary.Key}={primary.Value}` and `{conditional.Key}={conditional.Value}` - the condition is effectively redundant and unlikely intended - " +
+                            restriction.Element.OsmViewUrl,
+                            restriction.Element.AverageCoord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
+
+                // Check if primary value is `none` but there are no conditionals
+                if (primary != null &&
+                    conditional == null &&
+                    primary.Value is RestrictionSimpleValue { Value: "none" })
+                {
+                    report.AddEntry(
+                        ReportGroup.InconsistentRestrictionValues,
+                        new IssueReportEntry(
+                            $"Relation has `{primary.Key}=none` but no `{primary.Key}:conditional` entries making it pointless - " +
+                            restriction.Element.OsmViewUrl,
+                            restriction.Element.AverageCoord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
             }
+        }
+        
+        // Check that restriction doesn't define different types for different modes (e.g. `no_left_turn` for one, `no_right_turn` for another)
+        foreach (Restriction restriction in restrictions)
+        {
+            // todo: 
         }
 
         // Connectivity and member checks
@@ -357,23 +369,23 @@ public class RestrictionRelationAnalyzer : Analyzer
                 );
             }
 
-            // Determine main restriction kind (turn vs uturn), if known
-            // todo: more generic during parsing
-
-            string? mainValue = null;
+            // Determine restriction kinds present (turn vs uturn) across entries
+            HashSet<string> mainValues = [];
+            foreach (RestrictionEntry entry in restriction.Entries)
             {
-                RestrictionEntry? primary = restriction.Entries.OfType<RestrictionPrimaryEntry>().FirstOrDefault();
-                if (primary?.Value is RestrictionSimpleValue psv) mainValue = psv.Value;
-                else
+                switch (entry.Value)
                 {
-                    RestrictionConditionalEntry? cond = restriction.Entries.OfType<RestrictionConditionalEntry>().FirstOrDefault();
-                    if (cond?.Value is RestrictionConditionalValue cv) mainValue = cv.MainValue;
-                    else if (cond?.Value is RestrictionSimpleValue csv) mainValue = csv.Value; // unlikely
+                    case RestrictionSimpleValue s:
+                        mainValues.Add(s.Value);
+                        break;
+                    case RestrictionConditionalValue c:
+                        mainValues.Add(c.MainValue);
+                        break;
                 }
             }
-            bool isUTurn = mainValue is "no_u_turn" or "only_u_turn";
-            bool isTurn = mainValue is "no_left_turn" or "no_right_turn" or "no_straight_on" or "only_left_turn" or "only_right_turn" or "only_straight_on";
-            bool valueKnown = mainValue != null && _knownRestrictionValues.Contains(mainValue);
+            bool hasUTurn = mainValues.Any(v => v is "no_u_turn" or "only_u_turn");
+            bool hasTurn = mainValues.Any(v => v is "no_left_turn" or "no_right_turn" or "no_straight_on" or "only_left_turn" or "only_right_turn" or "only_straight_on");
+            bool anyKnown = mainValues.Any(v => _knownRestrictionValues.Contains(v));
 
             // Missing or multiple critical members
 
@@ -465,7 +477,7 @@ public class RestrictionRelationAnalyzer : Analyzer
 
             // If it's a turn (not u-turn), require from != to
 
-            if (valueKnown && isTurn)
+            if (anyKnown && hasTurn && !hasUTurn)
             {
                 if (fromWay == toWay)
                 {
@@ -687,19 +699,14 @@ public class RestrictionRelationAnalyzer : Analyzer
                 new GenericReportEntry("Conditional conditions used: " + string.Join(", ", parts) + ".")
             );
         }
-
-
-
-
-        // TODO
-
-        // restriction:hgv, restriction:caravan, restriction:motorcar, restriction:bus, restriction:agricultural, restriction:motorcycle, restriction:bicycle, restriction:hazmat
     }
 
 
     [Pure]
     private static RestrictionEntry? TryParseAsEntry(string key, string value)
     {
+        // Parse default keys - `restriction` and `restriction:conditional`
+        
         if (key == "restriction")
         {
             RestrictionValue restrictionValue = TryParseSimpleRestrictionValue(value);
@@ -712,10 +719,36 @@ public class RestrictionRelationAnalyzer : Analyzer
             return new RestrictionConditionalEntry(key, null, restrictionValue);
         }
 
-        const string modes = "hgv|motorcar|motorcycle|bus|bicycle"; // what is possible with standard traffic signs for Latvia (at least not seen exceptions (yet))
+        // Parse mode-specific keys like `restriction:hgv` and `restriction:hgv:conditional`
+        
+        if (key.StartsWith("restriction:"))
+        {
+            string[] parts = key.Split(':');
 
-        // todo: all the modes of transport
+            if (parts.Length == 2)
+            {
+                string mode = parts[1];
+                if (!_knownVehicleModes.Contains(mode))
+                    return null; // not a transport mode
 
+                RestrictionValue restrictionValue = TryParseSimpleRestrictionValue(value);
+                return new RestrictionPrimaryEntry(key, mode, restrictionValue);
+            }
+
+            if (parts.Length == 3 && parts[2] == "conditional")
+            {
+                string mode = parts[1];
+                if (!_knownVehicleModes.Contains(mode))
+                    return null; // not a transport mode
+
+                RestrictionValue restrictionValue = TryParseConditionalRestrictionValue(value);
+                return new RestrictionConditionalEntry(key, mode, restrictionValue);
+            }
+        }
+        
+        // todo: if ever needed, could parse out stuff like `restriction:source` or `restriction:note` or whatever
+
+        // Not a restriction entry we understand
         return null;
     }
 

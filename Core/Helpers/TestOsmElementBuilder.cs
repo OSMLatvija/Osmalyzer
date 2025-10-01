@@ -4,10 +4,14 @@ using OsmSharp;
 
 namespace Osmalyzer;
 
-public static class TestOsmBuilder
+public static class TestOsmElementBuilder
 {
-    public static OsmNode Node(long id)
+    private static long _nextId = 1;
+
+    public static OsmNode CreateNode()
     {
+        long id = _nextId++;
+
         Node raw = new Node
         {
             Id = id,
@@ -19,8 +23,10 @@ public static class TestOsmBuilder
         return (OsmNode)OsmElement.Create(raw);
     }
 
-    public static OsmWay Way(long id, params OsmNode[] nodes)
+    public static OsmWay CreateWay(params OsmNode[] nodes)
     {
+        long id = _nextId++;
+
         Way raw = new Way
         {
             Id = id,
@@ -30,7 +36,7 @@ public static class TestOsmBuilder
 
         OsmWay way = (OsmWay)OsmElement.Create(raw);
 
-        // Link objects (internal fields are accessible within Core)
+        // Link objects
         way.nodes.AddRange(nodes);
         foreach (OsmNode node in nodes)
         {
@@ -42,12 +48,20 @@ public static class TestOsmBuilder
         return way;
     }
 
-    public static OsmRelation Relation(long id, params (OsmGeoType type, long refId, string role)[] members)
+    public static OsmRelation CreateRelation(params (OsmElement element, string role)[] members)
     {
+        long id = _nextId++;
+
         RelationMember[] rawMembers = members.Select(m => new RelationMember()
         {
-            Type = m.type,
-            Id = m.refId,
+            Type = m.element switch
+            {
+                OsmNode => OsmGeoType.Node,
+                OsmWay => OsmGeoType.Way,
+                OsmRelation => OsmGeoType.Relation,
+                _ => OsmGeoType.Node // default, shouldn't happen
+            },
+            Id = m.element.Id,
             Role = m.role
         }).ToArray();
 
@@ -58,7 +72,17 @@ public static class TestOsmBuilder
             Tags = null
         };
 
-        return (OsmRelation)OsmElement.Create(raw);
+        OsmRelation rel = (OsmRelation)OsmElement.Create(raw);
+
+        // Link the created members to actual elements (so tests can use Element references)
+        for (int i = 0; i < rel.Members.Count; i++)
+        {
+            if (i < members.Length)
+            {
+                rel.Members[i].Element = members[i].element;
+            }
+        }
+
+        return rel;
     }
 }
-

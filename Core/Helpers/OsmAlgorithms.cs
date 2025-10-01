@@ -102,4 +102,10 @@ public static class OsmAlgorithms
 
         return nodes;
     }
+
+    public static bool IsChained(params object[] elements)
+    {
+        // TODO:
+        return true;
+    }
 }

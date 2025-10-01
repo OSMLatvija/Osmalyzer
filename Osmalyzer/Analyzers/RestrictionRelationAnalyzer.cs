@@ -482,7 +482,8 @@ public class RestrictionRelationAnalyzer : Analyzer
                     report.AddEntry(
                         ReportGroup.Connectivity,
                         new IssueReportEntry(
-                            "Relation has `from` and `to` that are the same way - " + restriction.Element.OsmViewUrl,
+                            "Relation has `from` and `to` that are the same way - " + 
+                            restriction.Element.OsmViewUrl,
                             restriction.Element.AverageCoord,
                             MapPointStyle.Problem
                         )
@@ -493,7 +494,22 @@ public class RestrictionRelationAnalyzer : Analyzer
             
             // Make sure that the elements chain to each other in order - from -> via(s) -> to
             
-            // todo:
+            if (!OsmAlgorithms.IsChained(
+                    fromWay.Way,
+                    restriction.ViaMembers.Select(vm => vm.Element).ToList(),
+                    toWay.Way
+                ))
+            {
+                report.AddEntry(
+                    ReportGroup.Connectivity,
+                    new IssueReportEntry(
+                        "Relation members do not connect/chain in the order `from` → `via`(s) → `to` order - " + 
+                        restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+            }
         }
         
         // Stats

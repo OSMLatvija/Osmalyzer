@@ -103,9 +103,93 @@ public static class OsmAlgorithms
         return nodes;
     }
 
-    public static bool IsChained(params object[] elements)
+    public static bool IsChained(params OsmElement[] elements)
     {
-        // TODO:
+        return IsChained((IEnumerable<OsmElement>)elements);
+    }
+
+    public static bool IsChained(IEnumerable<OsmElement> elements)
+    {
+        // Materialize once
+        List<OsmElement> chain = elements.ToList();
+
+        if (chain.Count == 0)
+            return false; // empty is invalid
+
+        // Relations are not valid in the chain at all
+        if (chain.Any(e => e is OsmRelation))
+            return false;
+
+        if (chain.Count == 1)
+            return chain[0] is not OsmRelation; // single non-relation element is trivially chained
+
+        // Validate adjacency
+        for (int i = 0; i < chain.Count - 1; i++)
+        {
+            OsmElement a = chain[i];
+            OsmElement b = chain[i + 1];
+
+
+            switch (a)
+            {
+                case OsmWay wa when b is OsmWay wb:
+                {
+                    // Ways must connect via terminal nodes only
+                    if (!WaysShareTerminalNode(wa, wb))
+                        return false;
+                    break;
+                }
+
+                case OsmWay wa when b is OsmNode nb:
+                {
+                    // Node must be a terminal node of the way
+                    if (!IsTerminalNodeOf(wa, nb))
+                        return false;
+                    break;
+                }
+
+                case OsmNode na when b is OsmWay wb:
+                {
+                    // Node must be a terminal node of the way
+                    if (!IsTerminalNodeOf(wb, na))
+                        return false;
+                    break;
+                }
+
+                case OsmNode:
+                    // Adjacent nodes are never a valid chain segment
+                    return false;
+
+                default:
+                    // Unknown element type encountered
+                    return false;
+            }
+        }
+
         return true;
+
+        // Local helpers
+        static bool IsTerminalNodeOf(OsmWay way, OsmNode node)
+        {
+            IReadOnlyList<OsmNode> nodes = way.Nodes;
+            if (nodes.Count < 1) return false;
+            OsmNode first = nodes[0];
+            OsmNode last = nodes[^1];
+            return node == first || node == last;
+        }
+
+        static bool WaysShareTerminalNode(OsmWay a, OsmWay b)
+        {
+            IReadOnlyList<OsmNode> an = a.Nodes;
+            IReadOnlyList<OsmNode> bn = b.Nodes;
+            if (an.Count < 1 || bn.Count < 1) return false;
+
+            OsmNode aFirst = an[0];
+            OsmNode aLast = an[^1];
+            OsmNode bFirst = bn[0];
+            OsmNode bLast = bn[^1];
+
+            return aFirst == bFirst || aFirst == bLast || aLast == bFirst || aLast == bLast;
+        }
     }
 }

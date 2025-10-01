@@ -495,9 +495,9 @@ public class RestrictionRelationAnalyzer : Analyzer
             // Make sure that the elements chain to each other in order - from -> via(s) -> to
             
             if (!OsmAlgorithms.IsChained(
-                    fromWay.Way,
-                    restriction.ViaMembers.Select(vm => vm.Element).ToList(),
-                    toWay.Way
+                    new [] { (OsmElement)fromWay.Way }
+                        .Concat(restriction.ViaMembers.Select(vm => vm.Element))
+                        .Append(toWay.Way)
                 ))
             {
                 report.AddEntry(

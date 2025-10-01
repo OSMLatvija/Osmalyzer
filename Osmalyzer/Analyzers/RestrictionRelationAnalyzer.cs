@@ -788,6 +788,19 @@ public class RestrictionRelationAnalyzer : Analyzer
                 new GenericReportEntry("Conditional conditions used: " + string.Join(", ", parts) + ".")
             );
         }
+        
+        if (nonDefaultModeCounts.Count > 0)
+        {
+            List<string> parts = [ ];
+
+            foreach (KeyValuePair<string, int> kv in nonDefaultModeCounts.OrderByDescending(kv => kv.Value))
+                parts.Add($"`{kv.Key}` × {kv.Value}");
+
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry("Non-default modes used: " + string.Join(", ", parts) + ".")
+            );
+        }
     }
 
 

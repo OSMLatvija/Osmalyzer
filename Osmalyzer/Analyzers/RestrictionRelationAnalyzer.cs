@@ -363,7 +363,41 @@ public class RestrictionRelationAnalyzer : Analyzer
         // Check that restriction doesn't define different types for different modes (e.g. `no_left_turn` for one, `no_right_turn` for another)
         foreach (Restriction restriction in restrictions)
         {
-            // todo: 
+            if (restriction.BaseRestrictionValues.Count > 1)
+            {
+                report.AddEntry(
+                    ReportGroup.InconsistentRestrictionValues,
+                    new IssueReportEntry(
+                        $"Relation has different restriction values for different modes: " +
+                        string.Join(", ", restriction.BaseRestrictionValues.Select(v => $"`{v}`")) +
+                        ", expecting only one type of restriction per relation - " +
+                        restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+            }
+        }
+        
+        // Check that restriction doesn't have a default mode if it has mode-specific entries
+        foreach (Restriction restriction in restrictions)
+        {
+            if (restriction.Modes.Count > 1 && 
+                restriction.Modes.Contains(null) && 
+                restriction.BaseRestrictionValues.Count == 1) // only if all modes have the same value, otherwise it's already reported above
+            {
+                string modes = string.Join(", ", restriction.Modes.Where(m => m != null).Select(m => $"`{m}`"));
+
+                report.AddEntry(
+                    ReportGroup.InconsistentRestrictionValues,
+                    new IssueReportEntry(
+                        $"Relation has both default mode and mode-specific {modes} restriction entries, which are pointless - " +
+                        restriction.Element.OsmViewUrl,
+                        restriction.Element.AverageCoord,
+                        MapPointStyle.Problem
+                    )
+                );
+            }
         }
 
         // Connectivity and member checks

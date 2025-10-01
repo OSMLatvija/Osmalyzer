@@ -713,15 +713,19 @@ public class RestrictionRelationAnalyzer : Analyzer
         if (key == "restriction")
         {
             RestrictionValue restrictionValue = TryParseSimpleRestrictionValue(value);
-            return new RestrictionPrimaryEntry(key, restrictionValue);
+            return new RestrictionPrimaryEntry(key, null, restrictionValue);
         }
 
         if (key == "restriction:conditional")
         {
             RestrictionValue restrictionValue = TryParseConditionalRestrictionValue(value);
-            return new RestrictionConditionalEntry(key, restrictionValue);
+            return new RestrictionConditionalEntry(key, null, restrictionValue);
         }
 
+        const string modes = "hgv|motorcar|motorcycle|bus|bicycle"; // what is possible with standard traffic signs for Latvia (at least not seen exceptions (yet))
+        
+        // todo: all the modes of transport
+        
         return null;
     }
 
@@ -884,11 +888,17 @@ public class RestrictionRelationAnalyzer : Analyzer
     private record RestrictionUnknownMember(OsmRelationMember Member, string Role) : RestrictionMember(Member);
 
 
-    private abstract record RestrictionEntry(string Key, RestrictionValue Value);
+    /// <summary>
+    /// A single restriction entry - OSM tag (key + value), either primary (i.e. `restriction`) or conditional (i.e. `restriction:conditional`).
+    /// </summary>
+    /// <param name="Key">The OSM full key</param>
+    /// <param name="Mode">The mode of transport as a subkey of the Key; null if default/all</param>
+    /// <param name="Value">The OSM full value of the tag</param>
+    private abstract record RestrictionEntry(string Key, string? Mode, RestrictionValue Value);
     
-    private record RestrictionPrimaryEntry(string Key, RestrictionValue Value) : RestrictionEntry(Key, Value);
+    private record RestrictionPrimaryEntry(string Key, string? Mode, RestrictionValue Value) : RestrictionEntry(Key, Mode, Value);
     
-    private record RestrictionConditionalEntry(string Key, RestrictionValue Value) : RestrictionEntry(Key, Value);
+    private record RestrictionConditionalEntry(string Key, string? Mode, RestrictionValue Value) : RestrictionEntry(Key, Mode, Value);
     
     
     private abstract record RestrictionValue(string Value);

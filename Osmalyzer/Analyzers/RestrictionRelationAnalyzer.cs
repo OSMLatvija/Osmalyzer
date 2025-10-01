@@ -616,6 +616,8 @@ public class RestrictionRelationAnalyzer : Analyzer
         int bothMainAndConditionalTag = 0;
         int hasExceptions = 0;
         int hasDeprecated = 0;
+        int nonDefaultModes = 0;
+        int mixedModes = 0;
 
         foreach (Restriction restriction in restrictions)
         {
@@ -641,6 +643,12 @@ public class RestrictionRelationAnalyzer : Analyzer
 
             if (restriction.DeprecatedTags.Count > 0)
                 hasDeprecated++;
+            
+            if (restriction.Modes.Any(m => m != null))
+                nonDefaultModes++;
+            
+            if (restriction.Modes.Count > 1)
+                mixedModes++;
         }
 
         report.AddEntry(
@@ -657,6 +665,22 @@ public class RestrictionRelationAnalyzer : Analyzer
             ReportGroup.Stats,
             new GenericReportEntry($"{bothMainAndConditionalTag} are with both `restriction` and `restriction:conditional` tags.")
         );
+
+        if (nonDefaultModes > 0)
+        {
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry($"{nonDefaultModes} have non-default (mode-specific) restriction tags.")
+            );
+        }
+        
+        if (mixedModes > 0)
+        {
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry($"{mixedModes} have mixed default and mode-specific restriction tags.")
+            );
+        }
 
         if (noTag > 0)
         {
@@ -685,6 +709,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         // Unique restriction and condition values
         Dictionary<string, int> restrictionValueCounts = [ ];
         Dictionary<string, int> conditionValueCounts = [ ];
+        Dictionary<string, int> nonDefaultModeCounts = [ ];
 
         foreach (Restriction restriction in restrictions)
         {
@@ -725,6 +750,15 @@ public class RestrictionRelationAnalyzer : Analyzer
 
                     default:
                         throw new ArgumentOutOfRangeException();
+                }
+                
+                // Count non-default modes
+                if (entry.Mode != null)
+                {
+                    if (!nonDefaultModeCounts.TryGetValue(entry.Mode, out int cnt))
+                        nonDefaultModeCounts[entry.Mode] = 1;
+                    else
+                        nonDefaultModeCounts[entry.Mode] = cnt + 1;
                 }
             }
         }

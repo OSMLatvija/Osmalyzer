@@ -363,7 +363,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         // Check that restriction doesn't define different types for different modes (e.g. `no_left_turn` for one, `no_right_turn` for another)
         foreach (Restriction restriction in restrictions)
         {
-            if (restriction.BaseRestrictionValues.Count > 1)
+            if (restriction.BaseRestrictionValues.Count(rv => rv != "none") > 1) // ignore `none`, it's a special case of removing restriction, and it gets way too complicated to check all the possible combos
             {
                 report.AddEntry(
                     ReportGroup.InconsistentRestrictionValues,

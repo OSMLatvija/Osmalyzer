@@ -512,6 +512,35 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
         }
         
+        // Conflicting restrictions
+
+        Dictionary<RestrictionViaNodeMember, List<Restriction>> restrictionsByViaNode = [ ];
+        
+        foreach (Restriction restriction in restrictions)
+        {
+            if (restriction.ViaMembers.Count == 1)
+            {
+                if (restriction.ViaMembers[0] is RestrictionViaNodeMember rvnm) // if it's ways, it gets way too complicated 
+                {
+                    if (!restrictionsByViaNode.TryGetValue(rvnm, out List<Restriction>? list))
+                    {
+                        list = [ ];
+                        restrictionsByViaNode[rvnm] = list;
+                    }
+
+                    list.Add(restriction);
+                }
+            }
+        }
+
+        foreach ((RestrictionViaNodeMember via, List<Restriction> sharedRestrictions) in restrictionsByViaNode)
+        {
+            if (sharedRestrictions.Count > 1)
+            {
+                // todo:
+            }
+        }
+        
         // Stats
 
         report.AddGroup(

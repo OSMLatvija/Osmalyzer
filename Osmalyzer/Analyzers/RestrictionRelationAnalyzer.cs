@@ -547,18 +547,18 @@ public class RestrictionRelationAnalyzer : Analyzer
 
                 switch (restriction.Kind)
                 {
-                    case NoDirectionRestriction:
-                    case OnlyDirectionRestriction:
+                    case NoRestriction:
+                    case OnlyRestriction:
                         // Check for restrictions where `via` is connected to with just two highways (our `from` and `to`)
                         if (restriction.ViaMembers is [ RestrictionViaNodeMember viaNodeMember ]) // otherwise too complex for us
                         {
                             string[] allowedHighwayTypes = [ "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "living_street", "pedestrian", "service", "track" ];
 
-                            if (viaNodeMember.Node.Ways!.Count(w => w.HasValue("highway", allowedHighwayTypes)) == 2) // only our `from` and `to` highway ways are connected here
+                            if (viaNodeMember.Node.Ways!.Count(w => w.HasValue("highway", allowedHighwayTypes)) <= 2) // only our `from` and `to` highway ways are connected here
                             {
-                                string type = restriction.Kind is NoDirectionRestriction ? "No-direction" : "Only-direction";
+                                string type = restriction.Kind is NoRestriction ? "No-direction" : "Only-direction";
                                 string value = ((KnownRestrictionKind)restriction.Kind).Value;
-                                string result = restriction.Kind is NoDirectionRestriction ? "fully block travel" : "pointless";
+                                string result = restriction.Kind is NoRestriction ? "fully block travel" : "pointless";
                                 
                                 report.AddEntry(
                                     ReportGroup.Connectivity,

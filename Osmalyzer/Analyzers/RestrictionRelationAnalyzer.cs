@@ -607,6 +607,12 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         // Conflicting restrictions
 
+        report.AddGroup(
+            ReportGroup.ConflictingRestrictions,
+            "Inter-conflicting Restrictions",
+            "These locations have inter-conflicting relations, i.e. relations that have restriction that conflict each other or form illogical restrictions."
+        );
+
         Dictionary<RestrictionViaNodeMember, List<Restriction>> restrictionsByViaNode = [ ];
 
         foreach (Restriction restriction in restrictions)
@@ -628,11 +634,97 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         foreach ((RestrictionViaNodeMember via, List<Restriction> sharedRestrictions) in restrictionsByViaNode)
         {
-            if (sharedRestrictions.Count > 1)
+            if (sharedRestrictions.Count <= 1)
+                continue; // no conflicts possible
+            
+            // Consider only restrictions that are valid and safely comparable
+            List<Restriction> comparable =
+                sharedRestrictions
+                    .Where(r => r.Kind is KnownRestrictionKind &&
+                                r.FromMembers.Count == 1 &&
+                                r.ToMembers.Count == 1 &&
+                                r.ViaMembers.Count == 1 && r.ViaMembers[0] is RestrictionViaNodeMember && // todo: only checking one via node for now, i.e. not complex uturns
+                                r.Modes.Contains(null) // todo: only checking default mode for now 
+                    ).ToList();
+
+            if (comparable.Count < 2)
+                continue;
+            
+            // Collect into groups by same from-via-to way combination
+            
+            List<(OsmWay from, OsmNode via, OsmWay to, List<Restriction> restrictions)> restrictionsBySharedWays = [ ];
+
+            foreach (Restriction restriction in comparable)
             {
-                // todo: repeat restriction, e.g. same from-via-to and same restriction value
+                OsmWay fromWay = restriction.FromMembers[0].Way;
+                OsmWay toWay = restriction.ToMembers[0].Way;
+                OsmNode viaNode = ((RestrictionViaNodeMember)restriction.ViaMembers[0]).Node;
+
+                (OsmWay, OsmNode, OsmWay, List<Restriction>)? existingGroup = restrictionsBySharedWays
+                    .SingleOrDefault(g => g.from == fromWay && g.via == viaNode && g.to == toWay); // exact order
+
+                if (existingGroup != null)
+                    existingGroup.Value.Item4.Add(restriction);
+                else
+                    restrictionsBySharedWays.Add((fromWay, viaNode, toWay, [ restriction ]));
+            }
+            
+            restrictionsBySharedWays.RemoveAll(cg => cg.restrictions.Count < 2); // only care about groups with multiple restrictions
+            
+            foreach ((OsmWay _, OsmNode _, OsmWay _, List<Restriction> sharingRestrictions) in restrictionsBySharedWays)
+            {
+                // Further collect into groups by same restriction value
                 
-                // todo: conflicting restriction, e.g. same from-via-to but one is no_left_turn and another is no_right_turn
+                List<(string value, List<Restriction> restrictions)> restrictionsBySharedValue = [ ];
+                
+                foreach (Restriction restriction in sharingRestrictions)
+                {
+                    string restrictionValue = ((KnownRestrictionKind)restriction.Kind).Value;
+                    
+                    (string, List<Restriction>)? existingGroup = restrictionsBySharedValue
+                        .SingleOrDefault(g => g.value == restrictionValue);
+                    
+                    if (existingGroup != null)
+                        existingGroup.Value.Item2.Add(restriction);
+                    else
+                        restrictionsBySharedValue.Add((restrictionValue, [ restriction ]));
+                }
+                
+                if (restrictionsBySharedValue.Count > 1)
+                {
+                    // Check conflicts: same ways, different incompatible restrictions
+                    
+                    report.AddEntry(
+                        ReportGroup.ConflictingRestrictions,
+                        new IssueReportEntry(
+                            $"Multiple ({sharingRestrictions.Count}) conflicting restriction relations on the same ways: " +
+                            string.Join(", ", restrictionsBySharedValue.Select(g => $"`{g.value}`")) +
+                            " - " + string.Join(", ", sharingRestrictions.Select(r => r.Element.OsmViewUrl)),
+                            via.Node.AverageCoord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
+                else
+                {
+                    // Check duplicates: same ways, same kind of restriction
+                    
+                    foreach ((string value, List<Restriction> sameValueRestrictions) in restrictionsBySharedValue)
+                    {
+                        if (sameValueRestrictions.Count > 1)
+                        {
+                            report.AddEntry(
+                                ReportGroup.ConflictingRestrictions,
+                                new IssueReportEntry(
+                                    $"Multiple ({sameValueRestrictions.Count}) identical `{value}` restriction relations on the same ways - " +
+                                    string.Join(", ", sameValueRestrictions.Select(r => r.Element.OsmViewUrl)),
+                                    via.Node.AverageCoord,
+                                    MapPointStyle.Dubious
+                                )
+                            );
+                        }
+                    }
+                }
             }
         }
 
@@ -1267,6 +1359,8 @@ public class RestrictionRelationAnalyzer : Analyzer
         InconsistentRestrictionValues,
         UnknownExceptionModes,
         PossiblyFlippedConditional,
-        Connectivity
+        Connectivity,
+        DuplicateRestrictions,
+        ConflictingRestrictions
     }
 }

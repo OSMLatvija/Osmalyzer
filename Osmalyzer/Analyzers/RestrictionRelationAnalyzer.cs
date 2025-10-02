@@ -958,11 +958,14 @@ public class RestrictionRelationAnalyzer : Analyzer
         // "no_right_turn @ (Mo-Fr 07:00-09:00)"
         // "no_left_turn @ 08:00-21:00"
         // "no_left_turn @ Mo-Su 08:00-21:00"
+        // "none @ (Mo-Fr 20:00-07:00; Sa,Su)"
 
-        Match match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) @ \((.+)\)$");
+        const string extraDaysPattern = " *(; *([A-Za-z])(, *[A-Za-z])+)?"; // e.g. "; Sa,Su" or "; Su" or "; Mo, We, Fr"
+        
+        Match match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) *@ *\((.+){extraDaysPattern}\)$");
 
         if (!match.Success) // try without brackets (can't do in 1 go) 
-            match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) @ (.+)$");
+            match = Regex.Match(value, $@"^({_knownRestrictionValuesPattern}) *@ *(.+){extraDaysPattern}$");
 
         // todo: more complex, need a full-on conditional parsing then
 
@@ -992,6 +995,18 @@ public class RestrictionRelationAnalyzer : Analyzer
             string to = match.Groups[2].Value;
 
             return $"{to}-{from}";
+        }
+        
+        // Make "Mo-Fr 20:00-07:00; Sa,Su" into "Mo-Fr 07:00-22:00" (for now, just exactly these days)
+        
+        match = Regex.Match(value, @"^Mo-Fr (\d{1,2}:\d{2})-(\d{1,2}:\d{2})( *(; *Sa,Su)?)$");
+        
+        if (match.Success)
+        {
+            string from = match.Groups[1].Value;
+            string to = match.Groups[2].Value;
+
+            return $"Mo-Fr {to}-{from}; Sa,Su";
         }
 
         // Don't know how to do anything else, but no other live example as of making this

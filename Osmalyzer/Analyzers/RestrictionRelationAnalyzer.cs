@@ -545,7 +545,39 @@ public class RestrictionRelationAnalyzer : Analyzer
             {
                 // Properly chained, so check restriction sanity
 
-                // todo:
+                switch (restriction.Kind)
+                {
+                    case NoDirectionRestriction:
+                    case OnlyDirectionRestriction:
+                        // Check for restrictions where `via` is connected to with just two highways (our `from` and `to`)
+                        if (restriction.ViaMembers is [ RestrictionViaNodeMember viaNodeMember ]) // otherwise too complex for us
+                        {
+                            string[] allowedHighwayTypes = [ "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "living_street", "pedestrian", "service", "track" ];
+
+                            if (viaNodeMember.Node.Ways!.Count(w => w.HasValue("highway", allowedHighwayTypes)) == 2) // only our `from` and `to` highway ways are connected here
+                            {
+                                string type = restriction.Kind is NoDirectionRestriction ? "No-direction" : "Only-direction";
+                                string value = ((KnownRestrictionKind)restriction.Kind).Value;
+                                string result = restriction.Kind is NoDirectionRestriction ? "fully block travel" : "pointless";
+                                
+                                report.AddEntry(
+                                    ReportGroup.Connectivity,
+                                    new IssueReportEntry(
+                                        $"{type} `{value}` relation is at a node that only have two connecting ways (its `from` and `to` ways), " +
+                                        $"making the restriction {result} - " +
+                                        restriction.Element.OsmViewUrl,
+                                        restriction.Element.AverageCoord,
+                                        MapPointStyle.Problem
+                                    )
+                                );
+                            }
+                        }
+                        break;
+                    
+                    // todo: u-turn checks
+                    
+                    // todo: no_entry and no_exit checks
+                }
             }
         }
 

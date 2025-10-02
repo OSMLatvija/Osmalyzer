@@ -475,19 +475,39 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
             else
             {
-                if (restriction.ViaMembers.Count > 1)
+                if (restriction.ViaMembers.Count == 1)
                 {
-                    // Multiple `via` is allowed, but only if all are ways (for complex junctions)
-                    if (restriction.ViaMembers.OfType<RestrictionViaNodeMember>().Any())
+                    // Single `via` must be a node, unless it's a u-turn restriction
+                    if (restriction.Kind is not IUTurnRestriction && 
+                        restriction.ViaMembers[0] is RestrictionViaWayMember)
                     {
-                        roleIssues.Add("has multiple `via` members but not all are ways");
+                        roleIssues.Add("has `via` member as way");
                         roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
                     }
-
-                    // Repeats in `via` are not allowed
-                    if (restriction.ViaMembers.Distinct().Count() != restriction.ViaMembers.Count)
+                }
+                    
+                if (restriction.ViaMembers.Count > 1)
+                {
+                    if (restriction.Kind is IUTurnRestriction)
                     {
-                        roleIssues.Add("has repeated members in `via`");
+                        // Multiple `via` is allowed in uturns, but only if all are ways (for complex junctions)
+                        if (restriction.ViaMembers.OfType<RestrictionViaNodeMember>().Any())
+                        {
+                            roleIssues.Add("has multiple `via` members but not all are ways");
+                            roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+                        }
+
+                        // Repeats in `via` are not allowed
+                        if (restriction.ViaMembers.Distinct().Count() != restriction.ViaMembers.Count)
+                        {
+                            roleIssues.Add("has repeated members in `via`");
+                            roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
+                        }
+                    }
+                    else // not u-turn
+                    {
+                        // Multiple `via` are not allowed in non-uturns
+                        roleIssues.Add("has multiple `via` members");
                         roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
                     }
                 }
@@ -1222,12 +1242,14 @@ public class RestrictionRelationAnalyzer : Analyzer
     /// <summary>
     /// Restriction that only allows u-turns (i.e. `only_u_turn`).
     /// </summary>
-    private record OnlyUTurnRestriction(string Value) : OnlyRestriction(Value);
+    private record OnlyUTurnRestriction(string Value) : OnlyRestriction(Value), IUTurnRestriction;
 
     /// <summary>
     /// Restriction that restricts u-turns (i.e. `no_u_turn`).
     /// </summary>
-    private record NoUTurnRestriction(string Value) : NoRestriction(Value);
+    private record NoUTurnRestriction(string Value) : NoRestriction(Value), IUTurnRestriction;
+    
+    private interface IUTurnRestriction { }
 
     /// <summary>
     /// Restriction that restricts entry or exit (i.e. `no_entry` or `no_exit`).

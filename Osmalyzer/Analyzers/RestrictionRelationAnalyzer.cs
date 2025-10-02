@@ -722,6 +722,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         Dictionary<string, int> restrictionValueCounts = [ ];
         Dictionary<string, int> conditionValueCounts = [ ];
         Dictionary<string, int> nonDefaultModeCounts = [ ];
+        Dictionary<string, int> exceptCounts = [ ];
 
         foreach (Restriction restriction in restrictions)
         {
@@ -773,6 +774,17 @@ public class RestrictionRelationAnalyzer : Analyzer
                         nonDefaultModeCounts[entry.Mode] = cnt + 1;
                 }
             }
+            
+            if (restriction.Exception != null)
+            {
+                foreach (ExceptionVehicle exceptionVehicle in restriction.Exception.Modes)
+                {
+                    if (!exceptCounts.TryGetValue(exceptionVehicle.Value, out int cnt))
+                        exceptCounts[exceptionVehicle.Value] = 1;
+                    else
+                        exceptCounts[exceptionVehicle.Value] = cnt + 1;
+                }
+            }
         }
 
         if (restrictionValueCounts.Count > 0)
@@ -811,6 +823,19 @@ public class RestrictionRelationAnalyzer : Analyzer
             report.AddEntry(
                 ReportGroup.Stats,
                 new GenericReportEntry("Non-default modes used: " + string.Join(", ", parts) + ".")
+            );
+        }
+        
+        if (exceptCounts.Count > 0)
+        {
+            List<string> parts = [ ];
+
+            foreach (KeyValuePair<string, int> kv in exceptCounts.OrderByDescending(kv => kv.Value))
+                parts.Add($"`{kv.Key}` × {kv.Value}");
+
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry("Exception modes used: " + string.Join(", ", parts) + ".")
             );
         }
     }

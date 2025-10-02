@@ -447,7 +447,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
             else if (restriction.FromMembers.Count > 1)
             {
-                if (restriction.Kind is not NoPassRestriction) // `no_entry` and `no_exit` can have multiple `from` members
+                if (restriction.Kind is not NoPassRestriction { Value: "no_entry" } ) // `no_entry` can have multiple `from` members
                 {
                     roleIssues.Add($"has multiple `from` members ({restriction.FromMembers.Count})");
                     roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken
@@ -461,7 +461,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
             else if (restriction.ToMembers.Count > 1)
             {
-                if (restriction.Kind is not NoPassRestriction) // `no_entry` and `no_exit` can have multiple `to` members
+                if (restriction.Kind is not NoPassRestriction { Value: "no_exit" } ) // `no_exit` can have multiple `to` members
                 {
                     roleIssues.Add($"has multiple `to` members ({restriction.ToMembers.Count})");
                     roleMembersFail = true; // cannot continue connectivity checks because it's fundamentally broken

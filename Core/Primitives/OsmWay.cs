@@ -13,6 +13,7 @@ public class OsmWay : OsmElement
 
     /// <summary>
     /// Note: closed ways will repeat the last/first node.
+    /// This cannot be 0 nodes (normally) as that isn't a valid OSM object.
     /// </summary>
     [PublicAPI]
     public IReadOnlyList<OsmNode> Nodes => nodes.AsReadOnly();

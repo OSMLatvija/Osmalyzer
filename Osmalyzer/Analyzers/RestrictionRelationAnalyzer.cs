@@ -552,9 +552,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                         // Check for restrictions where `via` is connected to with just two highways (our `from` and `to`)
                         if (restriction.ViaMembers is [ RestrictionViaNodeMember viaNodeMember ]) // otherwise too complex for us
                         {
-                            string[] allowedHighwayTypes = [ "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "living_street", "pedestrian", "service", "track" ];
-
-                            if (viaNodeMember.Node.Ways!.Count(w => w.HasValue("highway", allowedHighwayTypes)) <= 2) // only our `from` and `to` highway ways are connected here
+                            if (CountBranchingHighways(viaNodeMember.Node) <= 2) // only our `from` and `to` highway ways are connected here
                             {
                                 string type = restriction.Kind is NoRestriction ? "No-direction" : "Only-direction";
                                 string value = ((KnownRestrictionKind)restriction.Kind).Value;
@@ -606,7 +604,9 @@ public class RestrictionRelationAnalyzer : Analyzer
         {
             if (sharedRestrictions.Count > 1)
             {
-                // todo:
+                // todo: repeat restriction, e.g. same from-via-to and same restriction value
+                
+                // todo: conflicting restriction, e.g. same from-via-to but one is no_left_turn and another is no_right_turn
             }
         }
 
@@ -1037,7 +1037,7 @@ public class RestrictionRelationAnalyzer : Analyzer
         // Don't know how to do anything else, but no other live example as of making this
         return "…";
     }
-    
+
     [Pure]
     private static RestrictionKind TryParseRestrictionKind(string value)
     {
@@ -1069,6 +1069,35 @@ public class RestrictionRelationAnalyzer : Analyzer
             default:
                 return new UnknownRestrictionKind(value);
         }
+    }
+
+    private static readonly string[] _allowedHighwayTypes = [ "motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "living_street", "pedestrian", "service", "track" ];
+    // There could theoretically be something like bicycle turn restriction on cycleways or some weird road to footway case, but these don't currently exist, so ony considering roads here, otherwise we need to implement valid values per mode of transport 
+    
+    /// <summary>
+    /// Counts how many potential `highway` ways branch total from a node.
+    /// For each way: if terminal node, count as one; if in the middle, count as two.
+    /// </summary>
+    [Pure]
+    private static int CountBranchingHighways(OsmNode node)
+    {
+        if (node.Ways == null)
+            return 0;
+
+        int count = 0;
+        
+        foreach (OsmWay way in node.Ways)
+        {
+            if (!way.HasValue("highway", _allowedHighwayTypes))
+                continue; // not a highway we care about
+            
+            if (way.Nodes[0] == node || way.Nodes[^1] == node)
+                count += 1; // terminal node
+            else if (way.Nodes.Contains(node))
+                count += 2; // in the middle
+        }
+        
+        return count;
     }
 
 

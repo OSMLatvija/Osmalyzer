@@ -81,7 +81,7 @@ Piektdiena: 8:30 - 14:00</td>
                 name = "Jelgavas novada Jelgavas pilsētas VPVKAC";
 
             string shortName = GetShortName(name);
-            string attachedName = GetDisambiguatedName(name);
+            string disambiguatedName = GetDisambiguatedName(name);
 
             MatchCollection addressMatches = Regex.Matches(rowText, @"<a href=""[^""]+"">(.*?)</a>", RegexOptions.Singleline);
             // This will match both <a> - name and address
@@ -117,10 +117,16 @@ Piektdiena: 8:30 - 14:00</td>
             
             phone = PhonesToOsmSyntax(phone);
             
-            Offices.Add(new VPVKACOffice(name, shortName, attachedName, address, email, phone, openingHours));
+            Offices.Add(new VPVKACOffice(name, shortName, disambiguatedName, address, email, phone, openingHours));
         }
         
         if (Offices.Count == 0) throw new Exception();
+        
+        // Mark ambiguous offices that share the same short parsed name, i.e. we will need to use the disambiguated name instead
+        foreach (IGrouping<string, VPVKACOffice> group in Offices.GroupBy(o => o.ShortName))
+            if (group.Count() > 1)
+                foreach (VPVKACOffice office in group)
+                    office.MarkAmbiguous();
     }
 
 
@@ -258,7 +264,7 @@ Piektdiena: 8:30 - 14:00</td>
                 // todo: we can theoretically parse as "by appointment"
 
                 // Monthly off day "metodiskā diena"
-                // Free text stuff like "Katra mēneša pēdējā piektdiena – metodiskā diena" or "Katra mēneša otrā trešdiena - metodiskā diena"
+                // Free text stuff like "Katra mēneša pēdējā piektdiena" or "Katra mēneša otrā trešdiena - metodiskā diena"
                 
                 (string period, string osm)[] periods =
                 [

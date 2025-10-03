@@ -72,12 +72,15 @@ public class VPVKACAnalyzer : Analyzer
             string? official_name = osmElement.GetValue("official_name");
 
             if (official_name == office.Office.Name)
-                return MatchStrength.Strong; // exact match on name
+                return MatchStrength.Strong; // exact match on official name
             
             string? name = osmElement.GetValue("name");
 
             if (name == office.Office.Name)
-                return MatchStrength.Strong; // exact match on name
+                return MatchStrength.Strong; // exact match on full name
+
+            if (name == office.Office.DisplayName)
+                return MatchStrength.Strong; // exact match on disambiguated display name
 
             if (DoesOsmElementLookLikeVPVKACOffice(osmElement))
                 return MatchStrength.Good; // looks like a VPVKAC office, but not exact match
@@ -167,7 +170,7 @@ public class VPVKACAnalyzer : Analyzer
                 report.AddEntry(
                     ExtraReportGroup.SuggestedAdditions,
                     new IssueReportEntry(
-                        '`' + locatedOffice.Office.ShortName + "` office at `" +
+                        '`' + locatedOffice.Office.DisplayName + "` office at `" +
                         locatedOffice.Office.Address.ToString(true) +
                         "` can be added as" + Environment.NewLine + tagsBlock,
                         locatedOffice.Coord,
@@ -198,7 +201,7 @@ public class VPVKACAnalyzer : Analyzer
                 LocatedVPVKACOffice office = pair.DataItem;
 
                 // Expected values
-                string expectedName = office.Office.ShortName;
+                string expectedName = office.Office.DisplayName; // disambiguated name, if applicable
                 string expectedOfficialName = FullName(office.Office.Name);
                 string? expectedEmail = string.IsNullOrWhiteSpace(office.Office.Email) ? null : office.Office.Email;
                 string? expectedPhone = string.IsNullOrWhiteSpace(office.Office.Phone) ? null : office.Office.Phone;
@@ -280,7 +283,7 @@ public class VPVKACAnalyzer : Analyzer
                     report.AddEntry(
                         ExtraReportGroup.SuggestedUpdates,
                         new IssueReportEntry(
-                            "`" + office.Office.ShortName + "` office " +
+                            "`" + office.Office.DisplayName + "` office " +
                             "is missing `" + tag + "=" + expected + "` - " + 
                             osmOffice.OsmViewUrl,
                             osmOffice.AverageCoord,
@@ -295,7 +298,7 @@ public class VPVKACAnalyzer : Analyzer
                     report.AddEntry(
                         ExtraReportGroup.SuggestedUpdates,
                         new IssueReportEntry(
-                            "`" + office.Office.ShortName + "` office " +
+                            "`" + office.Office.DisplayName + "` office " +
                             "has `" + tag + "=" + actual + "` " +
                             "but expecting `" + tag + "=" + expected + "` - " + 
                             osmOffice.OsmViewUrl,
@@ -324,7 +327,7 @@ public class VPVKACAnalyzer : Analyzer
             Point? point = geometryFactory.CreatePoint(new Coordinate(node.Coord.lon, node.Coord.lat));
             AttributesTable attributes = new AttributesTable()
             {
-                { "name", node.Office.ShortName },
+                { "name", node.Office.DisplayName },
                 { "official_name", FullName(node.Office.Name) },
                 { "office", "government" },
                 { "government", "public_service" },
@@ -373,10 +376,10 @@ public class VPVKACAnalyzer : Analyzer
     {
         List<string> lines = [ ];
         
-        string shortName = office.ShortName;
+        string displayName = office.DisplayName; // disambiguated name, if applicable
         string fullName = FullName(office.Name);
         
-        if (!string.IsNullOrWhiteSpace(shortName)) lines.Add("name=" + shortName);
+        if (!string.IsNullOrWhiteSpace(displayName)) lines.Add("name=" + displayName);
         if (!string.IsNullOrWhiteSpace(fullName)) lines.Add("official_name=" + fullName);
         lines.Add("office=government");
         lines.Add("government=public_service");

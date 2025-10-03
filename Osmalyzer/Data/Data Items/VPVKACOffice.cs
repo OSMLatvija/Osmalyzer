@@ -7,6 +7,10 @@ public class VPVKACOffice
     public string ShortName { get; }
     
     public string DisambiguatedName { get; }
+
+    public string DisplayName => IsAmbiguous ? DisambiguatedName : ShortName;
+    
+    public bool IsAmbiguous { get; private set; }
     
     public VPVKACAddress Address { get; }
     
@@ -26,6 +30,11 @@ public class VPVKACOffice
         Email = email.Trim();
         Phone = phone.Trim();
         OpeningHours = openingHours.Trim();
+    }
+
+    public void MarkAmbiguous()
+    {
+        IsAmbiguous = true;
     }
         
         

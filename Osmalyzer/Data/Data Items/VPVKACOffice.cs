@@ -15,11 +15,11 @@ public class VPVKACOffice
 
     public VPVKACOffice(string name, VPVKACAddress address, string email, string phone, string openingHours)
     {
-        Name = name;
+        Name = name.Trim();
         Address = address;
-        Email = email;
-        Phone = phone;
-        OpeningHours = openingHours;
+        Email = email.Trim();
+        Phone = phone.Trim();
+        OpeningHours = openingHours.Trim();
     }
         
         
@@ -39,15 +39,15 @@ public class VPVKACOffice
         public string ToString(bool full)
         {
             if (full)
-                return Name +
-                       ", " + Location +
-                       (Pagasts != null ? ", " + Pagasts : "") +
-                       (Novads != null ? ", " + Novads : "") +
+                return Name.Trim() +
+                       ", " + Location.Trim() +
+                       (Pagasts != null ? ", " + Pagasts.Trim() : "") +
+                       (Novads != null ? ", " + Novads.Trim() : "") +
                        ", " + PostalCode;
             else
                 return Name + 
-                       ", " + Location + 
-                       ", " + PostalCode;
+                       ", " + Location.Trim() + 
+                       ", " + PostalCode.Trim();
         }
     }
 }

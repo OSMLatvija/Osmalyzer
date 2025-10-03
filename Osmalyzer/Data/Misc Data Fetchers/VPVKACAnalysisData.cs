@@ -535,7 +535,7 @@ Piektdiena: 8:30 - 14:00</td>
         name = name.Replace("Skolas iela 4-40", "Skolas iela 4"); // 40 is the flat number in an apartment building
         name = name.Replace("Pils iela 5-1", "Pils iela 5"); // 1 must be some in-building designation
         
-        return name;
+        return name.Trim();
     }
 
     [Pure]
@@ -548,7 +548,7 @@ Piektdiena: 8:30 - 14:00</td>
                        .Replace("Pļaviņu pilsēta", "Pļaviņas") // special case "Pļaviņu pilsēta" -> "Pļaviņas"
                        .Replace("Cēsu pilsēta", "Cēsis"); // special case "Cēsu pilsēta" -> "Cēsis"
 
-        return location;
+        return location.Trim();
     }
 
     [Pure]

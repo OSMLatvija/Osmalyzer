@@ -1149,7 +1149,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             string from = match.Groups[1].Value;
             string to = match.Groups[2].Value;
 
-            return $"Mo-Fr {to}-{from}; Sa,Su";
+            return $"Mo-Fr {to}-{from}";
         }
 
         // Don't know how to do anything else, but no other live example as of making this

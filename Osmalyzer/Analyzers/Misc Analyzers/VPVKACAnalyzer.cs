@@ -144,12 +144,43 @@ public class VPVKACAnalyzer : Analyzer
             }
         }
         
-        // Validate additional issues
+        // Offer syntax for quick OSM addition for unmatched located offices
+        
+        List<LocatedVPVKACOffice> unmatchedLocatedOffices = correlation.Correlations
+            .OfType<UnmatchedItemCorrelation<LocatedVPVKACOffice>>()
+            .Select(c => c.DataItem)
+            .ToList();
 
-        // todo:
+        if (unmatchedLocatedOffices.Count > 0)
+        {
+            report.AddGroup(
+                ExtraReportGroup.SuggestedAdditions,
+                "Suggested Additions",
+                "These VPVKAC offices are not currently matched to OSM and can be added with these (suggested) tags."
+            );
+
+            foreach (LocatedVPVKACOffice locatedOffice in unmatchedLocatedOffices)
+            {
+                string tagsBlock = BuildSuggestedTags(locatedOffice.Office);
+
+                report.AddEntry(
+                    ExtraReportGroup.SuggestedAdditions,
+                    new IssueReportEntry(
+                        '`' + ShortenName(locatedOffice.Office.Name) + "` office at `" +
+                        locatedOffice.Office.Address.ToString(true) +
+                        "` can be added as" + Environment.NewLine + tagsBlock,
+                        locatedOffice.Coord,
+                        MapPointStyle.CorrelatorItemUnmatched
+                    )
+                );
+            }
+        }
+        
+        // Validate additional issues
+        // todo: like what?
 
 #if !REMOTE_EXECUTION
-        // Export all offices
+        // Export all offices (unmatched) to GeoJSON for local runs
         
         List<IFeature> features = [ ];
         GeometryFactory geometryFactory = new GeometryFactory();
@@ -169,34 +200,6 @@ public class VPVKACAnalyzer : Analyzer
                 { "opening_hours", node.Office.OpeningHours },
                 { "__address", node.Office.Address.ToString(false) }, // for debug
             };
-
-            [Pure]
-            string FullName(string officeName)
-            {
-                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Cēsu novada Vecpiebalgas pagasta valsts un pašvaldības vienotais klientu apkalpošanas centrs"
-                return officeName.Replace("VPVKAC", "valsts un pašvaldības vienotais klientu apkalpošanas centrs");
-            }
-
-            [Pure]
-            string ShortenName(string officeName)
-            {
-                // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas VPVKAC"
-                officeName = Regex.Replace(
-                    officeName,
-                    @"^(?:.+?) novada (.+?) (?:pilsētas) VPVKAC",
-                    @"$1 VPVKAC"
-                );
-
-                // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas VPVKAC"
-                officeName = Regex.Replace(
-                    officeName,
-                    @"^(?:.+?) novada (.+?) (?:pagasta) VPVKAC",
-                    //@"$1 pagasta VPVKAC"
-                    @"$1 VPVKAC" // todo: pagasta is not always right, so not sure what to best do here
-                );
-
-                return officeName;
-            }
 
             features.Add(new Feature(point, attributes));
         }
@@ -221,7 +224,7 @@ public class VPVKACAnalyzer : Analyzer
             office.Address.PostalCode
         );
         
-        // todo: not using pagasts and novads, but are they ever ambiguous?
+        // todo: not using "pagasts" and "novads", but are they ever ambiguous?
         
         if (coord == null)
             return null; // no location found
@@ -232,7 +235,54 @@ public class VPVKACAnalyzer : Analyzer
         );
     }
 
+    [Pure]
+    private static string BuildSuggestedTags(VPVKACOffice office)
+    {
+        List<string> lines = [ ];
+        
+        string shortName = ShortenName(office.Name);
+        string fullName = FullName(office.Name);
+        
+        if (!string.IsNullOrWhiteSpace(shortName)) lines.Add("name=" + shortName);
+        if (!string.IsNullOrWhiteSpace(fullName)) lines.Add("official_name=" + fullName);
+        lines.Add("office=government");
+        lines.Add("government=public_service");
+        if (!string.IsNullOrWhiteSpace(office.Email)) lines.Add("email=" + office.Email);
+        if (!string.IsNullOrWhiteSpace(office.Phone)) lines.Add("phone=" + office.Phone);
+        if (!string.IsNullOrWhiteSpace(office.OpeningHours)) lines.Add("opening_hours=" + office.OpeningHours);
+        
+        return "```" + string.Join(Environment.NewLine, lines) + "```";
+    }
 
+    [Pure]
+    private static string FullName(string officeName)
+    {
+        // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Cēsu novada Vecpiebalgas pagasta valsts un pašvaldības vienotais klientu apkalpošanas centrs"
+        return officeName.Replace("VPVKAC", "valsts un pašvaldības vienotais klientu apkalpošanas centrs");
+    }
+
+    [Pure]
+    private static string ShortenName(string officeName)
+    {
+        // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas VPVKAC"
+        officeName = Regex.Replace(
+            officeName,
+            @"^(?:.+?) novada (.+?) (?:pilsētas) VPVKAC",
+            @"$1 VPVKAC"
+        );
+
+        // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas VPVKAC"
+        officeName = Regex.Replace(
+            officeName,
+            @"^(?:.+?) novada (.+?) (?:pagasta) VPVKAC",
+            //@"$1 pagasta VPVKAC"
+            @"$1 VPVKAC" // todo: pagasta is not always right, so not sure what to best do here
+        );
+
+        return officeName;
+    }
+    
+    
     private record LocatedVPVKACOffice(VPVKACOffice Office, OsmCoord Coord) : IDataItem
     {
         public string ReportString() => Office.ReportString();
@@ -241,6 +291,7 @@ public class VPVKACAnalyzer : Analyzer
     
     private enum ExtraReportGroup
     {
-        UnlocatedOffices
+        UnlocatedOffices,
+        SuggestedAdditions
     }
 }

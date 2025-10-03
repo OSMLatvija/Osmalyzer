@@ -167,7 +167,7 @@ public class VPVKACAnalyzer : Analyzer
                 report.AddEntry(
                     ExtraReportGroup.SuggestedAdditions,
                     new IssueReportEntry(
-                        '`' + ShortenName(locatedOffice.Office.Name) + "` office at `" +
+                        '`' + locatedOffice.Office.ShortName + "` office at `" +
                         locatedOffice.Office.Address.ToString(true) +
                         "` can be added as" + Environment.NewLine + tagsBlock,
                         locatedOffice.Coord,
@@ -198,7 +198,7 @@ public class VPVKACAnalyzer : Analyzer
                 LocatedVPVKACOffice office = pair.DataItem;
 
                 // Expected values
-                string expectedName = ShortenName(office.Office.Name);
+                string expectedName = office.Office.ShortName;
                 string expectedOfficialName = FullName(office.Office.Name);
                 string? expectedEmail = string.IsNullOrWhiteSpace(office.Office.Email) ? null : office.Office.Email;
                 string? expectedPhone = string.IsNullOrWhiteSpace(office.Office.Phone) ? null : office.Office.Phone;
@@ -280,7 +280,7 @@ public class VPVKACAnalyzer : Analyzer
                     report.AddEntry(
                         ExtraReportGroup.SuggestedUpdates,
                         new IssueReportEntry(
-                            "`" + ShortenName(office.Office.Name) + "` office " +
+                            "`" + office.Office.ShortName + "` office " +
                             "is missing `" + tag + "=" + expected + "` - " + 
                             osmOffice.OsmViewUrl,
                             osmOffice.AverageCoord,
@@ -295,7 +295,7 @@ public class VPVKACAnalyzer : Analyzer
                     report.AddEntry(
                         ExtraReportGroup.SuggestedUpdates,
                         new IssueReportEntry(
-                            "`" + ShortenName(office.Office.Name) + "` office " +
+                            "`" + office.Office.ShortName + "` office " +
                             "has `" + tag + "=" + actual + "` " +
                             "but expecting `" + tag + "=" + expected + "` - " + 
                             osmOffice.OsmViewUrl,
@@ -324,7 +324,7 @@ public class VPVKACAnalyzer : Analyzer
             Point? point = geometryFactory.CreatePoint(new Coordinate(node.Coord.lon, node.Coord.lat));
             AttributesTable attributes = new AttributesTable()
             {
-                { "name", ShortenName(node.Office.Name) },
+                { "name", node.Office.ShortName },
                 { "official_name", FullName(node.Office.Name) },
                 { "office", "government" },
                 { "government", "public_service" },
@@ -373,7 +373,7 @@ public class VPVKACAnalyzer : Analyzer
     {
         List<string> lines = [ ];
         
-        string shortName = ShortenName(office.Name);
+        string shortName = office.ShortName;
         string fullName = FullName(office.Name);
         
         if (!string.IsNullOrWhiteSpace(shortName)) lines.Add("name=" + shortName);
@@ -394,28 +394,6 @@ public class VPVKACAnalyzer : Analyzer
         return officeName.Replace("VPVKAC", "valsts un pašvaldības vienotais klientu apkalpošanas centrs");
     }
 
-    [Pure]
-    private static string ShortenName(string officeName)
-    {
-        // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas VPVKAC"
-        officeName = Regex.Replace(
-            officeName,
-            @"^(?:.+?) novada (.+?) (?:pilsētas) VPVKAC",
-            @"$1 VPVKAC"
-        );
-
-        // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas VPVKAC"
-        officeName = Regex.Replace(
-            officeName,
-            @"^(?:.+?) novada (.+?) (?:pagasta) VPVKAC",
-            //@"$1 pagasta VPVKAC"
-            @"$1 VPVKAC" // todo: pagasta is not always right, so not sure what to best do here
-        );
-
-        return officeName;
-    }
-    
-    
     private record LocatedVPVKACOffice(VPVKACOffice Office, OsmCoord Coord) : IDataItem
     {
         public string ReportString() => Office.ReportString();

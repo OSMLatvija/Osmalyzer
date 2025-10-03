@@ -80,6 +80,9 @@ Piektdiena: 8:30 - 14:00</td>
             if (name == "Jelgavas novada Jelgavas VPVKAC")
                 name = "Jelgavas novada Jelgavas pilsētas VPVKAC";
 
+            string shortName = GetShortName(name);
+            string attachedName = GetDisambiguatedName(name);
+
             MatchCollection addressMatches = Regex.Matches(rowText, @"<a href=""[^""]+"">(.*?)</a>", RegexOptions.Singleline);
             // This will match both <a> - name and address
             if (addressMatches.Count != 2) throw new Exception();
@@ -114,10 +117,46 @@ Piektdiena: 8:30 - 14:00</td>
             
             phone = PhonesToOsmSyntax(phone);
             
-            Offices.Add(new VPVKACOffice(name, address, email, phone, openingHours));
+            Offices.Add(new VPVKACOffice(name, shortName, attachedName, address, email, phone, openingHours));
         }
         
         if (Offices.Count == 0) throw new Exception();
+    }
+
+
+    [Pure]
+    private static string GetShortName(string officeName)
+    {
+        // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas VPVKAC"
+        // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas VPVKAC"
+        
+        string result = Regex.Replace(
+            officeName,
+            @"^(?:.+?) novada (.+?) (?:pilsētas) VPVKAC",
+            @"$1 VPVKAC"
+        );
+
+        result = Regex.Replace(
+            result,
+            @"^(?:.+?) novada (.+?) (?:pagasta) VPVKAC",
+            @"$1 VPVKAC"
+        );
+
+        return result;
+    }
+
+    [Pure]
+    private static string GetDisambiguatedName(string officeName)
+    {
+        // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas pagasta VPVKAC"
+        // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas pilsētas VPVKAC"
+        
+        Match m = Regex.Match(officeName, @"^(?:.+?) novada (.+? (?:pilsētas|pagasta)) VPVKAC$");
+        
+        if (m.Success)
+            return m.Groups[1].Value + " VPVKAC";
+        
+        return officeName;
     }
 
 

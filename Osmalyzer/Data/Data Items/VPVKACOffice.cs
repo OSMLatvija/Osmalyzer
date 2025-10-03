@@ -4,6 +4,10 @@ public class VPVKACOffice
 {
     public string Name { get; }
     
+    public string ShortName { get; }
+    
+    public string DisambiguatedName { get; }
+    
     public VPVKACAddress Address { get; }
     
     public string Email { get; }
@@ -13,9 +17,11 @@ public class VPVKACOffice
     public string OpeningHours { get; }
 
 
-    public VPVKACOffice(string name, VPVKACAddress address, string email, string phone, string openingHours)
+    public VPVKACOffice(string name, string shortName, string disambiguatedName, VPVKACAddress address, string email, string phone, string openingHours)
     {
         Name = name.Trim();
+        ShortName = shortName.Trim();
+        DisambiguatedName = disambiguatedName.Trim();
         Address = address;
         Email = email.Trim();
         Phone = phone.Trim();

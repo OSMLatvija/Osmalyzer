@@ -345,7 +345,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                         new IssueReportEntry(
                             $"Relation has the same main value in both tags for " +
                             (mode != null ? $"mode `{mode}`" : "default mode") +
-                            $": `{primary.Key}={primary.Value}` and `{conditional.Key}={conditional.Value}` - the condition is effectively redundant and unlikely intended - " +
+                            $": `{primary.Key}={primarySimpleValue.Value}` and `{conditional.Key}={conditionalValue.Value}` - the condition is effectively redundant and unlikely intended - " +
                             restriction.Element.OsmViewUrl,
                             restriction.Element.AverageCoord,
                             MapPointStyle.Problem
@@ -651,7 +651,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                 continue;
             
             // Collect into groups by same from-via-to way combination
-            
+
             List<(OsmWay from, OsmNode via, OsmWay to, List<Restriction> restrictions)> restrictionsBySharedWays = [ ];
 
             foreach (Restriction restriction in comparable)
@@ -670,20 +670,20 @@ public class RestrictionRelationAnalyzer : Analyzer
             }
             
             restrictionsBySharedWays.RemoveAll(cg => cg.restrictions.Count < 2); // only care about groups with multiple restrictions
-            
+
             foreach ((OsmWay _, OsmNode _, OsmWay _, List<Restriction> sharingRestrictions) in restrictionsBySharedWays)
             {
                 // Further collect into groups by same restriction value
-                
+
                 List<(string value, List<Restriction> restrictions)> restrictionsBySharedValue = [ ];
                 
                 foreach (Restriction restriction in sharingRestrictions)
                 {
                     string restrictionValue = ((KnownRestrictionKind)restriction.Kind).Value;
-                    
+
                     (string, List<Restriction>)? existingGroup = restrictionsBySharedValue
                         .SingleOrDefault(g => g.value == restrictionValue);
-                    
+
                     if (existingGroup != null)
                         existingGroup.Value.Item2.Add(restriction);
                     else

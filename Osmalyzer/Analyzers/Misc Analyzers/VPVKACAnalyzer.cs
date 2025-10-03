@@ -172,7 +172,9 @@ public class VPVKACAnalyzer : Analyzer
                     new IssueReportEntry(
                         '`' + locatedOffice.Office.DisplayName + "` office at `" +
                         locatedOffice.Office.Address.ToString(true) +
-                        "` can be added as" + Environment.NewLine + tagsBlock,
+                        "` can be added at " +
+                        locatedOffice.Coord.OsmUrl +
+                        " as" + Environment.NewLine + tagsBlock,
                         locatedOffice.Coord,
                         MapPointStyle.CorrelatorItemUnmatched
                     )

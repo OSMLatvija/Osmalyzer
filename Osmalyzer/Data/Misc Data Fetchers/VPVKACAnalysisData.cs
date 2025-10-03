@@ -214,21 +214,52 @@ Piektdiena: 8:30 - 14:00</td>
                 if (part.ToLower().Contains("ārpus"))
                     continue;
 
-                // Parse a very specific case
-                // "Katra mēneša otrā trešdiena - metodiskā diena"
-                if (part.ToLower().Contains("katra mēneša otrā trešdiena - metodiskā diena"))
+                // Monthly off day "metodiskā diena"
+                // Free text stuff like "Katra mēneša pēdējā piektdiena – metodiskā diena" or "Katra mēneša otrā trešdiena - metodiskā diena"
+                
+                (string period, string osm)[] periods =
+                [
+                    ("pirmā", "1"),
+                    ("otrā", "2"),
+                    ("trešā", "3"),
+                    ("ceturktā", "4"),
+                    ("pēdējā", "-1"),
+                    ("priekšpēdējā", "-2")
+                ];
+
+                (string day, string osm)[] weekdays =
+                [
+                    ("pirmdiena", "Mo"),
+                    ("otrdiena", "Tu"),
+                    ("trešdiena", "We"),
+                    ("ceturtdiena", "Th"),
+                    ("piektdiena", "Fr"),
+                    ("sestdiena", "Sa"),
+                    ("svētdiena", "Su")
+                ];
+
+                bool handledMonthly = false;
+
+                if (part.Contains("metodiskā", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    extraLast = "We[2] off";
-                    continue;
+                    foreach ((string periodText, string periodOsm) in periods)
+                    {
+                        foreach ((string dayText, string dayOsm) in weekdays)
+                        {
+                            if (part.Contains($"{periodText} {dayText}", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                extraLast = $"{dayOsm}[{periodOsm}] off"; // e.g. "We[2] off" or "Fr[-1] off"
+                                handledMonthly = true;
+                                break;
+                            }
+                        }
+                        if (handledMonthly)
+                            break;
+                    }
                 }
 
-                // Parse a very specific case
-                // "*katra mēneša pēdējā trešdiena – metodiskā diena, bibliotēka lasītājiem slēgta."
-                if (part.ToLower().Contains("katra mēneša pēdējā trešdiena – metodiskā diena"))
-                {
-                    extraLast = "We[-1] off";
+                if (handledMonthly)
                     continue;
-                }
 
                 string clean = part;
                 

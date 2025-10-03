@@ -190,7 +190,7 @@ Piektdiena: 8:30 - 14:00</td>
             List<string> cleaned = [ ];
             string? extraLast = null;
 
-            foreach (string part in parts)
+            foreach (string partRaw in parts)
             {
                 // e.g. "Pirmdiena: 08:00 - 12:00; 12:30 - 18:00"
                 // e.g. "Otrdiena: 8:00 - 13:00 ; 15:00-17:30"
@@ -205,14 +205,18 @@ Piektdiena: 8:30 - 14:00</td>
                 // e.g. "Otrdiena: Slēgts (apkalpošana ārpus telpām)"
                 // e.g. "Katra mēneša otrā trešdiena - metodiskā diena"
 
-                // Skip closed days
-                if (part.ToLower().Contains("slēgts"))
+                // Ignore case, it is inconsistent and doesn't matter for meaning
+                string part = partRaw.ToLowerInvariant(); 
+                
+                // Skip closed days - OSM doesn't list closed, but open
+                if (part.Contains("slēgts"))
                     continue;
                 
                 // Skip closed/by appointment days, not parsing this
                 // "Apkalpošana ārpus bibliotēkas"
-                if (part.ToLower().Contains("ārpus"))
+                if (part.Contains("ārpus"))
                     continue;
+                // todo: we can theoretically parse as "by appointment"
 
                 // Monthly off day "metodiskā diena"
                 // Free text stuff like "Katra mēneša pēdējā piektdiena – metodiskā diena" or "Katra mēneša otrā trešdiena - metodiskā diena"
@@ -261,63 +265,63 @@ Piektdiena: 8:30 - 14:00</td>
                 if (handledMonthly)
                     continue;
 
-                string clean = part;
-                
                 // Special case with applicable month suffix to day
+                // (not seen other ranges, so not doing generic for now)
                 bool sepToMay = false;
                 string sepToMayPrefix = " (no septembra līdz maijam)";
-                if (clean.EndsWith(sepToMayPrefix))
+                if (part.EndsWith(sepToMayPrefix))
                 {
-                    clean = part[..^sepToMayPrefix.Length].Trim();
+                    part = part[..^sepToMayPrefix.Length].Trim();
                     sepToMay = true;
                 }
 
                 // Replace tabs with spaces, since sometimes tabs are used
-                clean = clean.Replace("\t", " ");
+                part = part.Replace("\t", " ");
 
                 // Replace en-dash with dash, since en-dash and dash are both used
-                clean = clean.Replace("–", "-");
+                part = part.Replace("–", "-");
 
                 // Replace multiple spaces with a single space
-                clean = Regex.Replace(clean, @"\s{2,}", " ");
+                part = Regex.Replace(part, @"\s{2,}", " ");
 
                 // Remove spaces around dashes
-                clean = Regex.Replace(clean, @"\s*-\s*", "-");
+                part = Regex.Replace(part, @"\s*-\s*", "-");
 
                 // Enforce one space after day separator
-                clean = Regex.Replace(clean, @"(?<=[a]):\s*", ": ");
+                part = Regex.Replace(part, @"(?<=[a]):\s*", ": ");
 
                 // Enforce no space before time separator and one after; semicolon to comma
-                clean = Regex.Replace(clean, @"\s*;\s*", ", ");
+                part = Regex.Replace(part, @"\s*;\s*", ", ");
 
                 // Replace LV words (and colon suffix) with OSM weekday names
-                clean = clean
-                        .Replace("Pirmdiena:", "Mo").Replace("Pirmdiena", "Mo")
-                        .Replace("Otrdiena:", "Tu").Replace("Otrdiena", "Tu")
-                        .Replace("Trešdiena:", "We").Replace("Trešdiena", "We")
-                        .Replace("Ceturtdiena:", "Th").Replace("Ceturtdiena", "Th")
-                        .Replace("Piektdiena:", "Fr").Replace("Piektdiena", "Fr")
-                        .Replace("Sestdiena:", "Sa").Replace("Sestdiena", "Sa")
-                        .Replace("Svētdiena:", "Su").Replace("Svētdiena", "Su");
+                part = part
+                        .Replace("pirmdiena:", "Mo").Replace("pirmdiena", "Mo")
+                        .Replace("otrdiena:", "Tu").Replace("otrdiena", "Tu")
+                        .Replace("trešdiena:", "We").Replace("trešdiena", "We")
+                        .Replace("ceturtdiena:", "Th").Replace("ceturtdiena", "Th")
+                        .Replace("piektdiena:", "Fr").Replace("piektdiena", "Fr")
+                        .Replace("sestdiena:", "Sa").Replace("sestdiena", "Sa")
+                        .Replace("svētdiena:", "Su").Replace("svētdiena", "Su");
 
                 // Replace dot in hour separator with a colon
-                clean = clean.Replace(".", ":");
+                part = part.Replace(".", ":");
                 
                 // Enforce two-digit hours
-                clean = Regex.Replace(clean, @" (\d):", @" 0$1:");
+                part = Regex.Replace(part, @" (\d):", @" 0$1:");
                 
                 // Empty times probably imply closed
-                if (Regex.IsMatch(clean, @"^(Mo|Tu|We|Th|Fr|Sa|Su)-$"))
+                if (Regex.IsMatch(part, @"^(Mo|Tu|We|Th|Fr|Sa|Su)-$"))
                     continue;
                 
                 // At this point, we should have a valid OSM opening hours syntax, so check it
-                if (!Regex.IsMatch(clean, @"^(Mo|Tu|We|Th|Fr|Sa|Su) \d\d:\d\d-\d\d:\d\d(, \d\d:\d\d-\d\d:\d\d)?$"))
-                    throw new Exception();
+                if (!Regex.IsMatch(part, @"^(Mo|Tu|We|Th|Fr|Sa|Su) \d\d:\d\d-\d\d:\d\d(, \d\d:\d\d-\d\d:\d\d)?$"))
+                    throw new Exception(); // todo: better than this? report entry as unparsed?
 
                 if (sepToMay)
-                    clean = "Sep-May " + clean;
+                    part = "Sep-May " + part;
                 
-                cleaned.Add(clean);
+                // At this point, part has been transformed into OSM opening hours syntax (or we bailed or exceptioned)
+                cleaned.Add(part);
             }
 
             if (extraLast != null)

@@ -8,12 +8,14 @@ public static class FuzzyAddressParser
     [Pure]
     public static bool TryParseAddress(string raw, out string? streetLine, out string? city, out string? postalCode)
     {
+        if (raw == null) throw new ArgumentNullException(nameof(raw));
+        
         // TODO: ACTUAL
         
         streetLine = null;
         city = null;
         postalCode = null;
-        
+
         if (string.IsNullOrWhiteSpace(raw))
             return false;
         

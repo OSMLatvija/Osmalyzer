@@ -6,15 +6,62 @@ public static class FuzzyAddressFinder
 
 
     /// <summary>
-    /// <inheritdoc cref="Find(OsmMasterData, string?, string?, string?, string?, string)"/>
+    /// 
     /// </summary>
-    public static OsmCoord? Find(OsmMasterData data, string address)
+    public static OsmCoord? Find(OsmMasterData data, string address, params FuzzyAddressHint[] hints)
     {
-        FuzzyAddressParser.TryParseAddress(address, out string? streetLine, out string? city, out string? postalCode);
+        List<FuzzyAddressPart>? parts = FuzzyAddressParser.TryParseAddress(address, hints);
+
+        if (parts == null)
+            return null; // could not parse address at all
         
-        return Find(data, streetLine, city, null, null, postalCode ?? "");
+        if (_addressables == null)
+            GatherAddressables(data);
+        
+        // Get the rawish address part values
+        
+        string? houseName = parts.OfType<FuzzyAddressHouseNamePart>().FirstOrDefault()?.Value;
+        string? streetName = parts.OfType<FuzzyAddressStreetNamePart>().FirstOrDefault()?.Value;
+        string? streetNumber = parts.OfType<FuzzyAddressStreetNumberPart>().FirstOrDefault()?.Value;
+        string? city = parts.OfType<FuzzyAddressCityPart>().FirstOrDefault()?.Value;
+        string? postcode = parts.OfType<FuzzyAddressPostcodePart>().FirstOrDefault()?.Value;
+        
+        // Match against OSM elements
+        
+        List<OsmElement> matchedElements = [ ];
+        
+        foreach (OsmElement element in _addressables!)
+        {
+            if (DoesElementMatch())
+                matchedElements.Add(element);
+
+            continue;
+
+
+            [Pure]
+            bool DoesElementMatch()
+            {
+                bool houseNameMatched = houseName != null && houseName == element.GetValue("addr:housename");
+                bool streetMatched = streetName != null && streetName == element.GetValue("addr:street");
+                bool numberMatched = streetNumber != null && streetNumber == element.GetValue("addr:housenumber");
+                bool cityMatched = city != null && city == element.GetValue("addr:city");
+                bool postcodeMatched = postcode != null && postcode == element.GetValue("addr:postcode");
+                
+                bool streetLineMatched = houseNameMatched || streetMatched && numberMatched;
+                
+                // Street line can repeat between cities/towns, but (presumably) not withing the same city/town or postcode
+                
+                return streetLineMatched && (cityMatched || postcodeMatched);
+            }
+        }
+        
+        if (matchedElements.Count == 0)
+            return null; // no matches found
+
+        return OsmGeoTools.GetAverageCoord(matchedElements);
     }
 
+    // todo: convert to above
     /// <summary>
     /// Find an address point in OSM data based on matching of address.
     /// </summary>

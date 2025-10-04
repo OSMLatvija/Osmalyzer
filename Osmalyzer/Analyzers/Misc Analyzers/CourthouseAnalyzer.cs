@@ -128,7 +128,14 @@ public class CourthouseAnalyzer : Analyzer
     [Pure]
     private static LocatedCourthouse? TryLocateCourthouse(CourthouseData ch, OsmMasterData osmData)
     {
-        OsmCoord? coord = FuzzyAddressFinder.Find(osmData, ch.Address);
+        OsmCoord? coord = FuzzyAddressFinder.Find(
+            osmData, 
+            ch.Address,
+            // all are of form "Aiviekstes iela 6, Rīga, LV-1019"
+            new FuzzyAddressStreetLineHint(0), 
+            new FuzzyAddressCityHint(1), 
+            new FuzzyAddressPostcodeHint(2)
+        );
 
         if (coord == null)
             return null;

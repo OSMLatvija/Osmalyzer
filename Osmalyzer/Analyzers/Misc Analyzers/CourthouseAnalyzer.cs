@@ -40,7 +40,7 @@ public class CourthouseAnalyzer : Analyzer
 
         foreach (CourthouseData ch in listedCourthouses)
         {
-            LocatedCourthouse? located = LocateCourthouse(ch, osmMasterData);
+            LocatedCourthouse? located = TryLocateCourthouse(ch, osmMasterData);
             if (located != null)
                 locatedCourthouses.Add(located);
             else
@@ -126,51 +126,14 @@ public class CourthouseAnalyzer : Analyzer
 
 
     [Pure]
-    private static LocatedCourthouse? LocateCourthouse(CourthouseData ch, OsmMasterData osmData)
+    private static LocatedCourthouse? TryLocateCourthouse(CourthouseData ch, OsmMasterData osmData)
     {
-        // Address pattern typically: "Street X, City, LV - NNNN"; normalize and split
-        if (!TryParseAddress(ch.Address, out string? streetLine, out string? city, out string? postal))
-            return null;
-
-        OsmCoord? coord = FuzzyAddressFinder.Find(
-            osmData,
-            streetLine,
-            city,
-            null,
-            null,
-            postal!
-        );
+        OsmCoord? coord = FuzzyAddressFinder.Find(osmData, ch.Address);
 
         if (coord == null)
             return null;
 
         return new LocatedCourthouse(ch, coord.Value);
-    }
-
-    [Pure]
-    private static bool TryParseAddress(string raw, out string? streetLine, out string? city, out string? postalCode)
-    {
-        Debug.WriteLine(raw);
-        
-        streetLine = null;
-        city = null;
-        postalCode = null;
-        
-        if (string.IsNullOrWhiteSpace(raw))
-            return false;
-        
-        string[] parts = raw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 3)
-            return false;
-        
-        streetLine = parts[0];
-        city = parts[1];
-        postalCode = parts[2];
-        
-        // Remove spaces within postal code
-        postalCode = postalCode.Replace(" ", "");
-
-        return true;
     }
 
     private record LocatedCourthouse(CourthouseData Courthouse, OsmCoord Coord) : IDataItem

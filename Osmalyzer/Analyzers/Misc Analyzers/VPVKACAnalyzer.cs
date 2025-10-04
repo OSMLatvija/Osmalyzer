@@ -45,7 +45,7 @@ public class VPVKACAnalyzer : Analyzer
 
         foreach (VPVKACOffice office in offices)
         {
-            LocatedVPVKACOffice? locateOffice = LocateOffice(office, osmData.MasterData);
+            LocatedVPVKACOffice? locateOffice = TryLocateOffice(office, osmData.MasterData);
             
             if (locateOffice != null)
                 locatedOffices.Add(locateOffice);
@@ -351,7 +351,7 @@ public class VPVKACAnalyzer : Analyzer
     }
 
 
-    private static LocatedVPVKACOffice? LocateOffice(VPVKACOffice office, OsmMasterData osmData)
+    private static LocatedVPVKACOffice? TryLocateOffice(VPVKACOffice office, OsmMasterData osmData)
     {
         OsmCoord? coord = FuzzyAddressFinder.Find(
             osmData,

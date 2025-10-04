@@ -2,12 +2,25 @@
 
 public static class FuzzyAddressFinder
 {
-    private static List<OsmElement>? addressables;
-    
-    
+    private static List<OsmElement>? _addressables;
+
+
+    /// <summary>
+    /// <inheritdoc cref="Find(OsmMasterData, string?, string?, string?, string?, string)"/>
+    /// </summary>
+    public static OsmCoord? Find(OsmMasterData data, string address)
+    {
+        FuzzyAddressParser.TryParseAddress(address, out string? streetLine, out string? city, out string? postalCode);
+        
+        return Find(data, streetLine, city, null, null, postalCode ?? "");
+    }
+
+    /// <summary>
+    /// Find an address point in OSM data based on matching of address.
+    /// </summary>
     public static OsmCoord? Find(OsmMasterData data, string? name, string? location, string? pagasts, string? novads, string postalCode)
     {
-        if (addressables == null)
+        if (_addressables == null)
             GatherAddressables(data);
 
         string? houseName = null;
@@ -46,7 +59,7 @@ public static class FuzzyAddressFinder
         List<OsmElement> matchedElements = [ ];
         int bestMatchedScore = 0;
         
-        foreach (OsmElement element in addressables!)
+        foreach (OsmElement element in _addressables!)
         {
             if (DoesElementMatch(out int matchScore))
             {
@@ -113,6 +126,6 @@ public static class FuzzyAddressFinder
     private static void GatherAddressables(OsmMasterData data)
     {
         OsmDataExtract extract = data.Filter(new HasKey("ref:LV:addr"));
-        addressables = extract.Elements.ToList();
+        _addressables = extract.Elements.ToList();
     }
 }

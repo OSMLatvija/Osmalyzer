@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using System.Diagnostics;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class CourthouseAnalyzer : Analyzer
@@ -123,6 +125,7 @@ public class CourthouseAnalyzer : Analyzer
     }
 
 
+    [Pure]
     private static LocatedCourthouse? LocateCourthouse(CourthouseData ch, OsmMasterData osmData)
     {
         // Address pattern typically: "Street X, City, LV - NNNN"; normalize and split
@@ -144,8 +147,11 @@ public class CourthouseAnalyzer : Analyzer
         return new LocatedCourthouse(ch, coord.Value);
     }
 
+    [Pure]
     private static bool TryParseAddress(string raw, out string? streetLine, out string? city, out string? postalCode)
     {
+        Debug.WriteLine(raw);
+        
         streetLine = null;
         city = null;
         postalCode = null;
@@ -153,23 +159,17 @@ public class CourthouseAnalyzer : Analyzer
         if (string.IsNullOrWhiteSpace(raw))
             return false;
         
-        // Normalize spaces around hyphen in postal code
-        raw = raw.Replace("LV -", "LV-").Replace("LV- ", "LV-");
-        
         string[] parts = raw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 3)
             return false;
         
         streetLine = parts[0];
         city = parts[1];
-        string postalRaw = parts[^1];
+        postalCode = parts[2];
         
-        // Extract postal code (could be like "LV-1010")
-        Match m = Regex.Match(postalRaw, @"LV-\d{4}");
-        if (!m.Success)
-            return false;
-        
-        postalCode = m.Value;
+        // Remove spaces within postal code
+        postalCode = postalCode.Replace(" ", "");
+
         return true;
     }
 

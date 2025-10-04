@@ -392,9 +392,33 @@ internal static class KnownFuzzyNames
         "Platone",
         "Jaunā muiža"
     ];
+    
+    public static readonly StreetNameSuffix[] StreetNameSuffixes =
+    [
+        new StreetNameSuffix("iela", "ielā"), // keep first entry as the most common one
+        new StreetNameSuffix("bulvāris", "bulvārī"),
+        new StreetNameSuffix("ceļš", "ceļā"),
+        new StreetNameSuffix("gatve", "gatvē"),
+        new StreetNameSuffix("šoseja", "šosejā"),
+        new StreetNameSuffix("tilts", "tiltā"),
+        new StreetNameSuffix("dambis", "dambī"),
+        new StreetNameSuffix("aleja", "alejā"),
+        new StreetNameSuffix("apvedceļš", "apvedceļā"),
+        new StreetNameSuffix("laukums", "laukumā"),
+        new StreetNameSuffix("prospekts", "prospektā"),
+        new StreetNameSuffix("pārvads", "pārvadā"),
+        new StreetNameSuffix("līnija", "līnijā"),
+        new StreetNameSuffix("šķērslīnija", "šķērslīnijā"),
+        new StreetNameSuffix("krastmala", "krastmalā")
+    ];
 
     
     public static HashSet<string> CityNames { get; } = new HashSet<string>(_cityNames, StringComparer.OrdinalIgnoreCase);
     
     public static HashSet<string> LargestTownNames { get; } = new HashSet<string>(_largestTownNames, StringComparer.OrdinalIgnoreCase);
+    
+    public static HashSet<string> AllKnownNames { get; } = new HashSet<string>(CityNames.Union(LargestTownNames), StringComparer.OrdinalIgnoreCase);
+
+
+    public record StreetNameSuffix(string Nominative, string Locative);
 }

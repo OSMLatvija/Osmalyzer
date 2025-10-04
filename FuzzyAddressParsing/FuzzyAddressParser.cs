@@ -241,14 +241,57 @@ public static class FuzzyAddressParser
         // Ends with a number, possibly with letter, possibly with block, preceded by whitespace and something else before
         Match match = Regex.Match(value, @"^(.+?)\s+(\d+[a-zA-Z]?(\s*k-?\d+)?)$");
 
+        string name = match.Groups[1].Value.Trim();
+        
+        if (name.Length < 3)
+            return null; // totally too short to be a name
+            
+        int numberOfLetters = name.Count(char.IsLetter);
+        if (numberOfLetters < 3)
+            return null; // too few letters to be a name
+        
         if (match.Success)
+        {
             return (
-                match.Groups[1].Value.Trim(),
+                FixName(name),
                 FixNumber(match.Groups[2].Value.Trim())
             );
+        }
 
         return null;
         
+        [Pure]
+        static string FixName(string name)
+        {
+            // "Krānu ielā" -> "Krānu iela"
+            // "Krānu" -> "Krānu iela"
+
+            bool endedWithKnownSuffix = false;
+            
+            foreach (KnownFuzzyNames.StreetNameSuffix suffix in KnownFuzzyNames.StreetNameSuffixes)
+            {
+                // "ielā" -> "iela" etc.
+                if (name.EndsWith(suffix.Locative))
+                {    
+                    name = name[..^suffix.Locative.Length] + suffix.Nominative;
+                    endedWithKnownSuffix = true;
+                    break;
+                }
+                else if (name.EndsWith(suffix.Nominative))
+                {
+                    endedWithKnownSuffix = true;
+                    break;
+                }
+            }
+
+            if (!endedWithKnownSuffix)
+            {
+                // No known suffix, so just assume and add "iela" as the most common one
+                name += " " + KnownFuzzyNames.StreetNameSuffixes.First().Nominative;
+            }
+            
+            return name;
+        }
 
         [Pure]
         static string FixNumber(string num)

@@ -179,6 +179,10 @@ public static class FuzzyAddressParser
         foreach (List<FuzzyAddressPart> parts in proposedParts)
             parts.RemoveAll(p => p is T);
         
+        // Clear the split as its part has been assigned, and we can't have more from here
+        
+        proposedParts[bestPart.Index].Clear();
+        
         // Done
         return bestPart;
     }
@@ -186,20 +190,48 @@ public static class FuzzyAddressParser
     [Pure]
     private static FuzzyAddressPart? TryParseAsStreetLine(string split, int index)
     {
-        // Name in quotes, e.g. `"Palmas"` 
-        if (split.StartsWith('\"') && split.EndsWith('\"'))
-            return new FuzzyAddressHouseNamePart(split[1..^1], index, FuzzyConfidence.High);
+        FuzzyAddressHouseNamePart? addressHouseNamePart = TryParseAsHouseName(split, index);
+        if (addressHouseNamePart != null)
+            return addressHouseNamePart;
         
         (string prefix, string suffix)? splitStreetLine = TrySplitStreetLine(split);
         
         if (splitStreetLine != null)
         {
-            string streetName = splitStreetLine.Value.prefix;
-            string streetNumber = splitStreetLine.Value.suffix;
+            string[] parts = splitStreetLine.Value.prefix.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            bool anyPartIsWord = parts.Any(p => p.Length >= 3);
+            // Otherwise, we detect stuff like "LV 1234" as street name, presumably we don't get shorter than "Īsā 3" or something
+            
+            if (anyPartIsWord)
+            {
+                string streetName = splitStreetLine.Value.prefix;
+                string streetNumber = splitStreetLine.Value.suffix;
 
-            return new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, FuzzyConfidence.High);
+                return new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, FuzzyConfidence.High);
+            }
         }
         
+        return null;
+    }
+
+    [Pure]
+    private static FuzzyAddressHouseNamePart? TryParseAsHouseName(string split, int index)
+    {
+        // Name in quotes, e.g. `"Palmas"` 
+        if (split.StartsWith('\"') && split.EndsWith('\"'))
+        {
+            string value = split[1..^1].Trim();
+            
+            if (value.Length < 3)
+                return null; // totally too short to be a name
+            
+            int numberOfLetters = value.Count(char.IsLetter);
+            if (numberOfLetters < 3)
+                return null; // too few letters to be a name
+            
+            return new FuzzyAddressHouseNamePart(value, index, FuzzyConfidence.High);
+        }
+
         return null;
     }
 
@@ -264,19 +296,22 @@ public static class FuzzyAddressParser
     [Pure]
     private static FuzzyAddressPostcodePart? TryParseAsPostalCode(string split, int index)
     {
-        string cleaned = split.ToUpperInvariant();
+        if (Regex.IsMatch(split, @"^LV-\d{4}$")) // perfect match
+            return new FuzzyAddressPostcodePart(split, index, FuzzyConfidence.High);
+
+        string cleaned = split.ToUpperInvariant()
+                              .Replace("LV ", "LV-") // make sure we have dash
+                              .Replace(" ", "") // remove all other spaces
+                              .Replace("–", "-") // n-dash
+                              .Replace("—", "-"); // m-dash
         
-        cleaned = split.Replace(" ", ""); // remove all spaces by default
-        
-        cleaned = split.Replace("–", "-"); // n-dash
-        cleaned = split.Replace("—", "-"); // m-dash
-        
-        cleaned = cleaned.Replace("LV ", "LV-"); // restore dash for specifically prefix
-        
-        if (Regex.IsMatch(cleaned, @"^LV-\d{4}$"))
+        if (Regex.IsMatch(cleaned, @"^LV-\d{4}$")) // "LV-1234" after cleaning
             return new FuzzyAddressPostcodePart(cleaned, index, FuzzyConfidence.High);
+
+        if (Regex.IsMatch(cleaned, @"^LV\d{4}$")) // "LV1234" - never had a dash or space
+            return new FuzzyAddressPostcodePart(cleaned.Replace("LV", "LV-"), index, FuzzyConfidence.High);
         
-        if (Regex.IsMatch(cleaned, @"^\d{4}$"))
+        if (Regex.IsMatch(cleaned, @"^\d{4}$")) // "1234" - never had LV
             return new FuzzyAddressPostcodePart("LV-" + cleaned, index, FuzzyConfidence.Low);
         
         return null;
@@ -309,35 +344,3 @@ public static class FuzzyAddressParser
         }
     }
 }
-
-
-public abstract record FuzzyAddressPart(int Index, FuzzyConfidence Confidence);
-public record FuzzyAddressStreetNameAndNumberPart(string StreetValue, string NumberValue, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
-public record FuzzyAddressHouseNamePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
-public record FuzzyAddressCityPart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
-public record FuzzyAddressPostcodePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
-
-
-public enum FuzzyConfidence
-{
-    /// <summary> We are not sure </summary>
-    Low = 0,
-
-    /// <summary> We are at least fairly sure </summary>
-    High = 1,
-
-    /// <summary> We were told what this is, but we couldn't parse it at all </summary>
-    HintedFallback = 2,
-    
-    /// <summary> We were told what this is, but we are not very confident it's true, although we did parse it </summary>
-    HintedLow = 3,
-    
-    /// <summary> We were told what this is, and we are confident it's true </summary>
-    HintedHigh = 4
-}
-
-
-public abstract record FuzzyAddressHint(int Index);
-public record FuzzyAddressStreetLineHint(int Index) : FuzzyAddressHint(Index);
-public record FuzzyAddressCityHint(int Index) : FuzzyAddressHint(Index);
-public record FuzzyAddressPostcodeHint(int Index) : FuzzyAddressHint(Index);

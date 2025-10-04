@@ -21,8 +21,9 @@ public static class FuzzyAddressFinder
         // Get the rawish address part values
         
         string? houseName = parts.OfType<FuzzyAddressHouseNamePart>().FirstOrDefault()?.Value;
-        string? streetName = parts.OfType<FuzzyAddressStreetNamePart>().FirstOrDefault()?.Value;
-        string? streetNumber = parts.OfType<FuzzyAddressStreetNumberPart>().FirstOrDefault()?.Value;
+        FuzzyAddressStreetNameAndNumberPart? nameAndNumberPart = parts.OfType<FuzzyAddressStreetNameAndNumberPart>().FirstOrDefault();
+        string? streetName = nameAndNumberPart?.StreetValue;
+        string? streetNumber = nameAndNumberPart?.NumberValue;
         string? city = parts.OfType<FuzzyAddressCityPart>().FirstOrDefault()?.Value;
         string? postcode = parts.OfType<FuzzyAddressPostcodePart>().FirstOrDefault()?.Value;
         

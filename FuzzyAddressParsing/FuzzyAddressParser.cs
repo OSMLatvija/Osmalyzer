@@ -32,9 +32,9 @@ public static class FuzzyAddressParser
             
             // Try parse ourselves
             
-            List<FuzzyAddressPart>? streetLineResults = TryParseAsStreetLine(split, i);
-            if (streetLineResults != null)
-                proposedParts[i].AddRange(streetLineResults);
+            FuzzyAddressPart? streetLineResult = TryParseAsStreetLine(split, i);
+            if (streetLineResult != null)
+                proposedParts[i].Add(streetLineResult);
                     
             FuzzyAddressCityPart? cityResult = TryParseAsCity(split, i);
             if (cityResult != null)
@@ -49,7 +49,6 @@ public static class FuzzyAddressParser
             // If we don't have any parsed results, we can add a generic one with hinted confidence
             
             FuzzyAddressHint? hint = hints.FirstOrDefault(h => h.Index == i);
-            // todo: authoritative hint, i.e. if hint given, ignore all other guesses and just use hint assumption
 
             if (hint != null)
             {
@@ -57,10 +56,9 @@ public static class FuzzyAddressParser
                 {
                     case FuzzyAddressStreetLineHint:
                         FuzzyAddressHouseNamePart? parsedHouseNamePart = proposedParts[i].OfType<FuzzyAddressHouseNamePart>().FirstOrDefault();
-                        FuzzyAddressStreetNamePart? parsedStreetNamePart = proposedParts[i].OfType<FuzzyAddressStreetNamePart>().FirstOrDefault();
-                        FuzzyAddressStreetNumberPart? parsedStreetNumberPart = proposedParts[i].OfType<FuzzyAddressStreetNumberPart>().FirstOrDefault();
+                        FuzzyAddressStreetNameAndNumberPart? parsedStreetNamePart = proposedParts[i].OfType<FuzzyAddressStreetNameAndNumberPart>().FirstOrDefault();
                         
-                        if (parsedHouseNamePart != null || parsedStreetNamePart != null || parsedStreetNumberPart != null)
+                        if (parsedHouseNamePart != null || parsedStreetNamePart != null)
                         {
                             if (parsedHouseNamePart != null)
                             {
@@ -71,11 +69,6 @@ public static class FuzzyAddressParser
                             {
                                 proposedParts[i].Remove(parsedStreetNamePart);
                                 proposedParts[i].Add(parsedStreetNamePart with { Confidence = HintedConfidence(parsedStreetNamePart.Confidence) });
-                            }
-                            if (parsedStreetNumberPart != null)
-                            {
-                                proposedParts[i].Remove(parsedStreetNumberPart);
-                                proposedParts[i].Add(parsedStreetNumberPart with { Confidence = HintedConfidence(parsedStreetNumberPart.Confidence) });
                             }
                         }
                         else
@@ -128,13 +121,9 @@ public static class FuzzyAddressParser
         // Gather highest confidence first, then descending remaining
         foreach (FuzzyConfidence minConfidence in Enum.GetValues<FuzzyConfidence>().OrderDescending())
         {
-            FuzzyAddressStreetNamePart? selectedStreetName = ExtractBest<FuzzyAddressStreetNamePart>(proposedParts, minConfidence);
-            if (selectedStreetName != null)
-                parts.Add(selectedStreetName);
-            
-            FuzzyAddressStreetNumberPart? selectedStreetNumber = ExtractBest<FuzzyAddressStreetNumberPart>(proposedParts, minConfidence);
-            if (selectedStreetNumber != null)
-                parts.Add(selectedStreetNumber);
+            FuzzyAddressStreetNameAndNumberPart? selectedStreetNameAndNumber = ExtractBest<FuzzyAddressStreetNameAndNumberPart>(proposedParts, minConfidence);
+            if (selectedStreetNameAndNumber != null)
+                parts.Add(selectedStreetNameAndNumber);
             
             FuzzyAddressHouseNamePart? selectedHouseName = ExtractBest<FuzzyAddressHouseNamePart>(proposedParts, minConfidence);
             if (selectedHouseName != null)
@@ -195,11 +184,11 @@ public static class FuzzyAddressParser
     }
 
     [Pure]
-    private static List<FuzzyAddressPart>? TryParseAsStreetLine(string split, int index)
+    private static FuzzyAddressPart? TryParseAsStreetLine(string split, int index)
     {
         // Name in quotes, e.g. `"Palmas"` 
         if (split.StartsWith('\"') && split.EndsWith('\"'))
-            return [ new FuzzyAddressHouseNamePart(split[1..^1], index, FuzzyConfidence.High) ];
+            return new FuzzyAddressHouseNamePart(split[1..^1], index, FuzzyConfidence.High);
         
         (string prefix, string suffix)? splitStreetLine = TrySplitStreetLine(split);
         
@@ -208,10 +197,7 @@ public static class FuzzyAddressParser
             string streetName = splitStreetLine.Value.prefix;
             string streetNumber = splitStreetLine.Value.suffix;
 
-            FuzzyAddressStreetNamePart streetNamePart = new FuzzyAddressStreetNamePart(streetName, index, FuzzyConfidence.High);
-            FuzzyAddressStreetNumberPart numberPart = new FuzzyAddressStreetNumberPart(streetNumber, index, FuzzyConfidence.High);
-
-            return [ streetNamePart, numberPart ];
+            return new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, FuzzyConfidence.High);
         }
         
         return null;
@@ -325,12 +311,11 @@ public static class FuzzyAddressParser
 }
 
 
-public abstract record FuzzyAddressPart(string Value, int Index, FuzzyConfidence Confidence);
-public record FuzzyAddressStreetNamePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Value, Index, Confidence);
-public record FuzzyAddressStreetNumberPart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Value, Index, Confidence);
-public record FuzzyAddressHouseNamePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Value, Index, Confidence);
-public record FuzzyAddressCityPart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Value, Index, Confidence);
-public record FuzzyAddressPostcodePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Value, Index, Confidence);
+public abstract record FuzzyAddressPart(int Index, FuzzyConfidence Confidence);
+public record FuzzyAddressStreetNameAndNumberPart(string StreetValue, string NumberValue, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
+public record FuzzyAddressHouseNamePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
+public record FuzzyAddressCityPart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
+public record FuzzyAddressPostcodePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
 
 
 public enum FuzzyConfidence

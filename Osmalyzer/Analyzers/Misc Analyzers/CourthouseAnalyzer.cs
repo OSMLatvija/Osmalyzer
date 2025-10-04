@@ -31,26 +31,40 @@ public class CourthouseAnalyzer : Analyzer
 
         List<CourthouseData> listedCourthouses = courthouseData.Courthouses.ToList();
 
+        // Geolocate courthouses from their addresses
+        
+        List<LocatedCourthouse> locatedCourthouses = [ ];
+        List<CourthouseData> unlocatedCourthouses = [ ];
+
+        foreach (CourthouseData ch in listedCourthouses)
+        {
+            LocatedCourthouse? located = LocateCourthouse(ch, osmMasterData);
+            if (located != null)
+                locatedCourthouses.Add(located);
+            else
+                unlocatedCourthouses.Add(ch);
+        }
+
         // Prepare data comparer/correlator
 
-        Correlator<CourthouseData> correlator = new Correlator<CourthouseData>(
+        Correlator<LocatedCourthouse> correlator = new Correlator<LocatedCourthouse>(
             osmCourthouses,
-            listedCourthouses,
+            locatedCourthouses,
             new MatchDistanceParamater(100), // most data is like 50 meters away
             new MatchFarDistanceParamater(300),
             new MatchExtraDistanceParamater(MatchStrength.Strong, 700), // allow really far for exact matches
             new DataItemLabelsParamater("courthouse", "courthouses"),
             new OsmElementPreviewValue("name", false),
-            new MatchCallbackParameter<CourthouseData>(GetMatchStrength),
+            new MatchCallbackParameter<LocatedCourthouse>(GetMatchStrength),
             new LoneElementAllowanceParameter(SeemsLikeRecognizedCourthouse)
         );
         
         // todo: report closest potential (brand-untagged) courthouse when not matching anything?
 
         [Pure]
-        MatchStrength GetMatchStrength(CourthouseData point, OsmElement element)
+        MatchStrength GetMatchStrength(LocatedCourthouse point, OsmElement element)
         {
-            if (FuzzyAddressMatcher.Matches(element, point.Address))
+            if (FuzzyAddressMatcher.Matches(element, point.Courthouse.Address))
                 return MatchStrength.Strong;
                 
             return MatchStrength.Good;
@@ -85,5 +99,87 @@ public class CourthouseAnalyzer : Analyzer
             new MatchedFarPairBatch(),
             new MatchedLoneOsmBatch(true)
         );
+
+        // Report any courthouses we couldn't geolocate by address
+        if (unlocatedCourthouses.Count > 0)
+        {
+            report.AddGroup(
+                ExtraReportGroup.UnlocatedCourthouses,
+                "Non-geolocated Courthouses",
+                "These listed courthouses could not be geolocated to an OSM address. " +
+                "Possibly, the data values are incorrect, differently-formatted or otherwise fail to match automatically."
+            );
+
+            foreach (CourthouseData unlocated in unlocatedCourthouses)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.UnlocatedCourthouses,
+                    new IssueReportEntry(
+                        "Courthouse `" + unlocated.Name + "` could not be geolocated for `" + unlocated.Address + "`"
+                    )
+                );
+            }
+        }
+    }
+
+
+    private static LocatedCourthouse? LocateCourthouse(CourthouseData ch, OsmMasterData osmData)
+    {
+        // Address pattern typically: "Street X, City, LV - NNNN"; normalize and split
+        if (!TryParseAddress(ch.Address, out string? streetLine, out string? city, out string? postal))
+            return null;
+
+        OsmCoord? coord = FuzzyAddressFinder.Find(
+            osmData,
+            streetLine,
+            city,
+            null,
+            null,
+            postal!
+        );
+
+        if (coord == null)
+            return null;
+
+        return new LocatedCourthouse(ch, coord.Value);
+    }
+
+    private static bool TryParseAddress(string raw, out string? streetLine, out string? city, out string? postalCode)
+    {
+        streetLine = null;
+        city = null;
+        postalCode = null;
+        
+        if (string.IsNullOrWhiteSpace(raw))
+            return false;
+        
+        // Normalize spaces around hyphen in postal code
+        raw = raw.Replace("LV -", "LV-").Replace("LV- ", "LV-");
+        
+        string[] parts = raw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 3)
+            return false;
+        
+        streetLine = parts[0];
+        city = parts[1];
+        string postalRaw = parts[^1];
+        
+        // Extract postal code (could be like "LV-1010")
+        Match m = Regex.Match(postalRaw, @"LV-\d{4}");
+        if (!m.Success)
+            return false;
+        
+        postalCode = m.Value;
+        return true;
+    }
+
+    private record LocatedCourthouse(CourthouseData Courthouse, OsmCoord Coord) : IDataItem
+    {
+        public string ReportString() => Courthouse.ReportString();
+    }
+    
+    private enum ExtraReportGroup
+    {
+        UnlocatedCourthouses
     }
 }

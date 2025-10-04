@@ -1,17 +1,14 @@
 ﻿namespace Osmalyzer;
 
-public class CourthouseData : IDataItem
+public class CourthouseData
 {
-    public OsmCoord Coord { get; }
-    
     public string Name { get; }
     
     public string Address { get; }
 
 
-    public CourthouseData(OsmCoord coord, string name, string address)
+    public CourthouseData(string name, string address)
     {
-        Coord = coord;
         Name = name;
         Address = address;
     }
@@ -19,6 +16,6 @@ public class CourthouseData : IDataItem
 
     public string ReportString()
     {
-        return "Courthouse `" + Name + "` (`" + Address + "`)";
+        return "Courthouse `" + Name + "` (`" + Address + "` )";
     }
 }

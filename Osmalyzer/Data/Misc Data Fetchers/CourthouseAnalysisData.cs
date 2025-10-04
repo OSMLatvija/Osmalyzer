@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Globalization;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
@@ -31,8 +28,8 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             true
         );
 
-        // "<a href="/lv/filiale/vidzemes-rajona-tiesa-gulbene"   data-uuid="7640734c-7ef9-4e59-bff5-0abecd6b9236" class="nav-link">Vidzemes rajona tiesa (Gulbenē)</a>"
-        MatchCollection matches = Regex.Matches(mainPage, @"<a href=""(\/lv\/filiale\/[^""]+)""\s+data-uuid=""[""]+""\s+class=""nav-link"">[^<]+<\/a>", RegexOptions.Singleline);
+        // "<a href="/lv/filiale/vidzemes-rajona-tiesa-gulbene" rel="bookmark" aria-label="Atvērt Vidzemes rajona tiesa (Gulbenē)"></a>"
+        MatchCollection matches = Regex.Matches(mainPage, @"<a href=""(/lv/filiale/[^""]+)"" rel=""bookmark"" aria-label=""Atvērt ([^""]+)""></a>", RegexOptions.Singleline);
         
         if (matches.Count == 0)
             throw new Exception("Did not match any subpages on main page");
@@ -75,12 +72,16 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             
             string name = nameMatch.Groups[1].ToString().Trim();
             
-            // Address with coords
-            // "<a href="https://www.google.com/maps/search/?api=1&amp;query=56.957050000001004,24.109149999999993" data-latitude="506638.26574253" data-longitude="312610.24397132" class="geo-location-url has-generated-url" target="_blank">Antonijas iela 6, Rīga, LV - 1010</a>"
-            // "<a href="/lv" data-latitude="506638.26574253" data-longitude="312610.24397132" class="geo-location-url" target="_blank">Antonijas iela 6, Rīga, LV - 1010</a>"
+            // Address (with bad coords)
+            // "<div class="branch_contacts__branch-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=57.51297000000112,24.717880000000058" data-latitude="543007.42647012" data-longitude="374716.96658417" class="geo-location-url has-generated-url" target="_blank">Cēsu iela 18, Limbaži, LV-4001</a></div>"
+            // or
+            // "<div class="branch_contacts__branch-address">Brīvības bulvāris 34, Rīga, LV-1886</div>"
+            Match match = Regex.Match(content, @"<div class=""branch_contacts__branch-address"">([^<]+)</div>", RegexOptions.Singleline);
+            // must match from "branch_contacts__branch-address" because it has multiple links to other places too with the same <a> syntax
             
-            Match match = Regex.Match(content, @"<a href=""[^""]+""\s+data-latitude=""([^""]+)""\s+data-longitude=""([^""]+)""\s+class=""[^""]+""\s+target=""_blank"">([^<]+)</a>", RegexOptions.Singleline);
-
+            if (!match.Success) // try with <a>
+                match = Regex.Match(content, @"<div class=""branch_contacts__branch-address""><a [^>]+>([^<]+)</a>", RegexOptions.Singleline);
+            
             if (!match.Success)
                 throw new Exception("Did not match address and coordinates");
             
@@ -92,7 +93,7 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             // (double lat, double lon) = CoordConversion.LKS92ToWGS84(latRaw, lonRaw);
             //Debug.WriteLine("Parsed courthouse: " + name + " @ " + lat + "," + lon);
             
-            string address = match.Groups[3].ToString().Trim();
+            string address = match.Groups[1].ToString().Trim();
             
             // Phone number(s)
             // todo: "<a href="tel:+371 67613390" aria-label="Tālruņa numurs: +371 67613390">+371 67613390</a>"
@@ -121,7 +122,6 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             
             _courthouses.Add(
                 new CourthouseData(
-                    new OsmCoord(lat, lon),
                     name,
                     address
                 )

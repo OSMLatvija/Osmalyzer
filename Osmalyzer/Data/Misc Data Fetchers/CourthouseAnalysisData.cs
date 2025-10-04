@@ -84,14 +84,15 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             if (!match.Success)
                 throw new Exception("Did not match address and coordinates");
             
-            double latRaw = double.Parse(match.Groups[1].ToString().Trim(), CultureInfo.InvariantCulture);
-            double lonRaw = double.Parse(match.Groups[2].ToString().Trim(), CultureInfo.InvariantCulture);
-            (double lat, double lon) = CoordConversion.LKS92ToWGS84(latRaw, lonRaw);
-            // TODO: I don't know what is wrong with these pages, but they all point to the same wrong invalid coord and this has something to do with browsing/loading pages and not running some sort of script they have for coords
+            // I don't know what is wrong with these pages, but they all point to the same wrong invalid coord
+            // and this has something to do with browsing/loading pages and not running some sort of script they have for coords
+            // So not parsing coords directly for now
+            // double latRaw = double.Parse(match.Groups[1].ToString().Trim(), CultureInfo.InvariantCulture);
+            // double lonRaw = double.Parse(match.Groups[2].ToString().Trim(), CultureInfo.InvariantCulture);
+            // (double lat, double lon) = CoordConversion.LKS92ToWGS84(latRaw, lonRaw);
+            //Debug.WriteLine("Parsed courthouse: " + name + " @ " + lat + "," + lon);
             
             string address = match.Groups[3].ToString().Trim();
-            
-            Debug.WriteLine("Parsed courthouse: " + name + " @ " + lat + "," + lon);
             
             // Phone number(s)
             // todo: "<a href="tel:+371 67613390" aria-label="Tālruņa numurs: +371 67613390">+371 67613390</a>"

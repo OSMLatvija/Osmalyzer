@@ -174,6 +174,7 @@ public static class WebsiteBrowsingHelper
         // Ignore any SSL and such problems, because sites seem to have issues on GitHub 
         options.AcceptInsecureCertificates = true;
         options.AddArgument("--ignore-certificate-errors");
+        options.AddArgument("--ignore-ssl-errors");
 
         ChromeDriver chromeDriver = new ChromeDriver(service, options);
         

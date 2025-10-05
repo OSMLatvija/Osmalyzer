@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
 public class CourthouseAnalyzer : Analyzer
@@ -143,13 +141,120 @@ public class CourthouseAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        correlator.Parse(
+        CorrelatorReport correlation = correlator.Parse(
             report,
             new MatchedPairBatch(),
             new UnmatchedItemBatch(),
             new MatchedFarPairBatch(),
             new MatchedLoneOsmBatch(true)
         );
+
+        // Offer updates to matched courthouse values (name, phones, email)
+        
+        List<MatchedCorrelation<LocatedCourthouse>> matchedPairs = correlation.Correlations
+            .OfType<MatchedCorrelation<LocatedCourthouse>>()
+            .ToList();
+
+        if (matchedPairs.Count > 0)
+        {
+            report.AddGroup(
+                ExtraReportGroup.SuggestedUpdates,
+                "Suggested Updates",
+                "These matched courthouses have missing or mismatched tags compared to parsed source data. " +
+                "Note that source data is not guaranteed to be correct and parsing is not guaranteed to have correct OSM values."
+            );
+
+            foreach (MatchedCorrelation<LocatedCourthouse> pair in matchedPairs)
+            {
+                OsmElement osmCourthouse = pair.OsmElement;
+                LocatedCourthouse located = pair.DataItem;
+                CourthouseData courthouse = located.Courthouse;
+
+                string expectedName = courthouse.Name;
+                string? expectedEmail = string.IsNullOrWhiteSpace(courthouse.Email) ? null : courthouse.Email;
+                string? expectedPhones = courthouse.Phones.Count == 0 ? null : string.Join(";", courthouse.Phones);
+
+                // `name`
+                if (!string.IsNullOrWhiteSpace(expectedName))
+                {
+                    string? actual = osmCourthouse.GetValue("name");
+                    if (actual == null)
+                        AddMissing("name", expectedName);
+                    else if (actual != expectedName)
+                        AddDifferent("name", actual, expectedName);
+                }
+
+                // `email`
+                if (expectedEmail != null)
+                {
+                    string? actual = osmCourthouse.GetValue("email");
+                    if (actual == null)
+                        AddMissing("email", expectedEmail);
+                    else if (actual != expectedEmail)
+                        AddDifferent("email", actual, expectedEmail);
+                }
+
+                // `phone` (multiple phones joined by "; ")
+                if (expectedPhones != null)
+                {
+                    string? actual = osmCourthouse.GetValue("phone");
+                    if (actual == null)
+                        AddMissing("phone", expectedPhones);
+                    else if (PhonesMatch(actual, expectedPhones))
+                        AddDifferent("phone", actual, expectedPhones);
+                    
+
+                    [Pure]
+                    static bool PhonesMatch(string actual, string expected)
+                    {
+                        string[] actualPhones = actual.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                        string[] expectedPhones = expected.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+                        if (actualPhones.Length != expectedPhones.Length)
+                            return false;
+
+                        foreach (string expectedPhone in expectedPhones)
+                            if (actualPhones.All(ap => ap != expectedPhone))
+                                return false;
+
+                        return true;
+                    }
+                }
+
+                continue;
+
+                void AddMissing(string tag, string expected)
+                {
+                    report.AddEntry(
+                        ExtraReportGroup.SuggestedUpdates,
+                        new IssueReportEntry(
+                            "`" + courthouse.Name + "` courthouse " +
+                            "is missing `" + tag + "=" + expected + "` - " + 
+                            osmCourthouse.OsmViewUrl,
+                            osmCourthouse.AverageCoord,
+                            MapPointStyle.Problem,
+                            osmCourthouse
+                        )
+                    );
+                }
+
+                void AddDifferent(string tag, string actual, string expected)
+                {
+                    report.AddEntry(
+                        ExtraReportGroup.SuggestedUpdates,
+                        new IssueReportEntry(
+                            "`" + courthouse.Name + "` courthouse " +
+                            "has `" + tag + "=" + actual + "` " +
+                            "but expecting `" + tag + "=" + expected + "` - " + 
+                            osmCourthouse.OsmViewUrl,
+                            osmCourthouse.AverageCoord,
+                            MapPointStyle.Problem,
+                            osmCourthouse
+                        )
+                    );
+                }
+            }
+        }
 
         // Report any courthouses we couldn't geolocate by address
         
@@ -218,6 +323,7 @@ public class CourthouseAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         UnlocatedCourthouses,
-        AllCourthouses
+        AllCourthouses,
+        SuggestedUpdates
     }
 }

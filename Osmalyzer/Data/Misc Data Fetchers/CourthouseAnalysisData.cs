@@ -72,6 +72,21 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             
             string name = nameMatch.Groups[1].ToString().Trim();
             
+            // Names can come with parentheses for a location hint
+            // e.g. "Rīgas rajona tiesa (Siguldā)"
+            string? locationHint;
+            
+            Match locationHintMatch = Regex.Match(name, @"^(.*) \(([^)]+)\)$", RegexOptions.Singleline);
+            if (locationHintMatch.Success)
+            {
+                name = locationHintMatch.Groups[1].ToString().Trim();
+                locationHint = locationHintMatch.Groups[2].ToString().Trim();
+            }
+            else
+            {
+                locationHint = null;
+            }
+            
             // Address (with bad coords)
             // "<div class="branch_contacts__branch-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=57.51297000000112,24.717880000000058" data-latitude="543007.42647012" data-longitude="374716.96658417" class="geo-location-url has-generated-url" target="_blank">Cēsu iela 18, Limbaži, LV-4001</a></div>"
             // or
@@ -119,11 +134,12 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             //   </li>
             // </ul>
             // </div>            
-            
+
             _courthouses.Add(
                 new CourthouseData(
                     name,
-                    address
+                    address,
+                    locationHint
                 )
             );
             

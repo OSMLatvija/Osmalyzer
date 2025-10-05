@@ -185,7 +185,7 @@ public class CourthouseAnalyzer : Analyzer
             report.AddEntry(
                 ExtraReportGroup.AllCourthouses,
                 new IssueReportEntry(
-                    "Courthouse `" + courthouse.Name + "` at `" + courthouse.Address + "`"
+                    courthouse.ReportString()
                 )
             );
         }

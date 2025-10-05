@@ -6,9 +6,6 @@ using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Support.UI;
 using Osmalyzer;
 using SeleniumExtras.WaitHelpers;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
-using WebDriverManager.Helpers;
 
 public static class WebsiteBrowsingHelper
 {
@@ -178,7 +175,6 @@ public static class WebsiteBrowsingHelper
         options.AcceptInsecureCertificates = true;
         options.AddArgument("--ignore-certificate-errors");
 
-        new DriverManager().SetUpDriver(new ChromeConfig());
         ChromeDriver chromeDriver = new ChromeDriver(service, options);
         
         _driver = chromeDriver;

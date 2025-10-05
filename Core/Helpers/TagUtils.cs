@@ -44,4 +44,23 @@ public static class TagUtils
                     
         return false;
     }
+
+    /// <summary>
+    /// Compares semicolon-separated lists (";"), trims tokens, order-insensitive, case-sensitive tokens.
+    /// </summary>
+    [Pure]
+    public static bool EqualsSemicolonSeparatedSet(string actual, string expected)
+    {
+        string[] actualTokens = actual.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        string[] expectedTokens = expected.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        if (actualTokens.Length != expectedTokens.Length)
+            return false;
+
+        foreach (string expectedToken in expectedTokens)
+            if (actualTokens.All(t => t != expectedToken))
+                return false;
+
+        return true;
+    }
 }

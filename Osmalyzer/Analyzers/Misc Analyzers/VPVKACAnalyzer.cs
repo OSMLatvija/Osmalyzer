@@ -190,127 +190,47 @@ public class VPVKACAnalyzer : Analyzer
 
         if (matchedPairs.Count > 0)
         {
-            report.AddGroup(
-                ExtraReportGroup.SuggestedUpdates,
-                "Suggested Updates",
-                "These matched VPVKAC offices have missing or mismatched tags compared to parsed source data. " +
-                "Note that source data is not guaranteed to be correct and parsing is not guaranteed to have correct OSM values."
+            List<TagComparison<LocatedVPVKACOffice>> comparisons = [
+                new TagComparison<LocatedVPVKACOffice>(
+                    "name",
+                    d => string.IsNullOrWhiteSpace(d.Office.DisplayName) ? d.Office.Name : d.Office.DisplayName
+                ),
+                new TagComparison<LocatedVPVKACOffice>(
+                    "official_name",
+                    d => string.IsNullOrWhiteSpace(d.Office.Name) ? null : FullName(d.Office.Name)
+                ),
+                new TagComparison<LocatedVPVKACOffice>(
+                    "office",
+                    _ => "government"
+                ),
+                new TagComparison<LocatedVPVKACOffice>(
+                    "government",
+                    _ => "public_service"
+                ),
+                new TagComparison<LocatedVPVKACOffice>(
+                    "email",
+                    d => string.IsNullOrWhiteSpace(d.Office.Email) ? null : d.Office.Email
+                ),
+                new TagComparison<LocatedVPVKACOffice>(
+                    "phone",
+                    d => string.IsNullOrWhiteSpace(d.Office.Phone) ? null : d.Office.Phone
+                ),
+                new TagComparison<LocatedVPVKACOffice>(
+                    "opening_hours",
+                    d => string.IsNullOrWhiteSpace(d.Office.OpeningHours) ? null : d.Office.OpeningHours
+                )
+            ];
+
+            TagSuggester<LocatedVPVKACOffice> suggester = new TagSuggester<LocatedVPVKACOffice>(
+                matchedPairs,
+                d => d.Office.DisplayName,
+                "office"
             );
 
-            foreach (MatchedCorrelation<LocatedVPVKACOffice> pair in matchedPairs)
-            {
-                OsmElement osmOffice = pair.OsmElement;
-                LocatedVPVKACOffice office = pair.DataItem;
-
-                // Expected values
-                string expectedName = office.Office.DisplayName; // disambiguated name, if applicable
-                string expectedOfficialName = FullName(office.Office.Name);
-                string? expectedEmail = string.IsNullOrWhiteSpace(office.Office.Email) ? null : office.Office.Email;
-                string? expectedPhone = string.IsNullOrWhiteSpace(office.Office.Phone) ? null : office.Office.Phone;
-                string? expectedOpeningHours = string.IsNullOrWhiteSpace(office.Office.OpeningHours) ? null : office.Office.OpeningHours;
-
-                // `name`
-                if (!string.IsNullOrWhiteSpace(expectedName))
-                {
-                    string? actual = osmOffice.GetValue("name");
-                    if (actual == null)
-                        AddMissing("name", expectedName);
-                    else if (actual != expectedName)
-                        AddDifferent("name", actual, expectedName);
-                }
-
-                // `official_name`
-                if (!string.IsNullOrWhiteSpace(expectedOfficialName))
-                {
-                    string? actual = osmOffice.GetValue("official_name");
-                    if (actual == null)
-                        AddMissing("official_name", expectedOfficialName);
-                    else if (actual != expectedOfficialName)
-                        AddDifferent("official_name", actual, expectedOfficialName);
-                }
-
-                // `office`
-                {
-                    string? actual = osmOffice.GetValue("office");
-                    if (actual == null)
-                        AddMissing("office", "government");
-                    else if (actual != "government")
-                        AddDifferent("office", actual, "government");
-                }
-
-                // `government`
-                {
-                    string? actual = osmOffice.GetValue("government");
-                    if (actual == null)
-                        AddMissing("government", "public_service");
-                    else if (actual != "public_service")
-                        AddDifferent("government", actual, "public_service");
-                }
-
-                // `email`
-                if (expectedEmail != null)
-                {
-                    string? actual = osmOffice.GetValue("email");
-                    if (actual == null)
-                        AddMissing("email", expectedEmail);
-                    else if (actual != expectedEmail)
-                        AddDifferent("email", actual, expectedEmail);
-                }
-
-                // `phone`
-                if (expectedPhone != null)
-                {
-                    string? actual = osmOffice.GetValue("phone");
-                    if (actual == null)
-                        AddMissing("phone", expectedPhone);
-                    else if (actual != expectedPhone)
-                        AddDifferent("phone", actual, expectedPhone);
-                }
-
-                // `opening_hours`
-                if (expectedOpeningHours != null)
-                {
-                    string? actual = osmOffice.GetValue("opening_hours");
-                    if (actual == null)
-                        AddMissing("opening_hours", expectedOpeningHours);
-                    else if (actual != expectedOpeningHours)
-                        AddDifferent("opening_hours", actual, expectedOpeningHours);
-                }
-                
-                continue;
-                
-
-                void AddMissing(string tag, string expected)
-                {
-                    report.AddEntry(
-                        ExtraReportGroup.SuggestedUpdates,
-                        new IssueReportEntry(
-                            "`" + office.Office.DisplayName + "` office " +
-                            "is missing `" + tag + "=" + expected + "` - " + 
-                            osmOffice.OsmViewUrl,
-                            osmOffice.AverageCoord,
-                            MapPointStyle.Problem,
-                            osmOffice
-                        )
-                    );
-                }
-
-                void AddDifferent(string tag, string actual, string expected)
-                {
-                    report.AddEntry(
-                        ExtraReportGroup.SuggestedUpdates,
-                        new IssueReportEntry(
-                            "`" + office.Office.DisplayName + "` office " +
-                            "has `" + tag + "=" + actual + "` " +
-                            "but expecting `" + tag + "=" + expected + "` - " + 
-                            osmOffice.OsmViewUrl,
-                            osmOffice.AverageCoord,
-                            MapPointStyle.Problem,
-                            osmOffice
-                        )
-                    );
-                }
-            }
+            suggester.Suggest(
+                report,
+                comparisons
+            );
         }
         
         
@@ -408,7 +328,6 @@ public class VPVKACAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         UnlocatedOffices,
-        SuggestedAdditions,
-        SuggestedUpdates
+        SuggestedAdditions
     }
 }

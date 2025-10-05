@@ -111,10 +111,22 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             string address = match.Groups[1].ToString().Trim();
             
             // Phone number(s)
-            // todo: "<a href="tel:+371 67613390" aria-label="Tālruņa numurs: +371 67613390">+371 67613390</a>"
+            // "<a href="tel:+371 67613390" aria-label="Tālruņa numurs: +371 67613390">+371 67613390</a>"
+            MatchCollection phoneMatches = Regex.Matches(content, @"<a href=""tel:([^""]+)"" aria-label=""Tālruņa numurs: [^""]+"">[^<]+</a>", RegexOptions.Singleline);
+            
+            List<string> phones = [ ];
+            foreach (Match phoneMatch in phoneMatches)
+                phones.Add(phoneMatch.Groups[1].ToString().Trim());
             
             // E-mail
-            // todo: "<div class="field-email"><span class="spamspan"><span class="u">rigas.pilseta</span> [at] <span class="d">tiesas.lv</span></span></div>"
+            // "<div class="field-email"><span class="spamspan"><span class="u">rigas.pilseta</span> [at] <span class="d">tiesas.lv</span></span></div>"
+            Match emailMatch = Regex.Match(content, @"<div class=""field-email""><span class=""spamspan""><span class=""u"">([^<]+)</span> \[at\] <span class=""d"">([^<]+)</span>", RegexOptions.Singleline);
+            
+            string? email;
+            if (emailMatch.Success)
+                email = emailMatch.Groups[1].ToString().Trim() + "@" + emailMatch.Groups[2].ToString().Trim();
+            else
+                email = null;
             
             // Opening hours
             // todo:
@@ -139,7 +151,9 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
                 new CourthouseData(
                     name,
                     address,
-                    locationHint
+                    locationHint,
+                    phones,
+                    email
                 )
             );
             

@@ -32,9 +32,9 @@ public static class FuzzyAddressParser
             
             // Try parse ourselves
             
-            FuzzyAddressPart? streetLineResult = TryParseAsStreetLine(split, i);
+            FuzzyAddressPart[]? streetLineResult = TryParseAsStreetLine(split, i);
             if (streetLineResult != null)
-                proposedParts[i].Add(streetLineResult);
+                proposedParts[i].AddRange(streetLineResult);
                     
             FuzzyAddressCityPart? cityResult = TryParseAsCity(split, i);
             if (cityResult != null)
@@ -121,21 +121,21 @@ public static class FuzzyAddressParser
         // Gather highest confidence first, then descending remaining
         foreach (FuzzyConfidence minConfidence in Enum.GetValues<FuzzyConfidence>().OrderDescending())
         {
-            FuzzyAddressStreetNameAndNumberPart? selectedStreetNameAndNumber = ExtractBest<FuzzyAddressStreetNameAndNumberPart>(proposedParts, minConfidence);
+            FuzzyAddressStreetNameAndNumberPart[]? selectedStreetNameAndNumber = ExtractBest<FuzzyAddressStreetNameAndNumberPart>(proposedParts, minConfidence);
             if (selectedStreetNameAndNumber != null)
-                parts.Add(selectedStreetNameAndNumber);
+                parts.AddRange(selectedStreetNameAndNumber);
             
-            FuzzyAddressHouseNamePart? selectedHouseName = ExtractBest<FuzzyAddressHouseNamePart>(proposedParts, minConfidence);
+            FuzzyAddressHouseNamePart[]? selectedHouseName = ExtractBest<FuzzyAddressHouseNamePart>(proposedParts, minConfidence);
             if (selectedHouseName != null)
-                parts.Add(selectedHouseName);
+                parts.AddRange(selectedHouseName);
             
-            FuzzyAddressCityPart? selectedCity = ExtractBest<FuzzyAddressCityPart>(proposedParts, minConfidence);
+            FuzzyAddressCityPart[]? selectedCity = ExtractBest<FuzzyAddressCityPart>(proposedParts, minConfidence);
             if (selectedCity != null)
-                parts.Add(selectedCity);
+                parts.AddRange(selectedCity);
             
-            FuzzyAddressPostcodePart? selectedPostalCode = ExtractBest<FuzzyAddressPostcodePart>(proposedParts, minConfidence);
+            FuzzyAddressPostcodePart[]? selectedPostalCode = ExtractBest<FuzzyAddressPostcodePart>(proposedParts, minConfidence);
             if (selectedPostalCode != null)
-                parts.Add(selectedPostalCode);
+                parts.AddRange(selectedPostalCode);
         }
 
         return parts;
@@ -143,7 +143,7 @@ public static class FuzzyAddressParser
 
 
     [MustUseReturnValue]
-    private static T? ExtractBest<T>(List<List<FuzzyAddressPart>> proposedParts, FuzzyConfidence minimumConfidence) where T : FuzzyAddressPart
+    private static T[]? ExtractBest<T>(List<List<FuzzyAddressPart>> proposedParts, FuzzyConfidence minimumConfidence) where T : FuzzyAddressPart
     {
         // Find split, which has the highest confidence for this part
         
@@ -183,16 +183,48 @@ public static class FuzzyAddressParser
         
         proposedParts[bestPart.Index].Clear();
         
+        // Do we have an identical sibling?
+        
+        FuzzyAddressPart? sibling = bestPart.Sibling;
+        // We would have removed it above, but we still have the reference, so use that
+
+        if (sibling != null)
+            return [ bestPart, (T)sibling ];
+        
         // Done
-        return bestPart;
+        return [ bestPart ];
     }
 
     [Pure]
-    private static FuzzyAddressPart? TryParseAsStreetLine(string split, int index)
+    private static FuzzyAddressPart[]? TryParseAsStreetLine(string split, int index)
     {
         FuzzyAddressHouseNamePart? addressHouseNamePart = TryParseAsHouseName(split, index);
         if (addressHouseNamePart != null)
-            return addressHouseNamePart;
+            return [ addressHouseNamePart ];
+        
+        // Try to split into two delimited street line address parts
+        
+        if (split.Contains('/'))
+        {
+            string[] slashParts = split.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            if (slashParts.Length == 2)
+            {
+                // todo: try all permutations with move parts in case we have a number like "3/5"?
+                
+                FuzzyAddressPart? leftPart = TryParseAsStreetLine(slashParts[0], index)?.SingleOrDefault(); // only one per part, otherwise this is some crazy combo
+                FuzzyAddressPart? rightPart = TryParseAsStreetLine(slashParts[1], index)?.SingleOrDefault(); // only one per part, otherwise this is some crazy combo
+
+                if (leftPart != null && rightPart != null)
+                {
+                    leftPart.SetSibling(rightPart);
+                    rightPart.SetSibling(leftPart);
+                    
+                    return [ leftPart, rightPart ];
+                }
+            }
+        }
+        
+        // Try split into street name and number
         
         (string prefix, string suffix)? splitStreetLine = TrySplitStreetLine(split);
         
@@ -207,7 +239,7 @@ public static class FuzzyAddressParser
                 string streetName = splitStreetLine.Value.prefix;
                 string streetNumber = splitStreetLine.Value.suffix;
 
-                return new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, FuzzyConfidence.High);
+                return [ new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, FuzzyConfidence.High) ];
             }
         }
         

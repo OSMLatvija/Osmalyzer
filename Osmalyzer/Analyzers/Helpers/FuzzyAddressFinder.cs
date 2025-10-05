@@ -20,12 +20,10 @@ public static class FuzzyAddressFinder
         
         // Get the rawish address part values
         
-        string? houseName = parts.OfType<FuzzyAddressHouseNamePart>().FirstOrDefault()?.Value;
-        FuzzyAddressStreetNameAndNumberPart? nameAndNumberPart = parts.OfType<FuzzyAddressStreetNameAndNumberPart>().FirstOrDefault();
-        string? streetName = nameAndNumberPart?.StreetValue;
-        string? streetNumber = nameAndNumberPart?.NumberValue;
-        string? city = parts.OfType<FuzzyAddressCityPart>().FirstOrDefault()?.Value;
-        string? postcode = parts.OfType<FuzzyAddressPostcodePart>().FirstOrDefault()?.Value;
+        FuzzyAddressHouseNamePart[] houseNameParts = parts.OfType<FuzzyAddressHouseNamePart>().ToArray();
+        FuzzyAddressStreetNameAndNumberPart[] nameAndNumberParts = parts.OfType<FuzzyAddressStreetNameAndNumberPart>().ToArray();
+        FuzzyAddressCityPart[] cityParts = parts.OfType<FuzzyAddressCityPart>().ToArray();
+        FuzzyAddressPostcodePart[] postcodeParts = parts.OfType<FuzzyAddressPostcodePart>().ToArray();
         
         // Match against OSM elements
         
@@ -42,11 +40,17 @@ public static class FuzzyAddressFinder
             [Pure]
             bool DoesElementMatch()
             {
-                bool houseNameMatched = houseName != null && houseName == element.GetValue("addr:housename");
-                bool streetMatched = streetName != null && streetName == element.GetValue("addr:street");
-                bool numberMatched = streetNumber != null && streetNumber == element.GetValue("addr:housenumber");
-                bool cityMatched = city != null && city == element.GetValue("addr:city");
-                bool postcodeMatched = postcode != null && postcode == element.GetValue("addr:postcode");
+                string? elementHouseName = element.GetValue("addr:housename");
+                string? elementStreet = element.GetValue("addr:street");
+                string? elementNumber = element.GetValue("addr:housenumber");
+                string? elementCity = element.GetValue("addr:city");
+                string? elementPostcode = element.GetValue("addr:postcode");
+                
+                bool houseNameMatched = elementHouseName != null && houseNameParts.Any(p => p.Value.Equals(elementHouseName, StringComparison.OrdinalIgnoreCase));
+                bool streetMatched = elementStreet != null && nameAndNumberParts.Any(p => p.StreetValue.Equals(elementStreet, StringComparison.OrdinalIgnoreCase));
+                bool numberMatched = elementNumber != null && nameAndNumberParts.Any(p => p.NumberValue.Equals(elementNumber, StringComparison.OrdinalIgnoreCase));
+                bool cityMatched = elementCity != null && cityParts.Any(p => p.Value.Equals(elementCity, StringComparison.OrdinalIgnoreCase));
+                bool postcodeMatched = elementPostcode != null && postcodeParts.Any(p => p.Value.Equals(elementPostcode, StringComparison.OrdinalIgnoreCase));
                 
                 bool streetLineMatched = houseNameMatched || streetMatched && numberMatched;
                 

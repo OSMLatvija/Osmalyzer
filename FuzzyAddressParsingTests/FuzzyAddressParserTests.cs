@@ -25,6 +25,8 @@ public class FuzzyAddressParserTests
     }
     
     [TestCase("Krānu iela 35", "Krānu iela", "35")]
+    [TestCase("Īsā iela 1", "Īsā iela", "1")]
+    [TestCase("Kr. Krāniņa iela 135", "Kr. Krāniņa iela", "135")]
     public void TestStreetNameAndNumber(string value, string expectedStreet, string expectedNumber)
     {
         // Act
@@ -42,6 +44,36 @@ public class FuzzyAddressParserTests
         Assert.That(streetPart.StreetValue, Is.EqualTo(expectedStreet));
         Assert.That(streetPart.NumberValue, Is.EqualTo(expectedNumber));
         Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
+    }
+    
+    [TestCase("Krānu iela 35 / Gailīšu aleja 24", "Krānu iela", "35", "Gailīšu aleja", "24")]
+    public void TestTwoAddressesInStreetLine(string value, string expectedStreet1, string expectedNumber1, string expectedStreet2, string expectedNumber2)
+    {
+        // Act
+        
+        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+
+        // Assert
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(2));
+        Assert.That(result, Has.Exactly(2).InstanceOf<FuzzyAddressStreetNameAndNumberPart>());
+        
+        FuzzyAddressStreetNameAndNumberPart streetPart1 = (FuzzyAddressStreetNameAndNumberPart)result[0];
+        FuzzyAddressStreetNameAndNumberPart streetPart2 = (FuzzyAddressStreetNameAndNumberPart)result[1];
+        
+        if (streetPart1.StreetValue != expectedStreet1)
+            (streetPart1, streetPart2) = (streetPart2, streetPart1);
+        
+        Assert.That(streetPart1.Index, Is.EqualTo(0));
+        Assert.That(streetPart1.StreetValue, Is.EqualTo(expectedStreet1));
+        Assert.That(streetPart1.NumberValue, Is.EqualTo(expectedNumber1));
+        Assert.That(streetPart1.Confidence, Is.EqualTo(FuzzyConfidence.High));
+        
+        Assert.That(streetPart2.Index, Is.EqualTo(0));
+        Assert.That(streetPart2.StreetValue, Is.EqualTo(expectedStreet2));
+        Assert.That(streetPart2.NumberValue, Is.EqualTo(expectedNumber2));
+        Assert.That(streetPart2.Confidence, Is.EqualTo(FuzzyConfidence.High));
     }
     
     [TestCase("\"Krāniņi\"")]

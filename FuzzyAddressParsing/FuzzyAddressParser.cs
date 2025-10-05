@@ -238,8 +238,12 @@ public static class FuzzyAddressParser
     [Pure]
     private static (string prefix, string suffix)? TrySplitStreetLine(string value)
     {
-        // Ends with a number, possibly with letter, possibly with block, preceded by whitespace and something else before
-        Match match = Regex.Match(value, @"^(.+?)\s+(\d+[a-zA-Z]?(\s*k-?\d+)?)$");
+        // Ends with a number or possibly slashed two, possibly with letter, possibly with block, preceded by whitespace and something else before
+        // "35"
+        // "35A"
+        // "35 k-2"
+        // "35/37"
+        Match match = Regex.Match(value, @"^(.+?)\s+(\d+(?:\/\d+)?[a-zA-Z]?(\s*k-?\d+)?)$");
 
         string name = match.Groups[1].Value.Trim();
         

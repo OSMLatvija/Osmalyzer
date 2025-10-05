@@ -154,7 +154,8 @@ public class FuzzyAddressParserTests
     [TestCase("Krānu iela 35 k-24", "35 k-24")]
     [TestCase("Krānu iela 35 k24", "35 k-24")]
     [TestCase("Krānu iela 35A k-24", "35A k-24")]
-    public void TestStreetNumberGetsSanitized(string value, string expectedNumber)
+    [TestCase("Krānu iela 3/5", "3/5")]
+    public void TestStreetNumberGetsRecognizedAndSanitized(string value, string expectedNumber)
     {
         // Act
         
@@ -162,9 +163,9 @@ public class FuzzyAddressParserTests
 
         // Assert
         
-        Assume.That(result, Is.Not.Null);
-        Assume.That(result, Has.Count.EqualTo(1));
-        Assume.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>());
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>());
         
         FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
         Assert.That(streetPart.NumberValue, Is.EqualTo(expectedNumber));

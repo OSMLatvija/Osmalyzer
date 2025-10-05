@@ -14,6 +14,14 @@ public class CourthouseAnalyzer : Analyzer
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(CourthouseAnalysisData) ];
         
+    
+    private readonly string[] _courthouseNameKeywords = [ 
+        "tiesu nams", // e.g. "Administratīvās rajona tiesas Jelgavas tiesu nams"
+        "rajona tiesa", // e.g. "Kurzemes rajona tiesa"
+        "apgabaltiesa", // e.g. "Kurzemes apgabaltiesa"
+        "augstākā tiesa" // i.e. "Latvijas Republikas Augstākā tiesa"
+    ];
+    
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
@@ -66,30 +74,71 @@ public class CourthouseAnalyzer : Analyzer
         [Pure]
         MatchStrength GetMatchStrength(LocatedCourthouse point, OsmElement element)
         {
+            if (SeemsLikeDifferentTypeOfCourthouse(element))
+                return MatchStrength.Unmatched;
+
             if (FuzzyAddressMatcher.Matches(element, point.Courthouse.Address))
-                return MatchStrength.Strong;
-                
-            return MatchStrength.Good;
+            {
+                if (GoodNameMatch(element, point.Courthouse))
+                    return MatchStrength.Strong;
+                else
+                    return MatchStrength.Good;
+            }
+
+            return MatchStrength.Regular;
+        }
+
+        [Pure]
+        bool GoodNameMatch(OsmElement element, CourthouseData courthouse)
+        {
+            string? name = element.GetValue("name");
+            
+            if (name == null)
+                return false;
+
+            // Exact match
+            if (name.Contains(courthouse.Name, StringComparison.InvariantCultureIgnoreCase) ||
+                courthouse.Name.Contains(name, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+            
+            // Key word match (specific, rather than generic like "tiesa"
+            foreach (string keyword in _courthouseNameKeywords)
+                if (name.Contains(keyword, StringComparison.InvariantCultureIgnoreCase) &&
+                    courthouse.Name.Contains(keyword, StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+
+            return false;
         }
 
         [Pure]
         bool SeemsLikeRecognizedCourthouse(OsmElement element)
         {
+            if (SeemsLikeDifferentTypeOfCourthouse(element))
+                return false;
+            
             string? name = element.GetValue("name");
 
             if (name != null)
-            {
-                if (!name.ToLower().Contains("zemesgrāmat") && // e.g. "Ogres Rajona Tiesas Zemesgrāmatu nodaļa"
-                    !name.ToLower().Contains("bāriņties")) // e.g. "Daugavpils pilsētas Bāriņtiesa"
-                {
-                    if (name.ToLower().Contains("rajona tiesa") ||
-                        name.ToLower().Contains("apgabaltiesa") ||
-                        name.ToLower().Contains("augstākā tiesa"))
+                foreach (string nameKeyword in _courthouseNameKeywords)
+                    if (name.Contains(nameKeyword, StringComparison.InvariantCultureIgnoreCase))
                         return true;
-                }
-            }
 
             return false;
+        }
+
+        [Pure]
+        bool SeemsLikeDifferentTypeOfCourthouse(OsmElement element)
+        {
+            string? name = element.GetValue("name");
+
+            if (name == null)
+                return false; // it might be, no name tho
+            
+            // amenity=courthouse deals with lots of stuff
+            // Don't match against non-courthouses, like "bāriņtiesa", they tend to be in the same locations, but are not "pure" "tiesas"
+            
+            return name.ToLower().Contains("zemesgrāmat") || // e.g. "Ogres Rajona Tiesas Zemesgrāmatu nodaļa"
+                   name.ToLower().Contains("bāriņties"); // e.g. "Daugavpils pilsētas Bāriņtiesa"
         }
 
         // Parse and report primary matching and location correlation
@@ -103,6 +152,7 @@ public class CourthouseAnalyzer : Analyzer
         );
 
         // Report any courthouses we couldn't geolocate by address
+        
         if (unlocatedCourthouses.Count > 0)
         {
             report.AddGroup(
@@ -121,6 +171,23 @@ public class CourthouseAnalyzer : Analyzer
                     )
                 );
             }
+        }
+        
+        // List all
+        
+        report.AddGroup(
+            ExtraReportGroup.AllCourthouses,
+            "All Courthouses"
+        );
+
+        foreach (CourthouseData courthouse in courthouseData.Courthouses)
+        {
+            report.AddEntry(
+                ExtraReportGroup.AllCourthouses,
+                new IssueReportEntry(
+                    "Courthouse `" + courthouse.Name + "` at `" + courthouse.Address + "`"
+                )
+            );
         }
     }
 
@@ -150,6 +217,7 @@ public class CourthouseAnalyzer : Analyzer
     
     private enum ExtraReportGroup
     {
-        UnlocatedCourthouses
+        UnlocatedCourthouses,
+        AllCourthouses
     }
 }

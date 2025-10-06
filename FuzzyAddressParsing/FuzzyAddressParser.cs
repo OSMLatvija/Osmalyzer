@@ -225,14 +225,42 @@ public static class FuzzyAddressParser
         
         proposedParts[bestPart.Index].Clear();
         
-        // Do we have an identical sibling?
+        // Do have a closely-linked alternative that we exclude by getting selected?
+        // e.g. if we select street name+number, we should not also select house name -- these are mutually exclusive
         
-        FuzzyAddressPart? sibling = bestPart.Sibling;
-        // We would have removed it above, but we still have the reference, so use that
+        if (bestPart is FuzzyAddressStreetNameAndNumberPart)
+        {
+            // Remove any house names from all splits, they are mutually exclusive with street name+number
+            foreach (List<FuzzyAddressPart> parts in proposedParts)
+                parts.RemoveAll(p => p is FuzzyAddressHouseNamePart);
+        }
+        else if (bestPart is FuzzyAddressHouseNamePart)
+        {
+            // Remove any street name+number from all splits, they are mutually exclusive with house name
+            foreach (List<FuzzyAddressPart> parts in proposedParts)
+                parts.RemoveAll(p => p is FuzzyAddressStreetNameAndNumberPart);
+        }
+        
+        if (bestPart.Siblings != null)
+        {
+            List<T> results = [ bestPart ];
+            
+            // Remove siblings that don't match our type
+            // e.g. "Kalnu iela 12 / Indrāni" might match street name+number and house name,
+            // but it's a high confidence street name+number and low confidence house name,
+            // so when we select street name+number, we should also remove the house name sibling
+            // At the same time, we want to keep any siblings of the same type,
+            // e.g. "Kalnu iela 12 / Leju iela 13"
+            
+            foreach (FuzzyAddressPart sibling in bestPart.Siblings)
+                if (sibling is T matchingSibling)
+                    results.Add(matchingSibling);
+                else
+                    proposedParts[sibling.Index].Remove(sibling);
 
-        if (sibling != null)
-            return [ bestPart, (T)sibling ];
-        
+            return results.ToArray();
+        }
+
         // Done
         return [ bestPart ];
     }
@@ -244,11 +272,32 @@ public static class FuzzyAddressParser
             return null; // avoid false positives
 
         FuzzyAddressHouseNamePart? addressHouseNamePart = TryParseAsHouseName(split, index);
-        if (addressHouseNamePart != null)
-            return [ addressHouseNamePart ];
         
         // Try to split into two delimited street line address parts
+
+        FuzzyAddressPart[]? streetNameAndNumber = TryParseAsStreetNameAndNumber(split, index);
+
+        // Note that both house name and street name+number are possible,
+        // e.g. "Palmas 5" - is it "Palmas iela 5" or house name "Palmas 5"?
         
+        // Results
+        
+        if (addressHouseNamePart == null && streetNameAndNumber == null)
+            return null; // nothing parsed
+
+        List<FuzzyAddressPart> results = [ ];
+        
+        if (addressHouseNamePart != null)
+            results.Add(addressHouseNamePart);
+        
+        if (streetNameAndNumber != null)
+            results.AddRange(streetNameAndNumber);
+
+        return results.ToArray();
+    }
+
+    private static FuzzyAddressPart[]? TryParseAsStreetNameAndNumber(string split, int index)
+    {
         if (split.Contains('/'))
         {
             string[] slashParts = split.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
@@ -256,15 +305,21 @@ public static class FuzzyAddressParser
             {
                 // todo: try all permutations with move parts in case we have a number like "3/5"?
                 
-                FuzzyAddressPart? leftPart = TryParseAsStreetLine(slashParts[0], index)?.SingleOrDefault(); // only one per part, otherwise this is some crazy combo
-                FuzzyAddressPart? rightPart = TryParseAsStreetLine(slashParts[1], index)?.SingleOrDefault(); // only one per part, otherwise this is some crazy combo
+                FuzzyAddressPart[]? leftPart = TryParseAsStreetLine(slashParts[0], index);
+                FuzzyAddressPart[]? rightPart = TryParseAsStreetLine(slashParts[1], index);
 
                 if (leftPart != null && rightPart != null)
                 {
-                    leftPart.SetSibling(rightPart);
-                    rightPart.SetSibling(leftPart);
+                    foreach (FuzzyAddressPart left in leftPart)
+                    {
+                        foreach (FuzzyAddressPart right in rightPart)
+                        {
+                            left.AddSibling(right);
+                            right.AddSibling(left);
+                        }
+                    }
                     
-                    return [ leftPart, rightPart ];
+                    return leftPart.Concat(rightPart).ToArray();
                 }
             }
         }
@@ -292,31 +347,33 @@ public static class FuzzyAddressParser
     }
 
     [Pure]
-    private static FuzzyAddressHouseNamePart? TryParseAsHouseName(string split, int index)
+    private static FuzzyAddressHouseNamePart? TryParseAsHouseName(string value, int index)
     {
-        if (LooksLikePotentialParishOrMunicipality(split))
+        if (LooksLikePotentialParishOrMunicipality(value))
             return null; // avoid false positives
         
-        split = split.Replace("“", "\"").Replace("”", "\"")
+        if (LooksLikeStreetName(value)) // e.g. "Xxx iela" or whatever
+            return null; // avoid false positives
+        // Note that we can have numbers in house names, so we can't auto-exclude them
+        
+        value = value.Replace("“", "\"").Replace("”", "\"")
                      .Replace("‘", "'").Replace("’", "'")
                      .Trim();
         
+        bool inQuoted = value.StartsWith('\"') && value.EndsWith('\"');
+        
         // Name in quotes, e.g. `"Palmas"` 
-        if (split.StartsWith('\"') && split.EndsWith('\"'))
-        {
-            string value = split[1..^1].Trim();
+        if (inQuoted)
+            value = value[1..^1].Trim();
             
-            if (value.Length < 3)
-                return null; // totally too short to be a name
+        if (value.Length < 3)
+            return null; // totally too short to be a name
             
-            int numberOfLetters = value.Count(char.IsLetter);
-            if (numberOfLetters < 3)
-                return null; // too few letters to be a name
+        int numberOfLetters = value.Count(char.IsLetter);
+        if (numberOfLetters < 3)
+            return null; // too few letters to be a name
             
-            return new FuzzyAddressHouseNamePart(value, index, FuzzyConfidence.High);
-        }
-
-        return null;
+        return new FuzzyAddressHouseNamePart(value, index, inQuoted ? FuzzyConfidence.High : FuzzyConfidence.Low);
     }
 
     [Pure]
@@ -359,13 +416,13 @@ public static class FuzzyAddressParser
             foreach (KnownFuzzyNames.StreetNameSuffix suffix in KnownFuzzyNames.StreetNameSuffixes)
             {
                 // "ielā" -> "iela" etc.
-                if (name.EndsWith(suffix.Locative))
+                if (name.EndsWith(suffix.Locative, StringComparison.InvariantCultureIgnoreCase))
                 {    
                     name = name[..^suffix.Locative.Length] + suffix.Nominative;
                     endedWithKnownSuffix = true;
                     break;
                 }
-                else if (name.EndsWith(suffix.Nominative))
+                else if (name.EndsWith(suffix.Nominative, StringComparison.InvariantCultureIgnoreCase))
                 {
                     endedWithKnownSuffix = true;
                     break;
@@ -483,6 +540,19 @@ public static class FuzzyAddressParser
             value.EndsWith("novads") ||
             value.EndsWith("nov.") ||
             value == "novads"; // probably broken data and some delimiter issues
+    }
+
+    [Pure]
+    private static bool LooksLikeStreetName(string name)
+    {
+        foreach (KnownFuzzyNames.StreetNameSuffix suffix in KnownFuzzyNames.StreetNameSuffixes)
+        {
+            if (name.EndsWith(suffix.Locative, StringComparison.InvariantCultureIgnoreCase) ||
+                name.EndsWith(suffix.Nominative, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     [Pure]

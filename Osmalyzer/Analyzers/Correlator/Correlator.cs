@@ -57,6 +57,7 @@ public class Correlator<T> where T : IDataItem
         FilterItemsToPolygonParamater? polygonParamater = _paramaters.OfType<FilterItemsToPolygonParamater>().FirstOrDefault();
         OsmPolygon? polygon = polygonParamater?.Polygon ?? null;
         bool? reportOutsidePolygon = polygonParamater?.Report ?? null;
+        MatchLoneElementsOnStrongMatchParamater? loneStrongMatchParamater = _paramaters.OfType<MatchLoneElementsOnStrongMatchParamater>().FirstOrDefault();
 
         double seekDistance = unmatchDistance;
         seekDistance = Math.Max(unmatchDistance + mediocreMatchExtraDistance, seekDistance);
@@ -211,12 +212,52 @@ public class Correlator<T> where T : IDataItem
 
             if (allowedByItself)
             {
-                matchedLoneElements.Add(osmElement);
+                // First, try to upgrade a lone element to a matched pair if it strongly matches any previously-unmatchable item
+                
+                bool upgradedToPair = false;
+                if (loneStrongMatchParamater != null && matchCallback != null && unmatchableItems.Count > 0)
+                {
+                    MatchStrength requiredStrength = loneStrongMatchParamater.Strength;
+
+                    T? bestItem = default;
+                    MatchStrength bestStrength = MatchStrength.Unmatched;
+                    double bestDistance = double.MaxValue;
+
+                    foreach (T candidate in unmatchableItems)
+                    {
+                        MatchStrength strength = matchCallback(candidate, osmElement);
+                        if (strength == MatchStrength.Unmatched)
+                            continue;
+
+                        if (strength < requiredStrength)
+                            continue;
+
+                        double distance = OsmGeoTools.DistanceBetween(candidate.Coord, osmElement.AverageCoord);
+
+                        if (strength > bestStrength || 
+                            (strength == bestStrength && distance < bestDistance))
+                        {
+                            bestItem = candidate;
+                            bestStrength = strength;
+                            bestDistance = distance;
+                        }
+                    }
+
+                    if (!Equals(bestItem, default(T)))
+                    {
+                        bool far = bestDistance > matchDistance;
+                        allMatchedElements.Add(osmElement, new Match(bestItem!, osmElement, bestDistance, bestStrength, far));
+                        unmatchableItems.Remove(bestItem!);
+                        upgradedToPair = true;
+                    }
+                }
+
+                if (!upgradedToPair)
+                    matchedLoneElements.Add(osmElement);
             }
             else
             {
                 unmatchableElements.Add(osmElement);
-                // TODO: find closest (unmatched) data item (these could be really far, so limit distance)
             }
         }
         

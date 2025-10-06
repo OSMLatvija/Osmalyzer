@@ -63,7 +63,8 @@ public class VPVKACAnalyzer : Analyzer
             new MatchCallbackParameter<LocatedVPVKACOffice>(GetMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("VPVKAC office", "VPVKAC offices"),
-            new LoneElementAllowanceParameter(DoesOsmElementLookLikeVPVKACOffice)
+            new LoneElementAllowanceParameter(DoesOsmElementLookLikeVPVKACOffice),
+            new MatchLoneElementsOnStrongMatchParamater(MatchStrength.Strong) // allow strong matches regardless of distance because we can fail to parse address, but if the OSM element is added, we still want to match assuming it was added correctly
         );
 
         [Pure]

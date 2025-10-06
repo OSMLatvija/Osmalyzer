@@ -50,7 +50,7 @@ public static class Runner
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
-            new CourthouseAnalyzer(),
+            // new CourthouseAnalyzer(),
             // new NonDefiningTaggingAnalyzer(),
             // new BridgeAndWaterConnectionAnalyzer(),
             // new TerminatingWaysAnalyzer(),
@@ -81,11 +81,11 @@ public static class Runner
             // new CaffeineRestaurantAnalyzer(),
             // new HesburgerRestaurantAnalyzer(),
             // new LVCRoadAnalyzer(),
-            // new VPVKACAnalyzer(),
+            new VPVKACAnalyzer(),
             // new VillageAnalyzer(),
             // new MaxspeedTypeAnalyzer(),
             // new LVMPicnicSiteAnalyzer(),
-            //new RestrictionRelationAnalyzer()
+            // new RestrictionRelationAnalyzer()
         ];
 #endif
 

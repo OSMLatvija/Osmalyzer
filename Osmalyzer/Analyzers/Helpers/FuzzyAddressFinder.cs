@@ -10,9 +10,9 @@ public static class FuzzyAddressFinder
     /// </summary>
     public static OsmCoord? Find(OsmMasterData data, string address, params FuzzyAddressHint[] hints)
     {
-        List<FuzzyAddressPart>? parts = FuzzyAddressParser.TryParseAddress(address, hints);
+        FuzzyAddress? parsed = FuzzyAddressParser.TryParseAddress(address, hints);
 
-        if (parts == null)
+        if (parsed == null)
             return null; // could not parse address at all
         
         if (_addressables == null)
@@ -20,6 +20,7 @@ public static class FuzzyAddressFinder
         
         // Get the rawish address part values
         
+        List<FuzzyAddressPart> parts = parsed.Parts;
         FuzzyAddressHouseNamePart[] houseNameParts = parts.OfType<FuzzyAddressHouseNamePart>().ToArray();
         FuzzyAddressStreetNameAndNumberPart[] nameAndNumberParts = parts.OfType<FuzzyAddressStreetNameAndNumberPart>().ToArray();
         FuzzyAddressCityPart[] cityParts = parts.OfType<FuzzyAddressCityPart>().ToArray();

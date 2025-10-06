@@ -20,7 +20,7 @@ public class FuzzyAddressParserTests
     [TestCase("  ,  ")]
     public void TestDegenerate_ExpectNull(string value)
     {
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
         Assert.That(result, Is.Null);
     }
     
@@ -31,15 +31,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
         
-        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
+        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)parts[0];
         Assert.That(streetPart.Index, Is.EqualTo(0));
         Assert.That(streetPart.StreetValue, Is.EqualTo(expectedStreet));
         Assert.That(streetPart.NumberValue, Is.EqualTo(expectedNumber));
@@ -51,16 +52,17 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(2), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(2).InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(2), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(2).InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
         
-        FuzzyAddressStreetNameAndNumberPart streetPart1 = (FuzzyAddressStreetNameAndNumberPart)result[0];
-        FuzzyAddressStreetNameAndNumberPart streetPart2 = (FuzzyAddressStreetNameAndNumberPart)result[1];
+        FuzzyAddressStreetNameAndNumberPart streetPart1 = (FuzzyAddressStreetNameAndNumberPart)parts[0];
+        FuzzyAddressStreetNameAndNumberPart streetPart2 = (FuzzyAddressStreetNameAndNumberPart)parts[1];
         
         if (streetPart1.StreetValue != expectedStreet1)
             (streetPart1, streetPart2) = (streetPart2, streetPart1);
@@ -83,15 +85,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(parts));
         
-        FuzzyAddressHouseNamePart housePart = (FuzzyAddressHouseNamePart)result![0];
+        FuzzyAddressHouseNamePart housePart = (FuzzyAddressHouseNamePart)parts[0];
         Assert.That(housePart.Index, Is.EqualTo(0));
         Assert.That(housePart.Value, Is.EqualTo(expectedCleaned));
         Assert.That(housePart.Confidence, Is.EqualTo(confidence));
@@ -105,7 +108,7 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
@@ -120,15 +123,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(parts));
         
-        FuzzyAddressCityPart streetPart = (FuzzyAddressCityPart)result![0];
+        FuzzyAddressCityPart streetPart = (FuzzyAddressCityPart)parts[0];
         Assert.That(streetPart.Index, Is.EqualTo(0));
         Assert.That(streetPart.Value, Is.EqualTo(value));
         Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
@@ -142,15 +146,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(parts));
         
-        FuzzyAddressPostcodePart postcodePart = (FuzzyAddressPostcodePart)result![0];
+        FuzzyAddressPostcodePart postcodePart = (FuzzyAddressPostcodePart)parts[0];
         Assert.That(postcodePart.Index, Is.EqualTo(0));
         Assert.That(postcodePart.Value, Is.EqualTo(expectedPostcode));
         Assert.That(postcodePart.Confidence, Is.EqualTo(confidence));
@@ -162,21 +167,22 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(2), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(2), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(parts));
         
-        FuzzyAddressStreetNameAndNumberPart streetPart = result.OfType<FuzzyAddressStreetNameAndNumberPart>().First();
+        FuzzyAddressStreetNameAndNumberPart streetPart = parts.OfType<FuzzyAddressStreetNameAndNumberPart>().First();
         Assert.That(streetPart.Index, Is.EqualTo(expectedStreetAndNumberIndex));
         Assert.That(streetPart.StreetValue, Is.EqualTo(expectedStreet));
         Assert.That(streetPart.NumberValue, Is.EqualTo(expectedNumber));
         
-        FuzzyAddressCityPart cityPart = result.OfType<FuzzyAddressCityPart>().First();
+        FuzzyAddressCityPart cityPart = parts.OfType<FuzzyAddressCityPart>().First();
         Assert.That(cityPart.Index, Is.EqualTo(expectedCityIndex));
         Assert.That(cityPart.Value, Is.EqualTo(expectedCity));
     }
@@ -199,15 +205,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
         
-        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
+        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)parts[0];
         Assert.That(streetPart.NumberValue, Is.EqualTo(expectedNumber));
         Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
     }
@@ -218,15 +225,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assume.That(result, Is.Not.Null);
-        Assume.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assume.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assume.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assume.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
         
-        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
+        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)parts[0];
         Assert.That(streetPart.StreetValue, Is.EqualTo(expectedStreet));
         Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
     }
@@ -239,14 +247,15 @@ public class FuzzyAddressParserTests
         // Arrange
         
         // Act
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
         
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(parts));
         
-        FuzzyAddressMunicipalityPart part = (FuzzyAddressMunicipalityPart)result![0];
+        FuzzyAddressMunicipalityPart part = (FuzzyAddressMunicipalityPart)parts[0];
         Assert.That(part.Index, Is.EqualTo(0));
         Assert.That(part.Value, Is.EqualTo(expected));
         Assert.That(part.Confidence, Is.EqualTo(confidence));
@@ -260,14 +269,15 @@ public class FuzzyAddressParserTests
         // Arrange
         
         // Act
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
         
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(parts));
         
-        FuzzyAddressParishPart part = (FuzzyAddressParishPart)result![0];
+        FuzzyAddressParishPart part = (FuzzyAddressParishPart)parts[0];
         Assert.That(part.Index, Is.EqualTo(0));
         Assert.That(part.Value, Is.EqualTo(expected));
         Assert.That(part.Confidence, Is.EqualTo(confidence));
@@ -287,7 +297,7 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
@@ -303,23 +313,24 @@ public class FuzzyAddressParserTests
 
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(address);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(address);
         
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(5), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(result));
-        Assert.That(result.OfType<FuzzyAddressStreetNameAndNumberPart>().First().StreetValue, Is.EqualTo("Krānu iela"));
-        Assert.That(result.OfType<FuzzyAddressStreetNameAndNumberPart>().First().NumberValue, Is.EqualTo("35"));
-        Assert.That(result.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
-        Assert.That(result.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
-        Assert.That(result.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));
-        Assert.That(result.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(5), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(parts));
+        Assert.That(parts.OfType<FuzzyAddressStreetNameAndNumberPart>().First().StreetValue, Is.EqualTo("Krānu iela"));
+        Assert.That(parts.OfType<FuzzyAddressStreetNameAndNumberPart>().First().NumberValue, Is.EqualTo("35"));
+        Assert.That(parts.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
+        Assert.That(parts.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
+        Assert.That(parts.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));
+        Assert.That(parts.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
     }
 
     [TestCase("\"Krāniņi\", Krāniņmuiža, Vistiņu pagasts, Ornitoloģijas novads, LV-1234")]
@@ -328,22 +339,23 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
         
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(5), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(result));
-        Assert.That(result.OfType<FuzzyAddressHouseNamePart>().First().Value, Is.EqualTo("Krāniņi"));
-        Assert.That(result.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
-        Assert.That(result.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
-        Assert.That(result.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));
-        Assert.That(result.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(5), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(parts));
+        Assert.That(parts.OfType<FuzzyAddressHouseNamePart>().First().Value, Is.EqualTo("Krāniņi"));
+        Assert.That(parts.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
+        Assert.That(parts.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
+        Assert.That(parts.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));
+        Assert.That(parts.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
     }
 
     [TestCase("Krāns 18, Krāniņmuiža, Vistiņu pagasts, Ornitoloģijas novads, LV-1234")]
@@ -351,22 +363,23 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
         
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(5), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(result));
-        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(result));
-        Assert.That(result.OfType<FuzzyAddressHouseNamePart>().First().Value, Is.EqualTo("Krāns 18"));
-        Assert.That(result.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
-        Assert.That(result.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
-        Assert.That(result.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));
-        Assert.That(result.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(5), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(parts));
+        Assert.That(parts.OfType<FuzzyAddressHouseNamePart>().First().Value, Is.EqualTo("Krāns 18"));
+        Assert.That(parts.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
+        Assert.That(parts.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
+        Assert.That(parts.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));
+        Assert.That(parts.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
     }
 
     [TestCase("Krānu iela 35-3", "Krānu iela", "35", "3")]
@@ -376,15 +389,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
         
-        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
+        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)parts[0];
         Assert.That(streetPart.Index, Is.EqualTo(0));
         Assert.That(streetPart.StreetValue, Is.EqualTo(expectedStreet));
         Assert.That(streetPart.NumberValue, Is.EqualTo(expectedNumber));
@@ -397,15 +411,16 @@ public class FuzzyAddressParserTests
     {
         // Act
         
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress("Krānu iela 3/5");
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress("Krānu iela 3/5");
 
         // Assert
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
         
-        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
+        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)parts[0];
         Assert.That(streetPart.NumberValue, Is.EqualTo("3/5"));
         Assert.That(streetPart.UnitValue, Is.Null);
     }

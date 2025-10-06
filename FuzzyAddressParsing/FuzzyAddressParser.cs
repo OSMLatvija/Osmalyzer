@@ -8,7 +8,7 @@ public static class FuzzyAddressParser
     /// Parse freeform text address into components.
     /// </summary>
     [Pure]
-    public static List<FuzzyAddressPart>? TryParseAddress(string raw, params FuzzyAddressHint[] hints)
+    public static FuzzyAddress? TryParseAddress(string raw, params FuzzyAddressHint[] hints)
     {
         if (raw == null) throw new ArgumentNullException(nameof(raw));
         
@@ -180,7 +180,7 @@ public static class FuzzyAddressParser
                 parts.AddRange(selectedPostalCode);
         }
 
-        return parts;
+        return new FuzzyAddress(parts);
     }
 
 

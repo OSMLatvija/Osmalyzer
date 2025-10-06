@@ -249,6 +249,10 @@ public static class FuzzyAddressParser
     [Pure]
     private static FuzzyAddressHouseNamePart? TryParseAsHouseName(string split, int index)
     {
+        split = split.Replace("“", "\"").Replace("”", "\"")
+                     .Replace("‘", "'").Replace("’", "'")
+                     .Trim();
+        
         // Name in quotes, e.g. `"Palmas"` 
         if (split.StartsWith('\"') && split.EndsWith('\"'))
         {

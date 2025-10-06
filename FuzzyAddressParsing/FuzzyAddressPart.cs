@@ -18,3 +18,7 @@ public record FuzzyAddressHouseNamePart(string Value, int Index, FuzzyConfidence
 public record FuzzyAddressCityPart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
 
 public record FuzzyAddressPostcodePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
+
+public record FuzzyAddressParishPart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);
+
+public record FuzzyAddressMunicipalityPart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence);

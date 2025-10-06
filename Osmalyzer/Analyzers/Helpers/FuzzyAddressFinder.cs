@@ -23,6 +23,8 @@ public static class FuzzyAddressFinder
         FuzzyAddressHouseNamePart[] houseNameParts = parts.OfType<FuzzyAddressHouseNamePart>().ToArray();
         FuzzyAddressStreetNameAndNumberPart[] nameAndNumberParts = parts.OfType<FuzzyAddressStreetNameAndNumberPart>().ToArray();
         FuzzyAddressCityPart[] cityParts = parts.OfType<FuzzyAddressCityPart>().ToArray();
+        FuzzyAddressParishPart[] parishParts = parts.OfType<FuzzyAddressParishPart>().ToArray();
+        FuzzyAddressMunicipalityPart[] municipalityParts = parts.OfType<FuzzyAddressMunicipalityPart>().ToArray();
         FuzzyAddressPostcodePart[] postcodeParts = parts.OfType<FuzzyAddressPostcodePart>().ToArray();
         
         // Match against OSM elements
@@ -44,19 +46,51 @@ public static class FuzzyAddressFinder
                 string? elementStreet = element.GetValue("addr:street");
                 string? elementNumber = element.GetValue("addr:housenumber");
                 string? elementCity = element.GetValue("addr:city");
+                string? elementParish = element.GetValue("addr:subdistrict");
+                string? elementMunicipality = element.GetValue("addr:district");
                 string? elementPostcode = element.GetValue("addr:postcode");
                 
                 bool houseNameMatched = elementHouseName != null && houseNameParts.Any(p => p.Value.Equals(elementHouseName, StringComparison.OrdinalIgnoreCase));
                 bool streetMatched = elementStreet != null && nameAndNumberParts.Any(p => p.StreetValue.Equals(elementStreet, StringComparison.OrdinalIgnoreCase));
                 bool numberMatched = elementNumber != null && nameAndNumberParts.Any(p => p.NumberValue.Equals(elementNumber, StringComparison.OrdinalIgnoreCase));
                 bool cityMatched = elementCity != null && cityParts.Any(p => p.Value.Equals(elementCity, StringComparison.OrdinalIgnoreCase));
+                bool parishMatched = elementParish != null && parishParts.Any(p => p.Value.Equals(elementParish, StringComparison.OrdinalIgnoreCase));
+                bool municipalityMatched = elementMunicipality != null && municipalityParts.Any(p => p.Value.Equals(elementMunicipality, StringComparison.OrdinalIgnoreCase));
                 bool postcodeMatched = elementPostcode != null && postcodeParts.Any(p => p.Value.Equals(elementPostcode, StringComparison.OrdinalIgnoreCase));
+
+                // If values are present and also parts are strongly-matched, then require them to match, otherwise it'd definitely wrong
+                if (ConflictingValuesFor(cityParts, p => p.Value, elementCity)) return false;
+                if (ConflictingValuesFor(parishParts, p => p.Value, elementParish)) return false;
+                if (ConflictingValuesFor(municipalityParts, p => p.Value, elementMunicipality)) return false;
+                if (ConflictingValuesFor(postcodeParts, p => p.Value, elementPostcode)) return false;
                 
+                static bool ConflictingValuesFor<T>(T[] parts, Func<T, string> elementValueGetter, string? value) where T : FuzzyAddressPart
+                {
+                    if (value == null)
+                        return false; // no conflict, value not present
+                    
+                    if (parts.Length == 0)
+                        return false; // no conflict, no parts to compare against
+
+                    T[] strongParts = parts.Where(p => p.Confidence is FuzzyConfidence.High or FuzzyConfidence.HintedHigh).ToArray();
+
+                    if (strongParts.Length == 0)
+                        return false; // no conflict, no strong parts to compare against
+
+                    foreach (T p in strongParts)
+                        if (elementValueGetter(p).Equals(value, StringComparison.OrdinalIgnoreCase)) // todo: custom matching for values?
+                            return false; // exact match found, no conflict
+                    
+                    return true; // conflict, strong parts exist but none match
+                }
+
                 bool streetLineMatched = houseNameMatched || streetMatched && numberMatched;
                 
-                // Street line can repeat between cities/towns, but (presumably) not withing the same city/town or postcode
-                
-                return streetLineMatched && (cityMatched || postcodeMatched);
+                // Street lines can repeat between cities/towns, but (presumably) not withing the same area
+                // So "Vidus iela 1" is not enough because half the places in Latvia have a "Vidus iela"
+                // todo: what are the actual address restriction in Latvia for this?
+
+                return streetLineMatched && (cityMatched || parishMatched || postcodeMatched);
             }
         }
         

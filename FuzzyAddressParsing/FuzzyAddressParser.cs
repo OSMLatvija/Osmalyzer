@@ -40,6 +40,14 @@ public static class FuzzyAddressParser
             if (cityResult != null)
                 proposedParts[i].Add(cityResult);
 
+            FuzzyAddressParishPart? parishResult = TryParseAsParish(split, i);
+            if (parishResult != null)
+                proposedParts[i].Add(parishResult);
+
+            FuzzyAddressMunicipalityPart? municipalityResult = TryParseAsMunicipality(split, i);
+            if (municipalityResult != null)
+                proposedParts[i].Add(municipalityResult);
+
             FuzzyAddressPostcodePart? postalCodeResult = TryParseAsPostalCode(split, i);
             if (postalCodeResult != null)
                 proposedParts[i].Add(postalCodeResult);
@@ -105,6 +113,32 @@ public static class FuzzyAddressParser
                         }
                         break;
 
+                    case FuzzyAddressParishHint:
+                        FuzzyAddressParishPart? parsedParishPart = proposedParts[i].OfType<FuzzyAddressParishPart>().FirstOrDefault();
+                        if (parsedParishPart != null)
+                        {
+                            proposedParts[i].Remove(parsedParishPart);
+                            proposedParts[i].Add(parsedParishPart with { Confidence = HintedConfidence(parsedParishPart.Confidence) });
+                        }
+                        else
+                        {
+                            proposedParts[i].Add(new FuzzyAddressParishPart(split, i, FuzzyConfidence.HintedFallback));
+                        }
+                        break;
+
+                    case FuzzyAddressMunicipalityHint:
+                        FuzzyAddressMunicipalityPart? parsedMunicipalityPart = proposedParts[i].OfType<FuzzyAddressMunicipalityPart>().FirstOrDefault();
+                        if (parsedMunicipalityPart != null)
+                        {
+                            proposedParts[i].Remove(parsedMunicipalityPart);
+                            proposedParts[i].Add(parsedMunicipalityPart with { Confidence = HintedConfidence(parsedMunicipalityPart.Confidence) });
+                        }
+                        else
+                        {
+                            proposedParts[i].Add(new FuzzyAddressMunicipalityPart(split, i, FuzzyConfidence.HintedFallback));
+                        }
+                        break;
+
                     default:
                         throw new ArgumentOutOfRangeException(nameof(hint));
                 }
@@ -132,6 +166,14 @@ public static class FuzzyAddressParser
             FuzzyAddressCityPart[]? selectedCity = ExtractBest<FuzzyAddressCityPart>(proposedParts, minConfidence);
             if (selectedCity != null)
                 parts.AddRange(selectedCity);
+
+            FuzzyAddressParishPart[]? selectedParish = ExtractBest<FuzzyAddressParishPart>(proposedParts, minConfidence);
+            if (selectedParish != null)
+                parts.AddRange(selectedParish);
+
+            FuzzyAddressMunicipalityPart[]? selectedMunicipality = ExtractBest<FuzzyAddressMunicipalityPart>(proposedParts, minConfidence);
+            if (selectedMunicipality != null)
+                parts.AddRange(selectedMunicipality);
             
             FuzzyAddressPostcodePart[]? selectedPostalCode = ExtractBest<FuzzyAddressPostcodePart>(proposedParts, minConfidence);
             if (selectedPostalCode != null)
@@ -198,6 +240,9 @@ public static class FuzzyAddressParser
     [Pure]
     private static FuzzyAddressPart[]? TryParseAsStreetLine(string split, int index)
     {
+        if (LooksLikePotentialParishOrMunicipality(split))
+            return null; // avoid false positives
+
         FuzzyAddressHouseNamePart? addressHouseNamePart = TryParseAsHouseName(split, index);
         if (addressHouseNamePart != null)
             return [ addressHouseNamePart ];
@@ -249,6 +294,9 @@ public static class FuzzyAddressParser
     [Pure]
     private static FuzzyAddressHouseNamePart? TryParseAsHouseName(string split, int index)
     {
+        if (LooksLikePotentialParishOrMunicipality(split))
+            return null; // avoid false positives
+        
         split = split.Replace("“", "\"").Replace("”", "\"")
                      .Replace("‘", "'").Replace("’", "'")
                      .Trim();
@@ -362,6 +410,9 @@ public static class FuzzyAddressParser
     [Pure]
     private static FuzzyAddressCityPart? TryParseAsCity(string split, int index)
     {
+        if (LooksLikePotentialParishOrMunicipality(split))
+            return null; // avoid false positives
+        
         if (KnownFuzzyNames.CityNames.Contains(split))
             return new FuzzyAddressCityPart(split, index, FuzzyConfidence.High);
         
@@ -374,6 +425,58 @@ public static class FuzzyAddressParser
         // todo: check words
         
         return null;
+    }
+
+    [Pure]
+    private static FuzzyAddressParishPart? TryParseAsParish(string split, int index)
+    {
+        Match match = Regex.Match(split, @"^(?<name>.+?)\s+pag(?:\.|asts?)$", RegexOptions.IgnoreCase);
+        if (!match.Success)
+            return null;
+
+        string name = match.Groups["name"].Value.Trim();
+        if (name.Length < 4) // nothing shorter than "Apes pagasts"
+            return null;
+        
+        if (name.Any(char.IsDigit))
+            return null; // can't have digits in parish name
+
+        string normalized = name + " pagasts";
+        return new FuzzyAddressParishPart(normalized, index, FuzzyConfidence.High);
+    }
+
+    [Pure]
+    private static FuzzyAddressMunicipalityPart? TryParseAsMunicipality(string split, int index)
+    {
+        // todo: keep a full list?
+        
+        Match match = Regex.Match(split, @"^(?<name>.+?)\s+nov(?:\.|ads?)$", RegexOptions.IgnoreCase);
+        if (!match.Success)
+            return null;
+
+        string name = match.Groups["name"].Value.Trim();
+        if (name.Length < 4) // nothing shorter than "Cēsu novads"
+            return null;
+        
+        if (name.Any(char.IsDigit))
+            return null; // can't have digits in municipality name
+
+        string normalized = name + " novads";
+        return new FuzzyAddressMunicipalityPart(normalized, index, FuzzyConfidence.High);
+    }
+
+    [Pure]
+    private static bool LooksLikePotentialParishOrMunicipality(string value)
+    {
+        value = value.ToLowerInvariant();
+
+        return
+            value.EndsWith("pagasts") ||
+            value.EndsWith("pag.") ||
+            value == "pagasts" || // probably broken data and some delimiter issues
+            value.EndsWith("novads") ||
+            value.EndsWith("nov.") ||
+            value == "novads"; // probably broken data and some delimiter issues
     }
 
     [Pure]

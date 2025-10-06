@@ -8,3 +8,7 @@ public record FuzzyAddressStreetLineHint(int Index) : FuzzyAddressHint(Index);
 public record FuzzyAddressCityHint(int Index) : FuzzyAddressHint(Index);
 
 public record FuzzyAddressPostcodeHint(int Index) : FuzzyAddressHint(Index);
+
+public record FuzzyAddressParishHint(int Index) : FuzzyAddressHint(Index);
+
+public record FuzzyAddressMunicipalityHint(int Index) : FuzzyAddressHint(Index);

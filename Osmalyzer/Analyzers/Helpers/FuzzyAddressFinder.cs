@@ -2,6 +2,8 @@
 
 public static class FuzzyAddressFinder
 {
+    // TODO: TESTS, this is getting complex
+    
     private static Addressables? _addressables;
 
 
@@ -18,13 +20,18 @@ public static class FuzzyAddressFinder
         
         if (_addressables == null)
             GatherAddressables(data);
+
+        // Try preselect candidates by a single high-confidence regional hint (e.g. parish)
+        // Will fall back to full search if no such hint exists or no candidates found
+        IEnumerable<Addressable> candidates = GetCandidatesByRegion(parsed);
+        // todo: retry with all elements if poor score
         
         // Match against OSM elements
         
         List<OsmElement> matchedElements = [ ];
         int? bestScore = null; 
         
-        foreach (Addressable addressable in _addressables!.Elements)
+        foreach (Addressable addressable in candidates)
         {
             if (DoesElementMatch(out int elementScore))
             {
@@ -139,6 +146,37 @@ public static class FuzzyAddressFinder
             return null; // no matches found
 
         return OsmGeoTools.GetAverageCoord(matchedElements);
+
+        
+        // Local helpers
+        IEnumerable<Addressable> GetCandidatesByRegion(FuzzyAddress p)
+        {
+            // Priority: Parish -> City -> Municipality. Only when exactly one part exists and it's high-confidence.
+
+            string? parish = p.SingleParishPart?.Confidence >= FuzzyConfidence.High ? p.SingleParishPart.Value : null;
+            if (parish != null)
+            {
+                IEnumerable<Addressable>? list = _addressables!.GetByParish(parish);
+                if (list != null) return list;
+            }
+
+            string? city = p.SingleCityPart?.Confidence >= FuzzyConfidence.High ? p.SingleCityPart.Value : null;
+            if (city != null)
+            {
+                IEnumerable<Addressable>? list = _addressables!.GetByCity(city);
+                if (list != null) return list;
+            }
+
+            string? municipality = p.SingleMunicipalityPart?.Confidence >= FuzzyConfidence.High ? p.SingleMunicipalityPart.Value : null;
+            if (municipality != null)
+            {
+                IEnumerable<Addressable>? list = _addressables!.GetByMunicipality(municipality);
+                if (list != null) return list;
+            }
+
+            // No confident single-region candidate; use full search
+            return _addressables!.Elements;
+        }
     }
 
     // todo: convert to above
@@ -156,10 +194,60 @@ public static class FuzzyAddressFinder
         public List<Addressable> Elements { get; }
 
         
+        private readonly Dictionary<string, List<Addressable>> _byParish = new Dictionary<string, List<Addressable>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<Addressable>> _byCity = new Dictionary<string, List<Addressable>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<Addressable>> _byMunicipality = new Dictionary<string, List<Addressable>>(StringComparer.OrdinalIgnoreCase);
+        
+        
         public Addressables(IEnumerable<OsmElement> elements)
         {
             Elements = elements.Select(e => new Addressable(e)).ToList();
+
+            // Build caches
+            
+            foreach (Addressable addressable in Elements)
+            {
+                if (addressable.Parish != null)
+                {
+                    if (!_byParish.TryGetValue(addressable.Parish, out List<Addressable>? list))
+                    {
+                        list = [ ];
+                        _byParish[addressable.Parish] = list;
+                    }
+                    list.Add(addressable);
+                }
+
+                if (addressable.City != null)
+                {
+                    if (!_byCity.TryGetValue(addressable.City, out List<Addressable>? list))
+                    {
+                        list = [ ];
+                        _byCity[addressable.City] = list;
+                    }
+                    list.Add(addressable);
+                }
+
+                if (addressable.Municipality != null)
+                {
+                    if (!_byMunicipality.TryGetValue(addressable.Municipality, out List<Addressable>? list))
+                    {
+                        list = [ ];
+                        _byMunicipality[addressable.Municipality] = list;
+                    }
+                    list.Add(addressable);
+                }
+            }
         }
+
+        
+        public IEnumerable<Addressable>? GetByParish(string value) => 
+            _byParish.TryGetValue(value, out List<Addressable>? list) ? list : null;
+
+        public IEnumerable<Addressable>? GetByCity(string value) => 
+            _byCity.TryGetValue(value, out List<Addressable>? list) ? list : null;
+
+        public IEnumerable<Addressable>? GetByMunicipality(string value) => 
+            _byMunicipality.TryGetValue(value, out List<Addressable>? list) ? list : null;
     }
 
     private sealed class Addressable

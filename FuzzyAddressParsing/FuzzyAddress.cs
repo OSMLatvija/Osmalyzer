@@ -46,6 +46,21 @@ public record FuzzyAddress
     /// </summary>
     public FuzzyAddressPostcodePart[]? PostcodeParts { get; }
 
+    /// <summary>
+    /// Cached single parish part when exactly one is present, otherwise null.
+    /// </summary>
+    public FuzzyAddressParishPart? SingleParishPart { get; }
+
+    /// <summary>
+    /// Cached single city part when exactly one is present, otherwise null.
+    /// </summary>
+    public FuzzyAddressCityPart? SingleCityPart { get; }
+
+    /// <summary>
+    /// Cached single municipality part when exactly one is present, otherwise null.
+    /// </summary>
+    public FuzzyAddressMunicipalityPart? SingleMunicipalityPart { get; }
+
 
     private static readonly List<FuzzyAddressHouseNamePart> _tmpHouseNames = [ ];
     private static readonly List<FuzzyAddressStreetNameAndNumberPart> _tmpStreetNameAndNumbers = [ ];
@@ -83,6 +98,11 @@ public record FuzzyAddress
         if (_tmpParishes.Count == 0) ParishParts = null; else { ParishParts = _tmpParishes.ToArray(); _tmpParishes.Clear(); SortByConfidenceDesc(ParishParts); }
         if (_tmpMunicipalities.Count == 0) MunicipalityParts = null; else { MunicipalityParts = _tmpMunicipalities.ToArray(); _tmpMunicipalities.Clear(); SortByConfidenceDesc(MunicipalityParts); }
         if (_tmpPostcodes.Count == 0) PostcodeParts = null; else { PostcodeParts = _tmpPostcodes.ToArray(); _tmpPostcodes.Clear(); SortByConfidenceDesc(PostcodeParts); }
+
+        // Cache single region parts when exactly one exists
+        SingleParishPart = ParishParts != null && ParishParts.Length == 1 ? ParishParts[0] : null;
+        SingleCityPart = CityParts != null && CityParts.Length == 1 ? CityParts[0] : null;
+        SingleMunicipalityPart = MunicipalityParts != null && MunicipalityParts.Length == 1 ? MunicipalityParts[0] : null;
     }
 
     

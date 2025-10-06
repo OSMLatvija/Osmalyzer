@@ -62,7 +62,7 @@ public static class FuzzyAddressFinder
                 string? oldElementHouseName = element.GetValue("old_addr:housename");
                 string? oldElementUnit = element.GetValue("old_addr:unit");
 
-                // Gather all the matched between OSM values and parsed parts using cached arrays (null -> not found)
+                // Gather all the matches between OSM values and parsed parts using cached arrays (null -> not found)
                 
                 FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(elementHouseName, parsed.HouseNameParts, p => p.Value);
                 if (houseNameMatch == null && oldElementHouseName != null) houseNameMatch = GetBestMatch(oldElementHouseName, parsed.HouseNameParts, p => p.Value);
@@ -108,11 +108,24 @@ public static class FuzzyAddressFinder
                 bool municipalityMatched = municipalityMatch != null;
                 bool postcodeMatched = postcodeMatch != null;
                 bool unitMatched = unitMatch != null;
-
+                
+                // todo: I tried discarding high-confidence parts against non-matching element values,
+                // but this just skips so many addresses, it's not worth it with data being so messy 
+                
+                score = 0;
+                
+                // Try to pass minimum matching requirements
+                // Street lines can repeat between cities/towns, but (presumably) not withing the same area
+                // So "Vidus iela 1" is not enough because half the places in Latvia have a "Vidus iela"
+                // todo: what are the actual address restriction in Latvia for this?
+                
+                bool streetLineMatched = houseNameMatched || streetMatched && numberMatched;
+                if (!streetLineMatched || (!cityMatched && !parishMatched && !postcodeMatched))
+                    return false;
+                
                 // Calculate approximate match "quality"
                 // This is all very hand-wavy and based on what sort of broken syntax addresses are present in data
                 
-                score = 0;
                 if (houseNameMatched) score += old ? 10 : 20;
                 if (streetMatched) score += old ? 5 : 10;
                 if (numberMatched) score += old ? 5 : 10;
@@ -122,15 +135,7 @@ public static class FuzzyAddressFinder
                 if (municipalityMatched) score += 5;
                 if (postcodeMatched) score += 5;
                 
-                // todo: I tried discarding high-confidence parts against non-matching element values,
-                // but this just skips so many addresses, it's not worth it with data being so messy 
-                
-                // Try to pass minimum matching requirements
-                // Street lines can repeat between cities/towns, but (presumably) not withing the same area
-                // So "Vidus iela 1" is not enough because half the places in Latvia have a "Vidus iela"
-                // todo: what are the actual address restriction in Latvia for this?
-                bool streetLineMatched = houseNameMatched || streetMatched && numberMatched;
-                return streetLineMatched && (cityMatched || parishMatched || postcodeMatched);
+                return true;
             }
         }
         

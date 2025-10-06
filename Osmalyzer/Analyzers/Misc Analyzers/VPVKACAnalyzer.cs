@@ -139,10 +139,13 @@ public class VPVKACAnalyzer : Analyzer
             
             foreach (VPVKACOffice unlocatedOffice in unlocatedOffices)
             {
+                List<FuzzyAddressPart>? parsed = FuzzyAddressParser.TryParseAddress(unlocatedOffice.Address);
+
                 report.AddEntry(
                     ExtraReportGroup.UnlocatedOffices,
                     new IssueReportEntry(
-                        "Office `" + unlocatedOffice.Name + "` could not be geolocated for `" + unlocatedOffice.Address + "`"
+                        "Office `" + unlocatedOffice.Name + "` could not be geolocated for `" + unlocatedOffice.Address + "`" +
+                        (parsed != null ? " (parsed into: " + string.Join(", ", parsed.Select(p => p.GetQuickString())) + ")" : "")
                     )
                 );
             }

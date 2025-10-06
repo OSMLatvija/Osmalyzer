@@ -49,8 +49,6 @@ public static class FuzzyAddressFinder
                 // Gather all the matches between cached OSM values and parsed parts using cached arrays (null -> not found)
                 
                 FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(addressable.HouseName, parsed.HouseNameParts, p => p.Value);
-                if (houseNameMatch == null && addressable.OldHouseName != null)
-                    houseNameMatch = GetBestMatch(addressable.OldHouseName, parsed.HouseNameParts, p => p.Value);
                 FuzzyAddressStreetNameAndNumberPart? streetMatch = GetBestMatch(addressable.Street, parsed.StreetNameAndNumberParts, p => p.StreetValue);
                 FuzzyAddressStreetNameAndNumberPart? numberMatch = GetBestMatch(addressable.Number, parsed.StreetNameAndNumberParts, p => p.NumberValue);
                 FuzzyAddressStreetNameAndNumberPart? unitMatch = GetBestMatch(addressable.Unit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
@@ -59,17 +57,30 @@ public static class FuzzyAddressFinder
                 FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(addressable.Municipality, parsed.MunicipalityParts, p => p.Value);
                 FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(addressable.Postcode, parsed.PostcodeParts, p => p.Value);
                 
-                // Try old values if current are different/unmatched
+                // Try old values if current are not fully matched
                 
                 bool old = false;
-                if (streetMatch == null && numberMatch == null && houseNameMatch == null) // implies unit also not matched
+                if (streetMatch == null || numberMatch == null || houseNameMatch == null) // unit is rarely present
                 {
-                    // If nothing matched, try (all on) old_addr:*
-                    houseNameMatch = GetBestMatch(addressable.OldHouseName, parsed.HouseNameParts, p => p.Value);
-                    streetMatch = GetBestMatch(addressable.OldStreet, parsed.StreetNameAndNumberParts, p => p.StreetValue);
-                    numberMatch = GetBestMatch(addressable.OldNumber, parsed.StreetNameAndNumberParts, p => p.NumberValue);
-                    unitMatch = GetBestMatch(addressable.OldUnit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
-                    old = true;
+                    FuzzyAddressHouseNamePart? oldHouseNameMatch = GetBestMatch(addressable.OldHouseName, parsed.HouseNameParts, p => p.Value);
+                    FuzzyAddressStreetNameAndNumberPart? oldStreetMatch = GetBestMatch(addressable.OldStreet, parsed.StreetNameAndNumberParts, p => p.StreetValue);
+                    FuzzyAddressStreetNameAndNumberPart? oldNumberMatch = GetBestMatch(addressable.OldNumber, parsed.StreetNameAndNumberParts, p => p.NumberValue);
+                    FuzzyAddressStreetNameAndNumberPart? oldUnitMatch = GetBestMatch(addressable.OldUnit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
+
+                    int oldMatches = 0;
+                    if (oldHouseNameMatch != null) { houseNameMatch = oldHouseNameMatch; oldMatches++; }
+                    if (oldStreetMatch != null) { streetMatch = oldStreetMatch; oldMatches++; }
+                    if (oldNumberMatch != null) { numberMatch = oldNumberMatch; oldMatches++; }
+                    if (oldUnitMatch != null) { unitMatch = oldUnitMatch; oldMatches++; }
+                        
+                    int currentMatches = 0;
+                    if (houseNameMatch != null) currentMatches++;
+                    if (streetMatch != null) currentMatches++;
+                    if (numberMatch != null) currentMatches++;
+                    if (unitMatch != null) currentMatches++;
+                    
+                    if (oldMatches >= currentMatches)
+                        old = true;
                 }
 
                 static T? GetBestMatch<T>(string? elementValue, T[]? source, Func<T, string?> valueSelector) where T : FuzzyAddressPart

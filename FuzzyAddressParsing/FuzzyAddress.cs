@@ -12,31 +12,37 @@ public record FuzzyAddress
 
     /// <summary>
     /// Cached list of house name parts, or null if none present.
+    /// Presorted by <see cref="FuzzyAddressPart.Confidence"/> descending.
     /// </summary>
     public FuzzyAddressHouseNamePart[]? HouseNameParts { get; }
 
     /// <summary>
     /// Cached list of street name and number parts, or null if none present.
+    /// Presorted by <see cref="FuzzyAddressPart.Confidence"/> descending.
     /// </summary>
     public FuzzyAddressStreetNameAndNumberPart[]? StreetNameAndNumberParts { get; }
 
     /// <summary>
     /// Cached list of city parts, or null if none present.
+    /// Presorted by <see cref="FuzzyAddressPart.Confidence"/> descending.
     /// </summary>
     public FuzzyAddressCityPart[]? CityParts { get; }
 
     /// <summary>
     /// Cached list of parish parts, or null if none present.
+    /// Presorted by <see cref="FuzzyAddressPart.Confidence"/> descending.
     /// </summary>
     public FuzzyAddressParishPart[]? ParishParts { get; }
 
     /// <summary>
     /// Cached list of municipality parts, or null if none present.
+    /// Presorted by <see cref="FuzzyAddressPart.Confidence"/> descending.
     /// </summary>
     public FuzzyAddressMunicipalityPart[]? MunicipalityParts { get; }
 
     /// <summary>
     /// Cached list of postcode parts, or null if none present.
+    /// Presorted by <see cref="FuzzyAddressPart.Confidence"/> descending.
     /// </summary>
     public FuzzyAddressPostcodePart[]? PostcodeParts { get; }
 
@@ -71,11 +77,15 @@ public record FuzzyAddress
         }
 
         // Create arrays only for found entries; keep null to indicate "not found"
-        if (_tmpHouseNames.Count == 0) HouseNameParts = null; else { HouseNameParts = _tmpHouseNames.ToArray(); _tmpHouseNames.Clear(); }
-        if (_tmpStreetNameAndNumbers.Count == 0) StreetNameAndNumberParts = null; else { StreetNameAndNumberParts = _tmpStreetNameAndNumbers.ToArray(); _tmpStreetNameAndNumbers.Clear(); }
-        if (_tmpCities.Count == 0) CityParts = null; else { CityParts = _tmpCities.ToArray(); _tmpCities.Clear(); }
-        if (_tmpParishes.Count == 0) ParishParts = null; else { ParishParts = _tmpParishes.ToArray(); _tmpParishes.Clear(); }
-        if (_tmpMunicipalities.Count == 0) MunicipalityParts = null; else { MunicipalityParts = _tmpMunicipalities.ToArray(); _tmpMunicipalities.Clear(); }
-        if (_tmpPostcodes.Count == 0) PostcodeParts = null; else { PostcodeParts = _tmpPostcodes.ToArray(); _tmpPostcodes.Clear(); }
+        if (_tmpHouseNames.Count == 0) HouseNameParts = null; else { HouseNameParts = _tmpHouseNames.ToArray(); _tmpHouseNames.Clear(); SortByConfidenceDesc(HouseNameParts); }
+        if (_tmpStreetNameAndNumbers.Count == 0) StreetNameAndNumberParts = null; else { StreetNameAndNumberParts = _tmpStreetNameAndNumbers.ToArray(); _tmpStreetNameAndNumbers.Clear(); SortByConfidenceDesc(StreetNameAndNumberParts); }
+        if (_tmpCities.Count == 0) CityParts = null; else { CityParts = _tmpCities.ToArray(); _tmpCities.Clear(); SortByConfidenceDesc(CityParts); }
+        if (_tmpParishes.Count == 0) ParishParts = null; else { ParishParts = _tmpParishes.ToArray(); _tmpParishes.Clear(); SortByConfidenceDesc(ParishParts); }
+        if (_tmpMunicipalities.Count == 0) MunicipalityParts = null; else { MunicipalityParts = _tmpMunicipalities.ToArray(); _tmpMunicipalities.Clear(); SortByConfidenceDesc(MunicipalityParts); }
+        if (_tmpPostcodes.Count == 0) PostcodeParts = null; else { PostcodeParts = _tmpPostcodes.ToArray(); _tmpPostcodes.Clear(); SortByConfidenceDesc(PostcodeParts); }
     }
+
+    
+    private static void SortByConfidenceDesc<T>(T[] parts) where T : FuzzyAddressPart => 
+        Array.Sort(parts, (a, b) => b.Confidence.CompareTo(a.Confidence));
 }

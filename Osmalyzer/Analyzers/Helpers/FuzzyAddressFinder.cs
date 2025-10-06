@@ -95,12 +95,7 @@ public static class FuzzyAddressFinder
                     if (source == null) // can't be 0 if set
                         return null;
 
-                    return source
-                           .Where(p =>
-                                      valueSelector(p)?.Equals(elementValue, StringComparison.OrdinalIgnoreCase) == true // todo: other logic?
-                           )
-                           .OrderByDescending(p => p.Confidence)
-                           .FirstOrDefault();
+                    return source.FirstOrDefault(p => valueSelector(p)?.Equals(elementValue, StringComparison.OrdinalIgnoreCase) == true);
                 }
                 
                 // Decide on what matched

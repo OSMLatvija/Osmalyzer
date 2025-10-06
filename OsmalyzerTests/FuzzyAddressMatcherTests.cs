@@ -27,4 +27,38 @@ public class FuzzyAddressMatcherTests
 
         Assert.That(doesMatch, Is.False);
     }
+
+    [TestCase("Something iela 5-3", "Something iela", "5", "3")]
+    [TestCase("Something iela 5A-3", "Something iela", "5A", "3")]
+    public void TestMatchesWithUnit(string fullAddress, string tagStreet, string tagHouseNumber, string tagUnit)
+    {
+        bool doesMatch = FuzzyAddressMatcher.Matches(tagStreet, tagHouseNumber, tagUnit, fullAddress);
+
+        Assert.That(doesMatch, Is.True);
+    }
+
+    [Test]
+    public void TestDoesntMatchWithDifferentUnit()
+    {
+        string fullAddress = "Something iela 5-4";
+        string tagStreet = "Something iela";
+        string tagHouseNumber = "5";
+        string tagUnit = "3";
+
+        bool doesMatch = FuzzyAddressMatcher.Matches(tagStreet, tagHouseNumber, tagUnit, fullAddress);
+
+        Assert.That(doesMatch, Is.False);
+    }
+
+    [Test]
+    public void TestMatchesWhenNoTagUnit()
+    {
+        string fullAddress = "Something iela 5-3";
+        string tagStreet = "Something iela";
+        string tagHouseNumber = "5";
+
+        bool doesMatch = FuzzyAddressMatcher.Matches(tagStreet, tagHouseNumber, fullAddress);
+
+        Assert.That(doesMatch, Is.True);
+    }
 }

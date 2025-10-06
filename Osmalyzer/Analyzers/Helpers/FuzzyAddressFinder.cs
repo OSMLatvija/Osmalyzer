@@ -54,9 +54,12 @@ public static class FuzzyAddressFinder
             [Pure]
             bool DoesElementMatch(out int score)
             {
+                // Gather all the OSM values
+                
                 string? elementHouseName = element.GetValue("addr:housename");
                 string? elementStreet = element.GetValue("addr:street");
                 string? elementNumber = element.GetValue("addr:housenumber");
+                string? elementUnit = element.GetValue("addr:unit");
                 string? elementCity = element.GetValue("addr:city");
                 string? elementParish = element.GetValue("addr:subdistrict");
                 string? elementMunicipality = element.GetValue("addr:district");
@@ -65,37 +68,47 @@ public static class FuzzyAddressFinder
                 string? oldElementStreet = element.GetValue("old_addr:street");
                 string? oldElementNumber = element.GetValue("old_addr:housenumber");
                 string? oldElementHouseName = element.GetValue("old_addr:housename");
+                string? oldElementUnit = element.GetValue("old_addr:unit");
 
+                // Gather all the matched between OSM values and parsed parts
+                
                 FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(elementHouseName, houseNameParts, p => p.Value);
                 if (houseNameMatch == null && oldElementHouseName != null) houseNameMatch = GetBestMatch(oldElementHouseName, houseNameParts, p => p.Value);
                 FuzzyAddressStreetNameAndNumberPart? streetMatch = GetBestMatch(elementStreet, nameAndNumberParts, p => p.StreetValue);
                 FuzzyAddressStreetNameAndNumberPart? numberMatch = GetBestMatch(elementNumber, nameAndNumberParts, p => p.NumberValue);
+                FuzzyAddressStreetNameAndNumberPart? unitMatch = GetBestMatch(elementUnit, nameAndNumberParts, p => p.UnitValue);
+                FuzzyAddressCityPart? cityMatch = GetBestMatch(elementCity, cityParts, p => p.Value);
+                FuzzyAddressParishPart? parishMatch = GetBestMatch(elementParish, parishParts, p => p.Value);
+                FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(elementMunicipality, municipalityParts, p => p.Value);
+                FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(elementPostcode, postcodeParts, p => p.Value);
+                
+                // Try old values if current are different/unmatched
+                
                 bool old = false;
-                if (streetMatch == null && numberMatch == null && houseNameMatch == null)
+                if (streetMatch == null && numberMatch == null && houseNameMatch == null) // implies unit also not matched
                 {
                     // If nothing matched, try (all on) old_addr:*
                     houseNameMatch = GetBestMatch(oldElementHouseName, houseNameParts, p => p.Value);
                     streetMatch = GetBestMatch(oldElementStreet, nameAndNumberParts, p => p.StreetValue);
                     numberMatch = GetBestMatch(oldElementNumber, nameAndNumberParts, p => p.NumberValue);
+                    unitMatch = GetBestMatch(oldElementUnit, nameAndNumberParts, p => p.UnitValue);
                     old = true;
                 }
-                FuzzyAddressCityPart? cityMatch = GetBestMatch(elementCity, cityParts, p => p.Value);
-                FuzzyAddressParishPart? parishMatch = GetBestMatch(elementParish, parishParts, p => p.Value);
-                FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(elementMunicipality, municipalityParts, p => p.Value);
-                FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(elementPostcode, postcodeParts, p => p.Value);
 
-                static T? GetBestMatch<T>(string? elementValue, T[] source, Func<T, string> valueSelector) where T : FuzzyAddressPart
+                static T? GetBestMatch<T>(string? elementValue, T[] source, Func<T, string?> valueSelector) where T : FuzzyAddressPart
                 {
                     if (elementValue == null)
                         return null;
 
                     return source
                            .Where(p =>
-                                      valueSelector(p).Equals(elementValue, StringComparison.OrdinalIgnoreCase) // todo: other logic?
+                                      valueSelector(p)?.Equals(elementValue, StringComparison.OrdinalIgnoreCase) == true // todo: other logic?
                            )
                            .OrderByDescending(p => p.Confidence)
                            .FirstOrDefault();
                 }
+                
+                // Decide on what matched
                 
                 bool houseNameMatched = houseNameMatch != null;
                 bool streetMatched = streetMatch != null;
@@ -104,13 +117,16 @@ public static class FuzzyAddressFinder
                 bool parishMatched = parishMatch != null;
                 bool municipalityMatched = municipalityMatch != null;
                 bool postcodeMatched = postcodeMatch != null;
+                bool unitMatched = unitMatch != null;
 
                 // Calculate approximate match "quality"
                 // This is all very hand-wavy and based on what sort of broken syntax addresses are present in data
+                
                 score = 0;
                 if (houseNameMatched) score += old ? 10 : 20;
                 if (streetMatched) score += old ? 5 : 10;
                 if (numberMatched) score += old ? 5 : 10;
+                if (unitMatched) score += 2; // I guess if there are units on OSM, this is better (assuming everything else is the same)
                 if (cityMatched) score += 5;
                 if (parishMatched) score += 5;
                 if (municipalityMatched) score += 5;
@@ -119,7 +135,7 @@ public static class FuzzyAddressFinder
                 // todo: I tried discarding high-confidence parts against non-matching element values,
                 // but this just skips so many addresses, it's not worth it with data being so messy 
                 
-                // Minimum matching requirements
+                // Try to pass minimum matching requirements
                 // Street lines can repeat between cities/towns, but (presumably) not withing the same area
                 // So "Vidus iela 1" is not enough because half the places in Latvia have a "Vidus iela"
                 // todo: what are the actual address restriction in Latvia for this?
@@ -149,7 +165,7 @@ public static class FuzzyAddressFinder
         if (name != null)
         {
             // ""Palmas"" 
-            if (name.StartsWith('\"') && name.EndsWith('\"'))
+            if (name.StartsWith('"') && name.EndsWith('"'))
             {
                 houseName = name[1..^1];
                 name = null; // name is nothing else then

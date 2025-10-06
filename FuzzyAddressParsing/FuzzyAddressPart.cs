@@ -17,9 +17,9 @@ public abstract record FuzzyAddressPart(int Index, FuzzyConfidence Confidence)
     public abstract string? GetQuickString();
 }
 
-public record FuzzyAddressStreetNameAndNumberPart(string StreetValue, string NumberValue, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence)
+public record FuzzyAddressStreetNameAndNumberPart(string StreetValue, string NumberValue, string? UnitValue, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence)
 {
-    public override string? GetQuickString() => "Street `" + StreetValue + "`, Number `" + NumberValue + "`";
+    public override string? GetQuickString() => "Street `" + StreetValue + "`, Number `" + NumberValue + "`" + (UnitValue != null ? ", Unit `" + UnitValue + "`" : "");
 }
 
 public record FuzzyAddressHouseNamePart(string Value, int Index, FuzzyConfidence Confidence) : FuzzyAddressPart(Index, Confidence)

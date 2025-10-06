@@ -326,21 +326,23 @@ public static class FuzzyAddressParser
         
         // Try split into street name and number
         
-        (string prefix, string suffix, FuzzyConfidence confidence)? splitStreetLine = TrySplitStreetLine(split);
+        (string street, string number, string? letter, string? unit, string? block, FuzzyConfidence confidence)? splitStreetLine 
+            = TrySplitStreetLine(split);
         
         if (splitStreetLine != null)
         {
-            string[] parts = splitStreetLine.Value.prefix.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string[] parts = splitStreetLine.Value.street.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             bool anyPartIsWord = parts.Any(p => p.Length >= 3);
             // Otherwise, we detect stuff like "LV 1234" as street name, presumably we don't get shorter than "Īsā 3" or something
             
             if (anyPartIsWord)
             {
-                string streetName = splitStreetLine.Value.prefix;
-                string streetNumber = splitStreetLine.Value.suffix;
+                string streetName = splitStreetLine.Value.street;
+                string streetNumber = FixNumber(splitStreetLine.Value.number, splitStreetLine.Value.letter, splitStreetLine.Value.block);
+                string? unit = splitStreetLine.Value.unit;
                 FuzzyConfidence confidence = splitStreetLine.Value.confidence;
 
-                return [ new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, confidence) ];
+                return [ new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, unit, index, confidence) ];
             }
         }
         
@@ -378,15 +380,25 @@ public static class FuzzyAddressParser
     }
 
     [Pure]
-    private static (string prefix, string suffix, FuzzyConfidence confidence)? TrySplitStreetLine(string value)
+    private static (string street, string number, string? letter, string? unit, string? block, FuzzyConfidence confidence)? TrySplitStreetLine(string value)
     {
-        // Ends with a number or possibly slashed two, possibly with letter, possibly with block, preceded by whitespace and something else before
-        // "35"
-        // "35A"
-        // "35 k-2"
-        // "35A k-2"
-        // "35/37"
-        Match match = Regex.Match(value, @"^(.+?)\s+(\d+(?:\/\d+)?(?:\s*[a-zA-Z])?(?:\s*k-?\d+)?)$");
+        // Name + main number + optional letter (but avoid treating block 'k' as letter when followed by digits), optional unit (e.g., -3), optional block (k-24 or k24)
+        // "Krānu iela 35"
+        // "Krānu iela 35A"
+        // "Krānu iela 35-3"
+        // "Krānu iela 35A-3"
+        // "Krānu iela 35 k-2"
+        // "Krānu iela 35A k-2"
+        // "Krānu iela 35 k2"
+        // "Krānu iela 35/37"
+        Match match = Regex.Match(
+            value,
+            @"^(.+?)\s+(?<number>\d+(?:\/\d+)?)(?:\s*(?!(?:k\s*-?\d))(?<letter>[a-zA-Z]))?(?:\s*-(?<unit>\d+))?(?:\s*k-?(?<block>\d+))?$",
+            RegexOptions.IgnoreCase
+        );
+
+        if (!match.Success)
+            return null;
 
         string name = match.Groups[1].Value.Trim();
         
@@ -397,19 +409,18 @@ public static class FuzzyAddressParser
         if (numberOfLetters < 3)
             return null; // too few letters to be a name
         
-        if (match.Success)
-        {
-            string fixedName = FixName(name, out bool hadExpectedSuffix);
-            
-            return (
-                fixedName,
-                FixNumber(match.Groups[2].Value.Trim()),
-                hadExpectedSuffix ? FuzzyConfidence.High : FuzzyConfidence.Low
-            );
-        }
+        string fixedName = FixName(name, out bool hadExpectedSuffix);
+        string number = match.Groups["number"].Value.Trim();
+        string? letter = match.Groups["letter"].Success ? match.Groups["letter"].Value.Trim() : null;
+        string? unit = match.Groups["unit"].Success ? match.Groups["unit"].Value.Trim() : null;
+        string? block = match.Groups["block"].Success ? match.Groups["block"].Value.Trim() : null;
 
-        return null;
-        
+        return (
+            fixedName, 
+            number, letter, unit, block, 
+            hadExpectedSuffix ? FuzzyConfidence.High : FuzzyConfidence.Low
+        );
+
         [Pure]
         static string FixName(string name, out bool hadExpectedSuffix)
         {
@@ -443,32 +454,17 @@ public static class FuzzyAddressParser
             
             return name;
         }
+    }
 
-        [Pure]
-        static string FixNumber(string num)
-        {
-            // "23" -> "23"
-            // "23 A" -> "23A"
-            // "23a" -> "23A"
-            // "23k-1" -> "23 k-1"
-            // "23 k1" -> "23 k-1"
-            // "23a k-1" -> "23A k-1"
-            // "23A k1" -> "23A k-1"
-            
-            Match match = Regex.Match(num, @"^(?<main>\d+(?:\/\d+)?)(?:\s*(?<letter>[a-zA-Z]))?(?:\s*k-?(?<block>\d+))?$");
-            
-            if (!match.Success)
-                return num; // as is
-            
-            string main = match.Groups["main"].Value;
-            string letter = match.Groups["letter"].Value.Trim().ToUpperInvariant();
-            string block = match.Groups["block"].Value;
-            
-            if (block != "")
-                return main + letter + " k-" + block;
-            else
-                return main + letter;
-        }
+    [Pure]
+    private static string FixNumber(string main, string? letter, string? block)
+    {
+        string core = main + (string.IsNullOrWhiteSpace(letter) ? "" : letter!.Trim().ToUpperInvariant());
+        
+        if (!string.IsNullOrWhiteSpace(block))
+            return core + " k-" + block!.Trim();
+        
+        return core;
     }
 
     [Pure]

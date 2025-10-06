@@ -369,6 +369,47 @@ public class FuzzyAddressParserTests
         Assert.That(result.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
     }
 
+    [TestCase("Krānu iela 35-3", "Krānu iela", "35", "3")]
+    [TestCase("Krānu iela 35A-3", "Krānu iela", "35A", "3")]
+    [TestCase("Krānu iela 35A-3 k-24", "Krānu iela", "35A k-24", "3")]
+    public void TestStreetNameNumberAndUnit(string value, string expectedStreet, string expectedNumber, string expectedUnit)
+    {
+        // Act
+        
+        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+
+        // Assert
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
+        Assert.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        
+        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
+        Assert.That(streetPart.Index, Is.EqualTo(0));
+        Assert.That(streetPart.StreetValue, Is.EqualTo(expectedStreet));
+        Assert.That(streetPart.NumberValue, Is.EqualTo(expectedNumber));
+        Assert.That(streetPart.UnitValue, Is.EqualTo(expectedUnit));
+        Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
+    }
+
+    [Test]
+    public void TestUnitNotParsedForSlashNumbers()
+    {
+        // Act
+        
+        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress("Krānu iela 3/5");
+
+        // Assert
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(1), ResultPrintout(result));
+        Assert.That(result, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(result));
+        
+        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)result![0];
+        Assert.That(streetPart.NumberValue, Is.EqualTo("3/5"));
+        Assert.That(streetPart.UnitValue, Is.Null);
+    }
+
     
     private NUnitString ResultPrintout(List<FuzzyAddressPart> result)
     {

@@ -475,15 +475,14 @@ Piektdiena: 8:30 - 14:00</td>
         // Hard-coded case - unknown meaning of "10"; use locality name only
         if (fixedAddress.Contains("\"Tērces-10\"")) fixedAddress = fixedAddress.Replace("\"Tērces-10\"", "\"Tērces\"");
 
+        // Hard-coded case - address is "Tautas nams Misā" but common name is "Misas tautas nams"
+        if (fixedAddress.Contains("Tautas nams Misā")) fixedAddress = fixedAddress.Replace("Tautas nams Misā", "Misas tautas nams");
+
         // Unique typos
         if (fixedAddress.Contains("Somersetas")) fixedAddress = fixedAddress.Replace("Somersetas", "Somersētas");
         if (fixedAddress.Contains("Skola iela")) fixedAddress = fixedAddress.Replace("Skola iela", "Skolas iela");
         if (fixedAddress.Contains("Brinģenes")) fixedAddress = fixedAddress.Replace("Brinģenes", "Briģenes");
         if (fixedAddress.Contains("Liela")) fixedAddress = fixedAddress.Replace("Liela", "Lielā");
-
-        // Remove flat/in-building designations
-        if (fixedAddress.Contains("Skolas iela 4-40")) fixedAddress = fixedAddress.Replace("Skolas iela 4-40", "Skolas iela 4");
-        if (fixedAddress.Contains("Pils iela 5-1")) fixedAddress = fixedAddress.Replace("Pils iela 5-1", "Pils iela 5");
 
         // Cleanup spacing again in case replacements introduced duplicates
         fixedAddress = Regex.Replace(fixedAddress, "\\s{2,}", " ");

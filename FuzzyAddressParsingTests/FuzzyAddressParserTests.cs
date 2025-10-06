@@ -183,10 +183,17 @@ public class FuzzyAddressParserTests
     
     [TestCase("Krānu iela 35", "35")]
     [TestCase("Krānu iela 35A", "35A")]
+    [TestCase("Krānu iela 35K", "35K")]
+    [TestCase("Krānu iela 35 A", "35A")]
     [TestCase("Krānu iela 35a", "35A")]
+    [TestCase("Krānu iela 35k", "35K")]
+    [TestCase("Krānu iela 35 a", "35A")]
     [TestCase("Krānu iela 35 k-24", "35 k-24")]
     [TestCase("Krānu iela 35 k24", "35 k-24")]
     [TestCase("Krānu iela 35A k-24", "35A k-24")]
+    [TestCase("Krānu iela 35K k-24", "35K k-24")]
+    [TestCase("Krānu iela 35k k-24", "35K k-24")]
+    [TestCase("Krānu iela 35 A k-24", "35A k-24")]
     [TestCase("Krānu iela 3/5", "3/5")]
     public void TestStreetNumberGetsRecognizedAndSanitized(string value, string expectedNumber)
     {

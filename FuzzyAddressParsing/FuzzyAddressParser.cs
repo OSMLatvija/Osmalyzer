@@ -384,8 +384,9 @@ public static class FuzzyAddressParser
         // "35"
         // "35A"
         // "35 k-2"
+        // "35A k-2"
         // "35/37"
-        Match match = Regex.Match(value, @"^(.+?)\s+(\d+(?:\/\d+)?[a-zA-Z]?(\s*k-?\d+)?)$");
+        Match match = Regex.Match(value, @"^(.+?)\s+(\d+(?:\/\d+)?(?:\s*[a-zA-Z])?(?:\s*k-?\d+)?)$");
 
         string name = match.Groups[1].Value.Trim();
         
@@ -447,19 +448,20 @@ public static class FuzzyAddressParser
         static string FixNumber(string num)
         {
             // "23" -> "23"
-            // "23a" -> "23 A"
+            // "23 A" -> "23A"
+            // "23a" -> "23A"
             // "23k-1" -> "23 k-1"
             // "23 k1" -> "23 k-1"
-            // "23a k1" -> "23A k-1"
+            // "23a k-1" -> "23A k-1"
             // "23A k1" -> "23A k-1"
             
-            Match match = Regex.Match(num, @"^(?<main>\d+)(?<letter>[a-zA-Z]?)(\s*(k-?)?(?<block>\d+))?$");
+            Match match = Regex.Match(num, @"^(?<main>\d+(?:\/\d+)?)(?:\s*(?<letter>[a-zA-Z]))?(?:\s*k-?(?<block>\d+))?$");
             
             if (!match.Success)
                 return num; // as is
             
             string main = match.Groups["main"].Value;
-            string letter = match.Groups["letter"].Value.ToUpperInvariant();
+            string letter = match.Groups["letter"].Value.Trim().ToUpperInvariant();
             string block = match.Groups["block"].Value;
             
             if (block != "")

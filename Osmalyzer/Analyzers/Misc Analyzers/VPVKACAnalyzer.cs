@@ -238,6 +238,22 @@ public class VPVKACAnalyzer : Analyzer
         // Validate additional issues
         // todo: like what?
 
+        // List all
+        report.AddGroup(
+            ExtraReportGroup.AllOffices,
+            "All VPVKAC Offices"
+        );
+
+        foreach (VPVKACOffice office in officeData.Offices)
+        {
+            report.AddEntry(
+                ExtraReportGroup.AllOffices,
+                new IssueReportEntry(
+                    office.ReportString()
+                )
+            );
+        }
+
 #if !REMOTE_EXECUTION
         // Export all offices (unmatched) to GeoJSON for local runs
         
@@ -323,6 +339,7 @@ public class VPVKACAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         UnlocatedOffices,
-        SuggestedAdditions
+        SuggestedAdditions,
+        AllOffices
     }
 }

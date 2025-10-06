@@ -61,10 +61,24 @@ public static class FuzzyAddressFinder
                 string? elementParish = element.GetValue("addr:subdistrict");
                 string? elementMunicipality = element.GetValue("addr:district");
                 string? elementPostcode = element.GetValue("addr:postcode");
+                    
+                string? oldElementStreet = element.GetValue("old_addr:street");
+                string? oldElementNumber = element.GetValue("old_addr:housenumber");
+                string? oldElementHouseName = element.GetValue("old_addr:housename");
 
                 FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(elementHouseName, houseNameParts, p => p.Value);
+                if (houseNameMatch == null && oldElementHouseName != null) houseNameMatch = GetBestMatch(oldElementHouseName, houseNameParts, p => p.Value);
                 FuzzyAddressStreetNameAndNumberPart? streetMatch = GetBestMatch(elementStreet, nameAndNumberParts, p => p.StreetValue);
                 FuzzyAddressStreetNameAndNumberPart? numberMatch = GetBestMatch(elementNumber, nameAndNumberParts, p => p.NumberValue);
+                bool old = false;
+                if (streetMatch == null && numberMatch == null && houseNameMatch == null)
+                {
+                    // If nothing matched, try (all on) old_addr:*
+                    houseNameMatch = GetBestMatch(oldElementHouseName, houseNameParts, p => p.Value);
+                    streetMatch = GetBestMatch(oldElementStreet, nameAndNumberParts, p => p.StreetValue);
+                    numberMatch = GetBestMatch(oldElementNumber, nameAndNumberParts, p => p.NumberValue);
+                    old = true;
+                }
                 FuzzyAddressCityPart? cityMatch = GetBestMatch(elementCity, cityParts, p => p.Value);
                 FuzzyAddressParishPart? parishMatch = GetBestMatch(elementParish, parishParts, p => p.Value);
                 FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(elementMunicipality, municipalityParts, p => p.Value);
@@ -94,9 +108,9 @@ public static class FuzzyAddressFinder
                 // Calculate approximate match "quality"
                 // This is all very hand-wavy and based on what sort of broken syntax addresses are present in data
                 score = 0;
-                if (houseNameMatched) score += 10;
-                if (streetMatched) score += 10;
-                if (numberMatched) score += 10;
+                if (houseNameMatched) score += old ? 10 : 20;
+                if (streetMatched) score += old ? 5 : 10;
+                if (numberMatched) score += old ? 5 : 10;
                 if (cityMatched) score += 5;
                 if (parishMatched) score += 5;
                 if (municipalityMatched) score += 5;

@@ -18,16 +18,6 @@ public static class FuzzyAddressFinder
         if (_addressables == null)
             GatherAddressables(data);
         
-        // Get the rawish address part values
-        
-        List<FuzzyAddressPart> parts = parsed.Parts;
-        FuzzyAddressHouseNamePart[] houseNameParts = parts.OfType<FuzzyAddressHouseNamePart>().ToArray();
-        FuzzyAddressStreetNameAndNumberPart[] nameAndNumberParts = parts.OfType<FuzzyAddressStreetNameAndNumberPart>().ToArray();
-        FuzzyAddressCityPart[] cityParts = parts.OfType<FuzzyAddressCityPart>().ToArray();
-        FuzzyAddressParishPart[] parishParts = parts.OfType<FuzzyAddressParishPart>().ToArray();
-        FuzzyAddressMunicipalityPart[] municipalityParts = parts.OfType<FuzzyAddressMunicipalityPart>().ToArray();
-        FuzzyAddressPostcodePart[] postcodeParts = parts.OfType<FuzzyAddressPostcodePart>().ToArray();
-        
         // Match against OSM elements
         
         List<OsmElement> matchedElements = [ ];
@@ -35,15 +25,15 @@ public static class FuzzyAddressFinder
         
         foreach (OsmElement element in _addressables!)
         {
-            if (DoesElementMatch(out int score))
+            if (DoesElementMatch(out int elementScore))
             {
-                if (bestScore == null || score > bestScore)
+                if (bestScore == null || elementScore > bestScore)
                 {
                     matchedElements.Clear(); // new best match list
                     matchedElements.Add(element);
-                    bestScore = score;
+                    bestScore = elementScore;
                 }
-                else if (score == bestScore)
+                else if (elementScore == bestScore)
                 {
                     matchedElements.Add(element);
                 }
@@ -71,17 +61,17 @@ public static class FuzzyAddressFinder
                 string? oldElementHouseName = element.GetValue("old_addr:housename");
                 string? oldElementUnit = element.GetValue("old_addr:unit");
 
-                // Gather all the matched between OSM values and parsed parts
+                // Gather all the matched between OSM values and parsed parts using cached arrays (null -> not found)
                 
-                FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(elementHouseName, houseNameParts, p => p.Value);
-                if (houseNameMatch == null && oldElementHouseName != null) houseNameMatch = GetBestMatch(oldElementHouseName, houseNameParts, p => p.Value);
-                FuzzyAddressStreetNameAndNumberPart? streetMatch = GetBestMatch(elementStreet, nameAndNumberParts, p => p.StreetValue);
-                FuzzyAddressStreetNameAndNumberPart? numberMatch = GetBestMatch(elementNumber, nameAndNumberParts, p => p.NumberValue);
-                FuzzyAddressStreetNameAndNumberPart? unitMatch = GetBestMatch(elementUnit, nameAndNumberParts, p => p.UnitValue);
-                FuzzyAddressCityPart? cityMatch = GetBestMatch(elementCity, cityParts, p => p.Value);
-                FuzzyAddressParishPart? parishMatch = GetBestMatch(elementParish, parishParts, p => p.Value);
-                FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(elementMunicipality, municipalityParts, p => p.Value);
-                FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(elementPostcode, postcodeParts, p => p.Value);
+                FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(elementHouseName, parsed.HouseNameParts, p => p.Value);
+                if (houseNameMatch == null && oldElementHouseName != null) houseNameMatch = GetBestMatch(oldElementHouseName, parsed.HouseNameParts, p => p.Value);
+                FuzzyAddressStreetNameAndNumberPart? streetMatch = GetBestMatch(elementStreet, parsed.StreetNameAndNumberParts, p => p.StreetValue);
+                FuzzyAddressStreetNameAndNumberPart? numberMatch = GetBestMatch(elementNumber, parsed.StreetNameAndNumberParts, p => p.NumberValue);
+                FuzzyAddressStreetNameAndNumberPart? unitMatch = GetBestMatch(elementUnit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
+                FuzzyAddressCityPart? cityMatch = GetBestMatch(elementCity, parsed.CityParts, p => p.Value);
+                FuzzyAddressParishPart? parishMatch = GetBestMatch(elementParish, parsed.ParishParts, p => p.Value);
+                FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(elementMunicipality, parsed.MunicipalityParts, p => p.Value);
+                FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(elementPostcode, parsed.PostcodeParts, p => p.Value);
                 
                 // Try old values if current are different/unmatched
                 
@@ -89,16 +79,19 @@ public static class FuzzyAddressFinder
                 if (streetMatch == null && numberMatch == null && houseNameMatch == null) // implies unit also not matched
                 {
                     // If nothing matched, try (all on) old_addr:*
-                    houseNameMatch = GetBestMatch(oldElementHouseName, houseNameParts, p => p.Value);
-                    streetMatch = GetBestMatch(oldElementStreet, nameAndNumberParts, p => p.StreetValue);
-                    numberMatch = GetBestMatch(oldElementNumber, nameAndNumberParts, p => p.NumberValue);
-                    unitMatch = GetBestMatch(oldElementUnit, nameAndNumberParts, p => p.UnitValue);
+                    houseNameMatch = GetBestMatch(oldElementHouseName, parsed.HouseNameParts, p => p.Value);
+                    streetMatch = GetBestMatch(oldElementStreet, parsed.StreetNameAndNumberParts, p => p.StreetValue);
+                    numberMatch = GetBestMatch(oldElementNumber, parsed.StreetNameAndNumberParts, p => p.NumberValue);
+                    unitMatch = GetBestMatch(oldElementUnit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
                     old = true;
                 }
 
-                static T? GetBestMatch<T>(string? elementValue, T[] source, Func<T, string?> valueSelector) where T : FuzzyAddressPart
+                static T? GetBestMatch<T>(string? elementValue, T[]? source, Func<T, string?> valueSelector) where T : FuzzyAddressPart
                 {
                     if (elementValue == null)
+                        return null;
+
+                    if (source == null) // can't be 0 if set
                         return null;
 
                     return source

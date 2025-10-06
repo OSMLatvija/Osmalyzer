@@ -249,7 +249,7 @@ public class VPVKACAnalyzer : Analyzer
             report.AddEntry(
                 ExtraReportGroup.AllOffices,
                 new IssueReportEntry(
-                    office.ReportString()
+                    office.ReportString(true)
                 )
             );
         }
@@ -332,7 +332,7 @@ public class VPVKACAnalyzer : Analyzer
 
     private record LocatedVPVKACOffice(VPVKACOffice Office, OsmCoord Coord) : IDataItem
     {
-        public string ReportString() => Office.ReportString();
+        public string ReportString() => Office.ReportString(false);
     }
     
     

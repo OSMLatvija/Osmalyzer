@@ -14,6 +14,8 @@ public class VPVKACOffice
     
     public string Address { get; }
     
+    public string? OriginalAddress { get; }
+    
     public string Email { get; }
     
     public string Phone { get; }
@@ -21,12 +23,21 @@ public class VPVKACOffice
     public string OpeningHours { get; }
 
 
-    public VPVKACOffice(string name, string shortName, string disambiguatedName, string address, string email, string phone, string openingHours)
+    public VPVKACOffice(
+        string name,
+        string shortName,
+        string disambiguatedName,
+        string address,
+        string email,
+        string phone,
+        string openingHours,
+        string? originalAddress)
     {
         Name = name.Trim();
         ShortName = shortName.Trim();
         DisambiguatedName = disambiguatedName.Trim();
         Address = address;
+        OriginalAddress = originalAddress;
         Email = email.Trim();
         Phone = phone.Trim();
         OpeningHours = openingHours.Trim();
@@ -38,11 +49,12 @@ public class VPVKACOffice
     }
         
         
-    public string ReportString()
+    public string ReportString(bool includeOriginal)
     {
         return
             "VPVKAC office " +
             "`" + Name + "` " +
-            "at `" + Address + "`";
+            "at `" + Address + "`" +
+            (includeOriginal && OriginalAddress != null ? " (from: `" + OriginalAddress + "`)" : "");
     }
 }

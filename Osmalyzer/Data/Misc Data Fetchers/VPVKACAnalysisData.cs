@@ -90,8 +90,12 @@ Piektdiena: 8:30 - 14:00</td>
             string rawAddress = addressMatches[1].Groups[1].ToString().Trim();
             if (rawAddress == "") 
                 continue; // address not (yet) specified, ignoring entry
-                
-            string address = CleanAddress(rawAddress);
+
+            CleanAddress(
+                rawAddress, 
+                out string cleanedAddress, 
+                out string originalAddress
+            );
             
             Match openingHoursMatch = Regex.Match(rowText, @"<td class=""text-left"">(.+?)<\/td>", RegexOptions.Singleline);
             if (!openingHoursMatch.Success) throw new Exception();
@@ -114,7 +118,18 @@ Piektdiena: 8:30 - 14:00</td>
             
             phone = PhonesToOsmSyntax(phone);
             
-            Offices.Add(new VPVKACOffice(name, shortName, disambiguatedName, address, email, phone, openingHours));
+            Offices.Add(
+                new VPVKACOffice(
+                    name,
+                    shortName,
+                    disambiguatedName,
+                    cleanedAddress,
+                    email,
+                    phone,
+                    openingHours,
+                    originalAddress != cleanedAddress ? originalAddress : null
+                )
+            );
         }
         
         if (Offices.Count == 0) throw new Exception();
@@ -425,50 +440,55 @@ Piektdiena: 8:30 - 14:00</td>
 
 
     [Pure]
-    private static string CleanAddress(string raw)
+    private static void CleanAddress(
+        string raw,
+        out string cleaned,
+        out string original)
     {
         // e.g. "Lielā iela 54<br /> Grobiņas pilsēta<br /> Dienvidkurzemes nov.<br /> LV-3430"
         // we want "Lielā iela 54, Grobiņas, Dienvidkurzemes nov., LV-3430"
         
-        string cleaned = HttpUtility.HtmlDecode(raw);
-        cleaned = cleaned.Replace("<br />", ", ");
-        cleaned = cleaned.Replace("  ", " "); // double spaces
-        
-        // Hard-coded case - no idea what the "10" is here, but "Tērces" seems to match well
-        if (cleaned.Contains("\"Tērces-10\""))
-            cleaned = cleaned.Replace("\"Tērces-10\"", "\"Tērces\"");
-        
-        cleaned = cleaned.Replace('“', '"').Replace('”', '"'); // e.g. "“Silavas”", just use normal quotes
+        string decoded = HttpUtility.HtmlDecode(raw);
 
-        cleaned = cleaned.Replace("  ", " "); // e.g. "Raiņa  iela"
-        
-        cleaned = cleaned.Replace("ielā", "iela"); // e.g. "Skolas ielā 17" or "Bērzu ielā"
-        
-        cleaned = cleaned.Replace("Somersetas", "Somersētas"); // unique typo
-        cleaned = cleaned.Replace("Skola iela", "Skolas iela"); // unique typo
-        cleaned = cleaned.Replace("Brinģenes", "Briģenes"); // unique typo
-        cleaned = cleaned.Replace("Liela", "Lielā"); // unique typo
-        
-        cleaned = cleaned.Replace("Skolas iela 4-40", "Skolas iela 4"); // 40 is the flat number in an apartment building
-        // todo: let fuzzy address parser handle this better
-        
-        cleaned = cleaned.Replace("Pils iela 5-1", "Pils iela 5"); // 1 must be some in-building designation
-        // todo: let fuzzy address parser handle this better
-        
-        if (cleaned.Contains("pilsēta"))
-            cleaned = cleaned
-                       .Replace("s pilsēta", "") // generic e.g. "Grobiņas pilsēta" -> "Grobiņa", many matches like this
-                       .Replace("u pilsēta", "i") // generic e.g. "Ādažu pilsēta" -> "Ādaži", multiple matches like this
-                       .Replace("Pļaviņu pilsēta", "Pļaviņas") // special case "Pļaviņu pilsēta" -> "Pļaviņas"
-                       .Replace("Cēsu pilsēta", "Cēsis"); // special case "Cēsu pilsēta" -> "Cēsis"
-        // todo: let fuzzy address parser handle this better, detecting "pilsēta" stuff
+        // First pass: non-broken, unambiguous normalization (not counted as errors)
+        string normalized = decoded;
+        normalized = normalized.Replace("<br />", ", ");
+        normalized = normalized.Replace('“', '"').Replace('”', '"');
+        normalized = normalized.Replace("  ", " "); // double spaces
+        normalized = normalized.Replace("\t", " ");
+        normalized = Regex.Replace(normalized, "\\s{2,}", " ");
+        normalized = normalized.Replace("ielā", "iela");
+        normalized = normalized.Replace("pag.", "pagasts");
+        normalized = normalized.Replace("nov.", "novads");
 
-        cleaned = cleaned.Replace("pag.", "pagasts");
+        // Apply systematic city wording normalization (not considered a typo)
+        // todo: let parser handle this instead?
+        if (normalized.Contains("pilsēta"))
+            normalized = normalized
+               .Replace("s pilsēta", "")
+               .Replace("u pilsēta", "i")
+               .Replace("Pļaviņu pilsēta", "Pļaviņas")
+               .Replace("Cēsu pilsēta", "Cēsis");
 
-        cleaned = cleaned.Replace("nov.", "novads");
+        string fixedAddress = normalized;
 
-        // todo: report these cases for manual checking / reporting?
+        // Hard-coded case - unknown meaning of "10"; use locality name only
+        if (fixedAddress.Contains("\"Tērces-10\"")) fixedAddress = fixedAddress.Replace("\"Tērces-10\"", "\"Tērces\"");
 
-        return cleaned.Trim();
+        // Unique typos
+        if (fixedAddress.Contains("Somersetas")) fixedAddress = fixedAddress.Replace("Somersetas", "Somersētas");
+        if (fixedAddress.Contains("Skola iela")) fixedAddress = fixedAddress.Replace("Skola iela", "Skolas iela");
+        if (fixedAddress.Contains("Brinģenes")) fixedAddress = fixedAddress.Replace("Brinģenes", "Briģenes");
+        if (fixedAddress.Contains("Liela")) fixedAddress = fixedAddress.Replace("Liela", "Lielā");
+
+        // Remove flat/in-building designations
+        if (fixedAddress.Contains("Skolas iela 4-40")) fixedAddress = fixedAddress.Replace("Skolas iela 4-40", "Skolas iela 4");
+        if (fixedAddress.Contains("Pils iela 5-1")) fixedAddress = fixedAddress.Replace("Pils iela 5-1", "Pils iela 5");
+
+        // Cleanup spacing again in case replacements introduced duplicates
+        fixedAddress = Regex.Replace(fixedAddress, "\\s{2,}", " ");
+
+        cleaned = fixedAddress.Trim();
+        original = normalized.Trim();
     }
 }

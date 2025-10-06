@@ -434,56 +434,41 @@ Piektdiena: 8:30 - 14:00</td>
         cleaned = cleaned.Replace("<br />", ", ");
         cleaned = cleaned.Replace("  ", " "); // double spaces
         
-        // No idea what the "10" is here, but "Tērces" seems to match well
+        // Hard-coded case - no idea what the "10" is here, but "Tērces" seems to match well
         if (cleaned.Contains("\"Tērces-10\""))
             cleaned = cleaned.Replace("\"Tērces-10\"", "\"Tērces\"");
         
-        return cleaned;
-    }
+        cleaned = cleaned.Replace('“', '"').Replace('”', '"'); // e.g. "“Silavas”", just use normal quotes
 
-
-    [Pure]
-    private static string TryCleanName(string name)
-    {
-        name = name.Replace('“', '"').Replace('”', '"'); // e.g. "“Silavas”", just use normal quotes that address matcher understands
-
-        name = name.Replace("  ", " "); // e.g. "Raiņa  iela"
+        cleaned = cleaned.Replace("  ", " "); // e.g. "Raiņa  iela"
         
-        name = name.Replace("ielā", "iela"); // e.g. "Skolas ielā 17" or "Bērzu ielā"
+        cleaned = cleaned.Replace("ielā", "iela"); // e.g. "Skolas ielā 17" or "Bērzu ielā"
         
-        name = name.Replace("Somersetas", "Somersētas"); // unique typo
-        name = name.Replace("Skola iela", "Skolas iela"); // unique typo
-        name = name.Replace("Brinģenes", "Briģenes"); // unique typo
-        name = name.Replace("Liela", "Lielā"); // unique typo
+        cleaned = cleaned.Replace("Somersetas", "Somersētas"); // unique typo
+        cleaned = cleaned.Replace("Skola iela", "Skolas iela"); // unique typo
+        cleaned = cleaned.Replace("Brinģenes", "Briģenes"); // unique typo
+        cleaned = cleaned.Replace("Liela", "Lielā"); // unique typo
         
-        name = name.Replace("Skolas iela 4-40", "Skolas iela 4"); // 40 is the flat number in an apartment building
-        name = name.Replace("Pils iela 5-1", "Pils iela 5"); // 1 must be some in-building designation
+        cleaned = cleaned.Replace("Skolas iela 4-40", "Skolas iela 4"); // 40 is the flat number in an apartment building
+        // todo: let fuzzy address parser handle this better
         
-        return name.Trim();
-    }
-
-    [Pure]
-    private static string TryCleanCityName(string location)
-    {
-        if (location.Contains("pilsēta"))
-            location = location
+        cleaned = cleaned.Replace("Pils iela 5-1", "Pils iela 5"); // 1 must be some in-building designation
+        // todo: let fuzzy address parser handle this better
+        
+        if (cleaned.Contains("pilsēta"))
+            cleaned = cleaned
                        .Replace("s pilsēta", "") // generic e.g. "Grobiņas pilsēta" -> "Grobiņa", many matches like this
                        .Replace("u pilsēta", "i") // generic e.g. "Ādažu pilsēta" -> "Ādaži", multiple matches like this
                        .Replace("Pļaviņu pilsēta", "Pļaviņas") // special case "Pļaviņu pilsēta" -> "Pļaviņas"
                        .Replace("Cēsu pilsēta", "Cēsis"); // special case "Cēsu pilsēta" -> "Cēsis"
+        // todo: let fuzzy address parser handle this better, detecting "pilsēta" stuff
 
-        return location.Trim();
-    }
+        cleaned = cleaned.Replace("pag.", "pagasts");
 
-    [Pure]
-    private static string TryCleanPagasts(string pagasts)
-    {
-        return pagasts.Replace("pag.", "pagasts").Trim();
-    }
+        cleaned = cleaned.Replace("nov.", "novads");
 
-    [Pure]
-    private static string TryCleanNovads(string novads)
-    {
-        return novads.Replace("nov.", "novads").Trim();
+        // todo: report these cases for manual checking / reporting?
+
+        return cleaned.Trim();
     }
 }

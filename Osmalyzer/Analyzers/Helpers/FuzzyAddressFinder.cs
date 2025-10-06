@@ -24,19 +24,19 @@ public static class FuzzyAddressFinder
         List<OsmElement> matchedElements = [ ];
         int? bestScore = null; 
         
-        foreach (OsmElement element in _addressables!.Elements)
+        foreach (Addressable addressable in _addressables!.Elements)
         {
             if (DoesElementMatch(out int elementScore))
             {
                 if (bestScore == null || elementScore > bestScore)
                 {
                     matchedElements.Clear(); // new best match list
-                    matchedElements.Add(element);
+                    matchedElements.Add(addressable.Element);
                     bestScore = elementScore;
                 }
                 else if (elementScore == bestScore)
                 {
-                    matchedElements.Add(element);
+                    matchedElements.Add(addressable.Element);
                 }
             }
 
@@ -46,33 +46,18 @@ public static class FuzzyAddressFinder
             [Pure]
             bool DoesElementMatch(out int score)
             {
-                // Gather all the OSM values
+                // Gather all the matches between cached OSM values and parsed parts using cached arrays (null -> not found)
                 
-                string? elementHouseName = element.GetValue("addr:housename");
-                string? elementStreet = element.GetValue("addr:street");
-                string? elementNumber = element.GetValue("addr:housenumber");
-                string? elementUnit = element.GetValue("addr:unit");
-                string? elementCity = element.GetValue("addr:city");
-                string? elementParish = element.GetValue("addr:subdistrict");
-                string? elementMunicipality = element.GetValue("addr:district");
-                string? elementPostcode = element.GetValue("addr:postcode");
-                    
-                string? oldElementStreet = element.GetValue("old_addr:street");
-                string? oldElementNumber = element.GetValue("old_addr:housenumber");
-                string? oldElementHouseName = element.GetValue("old_addr:housename");
-                string? oldElementUnit = element.GetValue("old_addr:unit");
-
-                // Gather all the matches between OSM values and parsed parts using cached arrays (null -> not found)
-                
-                FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(elementHouseName, parsed.HouseNameParts, p => p.Value);
-                if (houseNameMatch == null && oldElementHouseName != null) houseNameMatch = GetBestMatch(oldElementHouseName, parsed.HouseNameParts, p => p.Value);
-                FuzzyAddressStreetNameAndNumberPart? streetMatch = GetBestMatch(elementStreet, parsed.StreetNameAndNumberParts, p => p.StreetValue);
-                FuzzyAddressStreetNameAndNumberPart? numberMatch = GetBestMatch(elementNumber, parsed.StreetNameAndNumberParts, p => p.NumberValue);
-                FuzzyAddressStreetNameAndNumberPart? unitMatch = GetBestMatch(elementUnit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
-                FuzzyAddressCityPart? cityMatch = GetBestMatch(elementCity, parsed.CityParts, p => p.Value);
-                FuzzyAddressParishPart? parishMatch = GetBestMatch(elementParish, parsed.ParishParts, p => p.Value);
-                FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(elementMunicipality, parsed.MunicipalityParts, p => p.Value);
-                FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(elementPostcode, parsed.PostcodeParts, p => p.Value);
+                FuzzyAddressHouseNamePart? houseNameMatch = GetBestMatch(addressable.HouseName, parsed.HouseNameParts, p => p.Value);
+                if (houseNameMatch == null && addressable.OldHouseName != null)
+                    houseNameMatch = GetBestMatch(addressable.OldHouseName, parsed.HouseNameParts, p => p.Value);
+                FuzzyAddressStreetNameAndNumberPart? streetMatch = GetBestMatch(addressable.Street, parsed.StreetNameAndNumberParts, p => p.StreetValue);
+                FuzzyAddressStreetNameAndNumberPart? numberMatch = GetBestMatch(addressable.Number, parsed.StreetNameAndNumberParts, p => p.NumberValue);
+                FuzzyAddressStreetNameAndNumberPart? unitMatch = GetBestMatch(addressable.Unit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
+                FuzzyAddressCityPart? cityMatch = GetBestMatch(addressable.City, parsed.CityParts, p => p.Value);
+                FuzzyAddressParishPart? parishMatch = GetBestMatch(addressable.Parish, parsed.ParishParts, p => p.Value);
+                FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(addressable.Municipality, parsed.MunicipalityParts, p => p.Value);
+                FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(addressable.Postcode, parsed.PostcodeParts, p => p.Value);
                 
                 // Try old values if current are different/unmatched
                 
@@ -80,10 +65,10 @@ public static class FuzzyAddressFinder
                 if (streetMatch == null && numberMatch == null && houseNameMatch == null) // implies unit also not matched
                 {
                     // If nothing matched, try (all on) old_addr:*
-                    houseNameMatch = GetBestMatch(oldElementHouseName, parsed.HouseNameParts, p => p.Value);
-                    streetMatch = GetBestMatch(oldElementStreet, parsed.StreetNameAndNumberParts, p => p.StreetValue);
-                    numberMatch = GetBestMatch(oldElementNumber, parsed.StreetNameAndNumberParts, p => p.NumberValue);
-                    unitMatch = GetBestMatch(oldElementUnit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
+                    houseNameMatch = GetBestMatch(addressable.OldHouseName, parsed.HouseNameParts, p => p.Value);
+                    streetMatch = GetBestMatch(addressable.OldStreet, parsed.StreetNameAndNumberParts, p => p.StreetValue);
+                    numberMatch = GetBestMatch(addressable.OldNumber, parsed.StreetNameAndNumberParts, p => p.NumberValue);
+                    unitMatch = GetBestMatch(addressable.OldUnit, parsed.StreetNameAndNumberParts, p => p.UnitValue);
                     old = true;
                 }
 
@@ -157,12 +142,49 @@ public static class FuzzyAddressFinder
 
     private sealed class Addressables
     {
-        public List<OsmElement> Elements { get; }
+        public List<Addressable> Elements { get; }
 
         
         public Addressables(IEnumerable<OsmElement> elements)
         {
-            Elements = elements.ToList();
+            Elements = elements.Select(e => new Addressable(e)).ToList();
+        }
+    }
+
+    private sealed class Addressable
+    {
+        public OsmElement Element { get; }
+
+        public string? HouseName { get; }
+        public string? Street { get; }
+        public string? Number { get; }
+        public string? Unit { get; }
+        public string? City { get; }
+        public string? Parish { get; }
+        public string? Municipality { get; }
+        public string? Postcode { get; }
+        public string? OldStreet { get; }
+        public string? OldNumber { get; }
+        public string? OldHouseName { get; }
+        public string? OldUnit { get; }
+
+
+        public Addressable(OsmElement element)
+        {
+            Element = element;
+
+            HouseName = element.GetValue("addr:housename");
+            Street = element.GetValue("addr:street");
+            Number = element.GetValue("addr:housenumber");
+            Unit = element.GetValue("addr:unit");
+            City = element.GetValue("addr:city");
+            Parish = element.GetValue("addr:subdistrict");
+            Municipality = element.GetValue("addr:district");
+            Postcode = element.GetValue("addr:postcode");
+            OldStreet = element.GetValue("old_addr:street");
+            OldNumber = element.GetValue("old_addr:housenumber");
+            OldHouseName = element.GetValue("old_addr:housename");
+            OldUnit = element.GetValue("old_addr:unit");
         }
     }
 }

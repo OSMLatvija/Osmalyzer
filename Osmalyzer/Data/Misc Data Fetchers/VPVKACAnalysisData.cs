@@ -91,11 +91,8 @@ Piektdiena: 8:30 - 14:00</td>
             if (rawAddress == "") 
                 continue; // address not (yet) specified, ignoring entry
                 
-            VPVKACOffice.VPVKACAddress? address = CleanAddress(rawAddress);
-            if (address == null) throw new Exception();
+            string address = CleanAddress(rawAddress);
             
-            address = AdjustAddress(address);
-
             Match openingHoursMatch = Regex.Match(rowText, @"<td class=""text-left"">(.+?)<\/td>", RegexOptions.Singleline);
             if (!openingHoursMatch.Success) throw new Exception();
             
@@ -428,138 +425,20 @@ Piektdiena: 8:30 - 14:00</td>
 
 
     [Pure]
-    private static VPVKACOffice.VPVKACAddress? CleanAddress(string raw)
+    private static string CleanAddress(string raw)
     {
         // e.g. "Lielā iela 54<br /> Grobiņas pilsēta<br /> Dienvidkurzemes nov.<br /> LV-3430"
+        // we want "Lielā iela 54, Grobiņas, Dienvidkurzemes nov., LV-3430"
         
-        string[] parts = raw.Split("<br />", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-        if (parts.Length == 3)
-        {
-            // Brīvības gatve 455
-            // Rīga
-            // LV-1024 
-            
-            string name = parts[0]; // e.g. "Brīvības gatve 455"
-            string location = parts[1]; // e.g. "Rīga"
-            string postalCode = parts[2]; // e.g. "LV-1024"
-
-            if (Regex.IsMatch(postalCode, @"^LV-\d{4}$") == false) return null;
-
-            name = TryCleanName(name);
-            location = TryCleanCityName(location);
-            
-            return new VPVKACOffice.VPVKACAddress(
-                name,
-                location,
-                null, // pagasts
-                null, // novads
-                postalCode
-            );
-        }
-        else if (parts.Length == 4)
-        {
-            // Atmodas iela 22
-            // Aizputes pilsēta
-            // Dienvidkurzemes nov.
-            // LV-3456   
-            
-            string name = parts[0]; // e.g. "Atmodas iela 22"
-            string location = parts[1]; // e.g. "Aizputes pilsēta"
-            string novads = parts[2]; // e.g. "Dienvidkurzemes nov."
-            string postalCode = parts[3]; // e.g. "LV-3456"
-
-            if (!novads.Contains("nov.")) return null;
-            if (Regex.IsMatch(postalCode, @"^LV-\d{4}$") == false) return null;
-
-            name = TryCleanName(name);
-            location = TryCleanCityName(location);
-            novads = TryCleanNovads(novads);
-            
-            return new VPVKACOffice.VPVKACAddress(
-                name,
-                location,
-                null, // pagasts
-                novads,
-                postalCode
-            );
-        }
-        else if (parts.Length == 5)
-        {
-            if (parts[2].Contains("pilsēta")) // special case
-            {     
-                // Gaismas iela 19
-                // k.9-1
-                // Ķekavas pilsēta
-                // Ķekavas nov.
-                // LV-2123  
-                
-                string name = parts[0]; // e.g. "Gaismas iela 19"
-                // Ignoring e.g. "k.9-1"
-                string location = parts[2]; // e.g. "Ķekavas pilsēta"
-                string novads = parts[3]; // e.g. "Ķekavas nov."
-                string postalCode = parts[4]; // e.g. "LV-2123"
-
-                if (!novads.Contains("nov.")) return null;
-                if (!Regex.IsMatch(postalCode, @"^LV-\d{4}$")) return null;
-
-                name = TryCleanName(name);
-                novads = TryCleanNovads(novads);
-
-                return new VPVKACOffice.VPVKACAddress(
-                    name,
-                    location,
-                    null,
-                    novads,
-                    postalCode
-                );
-            }
-            else
-            {       
-                // Alauksta iela 4
-                // Vecpiebalga
-                // Vecpiebalgas pag.
-                // Cēsu nov.
-                // LV-4122   
-                
-                string name = parts[0]; // e.g. "Alauksta iela 4"
-                string location = parts[1]; // e.g. "Vecpiebalga"
-                string pagasts = parts[2]; // e.g. "Vecpiebalgas pag."
-                string novads = parts[3]; // e.g. "Cēsu nov."
-                string postalCode = parts[4]; // e.g. "LV-4122"
-
-                if (!pagasts.Contains("pag.")) return null;
-                if (!novads.Contains("nov.")) return null;
-                if (!Regex.IsMatch(postalCode, @"^LV-\d{4}$")) return null;
-
-                name = TryCleanName(name);
-                location = TryCleanCityName(location);
-                pagasts = TryCleanPagasts(pagasts);
-                novads = TryCleanNovads(novads);
-
-                return new VPVKACOffice.VPVKACAddress(
-                    name,
-                    location,
-                    pagasts,
-                    novads,
-                    postalCode
-                );
-            }
-        }
-        else 
-        {
-            return null;
-        }
-    }
-
-    [Pure]
-    private static VPVKACOffice.VPVKACAddress AdjustAddress(VPVKACOffice.VPVKACAddress address)
-    {
+        string cleaned = HttpUtility.HtmlDecode(raw);
+        cleaned = cleaned.Replace("<br />", ", ");
+        cleaned = cleaned.Replace("  ", " "); // double spaces
+        
         // No idea what the "10" is here, but "Tērces" seems to match well
-        if (address.Name == "\"Tērces-10\"")
-            return address with { Name = "\"Tērces\"" };
-
-        return address;
+        if (cleaned.Contains("\"Tērces-10\""))
+            cleaned = cleaned.Replace("\"Tērces-10\"", "\"Tērces\"");
+        
+        return cleaned;
     }
 
 

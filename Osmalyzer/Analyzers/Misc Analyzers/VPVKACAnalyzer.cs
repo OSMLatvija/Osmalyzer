@@ -142,7 +142,7 @@ public class VPVKACAnalyzer : Analyzer
                 report.AddEntry(
                     ExtraReportGroup.UnlocatedOffices,
                     new IssueReportEntry(
-                        "Office `" + unlocatedOffice.Name + "` could not be geolocated for `" + unlocatedOffice.Address.ToString(true) + "`"
+                        "Office `" + unlocatedOffice.Name + "` could not be geolocated for `" + unlocatedOffice.Address + "`"
                     )
                 );
             }
@@ -172,7 +172,7 @@ public class VPVKACAnalyzer : Analyzer
                     ExtraReportGroup.SuggestedAdditions,
                     new IssueReportEntry(
                         '`' + locatedOffice.Office.DisplayName + "` office at `" +
-                        locatedOffice.Office.Address.ToString(true) +
+                        locatedOffice.Office.Address +
                         "` can be added at " +
                         locatedOffice.Coord.OsmUrl +
                         " as" + Environment.NewLine + tagsBlock,
@@ -257,7 +257,7 @@ public class VPVKACAnalyzer : Analyzer
                 { "email", node.Office.Email },
                 { "phone", node.Office.Phone },
                 { "opening_hours", node.Office.OpeningHours },
-                { "__address", node.Office.Address.ToString(false) }, // for debug
+                { "__address", node.Office.Address }, // for debug
             };
 
             features.Add(new Feature(point, attributes));
@@ -276,14 +276,8 @@ public class VPVKACAnalyzer : Analyzer
     {
         OsmCoord? coord = FuzzyAddressFinder.Find(
             osmData,
-            office.Address.Name,
-            office.Address.Location,
-            office.Address.Pagasts,
-            office.Address.Novads,
-            office.Address.PostalCode
+            office.Address
         );
-        
-        // todo: not using "pagasts" and "novads", but are they ever ambiguous?
         
         if (coord == null)
             return null; // no location found

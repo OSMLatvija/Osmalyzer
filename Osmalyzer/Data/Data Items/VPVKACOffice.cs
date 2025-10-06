@@ -12,7 +12,7 @@ public class VPVKACOffice
     
     public bool IsAmbiguous { get; private set; }
     
-    public VPVKACAddress Address { get; }
+    public string Address { get; }
     
     public string Email { get; }
     
@@ -21,7 +21,7 @@ public class VPVKACOffice
     public string OpeningHours { get; }
 
 
-    public VPVKACOffice(string name, string shortName, string disambiguatedName, VPVKACAddress address, string email, string phone, string openingHours)
+    public VPVKACOffice(string name, string shortName, string disambiguatedName, string address, string email, string phone, string openingHours)
     {
         Name = name.Trim();
         ShortName = shortName.Trim();
@@ -44,25 +44,5 @@ public class VPVKACOffice
             "VPVKAC office " +
             "`" + Name + "` " +
             "at `" + Address + "`";
-    }
-
-
-    public record VPVKACAddress(string Name, string Location, string? Pagasts, string? Novads, string PostalCode)
-    {
-        public override string ToString() => ToString(false);
-
-        public string ToString(bool full)
-        {
-            if (full)
-                return Name.Trim() +
-                       ", " + Location.Trim() +
-                       (Pagasts != null ? ", " + Pagasts.Trim() : "") +
-                       (Novads != null ? ", " + Novads.Trim() : "") +
-                       ", " + PostalCode;
-            else
-                return Name + 
-                       ", " + Location.Trim() + 
-                       ", " + PostalCode.Trim();
-        }
     }
 }

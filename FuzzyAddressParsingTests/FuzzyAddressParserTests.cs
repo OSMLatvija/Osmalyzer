@@ -76,8 +76,10 @@ public class FuzzyAddressParserTests
         Assert.That(streetPart2.Confidence, Is.EqualTo(FuzzyConfidence.High));
     }
     
-    [TestCase("\"Krāniņi\"")]
-    public void TestHouseName(string value)
+    [TestCase("\"Krāniņi\"", "Krāniņi", FuzzyConfidence.High)]
+    [TestCase("Krāniņi", "Krāniņi", FuzzyConfidence.Low)]
+    [TestCase("Krāniņi 18", "Krāniņi 18", FuzzyConfidence.Low)]
+    public void TestHouseName(string value, string expectedCleaned, FuzzyConfidence confidence)
     {
         // Act
         
@@ -91,8 +93,8 @@ public class FuzzyAddressParserTests
         
         FuzzyAddressHouseNamePart housePart = (FuzzyAddressHouseNamePart)result![0];
         Assert.That(housePart.Index, Is.EqualTo(0));
-        Assert.That(housePart.Value, Is.EqualTo("Krāniņi"));
-        Assert.That(housePart.Confidence, Is.EqualTo(FuzzyConfidence.High));
+        Assert.That(housePart.Value, Is.EqualTo(expectedCleaned));
+        Assert.That(housePart.Confidence, Is.EqualTo(confidence));
     }
     
     [TestCase("\"\"")]
@@ -180,7 +182,6 @@ public class FuzzyAddressParserTests
     }
     
     [TestCase("Krānu iela 35", "35")]
-    [TestCase("Krānu 35", "35")]
     [TestCase("Krānu iela 35A", "35A")]
     [TestCase("Krānu iela 35a", "35A")]
     [TestCase("Krānu iela 35 k-24", "35 k-24")]
@@ -332,6 +333,29 @@ public class FuzzyAddressParserTests
         Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(result));
         Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(result));
         Assert.That(result.OfType<FuzzyAddressHouseNamePart>().First().Value, Is.EqualTo("Krāniņi"));
+        Assert.That(result.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
+        Assert.That(result.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
+        Assert.That(result.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));
+        Assert.That(result.OfType<FuzzyAddressMunicipalityPart>().First().Value, Is.EqualTo("Ornitoloģijas novads"));
+    }
+
+    [TestCase("Krāns 18, Krāniņmuiža, Vistiņu pagasts, Ornitoloģijas novads, LV-1234")]
+    public void TestFullAddressExample3(string value)
+    {
+        // Act
+        
+        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        
+        // Assert
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(5), ResultPrintout(result));
+        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(result));
+        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressCityPart>(), ResultPrintout(result));
+        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressParishPart>(), ResultPrintout(result));
+        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressMunicipalityPart>(), ResultPrintout(result));
+        Assert.That(result, Has.Exactly(1).InstanceOf<FuzzyAddressPostcodePart>(), ResultPrintout(result));
+        Assert.That(result.OfType<FuzzyAddressHouseNamePart>().First().Value, Is.EqualTo("Krāns 18"));
         Assert.That(result.OfType<FuzzyAddressPostcodePart>().First().Value, Is.EqualTo("LV-1234"));
         Assert.That(result.OfType<FuzzyAddressCityPart>().First().Value, Is.EqualTo("Krāniņmuiža"));
         Assert.That(result.OfType<FuzzyAddressParishPart>().First().Value, Is.EqualTo("Vistiņu pagasts"));

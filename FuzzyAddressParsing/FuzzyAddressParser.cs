@@ -155,13 +155,13 @@ public static class FuzzyAddressParser
         // Gather highest confidence first, then descending remaining
         foreach (FuzzyConfidence minConfidence in Enum.GetValues<FuzzyConfidence>().OrderDescending())
         {
-            FuzzyAddressStreetNameAndNumberPart[]? selectedStreetNameAndNumber = ExtractBest<FuzzyAddressStreetNameAndNumberPart>(proposedParts, minConfidence);
-            if (selectedStreetNameAndNumber != null)
-                parts.AddRange(selectedStreetNameAndNumber);
-            
             FuzzyAddressHouseNamePart[]? selectedHouseName = ExtractBest<FuzzyAddressHouseNamePart>(proposedParts, minConfidence);
             if (selectedHouseName != null)
                 parts.AddRange(selectedHouseName);
+            
+            FuzzyAddressStreetNameAndNumberPart[]? selectedStreetNameAndNumber = ExtractBest<FuzzyAddressStreetNameAndNumberPart>(proposedParts, minConfidence);
+            if (selectedStreetNameAndNumber != null)
+                parts.AddRange(selectedStreetNameAndNumber);
             
             FuzzyAddressCityPart[]? selectedCity = ExtractBest<FuzzyAddressCityPart>(proposedParts, minConfidence);
             if (selectedCity != null)
@@ -326,7 +326,7 @@ public static class FuzzyAddressParser
         
         // Try split into street name and number
         
-        (string prefix, string suffix)? splitStreetLine = TrySplitStreetLine(split);
+        (string prefix, string suffix, FuzzyConfidence confidence)? splitStreetLine = TrySplitStreetLine(split);
         
         if (splitStreetLine != null)
         {
@@ -338,8 +338,9 @@ public static class FuzzyAddressParser
             {
                 string streetName = splitStreetLine.Value.prefix;
                 string streetNumber = splitStreetLine.Value.suffix;
+                FuzzyConfidence confidence = splitStreetLine.Value.confidence;
 
-                return [ new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, FuzzyConfidence.High) ];
+                return [ new FuzzyAddressStreetNameAndNumberPart(streetName, streetNumber, index, confidence) ];
             }
         }
         
@@ -377,7 +378,7 @@ public static class FuzzyAddressParser
     }
 
     [Pure]
-    private static (string prefix, string suffix)? TrySplitStreetLine(string value)
+    private static (string prefix, string suffix, FuzzyConfidence confidence)? TrySplitStreetLine(string value)
     {
         // Ends with a number or possibly slashed two, possibly with letter, possibly with block, preceded by whitespace and something else before
         // "35"
@@ -397,21 +398,24 @@ public static class FuzzyAddressParser
         
         if (match.Success)
         {
+            string fixedName = FixName(name, out bool hadExpectedSuffix);
+            
             return (
-                FixName(name),
-                FixNumber(match.Groups[2].Value.Trim())
+                fixedName,
+                FixNumber(match.Groups[2].Value.Trim()),
+                hadExpectedSuffix ? FuzzyConfidence.High : FuzzyConfidence.Low
             );
         }
 
         return null;
         
         [Pure]
-        static string FixName(string name)
+        static string FixName(string name, out bool hadExpectedSuffix)
         {
             // "Krānu ielā" -> "Krānu iela"
             // "Krānu" -> "Krānu iela"
 
-            bool endedWithKnownSuffix = false;
+            hadExpectedSuffix = false;
             
             foreach (KnownFuzzyNames.StreetNameSuffix suffix in KnownFuzzyNames.StreetNameSuffixes)
             {
@@ -419,19 +423,20 @@ public static class FuzzyAddressParser
                 if (name.EndsWith(suffix.Locative, StringComparison.InvariantCultureIgnoreCase))
                 {    
                     name = name[..^suffix.Locative.Length] + suffix.Nominative;
-                    endedWithKnownSuffix = true;
+                    hadExpectedSuffix = true;
                     break;
                 }
                 else if (name.EndsWith(suffix.Nominative, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    endedWithKnownSuffix = true;
+                    hadExpectedSuffix = true;
                     break;
                 }
             }
 
-            if (!endedWithKnownSuffix)
+            if (!hadExpectedSuffix)
             {
                 // No known suffix, so just assume and add "iela" as the most common one
+                // todo: don't literally add, let address match try to add any known suffix?
                 name += " " + KnownFuzzyNames.StreetNameSuffixes.First().Nominative;
             }
             

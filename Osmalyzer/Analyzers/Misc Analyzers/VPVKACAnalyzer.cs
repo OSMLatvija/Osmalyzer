@@ -180,7 +180,7 @@ public class VPVKACAnalyzer : Analyzer
                         locatedOffice.Coord.OsmUrl +
                         " as" + Environment.NewLine + tagsBlock,
                         locatedOffice.Coord,
-                        MapPointStyle.CorrelatorItemUnmatched
+                        MapPointStyle.Suggestion
                     )
                 );
             }

@@ -2,8 +2,8 @@
 
 public static class EmbeddedIcons
 {
-    public static readonly List<EmbeddedIcon> Icons = new List<EmbeddedIcon>()
-    {
+    public static readonly List<EmbeddedIcon> Icons =
+    [
         new LeafletIcon(
             "greenCheckmark.png",
             16,
@@ -12,130 +12,158 @@ public static class EmbeddedIcons
             MapPointStyle.Okay,
             MapPointStyle.CorrelatorPairMatched, MapPointStyle.CorrelatorLoneOsmMatched
         ),
-        
+
+
         new LeafletIcon(
-            "orangeCheckmark.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "orangeCheckmark.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Orange,
             MapPointStyle.Dubious,
             MapPointStyle.CorrelatorPairMatchedFar
         ),
-        
+
+
         new LeafletIcon(
-            "redCross.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "redCross.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Red,
             MapPointStyle.Problem,
             MapPointStyle.CorrelatorItemUnmatched
         ),
-        
+
+
         new LeafletIcon(
-            "redQuestion.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "redQuestion.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Red,
             MapPointStyle.Okay,
             MapPointStyle.CorrelatorOsmUnmatched
         ),
-        
+
+
         new LeafletIcon(
-            "redExclamation.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "redExclamation.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Red,
             MapPointStyle.Okay,
             MapPointStyle.CorrelatorLoneOsmUnmatched
         ),
-        
+
+
         new LeafletIcon(
-            "blueStar.png", 
-            12, 
-            LeafletIcon.IconGroup.Sub, 
+            "blueQuestion.png",
+            16,
+            LeafletIcon.IconGroup.Main,
+            ColorGroup.Other,
+            MapPointStyle.Suggestion
+        ),
+
+
+        new LeafletIcon(
+            "blueStar.png",
+            12,
+            LeafletIcon.IconGroup.Sub,
             ColorGroup.Other, // we don't expect it clustered in Sub group
             MapPointStyle.CorrelatorPairMatchedOffsetOrigin, MapPointStyle.CorrelatorPairMatchedFarOrigin
         ),
-        
+
+
         new LeafletIcon(
-            "greenBus.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "greenBus.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Other, // we don't expect it to be clustered
             MapPointStyle.BusStopMatchedWell
         ),
-        
+
+
         new LeafletIcon(
-            "orangeBus.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "orangeBus.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Other, // we don't expect it to be clustered
             MapPointStyle.BusStopMatchedPoorly
         ),
-        
+
+
         new LeafletIcon(
-            "blueBus.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "blueBus.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Other, // we don't expect it to be clustered
             MapPointStyle.BusStopOriginalUnmatched
         ),
-        
+
+
         new LeafletIcon(
-            "purpleBus.png", 
-            16, 
-            LeafletIcon.IconGroup.Main, 
+            "purpleBus.png",
+            16,
+            LeafletIcon.IconGroup.Main,
             ColorGroup.Other, // we don't expect it to be clustered
             MapPointStyle.BusStopOsmUnmatched
         ),
-        
-        
+
+
+
         new LeafletClusterIcon(
             "grayCircle.png",
             20
         ),
-        
+
+
         new LeafletClusterIcon(
             "redCircle.png",
             20
         ),
-        
+
+
         new LeafletClusterIcon(
             "orangeCircle.png",
             20
         ),
-        
+
+
         new LeafletClusterIcon(
             "greenCircle.png",
             20
         ),
-        
+
+
         new LeafletClusterIcon(
             "redGreenCircle.png",
             20
         ),
-        
-        new LeafletClusterIcon(
-            "redOrangeCircle.png",
-            20
-        ),
-        
+
+
         new LeafletClusterIcon(
             "redOrangeGreenCircle.png",
             20
         ),
-        
+
+
+        new LeafletClusterIcon(
+            "redOrangeCircle.png",
+            20
+        ),
+
+
         new LeafletClusterIcon(
             "orangeGreenCircle.png",
             20
         ),
-        
-        
+
+
+
         new EmbeddedIcon(
             "editLinkPencil.svg",
             12
-        ),
-    };
+        )
+
+    ];
 }
 
 public class LeafletClusterIcon : EmbeddedIcon

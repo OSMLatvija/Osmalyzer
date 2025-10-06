@@ -49,6 +49,7 @@ public enum MapPointStyle
     Okay,
     Problem,
     Dubious,
+    Suggestion,
 
     CorrelatorPairMatched,
     CorrelatorPairMatchedOffsetOrigin,

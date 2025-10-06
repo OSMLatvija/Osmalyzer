@@ -223,31 +223,10 @@ public class FuzzyAddressParserTests
         Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
     }
 
-    [TestCase("Vistiņu pag.", "Vistiņu pagasts")]
-    [TestCase("Vistiņu pagast", "Vistiņu pagasts")]
-    [TestCase("Vistiņu pagasts", "Vistiņu pagasts")]
-    public void TestParish(string value, string expected)
-    {
-        // Arrange
-        
-        // Act
-        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
-        
-        // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result, Has.Count.EqualTo(1));
-        Assert.That(result, Has.All.InstanceOf<FuzzyAddressParishPart>());
-        
-        FuzzyAddressParishPart part = (FuzzyAddressParishPart)result![0];
-        Assert.That(part.Index, Is.EqualTo(0));
-        Assert.That(part.Value, Is.EqualTo(expected));
-        Assert.That(part.Confidence, Is.EqualTo(FuzzyConfidence.High));
-    }
-
-    [TestCase("Ornitoloģijas nov.", "Ornitoloģijas novads")]
-    [TestCase("Ornitoloģijas novad", "Ornitoloģijas novads")]
-    [TestCase("Ornitoloģijas novads", "Ornitoloģijas novads")]
-    public void TestMunicipality(string value, string expected)
+    [TestCase("Limbažu novads", "Limbažu novads", FuzzyConfidence.High)] // real
+    [TestCase("Ornitoloģijas novads", "Ornitoloģijas novads", FuzzyConfidence.Low)]
+    [TestCase("Ornitoloģijas nov.", "Ornitoloģijas novads", FuzzyConfidence.Low)]
+    public void TestMunicipality(string value, string expected, FuzzyConfidence confidence)
     {
         // Arrange
         
@@ -262,9 +241,30 @@ public class FuzzyAddressParserTests
         FuzzyAddressMunicipalityPart part = (FuzzyAddressMunicipalityPart)result![0];
         Assert.That(part.Index, Is.EqualTo(0));
         Assert.That(part.Value, Is.EqualTo(expected));
-        Assert.That(part.Confidence, Is.EqualTo(FuzzyConfidence.High));
+        Assert.That(part.Confidence, Is.EqualTo(confidence));
     }
-    
+
+    [TestCase("Brenguļu pagasts", "Brenguļu pagasts", FuzzyConfidence.High)] // real
+    [TestCase("Vistiņu pagasts", "Vistiņu pagasts", FuzzyConfidence.Low)]
+    [TestCase("Vistiņu pag.", "Vistiņu pagasts", FuzzyConfidence.Low)]
+    public void TestParish(string value, string expected, FuzzyConfidence confidence)
+    {
+        // Arrange
+        
+        // Act
+        List<FuzzyAddressPart>? result = FuzzyAddressParser.TryParseAddress(value);
+        
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result, Has.All.InstanceOf<FuzzyAddressParishPart>());
+        
+        FuzzyAddressParishPart part = (FuzzyAddressParishPart)result![0];
+        Assert.That(part.Index, Is.EqualTo(0));
+        Assert.That(part.Value, Is.EqualTo(expected));
+        Assert.That(part.Confidence, Is.EqualTo(confidence));
+    }
+
     [TestCase("pagasts")]
     [TestCase("pag.")]
     [TestCase("B pagasts")]

@@ -35,18 +35,18 @@ public static class FuzzyAddressParser
             FuzzyAddressPart[]? streetLineResult = TryParseAsStreetLine(split, i);
             if (streetLineResult != null)
                 proposedParts[i].AddRange(streetLineResult);
-                    
-            FuzzyAddressCityPart? cityResult = TryParseAsCity(split, i);
-            if (cityResult != null)
-                proposedParts[i].Add(cityResult);
-
-            FuzzyAddressParishPart? parishResult = TryParseAsParish(split, i);
-            if (parishResult != null)
-                proposedParts[i].Add(parishResult);
 
             FuzzyAddressMunicipalityPart? municipalityResult = TryParseAsMunicipality(split, i);
             if (municipalityResult != null)
                 proposedParts[i].Add(municipalityResult);
+
+            FuzzyAddressParishPart? parishResult = TryParseAsParish(split, i);
+            if (parishResult != null)
+                proposedParts[i].Add(parishResult);
+                    
+            FuzzyAddressCityPart? cityResult = TryParseAsCity(split, i);
+            if (cityResult != null)
+                proposedParts[i].Add(cityResult);
 
             FuzzyAddressPostcodePart? postalCodeResult = TryParseAsPostalCode(split, i);
             if (postalCodeResult != null)
@@ -428,24 +428,6 @@ public static class FuzzyAddressParser
     }
 
     [Pure]
-    private static FuzzyAddressParishPart? TryParseAsParish(string split, int index)
-    {
-        Match match = Regex.Match(split, @"^(?<name>.+?)\s+pag(?:\.|asts?)$", RegexOptions.IgnoreCase);
-        if (!match.Success)
-            return null;
-
-        string name = match.Groups["name"].Value.Trim();
-        if (name.Length < 4) // nothing shorter than "Apes pagasts"
-            return null;
-        
-        if (name.Any(char.IsDigit))
-            return null; // can't have digits in parish name
-
-        string normalized = name + " pagasts";
-        return new FuzzyAddressParishPart(normalized, index, FuzzyConfidence.High);
-    }
-
-    [Pure]
     private static FuzzyAddressMunicipalityPart? TryParseAsMunicipality(string split, int index)
     {
         // todo: keep a full list?
@@ -458,11 +440,35 @@ public static class FuzzyAddressParser
         if (name.Length < 4) // nothing shorter than "Cēsu novads"
             return null;
         
+        if (KnownFuzzyNames.MunicipalityNames.TryGetValue(name, out string? baseValue))
+            return new FuzzyAddressMunicipalityPart(baseValue + " novads", index, FuzzyConfidence.High);
+        
         if (name.Any(char.IsDigit))
             return null; // can't have digits in municipality name
 
         string normalized = name + " novads";
-        return new FuzzyAddressMunicipalityPart(normalized, index, FuzzyConfidence.High);
+        return new FuzzyAddressMunicipalityPart(normalized, index, FuzzyConfidence.Low);
+    }
+
+    [Pure]
+    private static FuzzyAddressParishPart? TryParseAsParish(string split, int index)
+    {
+        Match match = Regex.Match(split, @"^(?<name>.+?)\s+pag(?:\.|asts?)$", RegexOptions.IgnoreCase);
+        if (!match.Success)
+            return null;
+
+        string name = match.Groups["name"].Value.Trim();
+        if (name.Length < 4) // nothing shorter than "Apes pagasts"
+            return null;
+        
+        if (KnownFuzzyNames.ParishNames.TryGetValue(name, out string? baseValue))
+            return new FuzzyAddressParishPart(baseValue + " pagasts", index, FuzzyConfidence.High);
+        
+        if (name.Any(char.IsDigit))
+            return null; // can't have digits in parish name
+
+        string normalized = name + " pagasts";
+        return new FuzzyAddressParishPart(normalized, index, FuzzyConfidence.Low);
     }
 
     [Pure]

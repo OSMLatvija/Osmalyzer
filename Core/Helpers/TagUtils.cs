@@ -31,7 +31,7 @@ public static class TagUtils
             // e.g. crossing:markings - zebra;dots vs dots;zebra.
 
             string[] v1s = v1.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
-            string[] v2s = v1.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
+            string[] v2s = v2.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
 
             if (v1s.Length != v2s.Length)
                 return false;
@@ -60,10 +60,10 @@ public static class TagUtils
 
         if (v1.Contains(';') && v2.Contains(';'))
         {
-            // e.g. "a;b" vs "a; b"
+            // e.g. "a;b" vs "a; b"; "hi;;bye" includes an empty token between semicolons
             
-            string[] v1s = v1.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-            string[] v2s = v1.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            string[] v1s = v1.Split(';', StringSplitOptions.TrimEntries);
+            string[] v2s = v2.Split(';', StringSplitOptions.TrimEntries);
             
             if (v1s.Length != v2s.Length)
                 return false;

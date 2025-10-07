@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using System.Threading;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
@@ -37,13 +39,18 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
         for (int i = 0; i < matches.Count; i++)
         {
             string subpageUrl = "https://www.tiesas.lv/" + matches[i].Groups[1].ToString().Trim();
+
+            Thread.Sleep(1000);
             
             Console.WriteLine("-> Downloading subpage #" + (i + 1) + "/" + matches.Count + ": \"" + subpageUrl + "\"...");
-
+           
             WebsiteBrowsingHelper.DownloadPage(
                 subpageUrl,
-                Path.Combine(CacheBasePath, DataFileIdentifier + "-" + (i + 1) + ".html")
+                Path.Combine(CacheBasePath, DataFileIdentifier + "-" + (i + 1) + ".html"),
+                true,
+                "copyright-wrap" // found at footer as div class
             );
+            // I had page not fully download
         }
     }
 
@@ -111,13 +118,27 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             string address = match.Groups[1].ToString().Trim();
             
             // Phone number(s)
-            // "<a href="tel:+371 67613390" aria-label="Tālruņa numurs: +371 67613390">+371 67613390</a>"
-            MatchCollection phoneMatches = Regex.Matches(content, @"<a href=""tel:([^""]+)"" aria-label=""Tālruņa numurs: [^""]+"">[^<]+</a>", RegexOptions.Singleline);
+            
+            // Start at "<h4>Kontakti</h4>" (not "<h4 id="footer-contacts">Kontakti</h4>")
+            int phoneMatchStart = content.IndexOf(@"<h4>Kontakti</h4>", StringComparison.Ordinal);
+            
+            // End at next "<a href="..." data-external-link="TRUE" target="_blank">E-adrese</a>"
+            int phoneMatchEnd = content.IndexOf(@">E-adrese<", phoneMatchStart, StringComparison.Ordinal);
+            
+            if (phoneMatchStart == -1 || phoneMatchEnd == -1 || phoneMatchEnd <= phoneMatchStart)
+                throw new Exception("Did not find phone number section");
+
+            // Find "<a href="tel:+371 67610337" aria-label="Tālruņa numurs: +371 67610337">+371 67610337</a>"
+            MatchCollection phoneMatches = Regex.Matches(content[phoneMatchStart..phoneMatchEnd], @"""tel:([^""]+)""", RegexOptions.Singleline);
             
             List<string> phones = [ ];
             foreach (Match phoneMatch in phoneMatches)
-                phones.Add(phoneMatch.Groups[1].ToString().Trim());
-            
+            {
+                string cleaned = phoneMatch.Groups[1].ToString().Trim();
+                if (!phones.Contains(cleaned))
+                    phones.Add(cleaned);
+            }
+
             // E-mail
             // "<div class="field-email"><span class="spamspan"><span class="u">rigas.pilseta</span> [at] <span class="d">tiesas.lv</span></span></div>"
             Match emailMatch = Regex.Match(content, @"<div class=""field-email""><span class=""spamspan""><span class=""u"">([^<]+)</span> \[at\] <span class=""d"">([^<]+)</span>", RegexOptions.Singleline);

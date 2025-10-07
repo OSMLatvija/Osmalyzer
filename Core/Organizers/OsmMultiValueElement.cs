@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [PublicAPI]
 public class OsmMultiValueElement

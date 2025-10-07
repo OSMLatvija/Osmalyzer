@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using JetBrains.Annotations;
-using OsmSharp;
+﻿using OsmSharp;
 
 namespace Osmalyzer;
 

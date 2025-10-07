@@ -173,7 +173,8 @@ public class CourthouseAnalyzer : Analyzer
                 ),
                 new TagComparison<LocatedCourthouse>(
                     "opening_hours",
-                    lc => lc.Courthouse.OpeningHours
+                    lc => lc.Courthouse.OpeningHours,
+                    TagUtils.ValuesMatch
                 )
             ];
 

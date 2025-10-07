@@ -385,56 +385,9 @@ Piektdiena: 8:30 - 14:00</td>
                 cleaned.Add(extraLast);
 
             // Merge sequential days with same times into day ranges instead
+            List<string> merged = OsmOpeningHoursHelper.MergeSequentialWeekdaysWithSameTimes(cleaned);
             
-            for (int i = 1; i < cleaned.Count; i++)
-            {
-                string previous = cleaned[i - 1];
-                string current = cleaned[i];
-                
-                // Skip special case month prefixes - they are their own line
-                // e.g. "Sep-May Mo 08:00-12:00"
-                if (current[3] == '-')
-                    continue;
-                
-                if (TimeMatches(previous, current))
-                {
-                    // Replace previous with the merged version
-                    cleaned[i - 1] = MergeDays(previous, current);
-
-                    cleaned.RemoveAt(i);
-                    i--; // Adjust index since we removed an item
-                }
-
-                
-                bool TimeMatches(string a, string b)
-                {
-                    // e.g. "Mo 08:00-12:00" => "08:00-12:00"
-                    // or "Mo-Tu 08:00-12:00" => "08:00-12:00"
-                    string aTime = a[(a.IndexOf(' ') + 1) ..];
-                    
-                    // e.g. "Tu 08:00-12:00" => "08:00-12:00"
-                    string bTime = b[3..];
-                    
-                    return aTime == bTime;
-                }
-
-                string MergeDays(string a, string b)
-                {
-                    // e.g. "Tu 08:00-12:00" => "08:00-12:00"
-                    string time = b[3..];
-                    
-                    // e.g. "Mo 08:00-12:00" => "Mo"
-                    // or "Mo-Tu 08:00-12:00" => "Mo"
-                    string aStartDay = a[..2];
-                    
-                    // e.g. "Tu 08:00-12:00" => "Tu"
-                    string bDay = b[..2];
-                    
-                    return aStartDay + "-" + bDay + " " + time;
-                }
-            }
-            
-            return string.Join("; ", cleaned);
+            return string.Join("; ", merged);
         }
     }
 

@@ -252,7 +252,10 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             if (dayMatches.Count == 0)
                 throw new Exception("Did not match any opening hours");
             
-            string openingHours = string.Join(";", dayHours);
+            // Merge sequential days with same times into day ranges instead
+            List<string> mergedDayHours = OsmOpeningHoursHelper.MergeSequentialWeekdaysWithSameTimes(dayHours);
+            
+            string openingHours = string.Join(";", mergedDayHours);
 
             // Done parsing what we can
 

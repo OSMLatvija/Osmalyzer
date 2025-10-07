@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using JetBrains.Annotations;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [PublicAPI]
 public class OsmMultiValueGroups

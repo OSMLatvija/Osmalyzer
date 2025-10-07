@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using JetBrains.Annotations;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 /// <summary>
 /// A partial (filtered or trimmed) list of OSM data coming from a <see cref="OsmMasterData"/>.

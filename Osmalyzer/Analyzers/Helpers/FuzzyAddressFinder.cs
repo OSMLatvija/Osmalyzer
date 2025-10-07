@@ -66,6 +66,27 @@ public static class FuzzyAddressFinder
                     FuzzyAddressMunicipalityPart? municipalityMatch = GetBestMatch(addressable.Municipality, parsed.MunicipalityParts, p => p.Value);
                     FuzzyAddressPostcodePart? postcodeMatch = GetBestMatch(addressable.Postcode, parsed.PostcodeParts, p => p.Value);
 
+                    // Try fallbacks
+                    // Hard-coded cases where a part may have similar alternative assuming we fail to match the main one
+                    // While parser only offers its best guess, in case of ambiguity it may be wrong if the data is bad
+                    
+                    // We didn't match street+number (and have no house number), but may be it had house name as fallback, so pick that
+                    if (streetMatch == null && numberMatch == null && houseNameMatch == null)
+                        if (parsed.StreetNameAndNumberParts != null)
+                            foreach (FuzzyAddressStreetNameAndNumberPart nameAndNumberPart in parsed.StreetNameAndNumberParts)
+                                if (nameAndNumberPart.Fallbacks != null)
+                                    houseNameMatch = GetBestMatch(addressable.HouseName, nameAndNumberPart.Fallbacks.OfType<FuzzyAddressHouseNamePart>(), p => p.Value);
+                    
+                    // We didn't match house name (and have no street+number), but may be it had street+number as fallback, so pick that
+                    if (houseNameMatch == null && streetMatch == null && numberMatch == null)
+                        if (parsed.HouseNameParts != null)
+                            foreach (FuzzyAddressHouseNamePart houseNamePart in parsed.HouseNameParts)
+                                if (houseNamePart.Fallbacks != null)
+                                {
+                                    streetMatch = GetBestMatch(addressable.Street, houseNamePart.Fallbacks.OfType<FuzzyAddressStreetNameAndNumberPart>(), p => p.StreetValue);
+                                    numberMatch = GetBestMatch(addressable.Number, houseNamePart.Fallbacks.OfType<FuzzyAddressStreetNameAndNumberPart>(), p => p.NumberValue);
+                                }
+
                     // Try old values if current are not fully matched
 
                     bool old = false;
@@ -111,7 +132,7 @@ public static class FuzzyAddressFinder
                             old = true;
                     }
 
-                    static T? GetBestMatch<T>(string? elementValue, T[]? source, Func<T, string?> valueSelector) where T : FuzzyAddressPart
+                    static T? GetBestMatch<T>(string? elementValue, IEnumerable<T>? source, Func<T, string?> valueSelector) where T : FuzzyAddressPart
                     {
                         if (elementValue == null)
                             return null;

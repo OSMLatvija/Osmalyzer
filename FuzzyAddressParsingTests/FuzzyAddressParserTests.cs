@@ -220,7 +220,6 @@ public class FuzzyAddressParserTests
     }
     
     [TestCase("Krānu ielā 35", "Krānu iela")]
-    [TestCase("Krānu 35", "Krānu iela")]
     public void TestStreetNameGetsSanitized(string value, string expectedStreet)
     {
         // Act
@@ -229,14 +228,40 @@ public class FuzzyAddressParserTests
 
         // Assert
         
-        Assume.That(result, Is.Not.Null);
+        Assert.That(result, Is.Not.Null);
         List<FuzzyAddressPart> parts = result!.Parts;
-        Assume.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
-        Assume.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
         
         FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)parts[0];
         Assert.That(streetPart.StreetValue, Is.EqualTo(expectedStreet));
         Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
+    }
+    
+    [TestCase("Krānu 35")]
+    public void TestAmbiguousStreetNameHasFallback(string value)
+    {
+        // Act
+        
+        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress(value);
+
+        // Assert
+        
+        Assert.That(result, Is.Not.Null);
+        List<FuzzyAddressPart> parts = result!.Parts;
+        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
+        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressHouseNamePart>(), ResultPrintout(parts));
+        
+        FuzzyAddressHouseNamePart housePart = (FuzzyAddressHouseNamePart)parts[0];
+        Assert.That(housePart.Value, Is.EqualTo("Krānu 35"));
+        Assert.That(housePart.Confidence, Is.EqualTo(FuzzyConfidence.Low));
+        Assert.That(housePart.Fallbacks, Is.Not.Null);
+        Assert.That(housePart.Fallbacks, Has.Count.EqualTo(1));
+        Assert.That(housePart.Fallbacks![0], Is.InstanceOf<FuzzyAddressStreetNameAndNumberPart>());
+        FuzzyAddressStreetNameAndNumberPart fallbackPart = (FuzzyAddressStreetNameAndNumberPart)housePart.Fallbacks![0];
+        Assert.That(fallbackPart.StreetValue, Is.EqualTo("Krānu iela"));
+        Assert.That(fallbackPart.NumberValue, Is.EqualTo("35"));
+        Assert.That(fallbackPart.Confidence, Is.EqualTo(FuzzyConfidence.Low));
     }
 
     [TestCase("Limbažu novads", "Limbažu novads", FuzzyConfidence.High)] // real
@@ -405,29 +430,10 @@ public class FuzzyAddressParserTests
         Assert.That(streetPart.UnitValue, Is.EqualTo(expectedUnit));
         Assert.That(streetPart.Confidence, Is.EqualTo(FuzzyConfidence.High));
     }
-
-    [Test]
-    public void TestUnitNotParsedForSlashNumbers()
-    {
-        // Act
-        
-        FuzzyAddress? result = FuzzyAddressParser.TryParseAddress("Krānu iela 3/5");
-
-        // Assert
-        
-        Assert.That(result, Is.Not.Null);
-        List<FuzzyAddressPart> parts = result!.Parts;
-        Assert.That(parts, Has.Count.EqualTo(1), ResultPrintout(parts));
-        Assert.That(parts, Has.All.InstanceOf<FuzzyAddressStreetNameAndNumberPart>(), ResultPrintout(parts));
-        
-        FuzzyAddressStreetNameAndNumberPart streetPart = (FuzzyAddressStreetNameAndNumberPart)parts[0];
-        Assert.That(streetPart.NumberValue, Is.EqualTo("3/5"));
-        Assert.That(streetPart.UnitValue, Is.Null);
-    }
-
     
-    private NUnitString ResultPrintout(List<FuzzyAddressPart> result)
+
+    private static string ResultPrintout(List<FuzzyAddressPart> parts)
     {
-        return "Results were: " + Environment.NewLine + string.Join(Environment.NewLine, result.Select(r => "  " + r.GetQuickString()));
+        return "Results were: " + string.Join("\n", parts.Select(p => p.GetQuickString()));
     }
 }

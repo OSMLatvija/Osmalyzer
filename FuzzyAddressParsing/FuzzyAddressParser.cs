@@ -293,6 +293,19 @@ public static class FuzzyAddressParser
         if (streetNameAndNumber != null)
             results.AddRange(streetNameAndNumber);
 
+        // If both interpretations exist and are equally confident (low/high), mark them as fallbacks to each other
+        if (addressHouseNamePart != null && streetNameAndNumber != null && streetNameAndNumber.Length == 1)
+        {
+            if (streetNameAndNumber[0] is FuzzyAddressStreetNameAndNumberPart streetPart)
+            {
+                if (addressHouseNamePart.Confidence == streetPart.Confidence) // todo: hinted same?
+                {
+                    addressHouseNamePart.AddFallback(streetPart);
+                    streetPart.AddFallback(addressHouseNamePart);
+                }
+            }
+        }
+
         return results.ToArray();
     }
 
@@ -363,10 +376,10 @@ public static class FuzzyAddressParser
                      .Replace("‘", "'").Replace("’", "'")
                      .Trim();
         
-        bool inQuoted = value.StartsWith('\"') && value.EndsWith('\"');
+        bool inQuotes = value.StartsWith('"') && value.EndsWith('"');
         
         // Name in quotes, e.g. `"Palmas"` 
-        if (inQuoted)
+        if (inQuotes)
             value = value[1..^1].Trim();
             
         if (value.Length < 3)
@@ -376,7 +389,7 @@ public static class FuzzyAddressParser
         if (numberOfLetters < 3)
             return null; // too few letters to be a name
             
-        return new FuzzyAddressHouseNamePart(value, index, inQuoted ? FuzzyConfidence.High : FuzzyConfidence.Low);
+        return new FuzzyAddressHouseNamePart(value, index, inQuotes ? FuzzyConfidence.High : FuzzyConfidence.Low);
     }
 
     [Pure]

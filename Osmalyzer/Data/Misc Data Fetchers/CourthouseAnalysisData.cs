@@ -117,19 +117,26 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             
             string address = match.Groups[1].ToString().Trim();
             
-            // Phone number(s)
+            // Grab the portions with phone and email
             
             // Start at "<h4>Kontakti</h4>" (not "<h4 id="footer-contacts">Kontakti</h4>")
-            int phoneMatchStart = content.IndexOf(@"<h4>Kontakti</h4>", StringComparison.Ordinal);
+            int contactMatchStart = content.IndexOf(@"<h4>Kontakti</h4>", StringComparison.Ordinal);
             
             // End at next "<a href="..." data-external-link="TRUE" target="_blank">E-adrese</a>"
-            int phoneMatchEnd = content.IndexOf(@">E-adrese<", phoneMatchStart, StringComparison.Ordinal);
+            int contactMatchEnd = content.IndexOf(@">E-adrese<", contactMatchStart, StringComparison.Ordinal);
             
-            if (phoneMatchStart == -1 || phoneMatchEnd == -1 || phoneMatchEnd <= phoneMatchStart)
+            if (contactMatchStart == -1 || contactMatchEnd == -1 || contactMatchEnd <= contactMatchStart)
                 throw new Exception("Did not find phone number section");
 
+            string contactPortion = content[contactMatchStart .. contactMatchEnd];
+            
+            // Phone number(s)
+
             // Find "<a href="tel:+371 67610337" aria-label="Tālruņa numurs: +371 67610337">+371 67610337</a>"
-            MatchCollection phoneMatches = Regex.Matches(content[phoneMatchStart..phoneMatchEnd], @"""tel:([^""]+)""", RegexOptions.Singleline);
+            MatchCollection phoneMatches = Regex.Matches(contactPortion, @"""tel:([^""]+)""", RegexOptions.Singleline);
+            
+            if (phoneMatches.Count == 0)
+                throw new Exception("Did not match any phone numbers");
             
             List<string> phones = [ ];
             foreach (Match phoneMatch in phoneMatches)
@@ -140,14 +147,21 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             }
 
             // E-mail
-            // "<div class="field-email"><span class="spamspan"><span class="u">rigas.pilseta</span> [at] <span class="d">tiesas.lv</span></span></div>"
-            Match emailMatch = Regex.Match(content, @"<div class=""field-email""><span class=""spamspan""><span class=""u"">([^<]+)</span> \[at\] <span class=""d"">([^<]+)</span>", RegexOptions.Singleline);
+            // Either unobfuscated:
+            // "<div class="field-email"><a href="mailto:riga.apgabals@tiesas.lv" class="spamspan">riga.apgabals@tiesas.lv</a></div>"
+            // or obfuscated:
+            // "<span class="spamspan"><span class="u">riga.apgabals</span> [at] <span class="d">tiesas.lv</span></span>"
+            // "<span class="spamspan"><span class="u">vidzeme</span> [at] <span class="d">tiesas.lv</span></span>"
             
-            string? email;
-            if (emailMatch.Success)
-                email = emailMatch.Groups[1].ToString().Trim() + "@" + emailMatch.Groups[2].ToString().Trim();
-            else
-                email = null;
+            Match emailMatch = Regex.Match(contactPortion, @"<a href=""mailto:([^@]+)@([^""]+)""", RegexOptions.Singleline);
+            
+            if (!emailMatch.Success) // try obfuscated
+                emailMatch = Regex.Match(content, @"<span class=""spamspan"">\s*<span[^>]+>([^<]+)</span>\s*\[at\]\s*<span[^>]+>\s*([^<]+)\s*</span>\s*</span>", RegexOptions.Singleline);
+            
+            if (!emailMatch.Success)
+                throw new Exception("Did not match email address");
+            
+            string email = emailMatch.Groups[1].ToString().Trim() + "@" + emailMatch.Groups[2].ToString().Trim();
             
             // Opening hours
             // todo:

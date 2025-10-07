@@ -160,16 +160,16 @@ public class CourthouseAnalyzer : Analyzer
             List<TagComparison<LocatedCourthouse>> comparisons = [
                 new TagComparison<LocatedCourthouse>(
                     "name",
-                    lc => string.IsNullOrWhiteSpace(lc.Courthouse.Name) ? null : lc.Courthouse.Name
+                    lc => lc.Courthouse.Name
                 ),
                 new TagComparison<LocatedCourthouse>(
                     "email",
-                    lc => string.IsNullOrWhiteSpace(lc.Courthouse.Email) ? null : lc.Courthouse.Email
+                    lc => lc.Courthouse.Email
                 ),
                 new TagComparison<LocatedCourthouse>(
                     "phone",
-                    lc => lc.Courthouse.Phones.Count == 0 ? null : string.Join(";", lc.Courthouse.Phones),
-                    TagUtils.EqualsSemicolonSeparatedSet
+                    lc => string.Join(";", lc.Courthouse.Phones),
+                    TagUtils.IsSemicolonSeparatedSetEquivallent
                 )
             ];
 

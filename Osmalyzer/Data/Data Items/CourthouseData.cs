@@ -10,7 +10,7 @@ public class CourthouseData
     
     public List<string> Phones { get; }
     
-    public string? Email { get; }
+    public string Email { get; }
 
 
     public CourthouseData(string name, string address, string? locationHint, List<string> phones, string? email)
@@ -30,6 +30,6 @@ public class CourthouseData
             (LocationHint != null ? "(located `" + LocationHint + "`) " : "") +
             "at `" + Address + "`" +
             (Phones.Count > 0 ? " with phone(s) " + string.Join(", ", Phones.Select(p => "`" + p + "`")) : "") +
-            (Email != null ? " and email `" + Email + "`" : "");
+            " and email `" + Email + "`";
     }
 }

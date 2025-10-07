@@ -49,7 +49,7 @@ public static class TagUtils
     /// Compares semicolon-separated lists (";"), trims tokens, order-insensitive, case-sensitive tokens.
     /// </summary>
     [Pure]
-    public static bool EqualsSemicolonSeparatedSet(string actual, string expected)
+    public static bool IsSemicolonSeparatedSetEquivallent(string actual, string expected)
     {
         string[] actualTokens = actual.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         string[] expectedTokens = expected.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);

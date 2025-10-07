@@ -19,6 +19,7 @@ public class LuminorPointAnalysisData : BankPointAnalysisData
             "https://www.luminor.lv/lv/musu-tikls", 
             Path.Combine(CacheBasePath, DataFileIdentifier + @".html"),
             true,
+            null,
             new WaitForElementOfClass("contact-map") // loads JS garbage first that loads the rest of the page
         );
     }

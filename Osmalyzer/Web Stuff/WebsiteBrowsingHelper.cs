@@ -114,13 +114,33 @@ public static class WebsiteBrowsingHelper
         return result;
     }
 
-    public static void DownloadPage(string url, string fileName, bool canUseCache = true, params BrowsingAction[] browsingActions)
+    public static void DownloadPage(string url, string fileName, bool canUseCache = true, string? retryIfNotFoundInContent = null, params BrowsingAction[] browsingActions)
     {
         if (!WebsiteDownloadHelper.BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
         // Headless browsing needs a full site load, so there's no way to directly write to file, we just have to dump the results 
-        File.WriteAllText(fileName, Read(url, canUseCache, null, browsingActions));
+        
+        string contents = Read(url, canUseCache, null, browsingActions);
+
+        if (retryIfNotFoundInContent != null)
+        {
+            int retry = 0;
+            
+            while (!contents.Contains(retryIfNotFoundInContent))
+            {
+                if (retry == 3)
+                    throw new Exception($"Failed to download page with required content after {retry} retries: {url}");
+                
+                Thread.Sleep(3000 * retry);
+                
+                contents = Read(url, canUseCache, null, browsingActions);
+                
+                retry++;
+            }
+        }
+
+        File.WriteAllText(fileName, contents);
     }
 
     public static void DownloadTarget(string url, string fileName)

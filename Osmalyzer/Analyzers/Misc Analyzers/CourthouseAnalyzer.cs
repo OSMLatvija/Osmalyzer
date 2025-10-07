@@ -170,6 +170,10 @@ public class CourthouseAnalyzer : Analyzer
                     "phone",
                     lc => string.Join(";", lc.Courthouse.Phones),
                     TagUtils.IsSemicolonSeparatedSetEquivallent
+                ),
+                new TagComparison<LocatedCourthouse>(
+                    "opening_hours",
+                    lc => lc.Courthouse.OpeningHours
                 )
             ];
 

@@ -180,7 +180,81 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             //           </span>
             //   </li>
             // </ul>
-            // </div>            
+            // </div>
+            
+            // Find "<ul class="work-time-list">"
+            int hoursMatchStart = content.IndexOf(@"<ul class=""work-time-list"">", StringComparison.Ordinal);
+            
+            // End at "</ul>"
+            int hoursMatchEnd = content.IndexOf("</ul>", hoursMatchStart, StringComparison.Ordinal);
+            
+            if (hoursMatchStart == -1 || hoursMatchEnd == -1 || hoursMatchEnd <= hoursMatchStart)
+                throw new Exception("Did not find opening hours section");
+            
+            string hoursPortion = content[hoursMatchStart .. hoursMatchEnd];
+            
+            // Match all the day spans
+            
+            MatchCollection dayMatches = Regex.Matches(hoursPortion, @"<span>([^<]+)</span>\s*<span[^>]+>([^<]+)</span>", RegexOptions.Singleline);
+
+            if (dayMatches.Count == 0)
+                throw new Exception("Did not match any opening hours");
+
+            List<string> dayHours = [ ];
+            
+            foreach (Match dayMatch in dayMatches)
+            {
+                string day = dayMatch.Groups[1].ToString().Trim().ToLowerInvariant();
+                string hours = dayMatch.Groups[2].ToString().Trim().ToLowerInvariant();
+
+                if (hours == "slēgts")
+                    continue;
+                
+                string cleanDay = TextDayToOsmDay(day);
+                string cleanHours = CleanHours(hours);
+                
+                dayHours.Add(cleanDay + " " + cleanHours);
+                    
+                continue;
+
+                [Pure]
+                static string TextDayToOsmDay(string day) =>
+                    day switch
+                    {
+                        "pirmdiena"   => "Mo",
+                        "otrdiena"    => "Tu",
+                        "trešdiena"   => "We",
+                        "ceturtdiena" => "Th",
+                        "piektdiena"  => "Fr",
+                        "sestdiena"   => "Sa",
+                        "svētdiena"   => "Su",
+                        _             => throw new Exception("Unknown day: " + day)
+                    };
+
+                [Pure]
+                static string CleanHours(string hours)
+                {
+                    // "8.30–17.00" -> "08:30-17:00"
+                    Match hoursMatch = Regex.Match(hours, @"^(\d{1,2})[.](\d{2})[–-](\d{1,2})[.](\d{2})$");
+                    
+                    if (!hoursMatch.Success)
+                        throw new Exception("Did not match hours: " + hours);
+                    
+                    int openHour = int.Parse(hoursMatch.Groups[1].ToString());
+                    int openMinute = int.Parse(hoursMatch.Groups[2].ToString());
+                    int closeHour = int.Parse(hoursMatch.Groups[3].ToString());
+                    int closeMinute = int.Parse(hoursMatch.Groups[4].ToString());
+                    
+                    return $"{openHour:D2}:{openMinute:D2}-{closeHour:D2}:{closeMinute:D2}";
+                }
+            }
+            
+            if (dayMatches.Count == 0)
+                throw new Exception("Did not match any opening hours");
+            
+            string openingHours = string.Join(";", dayHours);
+
+            // Done parsing what we can
 
             _courthouses.Add(
                 new CourthouseData(
@@ -188,7 +262,8 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
                     address,
                     locationHint,
                     phones,
-                    email
+                    email,
+                    openingHours
                 )
             );
             

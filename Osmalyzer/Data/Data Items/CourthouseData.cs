@@ -11,25 +11,29 @@ public class CourthouseData
     public List<string> Phones { get; }
     
     public string Email { get; }
+    
+    public string OpeningHours { get; }
 
 
-    public CourthouseData(string name, string address, string? locationHint, List<string> phones, string? email)
+    public CourthouseData(string name, string address, string? locationHint, List<string> phones, string email, string openingHours)
     {
         Name = name;
         Address = address;
         LocationHint = locationHint;
         Phones = phones;
         Email = email;
+        OpeningHours = openingHours;
     }
 
 
     public string ReportString()
     {
-        return 
+        return
             "Courthouse `" + Name + "` " +
             (LocationHint != null ? "(located `" + LocationHint + "`) " : "") +
             "at `" + Address + "`" +
-            (Phones.Count > 0 ? " with phone(s) " + string.Join(", ", Phones.Select(p => "`" + p + "`")) : "") +
-            " and email `" + Email + "`";
+            " with phone(s) " + string.Join(", ", Phones.Select(p => "`" + p + "`")) +
+            " and email `" + Email + "`" +
+            " and opening hours `" + OpeningHours + "`";
     }
 }

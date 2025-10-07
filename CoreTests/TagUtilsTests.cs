@@ -85,12 +85,12 @@ public class TagUtilsTests
         Assert.That(matches, Is.False);
     }
 
-    [Test]
-    public void TestValuesMatch_OrderInsensitiveWithSemicolons()
+    [TestCase("zebra;dots", "dots;zebra")]
+    [TestCase(" a ; b ", "b; a")]
+    [TestCase("a;b;c", "c;b;a")]
+    public void TestValuesMatch_OrderInsensitiveWithSemicolons(string v1, string v2)
     {
         // Arrange
-        string v1 = "zebra;dots";
-        string v2 = "dots;zebra";
 
         // Act
         bool matches = TagUtils.ValuesMatch(v1, v2);
@@ -99,12 +99,13 @@ public class TagUtilsTests
         Assert.That(matches, Is.True);
     }
 
-    [Test]
-    public void TestValuesMatch_RepeatsIgnored()
+    [TestCase("a;a;b", "b;a")]
+    [TestCase("a;a", "a; a")]
+    [TestCase("x;x;y;y", "y;x")]
+    [TestCase("a;a;b", "a;b")]
+    public void TestValuesMatch_RepeatsIgnored(string v1, string v2)
     {
         // Arrange
-        string v1 = "a;a;b";
-        string v2 = "b;a";
 
         // Act
         bool matches = TagUtils.ValuesMatch(v1, v2);
@@ -113,12 +114,12 @@ public class TagUtilsTests
         Assert.That(matches, Is.True);
     }
 
-    [Test]
-    public void TestValuesMatch_CaseSensitive()
+    [TestCase("A;b", "a;b")]
+    [TestCase("a;B", "a;b")]
+    [TestCase("Ab", "ab")]
+    public void TestValuesMatch_CaseSensitive(string v1, string v2)
     {
         // Arrange
-        string v1 = "A;b";
-        string v2 = "a;b";
 
         // Act
         bool matches = TagUtils.ValuesMatch(v1, v2);
@@ -127,12 +128,13 @@ public class TagUtilsTests
         Assert.That(matches, Is.False);
     }
 
-    [Test]
-    public void TestValuesMatch_DifferentTokens_False()
+    [TestCase("a;b", "a;c")]
+    [TestCase("a", "b")]
+    [TestCase("a;b", "a;b;c")]
+    [TestCase("x;y", "x;z")]
+    public void TestValuesMatch_DifferentTokens_False(string v1, string v2)
     {
         // Arrange
-        string v1 = "a;b";
-        string v2 = "a;c";
 
         // Act
         bool matches = TagUtils.ValuesMatch(v1, v2);
@@ -141,12 +143,12 @@ public class TagUtilsTests
         Assert.That(matches, Is.False);
     }
 
-    [Test]
-    public void TestValuesMatch_OnlyOneHasSemicolons_False()
+    [TestCase("ab", "a;b")]
+    [TestCase("a;b", "ab")]
+    [TestCase("a;b", "a,b")]
+    public void TestValuesMatch_OnlyOneHasSemicolons_False(string v1, string v2)
     {
         // Arrange
-        string v1 = "a;b";
-        string v2 = "a b";
 
         // Act
         bool matches = TagUtils.ValuesMatch(v1, v2);
@@ -155,12 +157,12 @@ public class TagUtilsTests
         Assert.That(matches, Is.False);
     }
 
-    [Test]
-    public void TestValuesMatch_EmptyAndWhitespaceTokensIgnored()
+    [TestCase("a; ;b", "a;b")]
+    [TestCase(" ; a ; b ", "a;b")]
+    [TestCase("a; ; ;b", "a;b")]
+    public void TestValuesMatch_EmptyAndWhitespaceTokensIgnored(string v1, string v2)
     {
         // Arrange
-        string v1 = "a; ;b";
-        string v2 = "a;b";
 
         // Act
         bool matches = TagUtils.ValuesMatch(v1, v2);
@@ -169,12 +171,12 @@ public class TagUtilsTests
         Assert.That(matches, Is.True);
     }
 
-    [Test]
-    public void TestValuesMatchOrderSensitive_ExactWhitespaceDifferences_IgnoredAroundTokens()
+    [TestCase("a; b", "a;b")]
+    [TestCase(" a ; b ", "a ;b")]
+    [TestCase("x; y;z", "x;y; z")]
+    public void TestValuesMatchOrderSensitive_ExactWhitespaceDifferences_IgnoredAroundTokens(string v1, string v2)
     {
         // Arrange
-        string v1 = "a; b";
-        string v2 = "a;b";
 
         // Act
         bool matches = TagUtils.ValuesMatchOrderSensitive(v1, v2);
@@ -183,12 +185,12 @@ public class TagUtilsTests
         Assert.That(matches, Is.True);
     }
 
-    [Test]
-    public void TestValuesMatchOrderSensitive_OrderMatters()
+    [TestCase("a;b", "b;a")]
+    [TestCase("x;y;z", "z;y;x")]
+    [TestCase("1;2;3", "1;3;2")]
+    public void TestValuesMatchOrderSensitive_OrderMatters(string v1, string v2)
     {
         // Arrange
-        string v1 = "a;b";
-        string v2 = "b;a";
 
         // Act
         bool matches = TagUtils.ValuesMatchOrderSensitive(v1, v2);
@@ -197,12 +199,26 @@ public class TagUtilsTests
         Assert.That(matches, Is.False);
     }
 
-    [Test]
-    public void TestValuesMatchOrderSensitive_RepeatsPreserved()
+    [TestCase("a;a", "a", false)]
+    [TestCase("a;a", "a;a", true)]
+    [TestCase("a;a;b", "a;b;a", false)]
+    [TestCase("a;a;b", "a;a;b", true)]
+    public void TestValuesMatchOrderSensitive_RepeatsPreserved(string v1, string v2, bool expected)
     {
         // Arrange
-        string v1 = "a;a;b";
-        string v2 = "a;b";
+
+        // Act
+        bool matches = TagUtils.ValuesMatchOrderSensitive(v1, v2);
+
+        // Assert
+        Assert.That(matches, Is.EqualTo(expected));
+    }
+
+    [TestCase("A;b", "a;b")]
+    [TestCase("a;B", "a;b")]
+    public void TestValuesMatchOrderSensitive_CaseSensitive(string v1, string v2)
+    {
+        // Arrange
 
         // Act
         bool matches = TagUtils.ValuesMatchOrderSensitive(v1, v2);
@@ -211,26 +227,12 @@ public class TagUtilsTests
         Assert.That(matches, Is.False);
     }
 
-    [Test]
-    public void TestValuesMatchOrderSensitive_CaseSensitive()
+    [TestCase("hi;;bye", "hi; ;bye")]
+    [TestCase(";a", " ;a")]
+    [TestCase("a;;", "a; ;")]
+    public void TestValuesMatchOrderSensitive_EmptyToken_PreservedAndEqual(string v1, string v2)
     {
         // Arrange
-        string v1 = "A;b";
-        string v2 = "a;b";
-
-        // Act
-        bool matches = TagUtils.ValuesMatchOrderSensitive(v1, v2);
-
-        // Assert
-        Assert.That(matches, Is.False);
-    }
-
-    [Test]
-    public void TestValuesMatchOrderSensitive_EmptyToken_PreservedAndEqual()
-    {
-        // Arrange
-        string v1 = "hi;;bye";
-        string v2 = "hi; ;bye";
 
         // Act
         bool matches = TagUtils.ValuesMatchOrderSensitive(v1, v2);
@@ -239,12 +241,15 @@ public class TagUtilsTests
         Assert.That(matches, Is.True);
     }
 
-    [Test]
-    public void TestValuesMatchOrderSensitive_EmptyToken_MismatchWhenMissing()
+    [TestCase("hi;;bye", "hi;bye")]
+    [TestCase(";;a;b", ";a;b")]
+    [TestCase("a; ;b", "a;b")]
+    [TestCase("a;;b", "a;b;")]
+    [TestCase("a;;b", "a;;b;;")]
+    [TestCase(";a;b", "a;b")]
+    public void TestValuesMatchOrderSensitive_EmptyToken_MismatchWhenMissing(string v1, string v2)
     {
         // Arrange
-        string v1 = "hi;;bye";
-        string v2 = "hi;bye";
 
         // Act
         bool matches = TagUtils.ValuesMatchOrderSensitive(v1, v2);

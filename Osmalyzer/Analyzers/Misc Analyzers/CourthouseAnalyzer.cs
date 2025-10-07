@@ -169,12 +169,12 @@ public class CourthouseAnalyzer : Analyzer
                 new TagComparison<LocatedCourthouse>(
                     "phone",
                     lc => string.Join(";", lc.Courthouse.Phones),
-                    TagUtils.IsSemicolonSeparatedSetEquivallent
+                    TagUtils.ValuesMatch
                 ),
                 new TagComparison<LocatedCourthouse>(
                     "opening_hours",
                     lc => lc.Courthouse.OpeningHours,
-                    TagUtils.ValuesMatch
+                    TagUtils.ValuesMatchOrderSensitive // prefer "sorted" days
                 )
             ];
 

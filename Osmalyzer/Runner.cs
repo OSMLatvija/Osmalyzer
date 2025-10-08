@@ -7,12 +7,11 @@ public static class Runner
     public static void Run()
     {
 #if REMOTE_EXECUTION
-        // Find all analyzer types and make an instance of each
+        // Find all analyzer types and make an instance of each (including disabled; we'll report and skip them below)
         List<Analyzer> analyzers = 
                 typeof(Analyzer)
                     .Assembly.GetTypes()
                     .Where(type => type.IsSubclassOf(typeof(Analyzer)) && !type.IsAbstract)
-                    .Where(type => type.GetCustomAttributes(typeof(DisabledAnalyzerAttribute), true).Length == 0)
                     .Select(Activator.CreateInstance)
                     .Cast<Analyzer>()
                     .ToList();
@@ -50,7 +49,7 @@ public static class Runner
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
-            new CourthouseAnalyzer(),
+            // new CourthouseAnalyzer(),
             // new NonDefiningTaggingAnalyzer(),
             // new BridgeAndWaterConnectionAnalyzer(),
             // new TerminatingWaysAnalyzer(),
@@ -65,9 +64,9 @@ public static class Runner
             // new SmartPostiParcelLockerAnalyzer(),
             // new DPDParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
-            // new LatviaPostLockerAnalyzer(),
-            // new LatviaPostMailBoxAnalyzer(),
-            // new LatviaPostOfficeAnalyzer(),
+            new LatviaPostLockerAnalyzer(),
+            new LatviaPostMailBoxAnalyzer(),
+            new LatviaPostOfficeAnalyzer(),
             // new PostCodeAnalyzer(),
             // new ImproperTranslationAnalyzer(),
             // new LidlShopAnalyzer(),
@@ -97,20 +96,45 @@ public static class Runner
         //Reporter reporter = new TextFileReporter();
         Reporter reporter = new HtmlFileReporter();
 
-
+        // Filter out analyzers that are disabled or require disabled data, and build the data requirements for the rest
+        List<Analyzer> analyzersToRun = [ ];
         List<Type> requestedDataTypes = [ ];
         List<List<Type>> perAnalyzerRequestedDataTypes = [ ];
 
         foreach (Analyzer analyzer in analyzers)
         {
+            // Skip analyzers explicitly disabled by attribute
+            DisabledAnalyzerAttribute? disabledAnalyzerAttr = (DisabledAnalyzerAttribute?)analyzer.GetType().GetCustomAttributes(typeof(DisabledAnalyzerAttribute), true).FirstOrDefault();
+            if (disabledAnalyzerAttr != null)
+            {
+                reporter.AddSkippedReport(analyzer.Name, "disabled");
+                continue;
+            }
+
             List<Type> analyzerRequiredDataTypes = analyzer.GetRequiredDataTypes();
 
+            // Skip analyzers if any required data type is disabled
+            List<(Type type, DisabledDataAttribute attr)> disabledData = analyzerRequiredDataTypes
+                .Select(t => (type: t, attr: (DisabledDataAttribute?)t.GetCustomAttributes(typeof(DisabledDataAttribute), true).FirstOrDefault()))
+                .Where(p => p.attr != null)
+                .Select(p => (p.type, p.attr!))
+                .ToList();
+
+            if (disabledData.Count > 0)
+            {
+                reporter.AddSkippedReport(analyzer.Name, "required data disabled");
+                continue;
+            }
+
+            analyzersToRun.Add(analyzer);
             perAnalyzerRequestedDataTypes.Add(analyzerRequiredDataTypes);
 
             foreach (Type dataType in analyzerRequiredDataTypes)
                 if (!requestedDataTypes.Contains(dataType))
                     requestedDataTypes.Add(dataType);
         }
+
+        Console.WriteLine("Running with " + analyzersToRun.Count + " analyzers...");
 
 
         List<AnalysisData> requestedDatas = [ ];
@@ -177,7 +201,7 @@ public static class Runner
 
         Console.WriteLine("Parsing...");
 
-        for (int i = 0; i < analyzers.Count; i++)
+        for (int i = 0; i < analyzersToRun.Count; i++)
         {
             List<AnalysisData> datas = [ ];
 
@@ -186,21 +210,21 @@ public static class Runner
 
             if (datas.Any(d => d.Status != DataStatus.Ok))
             {
-                Console.WriteLine("Skipping " + analyzers[i].Name + " analyzer due to missing required data [" + (i + 1) + "/" + analyzers.Count + "].");
+                Console.WriteLine("Skipping " + analyzersToRun[i].Name + " analyzer due to missing required data [" + (i + 1) + "/" + analyzersToRun.Count + "].");
 
-                reporter.AddSkippedReport(analyzers[i].Name, "missing data");
+                reporter.AddSkippedReport(analyzersToRun[i].Name, "missing/broken data");
                 // todo: which one and why
 
                 continue;
             }
 
-            Console.Write("Parsing " + analyzers[i].Name + " analyzer [" + (i + 1) + "/" + analyzers.Count + "]... ");
+            Console.Write("Parsing " + analyzersToRun[i].Name + " analyzer [" + (i + 1) + "/" + analyzersToRun.Count + "]... ");
 
-            Report report = new Report(analyzers[i], datas);
+            Report report = new Report(analyzersToRun[i], datas);
 
             Stopwatch parseStopwatch = Stopwatch.StartNew();
 
-            analyzers[i].Run(datas, report);
+            analyzersToRun[i].Run(datas, report);
 
             parseStopwatch.Stop();
 

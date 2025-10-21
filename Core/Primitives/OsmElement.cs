@@ -82,6 +82,10 @@ public abstract class OsmElement : IChunkerItem
     }
         
         
+    /// <summary>
+    ///
+    /// Can be null if not present, but can't be empty per OSM specs.
+    /// </summary>
     [Pure]
     public string? GetValue(string key)
     {

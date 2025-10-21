@@ -64,9 +64,9 @@ public static class Runner
             // new SmartPostiParcelLockerAnalyzer(),
             // new DPDParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
-            new LatviaPostLockerAnalyzer(),
-            new LatviaPostMailBoxAnalyzer(),
-            new LatviaPostOfficeAnalyzer(),
+            // new LatviaPostLockerAnalyzer(),
+            // new LatviaPostMailBoxAnalyzer(),
+            // new LatviaPostOfficeAnalyzer(),
             // new PostCodeAnalyzer(),
             // new ImproperTranslationAnalyzer(),
             // new LidlShopAnalyzer(),
@@ -84,12 +84,10 @@ public static class Runner
             // new VillageAnalyzer(),
             // new MaxspeedTypeAnalyzer(),
             // new LVMPicnicSiteAnalyzer(),
-            // new RestrictionRelationAnalyzer()
+            // new RestrictionRelationAnalyzer(),
+            new LifecycleLeftoversAnalyzer()
         ];
 #endif
-
-        Console.WriteLine("Running with " + analyzers.Count + " analyzers...");
-
 
         // Prepare reporter
         // This also makes sure the output folder exists in case we want to add some extra stuff/debug there "manually"

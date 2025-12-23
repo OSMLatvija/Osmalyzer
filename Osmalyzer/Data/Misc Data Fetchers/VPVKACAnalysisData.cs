@@ -224,12 +224,27 @@ Piektdiena: 8:30 - 14:00</td>
             // ...
             // Piektdiena: 9:00 - 15:00<br />
             // Sestdiena: Slēgts
+            
+            // Ziemas darba laiks<br />
+            // (1.oktobris - 30.aprīlis)<br />
+            // Pirmdiena: Slēgts<br />
+            // Otrdiena: 8:00 - 12:00; 12:30 - 17:00<br />
+            // ...
+            // Sestdiena: 9:00 - 15:00<br />
+            // <br />
+            // Vasaras darba laiks<br />
+            // (1.maija - 30.septembris)<br />
+            // Pirmdiena: 8:00 - 12:00; 12:30 - 17:00<br />
+            // ...
+            // Sestdiena: Slēgts            
 
-            if (rawParts[1] != "(1.oktobris - 31.maijs)") throw new Exception();
+            //if (rawParts[1] != "(1.oktobris - 31.maijs)") throw new Exception(); -- too fragile
+            if (!rawParts[1].StartsWith('(') || !rawParts[1].EndsWith(')')) throw new Exception();
             
             int summerIndex = rawParts.ToList().FindIndex(part => part.Contains("Vasaras"));
 
-            if (rawParts[summerIndex + 1] != "(1.jūnijs - 30.septembris)") throw new Exception();
+            //if (rawParts[summerIndex + 1] != "(1.jūnijs - 30.septembris)") throw new Exception(); -- too fragile
+            if (!rawParts[summerIndex + 1].StartsWith('(') || !rawParts[summerIndex + 1].EndsWith(')')) throw new Exception();
 
             string[] winterParts = rawParts[2..summerIndex].ToArray();
             string[] summerParts = rawParts[(summerIndex + 2)..].ToArray();
@@ -275,6 +290,10 @@ Piektdiena: 8:30 - 14:00</td>
                     continue;
                 // todo: we can theoretically parse as "by appointment"
 
+                // Remove empty trailing delimiters
+                // e.g. "Pirmdiena: 8:00 - 12:30;"
+                part = Regex.Replace(part, @"[;,]\s*$", "");
+                
                 // Monthly off day "metodiskā diena"
                 // Free text stuff like "Katra mēneša pēdējā piektdiena" or "Katra mēneša otrā trešdiena - metodiskā diena"
                 

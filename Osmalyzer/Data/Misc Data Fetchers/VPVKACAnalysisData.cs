@@ -238,18 +238,31 @@ Piektdiena: 8:30 - 14:00</td>
             // ...
             // Sestdiena: Slēgts            
 
-            //if (rawParts[1] != "(1.oktobris - 31.maijs)") throw new Exception(); -- too fragile
-            if (!rawParts[1].StartsWith('(') || !rawParts[1].EndsWith(')')) throw new Exception();
+            string winterRange =
+                rawParts[1] switch
+                {
+                    "(1.oktobris - 31.maijs)"   => "Oct 1-May 31",
+                    "(1.oktobris - 30.aprīlis)" => "Oct 1-Apr 30",
+                    _                           => throw new Exception()
+                };
+            // fragile, but not parsing all the possibilities
             
             int summerIndex = rawParts.ToList().FindIndex(part => part.Contains("Vasaras"));
 
-            //if (rawParts[summerIndex + 1] != "(1.jūnijs - 30.septembris)") throw new Exception(); -- too fragile
-            if (!rawParts[summerIndex + 1].StartsWith('(') || !rawParts[summerIndex + 1].EndsWith(')')) throw new Exception();
+            string summerRange =
+                rawParts[summerIndex + 1] switch
+                {
+                    "(1.jūnijs - 30.septembris)" => "Jun 1-Sep 30",
+                    "(1.maija - 30.septembris)"  => "May 1-Sep 30",
+                    "(1.maijs - 30.septembris)"  => "May 1-Sep 30",
+                    _                            => throw new Exception()
+                };
+            // fragile, but not parsing all the possibilities
 
             string[] winterParts = rawParts[2..summerIndex].ToArray();
             string[] summerParts = rawParts[(summerIndex + 2)..].ToArray();
 
-            return "Jun 1-Sep 30 " + Clean(summerParts) + "; Oct 1-May 31 " + Clean(winterParts);
+            return summerRange + " " + Clean(summerParts) + "; " + winterRange + " " + Clean(winterParts);
         }
         else
         {

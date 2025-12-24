@@ -47,9 +47,14 @@ public abstract class AnalysisData
 
     public void Retrieve()
     {
+#if REMOTE_EXECUTION
         try
         {
+#endif
+            
             DoRetrieve();
+            
+#if REMOTE_EXECUTION
         }
         catch (Exception e)
         {
@@ -57,21 +62,23 @@ public abstract class AnalysisData
 
             Status = DataStatus.FailedToRetrieve;
 
-#if !REMOTE_EXECUTION
-            throw; // on local, allow debugging the problem
-#else
             return; // on remote, continue gracefully
-#endif
         }
+#endif
 
         Status = DataStatus.Ok;
     }
 
     public void Prepare()
     {
-        try
+#if REMOTE_EXECUTION
+        try  // on local, just throw directly the problem
         {
+#endif
+            
             DoPrepare();
+            
+#if REMOTE_EXECUTION
         }
         catch (Exception e)
         {
@@ -79,12 +86,9 @@ public abstract class AnalysisData
 
             Status = DataStatus.FailedToPrepare;
             
-#if !REMOTE_EXECUTION
-            throw; // on local, allow debugging the problem
-#else
             return; // on remote, continue gracefully
-#endif
         }
+#endif
 
         Status = DataStatus.Ok;
     }

@@ -41,9 +41,7 @@ public class AddressGeodataAnalysisData : AnalysisData
 
         WebsiteBrowsingHelper.DownloadPage( // data.gov.lv seems to not like direct download/scraping
             url,
-            Path.Combine(CacheBasePath, DataFileIdentifier + @".zip"),
-            false,
-            null
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".zip")
         );
     }
 
@@ -79,14 +77,31 @@ public class AddressGeodataAnalysisData : AnalysisData
             Debug.WriteLine(
                 $"Field: {headerField.Name}, Type: {headerField.Type.Name}"
             );
+        
+        // `KODS` (Int32) -  Attiecīgā adresācijas objekta kods
+        // `TIPS_CD` (Int32) -  Adresācijas objekta tipa kods (skatīt 1. pielikumu (106 = Ciems))
+        // `NOSAUKUMS` (String) -  Adresācijas objekta aktuālais nosaukums
+        // `VKUR_CD` (Int32) -  Tā adresācijas objekta kods, kuram hierarhiski pakļauts attiecīgais adresācijas objekts
+        // `VKUR_TIPS` (Int32) -  Tā adresācijas objekta tipa kods (skatīt 1. pielikumu), kuram hierarhiski pakļauts attiecīgais adresācijas objekts
+        // `APSTIPR` (String) -  Burts “Y” norāda vai adresācijas objekts ir apstiprināts
+        // `APST_PAK` (Int32) -  Adresācijas objekta apstiprinājuma pakāpe (skatīt 3. pielikumu)
+        // `STATUSS` (String) -  Adresācijas objekta statuss: EKS – eksistējošs
+        // `SORT_NOS` (String) -  Kārtošanas nosacījums adresācijas objekta nosaukumam (ja nosaukumā ir tikai teksts, kārtošanas nosacījums ir identisks nosaukumam)
+        // `DAT_SAK` (String) -  Adresācijas objekta izveidošanas vai pirmreizējās reģistrācijas datums, ja nav zināms precīzs adresācijas objekta izveides datums
+        // `DAT_MOD` (String) -  Datums un laiks, kad pēdējo reizi informācijas sistēmā tehniski modificēts ieraksts/ dati par adresācijas objektu (piemēram, aktualizēts statuss, apstiprinājuma pakāpe, pievienots atribūts u.c.) vai mainīts pilnais adreses pieraksts
+        // `DAT_BEIG` (String) -  Adresācijas objekta likvidācijas datums, ja adresācijas objekts beidza pastāvēt
+        // `ATRIB` (String) -  ATVK kods
+        // `STD` (String) -  Pilnais adreses pieraksts
 #endif
 
         // Read shapes
+
+        Villages = [ ];
             
         while (shapefileReader.Read())
         {
             Geometry geometry = shapefileReader.Geometry;
-
+            
             // Process shape
                 
             Point centroid = geometry.Centroid;
@@ -95,12 +110,18 @@ public class AddressGeodataAnalysisData : AnalysisData
 
             OsmCoord coord = new OsmCoord(lat, lon);
                 
-            string name = "????";
+            // Process columns
+            
+            string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("Village in data without a name");
+            string address = shapefileReader["STD"].ToString() ?? throw new Exception("Village in data without a full address");
+            
+            // Entry
             
             Villages.Add(
                 new Village(
                     coord,
-                    name
+                    name,
+                    address
                 )
             );
         }

@@ -21,10 +21,12 @@ public class VillageAnalyzer : Analyzer
            
         OsmMasterData osmMasterData = osmData.MasterData;
 
-        OsmDataExtract osmOffices = osmMasterData.Filter(
+        OsmDataExtract osmVillages = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
-            new HasValue("admin_level", "9")
+            new HasValue("admin_level", "9"),
+            new DoesntHaveKey("EHAK:code"), // some Estonian villages still leak over the border, but they seem to have import values we can use
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
         );
         
         // place=village
@@ -36,10 +38,10 @@ public class VillageAnalyzer : Analyzer
         // Prepare data comparer/correlator
 
         Correlator<Village> correlator = new Correlator<Village>(
-            osmOffices,
+            osmVillages,
             adddressData.Villages,
-            new MatchDistanceParamater(300),
-            new MatchFarDistanceParamater(1000),
+            new MatchDistanceParamater(500), // todo: lower distance, but allow match inside relation
+            new MatchFarDistanceParamater(2000),
             new MatchCallbackParameter<Village>(GetMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("village", "villages"),
@@ -63,8 +65,14 @@ public class VillageAnalyzer : Analyzer
         [Pure]
         bool DoesOsmElementLookLikeAVillage(OsmElement element)
         {
-            // todo:
-            // place=village
+            string? place = element.GetValue("place");
+            if (place == "village")
+                return true; // explicitly tagged as village
+            
+            string? name = element.GetValue("name");
+            if (name?.EndsWith("apkaime") == true)
+                return false; // e.g. Riga suburb
+            
             return true;
         }
 

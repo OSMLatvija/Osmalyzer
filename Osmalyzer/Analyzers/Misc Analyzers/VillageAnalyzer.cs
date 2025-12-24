@@ -5,7 +5,9 @@ public class VillageAnalyzer : Analyzer
 {
     public override string Name => "Villages";
 
-    public override string Description => "This report checks that all villages (and hamlets) are mapped.";
+    public override string Description => 
+        "This report checks that all villages (and hamlets) are mapped. " +
+        "The village VAR data is pretty much complete, however hamlet data is much less so.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.Miscellaneous;
 
@@ -26,13 +28,13 @@ public class VillageAnalyzer : Analyzer
                 // Either village node
                 new AndMatch(
                     new IsNode(),
-                    new HasAnyValue("place", "village", "hamlet")
+                    new HasAnyValue("place", "village")
                 ),
                 // Or village boundary
                 new AndMatch(
                     new IsRelation(),
                     new HasValue("boundary", "administrative"),
-                    new HasValue("admin_level", "9")
+                    new HasAnyValue("admin_level", "9")
                 )
             ),
             new DoesntHaveKey("EHAK:code"), // some Estonian villages still leak over the border, but they seem to have import values we can use
@@ -40,7 +42,14 @@ public class VillageAnalyzer : Analyzer
         );
 
         osmVillages = osmVillages.Deduplicate(AreMatchingVillageDefiners);
-
+        
+        OsmDataExtract osmHamlets = osmMasterData.Filter(
+            new IsNode(),
+            new HasAnyValue("place", "hamlet"),
+            new DoesntHaveKey("EHAK:code"), // some Estonian villages still leak over the border, but they seem to have import values we can use
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
+        );
+        
         [Pure]
         static OsmElement? AreMatchingVillageDefiners(OsmElement element1, OsmElement element2)
         {
@@ -68,21 +77,23 @@ public class VillageAnalyzer : Analyzer
 
         AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
+        // Parse villages
+        
         // Prepare data comparer/correlator
 
-        Correlator<Village> correlator = new Correlator<Village>(
+        Correlator<Village> villageCorrelator = new Correlator<Village>(
             osmVillages,
-            adddressData.Villages.Where(v => v.Valid).ToList(),
+            adddressData.Villages.Where(v => !v.IsHamlet && v.Valid).ToList(),
             new MatchDistanceParamater(500), // todo: lower distance, but allow match inside relation
             new MatchFarDistanceParamater(2000),
-            new MatchCallbackParameter<Village>(GetMatchStrength),
+            new MatchCallbackParameter<Village>(GetVillageMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("village", "villages"),
             new LoneElementAllowanceParameter(DoesOsmElementLookLikeAVillage)
         );
 
         [Pure]
-        MatchStrength GetMatchStrength(Village village, OsmElement osmElement)
+        MatchStrength GetVillageMatchStrength(Village village, OsmElement osmElement)
         {
             string? name = osmElement.GetValue("name");
 
@@ -99,7 +110,7 @@ public class VillageAnalyzer : Analyzer
         bool DoesOsmElementLookLikeAVillage(OsmElement element)
         {
             string? place = element.GetValue("place");
-            if (place is "village" or "hamlet")
+            if (place == "village")
                 return true; // explicitly tagged
             
             string? name = element.GetValue("name");
@@ -111,8 +122,65 @@ public class VillageAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        correlator.Parse(
-            report,
+        villageCorrelator.Parse(
+            report, 
+            ExtraReportGroup.VillageCorrelator,
+            new MatchedPairBatch(),
+            new MatchedLoneOsmBatch(true),
+            new UnmatchedItemBatch(),
+            new MatchedFarPairBatch()
+        );
+        
+        // Parse hamlets
+        
+        
+        
+        // Prepare data comparer/correlator
+
+        Correlator<Village> hamletCorrelator = new Correlator<Village>(
+            osmHamlets,
+            adddressData.Villages.Where(v => v.IsHamlet && v.Valid).ToList(),
+            new MatchDistanceParamater(100), // nodes should have good distance matches since data isnt polygons
+            new MatchFarDistanceParamater(2000),
+            new MatchCallbackParameter<Village>(GetHamletMatchStrength),
+            new OsmElementPreviewValue("name", false),
+            new DataItemLabelsParamater("hamlet", "hamlets"),
+            new LoneElementAllowanceParameter(DoesOsmElementLookLikeAHamlet)
+        );
+
+        [Pure]
+        MatchStrength GetHamletMatchStrength(Village village, OsmElement osmElement)
+        {
+            string? name = osmElement.GetValue("name");
+
+            if (name == village.Name)
+                return MatchStrength.Strong; // exact match on name
+
+            if (DoesOsmElementLookLikeAVillage(osmElement))
+                return MatchStrength.Good; // looks like a village, but not exact match
+            
+            return MatchStrength.Unmatched;
+        }
+
+        [Pure]
+        bool DoesOsmElementLookLikeAHamlet(OsmElement element)
+        {
+            string? place = element.GetValue("place");
+            if (place == "hamlet")
+                return true; // explicitly tagged
+            
+            string? name = element.GetValue("name");
+            if (name?.EndsWith("apkaime") == true)
+                return false; // e.g. Riga suburb
+            
+            return true;
+        }
+
+        // Parse and report primary matching and location correlation
+
+        hamletCorrelator.Parse(
+            report, 
+            ExtraReportGroup.HamletCorrelator,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
@@ -129,8 +197,8 @@ public class VillageAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.InvalidVillages,
             "Invalid Villages",
-            "Villages marked invalid in address geodata (not approved or not existing).",
-            "There are no invalid villages in the geodata."
+            "Villages and hamlets marked invalid in address geodata (not approved or not existing).",
+            "There are no invalid villages or hamlets in the geodata."
         );
 
         List<Village> invalidVillages = adddressData.Villages.Where(v => !v.Valid).ToList();
@@ -149,6 +217,8 @@ public class VillageAnalyzer : Analyzer
 
     private enum ExtraReportGroup
     {
-        InvalidVillages
+        VillageCorrelator,
+        HamletCorrelator,
+        InvalidVillages,
     }
 }

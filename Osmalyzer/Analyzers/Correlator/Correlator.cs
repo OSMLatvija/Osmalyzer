@@ -29,6 +29,11 @@ public class Correlator<T> where T : IDataItem
 
     public CorrelatorReport Parse(Report report, params CorrelatorBatch[] entries)
     {
+        return Parse(report, ReportGroup.CorrelationResults, entries);
+    }
+
+    public CorrelatorReport Parse(Report report, object group, params CorrelatorBatch[] entries)
+    {
         if (report == null) throw new ArgumentNullException(nameof(report));
         if (entries == null) throw new ArgumentNullException(nameof(entries));
             
@@ -264,7 +269,7 @@ public class Correlator<T> where T : IDataItem
         // Prepare report group(s)
 
         report.AddGroup(
-            ReportGroup.CorrelationResults,
+            group,
             "Matching " + dataItemLabelPlural,
             "This lists the results of matching " + dataItemLabelPlural + " (data items) and OSM elements to each other.",
             null,
@@ -274,7 +279,7 @@ public class Correlator<T> where T : IDataItem
         // Report results
 
         report.AddEntry(
-            ReportGroup.CorrelationResults,
+            group,
             new GenericReportEntry(
                 "There are " + _dataItems.Count + " data items that could potentially match to " + _osmElements.Count + " elements."
             )
@@ -287,7 +292,7 @@ public class Correlator<T> where T : IDataItem
                 foreach (T dataItem in unmatchableItems)
                 {
                     report.AddEntry(
-                        ReportGroup.CorrelationResults,
+                        group,
                         new MapPointReportEntry(
                             dataItem.Coord,
                             "No OSM element found in " + unmatchDistance + " m range of " + 
@@ -299,7 +304,7 @@ public class Correlator<T> where T : IDataItem
                 }
 
                 report.AddEntry(
-                    ReportGroup.CorrelationResults,
+                    group,
                     new GenericReportEntry(
                         "No OSM element found for " + unmatchableItems.Count + " data item" + (unmatchableItems.Count > 1 ? "s" : "") + "."
                     )
@@ -314,7 +319,7 @@ public class Correlator<T> where T : IDataItem
                 foreach (OsmElement osmElement in unmatchableElements)
                 {
                     report.AddEntry(
-                        ReportGroup.CorrelationResults,
+                        group,
                         new MapPointReportEntry(
                             osmElement.AverageCoord,
                             "No " + dataItemLabelSingular + " expected in " + unmatchDistance + " m range of OSM element " +
@@ -326,7 +331,7 @@ public class Correlator<T> where T : IDataItem
                 }
 
                 report.AddEntry(
-                    ReportGroup.CorrelationResults,
+                    group,
                     new GenericReportEntry(
                         "No data item found for " + unmatchableElements.Count + " OSM element" + (unmatchableElements.Count > 1 ? "s" : "") + ". "
                     )
@@ -346,7 +351,7 @@ public class Correlator<T> where T : IDataItem
                 foreach (Match match in closeMatchedElements)
                 {
                     report.AddEntry(
-                        ReportGroup.CorrelationResults,
+                        group,
                         new MapPointReportEntry(
                             match.Element.AverageCoord,
                             match.Item.ReportString() + " " + 
@@ -361,7 +366,7 @@ public class Correlator<T> where T : IDataItem
                     if (match.Distance > matchOriginMinReportDistance)
                     {
                         report.AddEntry(
-                            ReportGroup.CorrelationResults,
+                            group,
                             new MapPointReportEntry(
                                 match.Item.Coord,
                                 "Expected location for " + 
@@ -378,7 +383,7 @@ public class Correlator<T> where T : IDataItem
                 }
 
                 report.AddEntry(
-                    ReportGroup.CorrelationResults,
+                    group,
                     new GenericReportEntry(
                         "Matched " + closeMatchedElements.Count + " data item" + (closeMatchedElements.Count > 1 ? "s" : "") + " to OSM element" + (closeMatchedElements.Count > 1 ? "s" : "") + ". "
                     )
@@ -398,7 +403,7 @@ public class Correlator<T> where T : IDataItem
                 foreach (Match match in farMatchedElements)
                 {
                     report.AddEntry(
-                        ReportGroup.CorrelationResults,
+                        group,
                         new MapPointReportEntry(
                             match.Element.AverageCoord,
                             match.Item.ReportString() + " " + 
@@ -411,7 +416,7 @@ public class Correlator<T> where T : IDataItem
                     );
 
                     report.AddEntry(
-                        ReportGroup.CorrelationResults,
+                        group,
                         new MapPointReportEntry(
                             match.Item.Coord,
                             "Expected location for " + 
@@ -427,7 +432,7 @@ public class Correlator<T> where T : IDataItem
                 }
 
                 report.AddEntry(
-                    ReportGroup.CorrelationResults,
+                    group,
                     new GenericReportEntry(
                         "Matched over longer distance " + farMatchedElements.Count + " data item" + (farMatchedElements.Count > 1 ? "s" : "") + " to OSM element" + (farMatchedElements.Count > 1 ? "s" : "") + ". "
                     )
@@ -442,7 +447,7 @@ public class Correlator<T> where T : IDataItem
                 foreach (OsmElement osmElement in matchedLoneElements)
                 {
                     report.AddEntry(
-                        ReportGroup.CorrelationResults,
+                        group,
                         new MapPointReportEntry(
                             osmElement.AverageCoord,
                             "Matched OSM element " +
@@ -455,7 +460,7 @@ public class Correlator<T> where T : IDataItem
                 }
 
                 report.AddEntry(
-                    ReportGroup.CorrelationResults,
+                    group,
                     new GenericReportEntry(
                         "Matched " + matchedLoneElements.Count + " lone OSM element" + (matchedLoneElements.Count > 1 ? "s" : "") + " " + (reportMatchedLoneOsmAsProblem ? " not expected" : "acceptable") + " by themselves."
                     )
@@ -466,7 +471,7 @@ public class Correlator<T> where T : IDataItem
         foreach (T dataItem in outOfBoundsItems)
         {
             report.AddEntry(
-                ReportGroup.CorrelationResults,
+                group,
                 new IssueReportEntry(
                     "Not matching " + 
                     dataItem.ReportString() +

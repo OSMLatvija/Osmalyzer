@@ -5,7 +5,7 @@ public class VillageAnalyzer : Analyzer
 {
     public override string Name => "Villages";
 
-    public override string Description => "This report checks that all villages are mapped.";
+    public override string Description => "This report checks that all villages (and hamlets) are mapped.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.Miscellaneous;
 
@@ -22,16 +22,24 @@ public class VillageAnalyzer : Analyzer
         OsmMasterData osmMasterData = osmData.MasterData;
 
         OsmDataExtract osmVillages = osmMasterData.Filter(
-            new IsRelation(),
-            new HasValue("boundary", "administrative"),
-            new HasValue("admin_level", "9"),
+            new OrMatch(
+                // Either village node
+                new AndMatch(
+                    new IsNode(),
+                    new HasAnyValue("place", "village", "hamlet")
+                ),
+                // Or village boundary
+                new AndMatch(
+                    new IsRelation(),
+                    new HasValue("boundary", "administrative"),
+                    new HasValue("admin_level", "9")
+                )
+            ),
             new DoesntHaveKey("EHAK:code"), // some Estonian villages still leak over the border, but they seem to have import values we can use
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
         );
         
-        // place=village
-
-        // Get village data
+        // Get village/hamlet data
 
         AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
@@ -66,8 +74,8 @@ public class VillageAnalyzer : Analyzer
         bool DoesOsmElementLookLikeAVillage(OsmElement element)
         {
             string? place = element.GetValue("place");
-            if (place == "village")
-                return true; // explicitly tagged as village
+            if (place is "village" or "hamlet")
+                return true; // explicitly tagged
             
             string? name = element.GetValue("name");
             if (name?.EndsWith("apkaime") == true)

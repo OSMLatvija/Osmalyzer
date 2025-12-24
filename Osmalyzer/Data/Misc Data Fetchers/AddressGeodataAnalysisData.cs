@@ -55,7 +55,13 @@ public class AddressGeodataAnalysisData : AnalysisData
         );
         
         // Parse
-        
+
+        ParseVillages();
+        ParseHamlets();
+    }
+
+    private void ParseVillages()
+    {
         string projectionfilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Ciemi.prj");
         CoordinateSystem ourWkt = new CoordinateSystemFactory().CreateFromWkt(File.ReadAllText(projectionfilePath));
             
@@ -75,7 +81,7 @@ public class AddressGeodataAnalysisData : AnalysisData
 #if !REMOTE_EXECUTION
         foreach (DbaseFieldDescriptor headerField in dbaseHeader.Fields)
             Debug.WriteLine(
-                $"Field: {headerField.Name}, Type: {headerField.Type.Name}"
+                $"Village: Field: {headerField.Name}, Type: {headerField.Type.Name}"
             );
         
         // `KODS` (Int32) -  Attiecīgā adresācijas objekta kods
@@ -126,7 +132,71 @@ public class AddressGeodataAnalysisData : AnalysisData
                     isValid,
                     coord,
                     name,
-                    address
+                    address,
+                    false
+                )
+            );
+        }
+    }
+
+    private void ParseHamlets()
+    {
+        // Hamlets (Mazciemi) come as points and share attribute schema with villages
+        string projectionfilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Mazciemi.prj");
+        CoordinateSystem ourWkt = new CoordinateSystemFactory().CreateFromWkt(File.ReadAllText(projectionfilePath));
+        
+        GeographicCoordinateSystem wgs84 = GeographicCoordinateSystem.WGS84;
+        
+        ICoordinateTransformation coordTransformation = new CoordinateTransformationFactory().CreateFromCoordinateSystems(
+            ourWkt,
+            wgs84
+        );
+
+        string shapefilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Mazciemi.shp");
+
+        using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
+
+        DbaseFileHeader dbaseHeader = shapefileReader.DbaseHeader;
+
+#if !REMOTE_EXECUTION
+        foreach (DbaseFieldDescriptor headerField in dbaseHeader.Fields)
+            Debug.WriteLine(
+                $"Hamlet: Field: {headerField.Name}, Type: {headerField.Type.Name}"
+            );
+        
+        
+#endif
+
+        while (shapefileReader.Read())
+        {
+            Geometry geometry = shapefileReader.Geometry;
+            
+            // Process shape
+            
+            Point centroid = geometry.Centroid;
+
+            (double lon, double lat) = coordTransformation.MathTransform.Transform(centroid.X, centroid.Y);
+
+            OsmCoord coord = new OsmCoord(lat, lon);
+
+            // Process columns
+            
+            string status = shapefileReader["STATUSS"].ToString() ?? throw new Exception("Hamlet in data without a status");
+            string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("Hamlet in data without an approval status");
+            string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("Hamlet in data without a name");
+            string address = shapefileReader["STD"].ToString() ?? throw new Exception("Hamlet in data without a full address");
+
+            bool isValid = status == "EKS" && approved == "Y";
+
+            // Entry
+            
+            Villages.Add(
+                new Village(
+                    isValid,
+                    coord,
+                    name,
+                    address,
+                    true
                 )
             );
         }

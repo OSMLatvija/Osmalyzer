@@ -9,19 +9,26 @@ public class Village : IDataItem
     public string Name { get; }
     
     public string Address { get; }
+    
+    public bool IsHamlet { get; }
 
 
-    public Village(bool valid, OsmCoord coord, string name, string address)
+    public Village(bool valid, OsmCoord coord, string name, string address, bool isHamlet)
     {
         Valid = valid;
         Coord = coord;
         Name = name;
         Address = address;
+        IsHamlet = isHamlet;
     }
     
     
     public string ReportString()
     {
-        return (!Valid ? "Invalid " : "") + "Village `" + Name + "` (`" + Address + "`)";
+        return 
+            (!Valid ? "Invalid " : "") + 
+            (IsHamlet ? "Hamlet" : "Village") + 
+            " `" + Name + 
+            "` (`" + Address + "`)";
     }
 }

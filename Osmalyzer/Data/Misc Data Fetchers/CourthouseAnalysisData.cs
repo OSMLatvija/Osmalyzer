@@ -120,13 +120,20 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             // Grab the portions with phone and email
             
             // Start at "<h4>Kontakti</h4>" (not "<h4 id="footer-contacts">Kontakti</h4>")
-            int contactMatchStart = content.IndexOf(@"<h4>Kontakti</h4>", StringComparison.Ordinal);
+            Match contactTopMatch = Regex.Match(content, @"<h4>\s*Kontakti\s*</h4>", RegexOptions.Singleline);
             
-            // End at next "<a href="..." data-external-link="TRUE" target="_blank">E-adrese</a>"
-            int contactMatchEnd = content.IndexOf(@">E-adrese<", contactMatchStart, StringComparison.Ordinal);
+            if (!contactTopMatch.Success)
+                throw new Exception("Did not find contact section start");
+
+            int contactMatchStart = contactTopMatch.Index;
+                
+            // End at next "<a href="..." data-external-link="TRUE" target="_blank">E-adrese</a>" (might be whitespace around "E-adrese")
+            Match contactBottomMatch = Regex.Match(content[contactMatchStart..], @">\s*E-adrese\s*<", RegexOptions.Singleline);
             
-            if (contactMatchStart == -1 || contactMatchEnd == -1 || contactMatchEnd <= contactMatchStart)
-                throw new Exception("Did not find phone number section");
+            if (!contactBottomMatch.Success)
+                throw new Exception("Did not find contact section end match");
+            
+            int contactMatchEnd = contactBottomMatch.Index + contactMatchStart; // since we matched on substring
 
             string contactPortion = content[contactMatchStart .. contactMatchEnd];
             

@@ -16,6 +16,9 @@ public static class WebsiteBrowsingHelper
     
     private static IWebDriver? _driver;
 
+    // Download directory to capture headless downloads
+    private static string? downloadDirectory;
+
 
     [MustUseReturnValue]
     public static string Read(string url, bool canUseCache, (string, string)[]? cookies = null, params BrowsingAction[] browsingActions)
@@ -101,11 +104,13 @@ public static class WebsiteBrowsingHelper
 
             // We cannot use page source, which is the original source we received, but the DOM can change after that - we need to grab the current page
             IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
-            result = (string)jsExecutor.ExecuteScript("return document.documentElement.outerHTML;");
+            result = Convert.ToString(jsExecutor.ExecuteScript("return document.documentElement.outerHTML;")) ?? string.Empty;
         }
         else
         {
-            result = driver.PageSource;
+            // Always read current DOM to avoid stale PageSource differences and nullability issues
+            IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+            result = Convert.ToString(jsExecutor.ExecuteScript("return document.documentElement.outerHTML;")) ?? string.Empty;
         }
 
         if (canUseCache)
@@ -119,37 +124,73 @@ public static class WebsiteBrowsingHelper
         if (!WebsiteDownloadHelper.BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        // Headless browsing needs a full site load, so there's no way to directly write to file, we just have to dump the results 
-        
+        // Ensure download directory exists and is cleared before navigation
+        string downloads = downloadDirectory ?? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "Downloads"));
+        Directory.CreateDirectory(downloads);
+        foreach (string path in Directory.GetFiles(downloads))
+        {
+            try { File.Delete(path); } catch { /* ignore file in use */ }
+        }
+
+        // Perform navigation/actions and capture page HTML
         string contents = Read(url, canUseCache, null, browsingActions);
 
+        // If caller expects specific content on the page, permit a short retry window only
         if (retryIfNotFoundInContent != null)
         {
             int retry = 0;
-            
-            while (!contents.Contains(retryIfNotFoundInContent))
+            while (!contents.Contains(retryIfNotFoundInContent) && retry < 2)
             {
-                if (retry == 3)
-                    throw new Exception($"Failed to download page with required content after {retry} retries: {url}");
-                
-                Thread.Sleep(3000 * retry);
-                
+                Thread.Sleep(1000 * (retry + 1));
                 contents = Read(url, canUseCache, null, browsingActions);
-                
                 retry++;
             }
         }
 
+        // Detect if a download happened; allow a brief stabilization window (<= 10s)
+        string? downloadedPath = WaitForAnyDownload(downloads, TimeSpan.FromSeconds(10));
+
+        if (downloadedPath != null)
+        {
+            File.Move(downloadedPath, fileName, true);
+            return;
+        }
+
+        // No download occurred; save page HTML
         File.WriteAllText(fileName, contents);
-    }
 
-    public static void DownloadTarget(string url, string fileName)
-    {
-        if (!WebsiteDownloadHelper.BrowsingEnabled)
-            throw new Exception("Web browsing should only be performed in Download()");
+        // Local function: wait briefly for any file to appear and stabilize size
+        static string? WaitForAnyDownload(string directory, TimeSpan timeout)
+        {
+            DateTime started = DateTime.UtcNow;
+            string? candidatePath = null;
+            long lastSize = -1;
 
-        // TODO:
-        throw new NotImplementedException();
+            while (DateTime.UtcNow - started < timeout)
+            {
+                string[] files = Directory.GetFiles(directory);
+                if (files.Length > 0)
+                {
+                    // pick the newest
+                    FileInfo fi = files.Select(f => new FileInfo(f)).OrderByDescending(f => f.LastWriteTimeUtc).First();
+                    if (candidatePath == null || candidatePath != fi.FullName)
+                    {
+                        candidatePath = fi.FullName;
+                        lastSize = -1;
+                    }
+
+                    long size = fi.Length;
+                    if (size > 0 && size == lastSize)
+                        return candidatePath;
+
+                    lastSize = size;
+                }
+
+                Thread.Sleep(300);
+            }
+
+            return null;
+        }
     }
 
     public static string TryUnwrapJsonFromBoilerplateHtml(string source)
@@ -179,9 +220,10 @@ public static class WebsiteBrowsingHelper
         
         ChromeDriverService service = ChromeDriverService.CreateDefaultService();
         service.SuppressInitialDiagnosticInformation = true; // "Starting ChromeDriver" spam
-
+        
         ChromeOptions options = new ChromeOptions();
-        options.AddArgument("--headless");
+
+        options.AddArgument("--headless=new");
         //options.AddArgument("--enable-javascript");
         options.AddArgument("--window-size=1600x1200");
         //options.AddArgument("--lang=en-US");
@@ -196,16 +238,37 @@ public static class WebsiteBrowsingHelper
         options.AddArgument("--ignore-certificate-errors");
         options.AddArgument("--ignore-ssl-errors");
 
+        downloadDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "Downloads"));
+        Directory.CreateDirectory(downloadDirectory);
+        options.AddUserProfilePreference("download.default_directory", downloadDirectory);
+        options.AddUserProfilePreference("download.prompt_for_download", false);
+        options.AddUserProfilePreference("download.directory_upgrade", true);
+        options.AddUserProfilePreference("safebrowsing.enabled", true);
+
         ChromeDriver chromeDriver = new ChromeDriver(service, options);
         
         _driver = chromeDriver;
 
+        chromeDriver.ExecuteCdpCommand(
+            "Page.setDownloadBehavior",
+            new Dictionary<string, object>
+            {
+                { "behavior", "allow" },
+                { "downloadPath", downloadDirectory }
+            }
+        );
 
-        // Set up debug listening
-        
         DevToolsSession session = ((IDevTools)chromeDriver).GetDevToolsSession();
         
         session.Domains.Network.EnableNetwork();
+
+        // chromeDriver.ExecuteCdpCommand(
+        //     "Network.setUserAgentOverride",
+        //     new Dictionary<string, object>
+        //     {
+        //         { "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+        //     }
+        // );
 
         session.DevToolsEventReceived += OnDevToolsEventReceived;
 

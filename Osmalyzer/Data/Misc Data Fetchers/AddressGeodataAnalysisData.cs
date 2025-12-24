@@ -109,16 +109,21 @@ public class AddressGeodataAnalysisData : AnalysisData
             (double lon, double lat) = coordTransformation.MathTransform.Transform(centroid.X, centroid.Y);
 
             OsmCoord coord = new OsmCoord(lat, lon);
-                
+            
             // Process columns
             
+            string status = shapefileReader["STATUSS"].ToString() ?? throw new Exception("Village in data without a status");
+            string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("Village in data without an approval status");
             string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("Village in data without a name");
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("Village in data without a full address");
+            
+            bool isValid = status == "EKS" && approved == "Y";
             
             // Entry
             
             Villages.Add(
                 new Village(
+                    isValid,
                     coord,
                     name,
                     address

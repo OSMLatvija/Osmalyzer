@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using iText.Svg.Renderers.Path.Impl;
 using OsmSharp;
 using OsmSharp.Tags;
 
@@ -40,6 +41,10 @@ public abstract class OsmElement : IChunkerItem
         
     [PublicAPI]
     public IReadOnlyList<OsmRelationMember>? Relations => relations?.AsReadOnly();
+    
+    /// <summary> Filled by <see cref="OsmData.Deduplicate"/>, if called and if duplicated </summary>
+    [PublicAPI]
+    public List<OsmElement>? Duplicates { get; private set; }
 
    
     public (double x, double y) ChunkCoord => AverageCoord.ToCartesian();
@@ -233,6 +238,25 @@ public abstract class OsmElement : IChunkerItem
 
 
     public abstract OsmCoord AverageCoord { [Pure] get; }
+
+    
+    internal void AddDuplicates(OsmElement duplicate)
+    {
+        if (Duplicates == null)
+            Duplicates = [ ];
+        
+        AddDuplicatesRecursive(Duplicates, duplicate);
+        
+
+        void AddDuplicatesRecursive(List<OsmElement> list, OsmElement targetDupe)
+        {
+            list.Add(targetDupe);
+
+            if (targetDupe.Duplicates != null)
+                foreach (OsmElement dupe in targetDupe.Duplicates)
+                    AddDuplicatesRecursive(list, dupe);
+        }
+    }
 
 
     /// <summary>

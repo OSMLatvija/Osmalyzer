@@ -72,6 +72,56 @@ public abstract class OsmData
         return extracts;
     }
 
+    /// <summary>
+    /// Remove duplicate elements based on the given similarity comparer.
+    /// </summary>
+    [Pure]
+    public OsmDataExtract Deduplicate(Func<OsmElement, OsmElement, OsmElement?> similarityComparer)
+    {
+        List<OsmElement> elements = _elements.ToList();
+
+        List<OsmElement> uniqueElements = [ ];
+
+        for (int i = 0; i < elements.Count; i++)
+        {
+            bool isDuplicate = false;
+            
+            for (int k = i + 1; k < elements.Count; k++)
+            {
+                OsmElement? duplicate = similarityComparer(elements[i], elements[k]);
+                
+                if (duplicate == null)
+                    continue;
+
+                if (duplicate == elements[i])
+                {
+                    elements[k].AddDuplicates(elements[i]);
+                    
+                    isDuplicate = true;
+                    break;
+                }
+
+                if (duplicate == elements[k])
+                {
+                    elements[i].AddDuplicates(elements[k]);
+
+                    elements.RemoveAt(k);
+                    k--;
+                    // continue checking the rest
+                }
+                else
+                {
+                    throw new Exception("Similarity comparer returned an element that is neither of the two compared elements.");
+                }
+            }
+            
+            if (!isDuplicate)
+                uniqueElements.Add(elements[i]);
+        }
+
+        return new OsmDataExtract(GetFullData(), uniqueElements);
+    }
+
     public OsmElement? Find(params OsmFilter[] filters)
     {
         IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters);

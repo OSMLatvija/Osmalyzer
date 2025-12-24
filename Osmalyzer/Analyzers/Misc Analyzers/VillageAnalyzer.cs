@@ -38,7 +38,32 @@ public class VillageAnalyzer : Analyzer
             new DoesntHaveKey("EHAK:code"), // some Estonian villages still leak over the border, but they seem to have import values we can use
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
         );
-        
+
+        osmVillages = osmVillages.Deduplicate(AreMatchingVillageDefiners);
+
+        [Pure]
+        static OsmElement? AreMatchingVillageDefiners(OsmElement element1, OsmElement element2)
+        {
+            // When we have a boundary and an admin center node, consider them duplicates and keep the boundary only
+
+            if (element1 is OsmNode node1 && element2 is OsmRelation relation2)
+                return AreMatching(node1, relation2) ? node1 : null;
+
+            if (element1 is OsmRelation relation1 && element2 is OsmNode node2)
+                return AreMatching(node2, relation1) ? node2 : null;
+            
+            return null;
+
+            
+            [Pure]
+            static bool AreMatching(OsmNode osmNode, OsmRelation osmRelation)
+            {
+                // Strict check - is the node an (admin center) member of the relation?
+                return osmRelation.Members.Any(m => m.Element == osmNode);
+                // todo: looser check so we can detect issues but still assume they are the same village?
+            }
+        }
+
         // Get village/hamlet data
 
         AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();

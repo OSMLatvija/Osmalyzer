@@ -9,7 +9,7 @@ public class OsmDataExtract : OsmData
     public OsmMasterData FullData { get; }
 
 
-    internal OsmDataExtract(OsmMasterData data, List<OsmElement> elements)
+    public OsmDataExtract(OsmMasterData data, List<OsmElement> elements)
     {
         FullData = data;
 

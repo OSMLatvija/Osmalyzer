@@ -19,15 +19,14 @@
 
     <ItemGroup>
       <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
-      <PackageReference Include="F23.StringSimilarity" Version="6.0.0" />
+      <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
       <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-      <PackageReference Include="itext7" Version="9.3.0" />
       <PackageReference Include="NetTopologySuite.IO.ShapeFile" Version="2.1.0" />
       <PackageReference Include="ProjNET" Version="2.1.0" />
-      <PackageReference Include="Selenium.WebDriver" Version="4.36.0" />
+      <PackageReference Include="Selenium.WebDriver" Version="4.39.0" />
       <PackageReference Include="SharpKml.Core" Version="6.1.0" />
       <PackageReference Include="SharpZipLib" Version="1.4.2" />
-      <PackageReference Include="WeCantSpell.Hunspell" Version="6.0.3" />
+      <PackageReference Include="WeCantSpell.Hunspell" Version="7.0.1" />
     </ItemGroup>
 
     <ItemGroup>

@@ -41,7 +41,9 @@ public class AddressGeodataAnalysisData : AnalysisData
 
         WebsiteBrowsingHelper.DownloadPage( // data.gov.lv seems to not like direct download/scraping
             url,
-            Path.Combine(CacheBasePath, DataFileIdentifier + @".zip")
+            Path.Combine(CacheBasePath, DataFileIdentifier + @".zip"),
+            false,
+            null
         );
     }
 

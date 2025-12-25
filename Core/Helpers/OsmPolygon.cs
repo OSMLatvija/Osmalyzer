@@ -128,6 +128,12 @@ public class OsmPolygon
         streamWriter.Close();
     }
 
+    public float GetOverlapCoveragePercent(OsmPolygon other)
+    {
+        // todo:
+        return 1.0f;
+    }
+
 
     public enum RelationInclusionCheck
     {

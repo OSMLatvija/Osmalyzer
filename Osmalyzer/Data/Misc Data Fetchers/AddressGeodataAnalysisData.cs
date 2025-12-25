@@ -125,9 +125,22 @@ public class AddressGeodataAnalysisData : AnalysisData
             string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Village in data without a code");
             
             bool isValid = status == "EKS" && approved == "Y";
+
+            // Process boundary
+
+            List<OsmCoord> coords = [ ];
+
+            foreach (Coordinate geometryCoord in geometry.Coordinates)
+            {
+                (double lonB, double latB) = coordTransformation.MathTransform.Transform(geometryCoord.X, geometryCoord.Y);
+                
+                coords.Add(new OsmCoord(latB, lonB));
+            }
+            
+            OsmPolygon boundary = new OsmPolygon(coords);
             
             // Entry
-            
+           
             Villages.Add(
                 new Village(
                     isValid,
@@ -135,7 +148,8 @@ public class AddressGeodataAnalysisData : AnalysisData
                     coord,
                     name,
                     address,
-                    false
+                    false,
+                    boundary
                 )
             );
         }
@@ -198,7 +212,8 @@ public class AddressGeodataAnalysisData : AnalysisData
                     coord,
                     name,
                     address,
-                    true
+                    true,
+                    null // hamlets have no boundaries in data
                 )
             );
         }

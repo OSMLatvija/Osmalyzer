@@ -13,9 +13,11 @@ public class Village : IDataItem
     public string Address { get; }
     
     public bool IsHamlet { get; }
+    
+    public OsmPolygon? Boundary { get; }
 
 
-    public Village(bool valid, string id, OsmCoord coord, string name, string address, bool isHamlet)
+    public Village(bool valid, string id, OsmCoord coord, string name, string address, bool isHamlet, OsmPolygon? boundary)
     {
         Valid = valid;
         ID = id;
@@ -23,6 +25,7 @@ public class Village : IDataItem
         Name = name;
         Address = address;
         IsHamlet = isHamlet;
+        Boundary = boundary;
     }
     
     

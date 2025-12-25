@@ -165,9 +165,44 @@ public class VillageAnalyzer : Analyzer
             }
         }
         
+        // Validate village boundaries
+        
+        report.AddGroup(
+            ExtraReportGroup.VillageBoundaries,
+            "Village boundary issues"
+        );
+
+        foreach (Correlation correlation in villageCorrelation.Correlations)
+        {
+            if (correlation is MatchedCorrelation<Village> matchedCorrelation)
+            {
+                Village village = matchedCorrelation.DataItem;
+                OsmElement osmElement = matchedCorrelation.OsmElement;
+
+                if (osmElement is OsmRelation relation)
+                {
+                    OsmPolygon relationPloygon = relation.GetOuterWayPolygon();
+                    OsmPolygon villageBoundary = village.Boundary!;
+
+                    float coversBoundary = villageBoundary.GetOverlapCoveragePercent(relationPloygon);
+                    
+                    if (coversBoundary < 0.9f)
+                    {
+                        report.AddEntry(
+                            ExtraReportGroup.VillageBoundaries,
+                            new IssueReportEntry(
+                                "Village boundary for `" + village.Name + "` does not cover the official boundary area " +
+                                "(matches at " + (coversBoundary * 100).ToString("F1") + "%)",
+                                village.Coord,
+                                MapPointStyle.Problem
+                            )
+                        );
+                    }
+                }
+            }
+        }
+        
         // Parse hamlets
-        
-        
         
         // Prepare data comparer/correlator
 
@@ -300,9 +335,10 @@ public class VillageAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         VillageCorrelator,
-        HamletCorrelator,
         SuggestedVillageAdditions,
+        VillageBoundaries,
+        HamletCorrelator,
         SuggestedHamletAdditions,
-        InvalidVillages,
+        InvalidVillages
     }
 }

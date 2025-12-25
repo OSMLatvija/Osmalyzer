@@ -4,6 +4,8 @@ public class Village : IDataItem
 {
     public bool Valid { get; }
     
+    public string ID { get; }
+
     public OsmCoord Coord { get; }
     
     public string Name { get; }
@@ -13,9 +15,10 @@ public class Village : IDataItem
     public bool IsHamlet { get; }
 
 
-    public Village(bool valid, OsmCoord coord, string name, string address, bool isHamlet)
+    public Village(bool valid, string id, OsmCoord coord, string name, string address, bool isHamlet)
     {
         Valid = valid;
+        ID = id;
         Coord = coord;
         Name = name;
         Address = address;
@@ -28,7 +31,8 @@ public class Village : IDataItem
         return 
             (!Valid ? "Invalid " : "") + 
             (IsHamlet ? "Hamlet" : "Village") + 
-            " `" + Name + 
-            "` (`" + Address + "`)";
+            " `" + Name + "`" +
+            " #`" + ID + "`" + 
+            " (`" + Address + "`)";
     }
 }

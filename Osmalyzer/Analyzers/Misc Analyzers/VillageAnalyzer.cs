@@ -286,13 +286,13 @@ public class VillageAnalyzer : Analyzer
     [Pure]
     private static string BuildSuggestedVillageTags(Village village)
     {
-        List<string> lines = [ ];
-        
-        string placeType = village.IsHamlet ? "hamlet" : "village";
-        
-        if (!string.IsNullOrWhiteSpace(village.Name)) lines.Add("name=" + village.Name);
-        lines.Add("place=" + placeType);
-        
+        List<string> lines =
+        [
+            "name=" + village.Name,
+            "place=" + (village.IsHamlet ? "hamlet" : "village"),
+            "ref=" + village.ID
+        ];
+
         return "```" + string.Join(Environment.NewLine, lines) + "```";
     }
 

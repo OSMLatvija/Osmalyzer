@@ -122,6 +122,7 @@ public class AddressGeodataAnalysisData : AnalysisData
             string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("Village in data without an approval status");
             string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("Village in data without a name");
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("Village in data without a full address");
+            string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Village in data without a code");
             
             bool isValid = status == "EKS" && approved == "Y";
             
@@ -130,6 +131,7 @@ public class AddressGeodataAnalysisData : AnalysisData
             Villages.Add(
                 new Village(
                     isValid,
+                    id,
                     coord,
                     name,
                     address,
@@ -163,8 +165,6 @@ public class AddressGeodataAnalysisData : AnalysisData
             Debug.WriteLine(
                 $"Hamlet: Field: {headerField.Name}, Type: {headerField.Type.Name}"
             );
-        
-        
 #endif
 
         while (shapefileReader.Read())
@@ -185,6 +185,7 @@ public class AddressGeodataAnalysisData : AnalysisData
             string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("Hamlet in data without an approval status");
             string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("Hamlet in data without a name");
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("Hamlet in data without a full address");
+            string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Hamlet in data without a code");
 
             bool isValid = status == "EKS" && approved == "Y";
 
@@ -193,6 +194,7 @@ public class AddressGeodataAnalysisData : AnalysisData
             Villages.Add(
                 new Village(
                     isValid,
+                    id,
                     coord,
                     name,
                     address,

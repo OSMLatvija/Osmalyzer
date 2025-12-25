@@ -122,7 +122,7 @@ public class VillageAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        villageCorrelator.Parse(
+        CorrelatorReport villageCorrelation = villageCorrelator.Parse(
             report, 
             ExtraReportGroup.VillageCorrelator,
             new MatchedPairBatch(),
@@ -130,6 +130,40 @@ public class VillageAnalyzer : Analyzer
             new UnmatchedItemBatch(),
             new MatchedFarPairBatch()
         );
+        
+        // Offer syntax for quick OSM addition for unmatched villages
+        
+        List<Village> unmatchedVillages = villageCorrelation.Correlations
+            .OfType<UnmatchedItemCorrelation<Village>>()
+            .Select(c => c.DataItem)
+            .ToList();
+
+        if (unmatchedVillages.Count > 0)
+        {
+            report.AddGroup(
+                ExtraReportGroup.SuggestedVillageAdditions,
+                "Suggested Village Additions",
+                "These villages are not currently matched to OSM and can be added with these (suggested) tags."
+            );
+
+            foreach (Village village in unmatchedVillages)
+            {
+                string tagsBlock = BuildSuggestedVillageTags(village);
+
+                report.AddEntry(
+                    ExtraReportGroup.SuggestedVillageAdditions,
+                    new IssueReportEntry(
+                        '`' + village.Name + "` village at `" +
+                        village.Address +
+                        "` can be added at " +
+                        village.Coord.OsmUrl +
+                        " as" + Environment.NewLine + tagsBlock,
+                        village.Coord,
+                        MapPointStyle.Suggestion
+                    )
+                );
+            }
+        }
         
         // Parse hamlets
         
@@ -178,7 +212,7 @@ public class VillageAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        hamletCorrelator.Parse(
+        CorrelatorReport hamletCorrelation = hamletCorrelator.Parse(
             report, 
             ExtraReportGroup.HamletCorrelator,
             new MatchedPairBatch(),
@@ -186,6 +220,40 @@ public class VillageAnalyzer : Analyzer
             new UnmatchedItemBatch(),
             new MatchedFarPairBatch()
         );
+        
+        // Offer syntax for quick OSM addition for unmatched hamlets
+        
+        List<Village> unmatchedHamlets = hamletCorrelation.Correlations
+            .OfType<UnmatchedItemCorrelation<Village>>()
+            .Select(c => c.DataItem)
+            .ToList();
+
+        if (unmatchedHamlets.Count > 0)
+        {
+            report.AddGroup(
+                ExtraReportGroup.SuggestedHamletAdditions,
+                "Suggested Hamlet Additions",
+                "These hamlets are not currently matched to OSM and can be added with these (suggested) tags."
+            );
+
+            foreach (Village hamlet in unmatchedHamlets)
+            {
+                string tagsBlock = BuildSuggestedVillageTags(hamlet);
+
+                report.AddEntry(
+                    ExtraReportGroup.SuggestedHamletAdditions,
+                    new IssueReportEntry(
+                        '`' + hamlet.Name + "` hamlet at `" +
+                        hamlet.Address +
+                        "` can be added at " +
+                        hamlet.Coord.OsmUrl +
+                        " as" + Environment.NewLine + tagsBlock,
+                        hamlet.Coord,
+                        MapPointStyle.Suggestion
+                    )
+                );
+            }
+        }
         
         // Validate additional issues
 
@@ -215,10 +283,26 @@ public class VillageAnalyzer : Analyzer
     }
 
 
+    [Pure]
+    private static string BuildSuggestedVillageTags(Village village)
+    {
+        List<string> lines = [ ];
+        
+        string placeType = village.IsHamlet ? "hamlet" : "village";
+        
+        if (!string.IsNullOrWhiteSpace(village.Name)) lines.Add("name=" + village.Name);
+        lines.Add("place=" + placeType);
+        
+        return "```" + string.Join(Environment.NewLine, lines) + "```";
+    }
+
+
     private enum ExtraReportGroup
     {
         VillageCorrelator,
         HamletCorrelator,
+        SuggestedVillageAdditions,
+        SuggestedHamletAdditions,
         InvalidVillages,
     }
 }

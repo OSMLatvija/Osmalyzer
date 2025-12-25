@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.Index.Strtree;
+using NetTopologySuite.LinearReferencing;
 
 namespace Osmalyzer;
 
@@ -128,10 +131,81 @@ public class OsmPolygon
         streamWriter.Close();
     }
 
-    public float GetOverlapCoveragePercent(OsmPolygon other)
+    /// <summary>
+    /// Returns the estimated overlap coverage percent between this and another polygon's boundary.
+    /// The closer the two together, the higher the coverage percent.
+    /// </summary>
+    /// <param name="epsilon">positional uncertainty in meters, i.e. distance at which boundaries are considered the same</param>
+    public double GetOverlapCoveragePercent(OsmPolygon other, double epsilon = 10)
     {
-        // todo:
-        return 1.0f;
+        double step = epsilon / 2.0;
+
+        double coverageToOther = DirectedCoverage(this, other, step, epsilon);
+        double coverageFromOther = DirectedCoverage(other, this, step, epsilon);
+
+        return Math.Min(coverageToOther, coverageFromOther);
+    }
+
+    private static double DirectedCoverage(
+        OsmPolygon source,
+        OsmPolygon target,
+        double step,
+        double epsilon)
+    {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        
+        LinearRing sourceRing = ToLinearRing(source, geometryFactory);
+        LinearRing targetRing = ToLinearRing(target, geometryFactory);
+
+        STRtree<Geometry> indexedTarget = new STRtree<Geometry>();
+        indexedTarget.Insert(targetRing.EnvelopeInternal, targetRing);
+        indexedTarget.Build();
+
+        LengthIndexedLine lil = new LengthIndexedLine(sourceRing);
+        double length = sourceRing.Length;
+
+        // Convert epsilon and step from meters to degrees (approximate)
+        // g.Distance() returns distance in degrees, so we need to convert epsilon
+        // sourceRing.Length is also in degrees, so we need to convert step
+        double epsilonInDegrees = epsilon / 111139.0; // 111139 meters per degree
+        double stepInDegrees = step / 111139.0;
+
+        int total = 0;
+        int matched = 0;
+
+        for (double d = 0; d <= length; d += stepInDegrees)
+        {
+            Coordinate c = lil.ExtractPoint(d);
+            Point p = geometryFactory.CreatePoint(c);
+
+            total++;
+
+            foreach (Geometry? g in indexedTarget.Query(p.EnvelopeInternal))
+            {
+                if (g.Distance(p) <= epsilonInDegrees)
+                {
+                    matched++;
+                    break;
+                }
+            }
+        }
+
+        return total == 0 ? 0.0 : (double)matched / total;
+    }
+
+    private static LinearRing ToLinearRing(OsmPolygon polygon, GeometryFactory factory)
+    {
+        Coordinate[] coordinates = new Coordinate[polygon._coords.Count + 1];
+        
+        for (int i = 0; i < polygon._coords.Count; i++)
+        {
+            OsmCoord coord = polygon._coords[i];
+            coordinates[i] = new Coordinate(coord.lon, coord.lat);
+        }
+        
+        coordinates[polygon._coords.Count] = coordinates[0]; // close the ring
+
+        return factory.CreateLinearRing(coordinates);
     }
 
 

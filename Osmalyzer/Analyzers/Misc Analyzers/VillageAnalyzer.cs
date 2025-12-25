@@ -167,9 +167,13 @@ public class VillageAnalyzer : Analyzer
         
         // Validate village boundaries
         
+        const double matchLimit = 0.99;
+        
         report.AddGroup(
             ExtraReportGroup.VillageBoundaries,
-            "Village boundary issues"
+            "Village boundary issues",
+            "This section lists villages where the mapped boundary does not sufficiently cover the official boundary area (assuming village boundary is mapped and valid). " +
+            "Due to data fuzziness, small mismatches are expected and not reported (" + (matchLimit * 100).ToString("F1") + "% coverage required)."
         );
 
         foreach (Correlation correlation in villageCorrelation.Correlations)
@@ -184,17 +188,19 @@ public class VillageAnalyzer : Analyzer
                     OsmPolygon relationPloygon = relation.GetOuterWayPolygon();
                     OsmPolygon villageBoundary = village.Boundary!;
 
-                    float coversBoundary = villageBoundary.GetOverlapCoveragePercent(relationPloygon);
-                    
-                    if (coversBoundary < 0.9f)
+                    double estimatedCoverage = villageBoundary.GetOverlapCoveragePercent(relationPloygon);
+
+                    if (estimatedCoverage < matchLimit)
                     {
                         report.AddEntry(
                             ExtraReportGroup.VillageBoundaries,
                             new IssueReportEntry(
-                                "Village boundary for `" + village.Name + "` does not cover the official boundary area " +
-                                "(matches at " + (coversBoundary * 100).ToString("F1") + "%)",
-                                village.Coord,
-                                MapPointStyle.Problem
+                                "Village boundary for `" + village.Name + "` does not match the official boundary area " +
+                                "(matches at " + (estimatedCoverage * 100).ToString("F1") + "%) for " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(estimatedCoverage),
+                                osmElement.AverageCoord,
+                                estimatedCoverage < 0.95 ? MapPointStyle.Problem : MapPointStyle.Dubious,
+                                osmElement
                             )
                         );
                     }

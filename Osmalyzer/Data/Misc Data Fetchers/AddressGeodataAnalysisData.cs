@@ -18,6 +18,10 @@ public class AddressGeodataAnalysisData : AnalysisData
 
 
     public List<Village> Villages { get; private set; } = null!; // only null before prepared
+    
+    public List<Parish> Parishes { get; private set; } = null!; // only null before prepared
+    
+    public List<Municipality> Municipalities { get; private set; } = null!; // only null before prepared
 
 
     protected override string DataFileIdentifier => "addresses-geo";
@@ -58,6 +62,8 @@ public class AddressGeodataAnalysisData : AnalysisData
 
         ParseVillages();
         ParseHamlets();
+        ParseParishes();
+        ParseMunicipalities();
     }
 
     private void ParseVillages()
@@ -214,6 +220,142 @@ public class AddressGeodataAnalysisData : AnalysisData
                     address,
                     true,
                     null // hamlets have no boundaries in data
+                )
+            );
+        }
+    }
+
+    private void ParseParishes()
+    {
+        string projectionfilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Pagasti.prj");
+        CoordinateSystem ourWkt = new CoordinateSystemFactory().CreateFromWkt(File.ReadAllText(projectionfilePath));
+            
+        GeographicCoordinateSystem wgs84 = GeographicCoordinateSystem.WGS84;
+            
+        ICoordinateTransformation coordTransformation = new CoordinateTransformationFactory().CreateFromCoordinateSystems(
+            ourWkt, 
+            wgs84
+        );
+
+        string shapefilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Pagasti.shp");
+
+        using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
+
+        Parishes = [ ];
+            
+        while (shapefileReader.Read())
+        {
+            Geometry geometry = shapefileReader.Geometry;
+            
+            // Process shape
+                
+            Point centroid = geometry.Centroid;
+
+            (double lon, double lat) = coordTransformation.MathTransform.Transform(centroid.X, centroid.Y);
+
+            OsmCoord coord = new OsmCoord(lat, lon);
+            
+            // Process columns
+            
+            string status = shapefileReader["STATUSS"].ToString() ?? throw new Exception("Parish in data without a status");
+            string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("Parish in data without an approval status");
+            string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("Parish in data without a name");
+            string address = shapefileReader["STD"].ToString() ?? throw new Exception("Parish in data without a full address");
+            string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Parish in data without a code");
+            
+            bool isValid = status == "EKS" && approved == "Y";
+
+            // Process boundary
+
+            List<OsmCoord> coords = [ ];
+
+            foreach (Coordinate geometryCoord in geometry.Coordinates)
+            {
+                (double lonB, double latB) = coordTransformation.MathTransform.Transform(geometryCoord.X, geometryCoord.Y);
+                
+                coords.Add(new OsmCoord(latB, lonB));
+            }
+            
+            OsmPolygon boundary = new OsmPolygon(coords);
+            
+            // Entry
+           
+            Parishes.Add(
+                new Parish(
+                    isValid,
+                    id,
+                    coord,
+                    name,
+                    address,
+                    boundary
+                )
+            );
+        }
+    }
+
+    private void ParseMunicipalities()
+    {
+        string projectionfilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Novadi.prj");
+        CoordinateSystem ourWkt = new CoordinateSystemFactory().CreateFromWkt(File.ReadAllText(projectionfilePath));
+            
+        GeographicCoordinateSystem wgs84 = GeographicCoordinateSystem.WGS84;
+            
+        ICoordinateTransformation coordTransformation = new CoordinateTransformationFactory().CreateFromCoordinateSystems(
+            ourWkt, 
+            wgs84
+        );
+
+        string shapefilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Novadi.shp");
+
+        using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
+
+        Municipalities = [ ];
+            
+        while (shapefileReader.Read())
+        {
+            Geometry geometry = shapefileReader.Geometry;
+            
+            // Process shape
+                
+            Point centroid = geometry.Centroid;
+
+            (double lon, double lat) = coordTransformation.MathTransform.Transform(centroid.X, centroid.Y);
+
+            OsmCoord coord = new OsmCoord(lat, lon);
+            
+            // Process columns
+            
+            string status = shapefileReader["STATUSS"].ToString() ?? throw new Exception("Municipality in data without a status");
+            string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("Municipality in data without an approval status");
+            string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("Municipality in data without a name");
+            string address = shapefileReader["STD"].ToString() ?? throw new Exception("Municipality in data without a full address");
+            string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Municipality in data without a code");
+            
+            bool isValid = status == "EKS" && approved == "Y";
+
+            // Process boundary
+
+            List<OsmCoord> coords = [ ];
+
+            foreach (Coordinate geometryCoord in geometry.Coordinates)
+            {
+                (double lonB, double latB) = coordTransformation.MathTransform.Transform(geometryCoord.X, geometryCoord.Y);
+                
+                coords.Add(new OsmCoord(latB, lonB));
+            }
+            
+            OsmPolygon boundary = new OsmPolygon(coords);
+            
+            // Entry
+           
+            Municipalities.Add(
+                new Municipality(
+                    isValid,
+                    id,
+                    coord,
+                    name,
+                    address,
+                    boundary
                 )
             );
         }

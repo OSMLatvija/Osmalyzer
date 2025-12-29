@@ -82,6 +82,8 @@ public static class Runner
             // new LVCRoadAnalyzer(),
             // new VPVKACAnalyzer(),
             new VillageAnalyzer(),
+            new MunicipalityAnalyzer(),
+            new ParishAnalyzer(),
             // new MaxspeedTypeAnalyzer(),
             // new LVMPicnicSiteAnalyzer(),
             // new RestrictionRelationAnalyzer(),

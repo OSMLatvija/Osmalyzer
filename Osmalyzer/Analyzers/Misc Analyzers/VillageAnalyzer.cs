@@ -9,7 +9,7 @@ public class VillageAnalyzer : Analyzer
         "This report checks that all villages (and hamlets) are mapped. " +
         "The village VAR data is pretty much complete, however hamlet data is much less so.";
 
-    public override AnalyzerGroup Group => AnalyzerGroup.Miscellaneous;
+    public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(AddressGeodataAnalysisData) ];

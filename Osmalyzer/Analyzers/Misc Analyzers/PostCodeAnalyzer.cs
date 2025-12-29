@@ -35,7 +35,7 @@ public class PostCodeAnalyzer : Analyzer
 
         OsmDataExtract postOffices = osmMasterData.Filter(
             new HasValue("amenity", "post_office"),
-            new InsidePolygon(_latviaPolygon, OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(_latviaPolygon, OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
         
         postcodedElements = postcodedElements.Subtract(postOffices); // don't include post offices in the regular post code analysis
@@ -353,7 +353,7 @@ public class PostCodeAnalyzer : Analyzer
         if (addrCountry != null && addrCountry != "LV")
             return CodeValidation.NotInLatvia; // implicitly belongs to another country by address, so we don't care
 
-        if (!_latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.Fuzzy))
+        if (!_latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.FuzzyLoose))
             return CodeValidation.NotInLatvia; // outside exact admin border, so most likely belongs to another country, so we don't care
 
         return CodeValidation.InvalidInLatvia; // we couldn't rule this out as valid or non-Latvia, so invalid

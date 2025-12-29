@@ -46,6 +46,6 @@ public static class BoundaryHelper
             new HasValue("name", name)
         )!; // never expecting to not have this
 
-        return relation.GetOuterWayPolygon();
+        return relation.GetOuterWayPolygon() ?? throw new InvalidOperationException("Admin relation does not have a valid polygon");
     }
 }

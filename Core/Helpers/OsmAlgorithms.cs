@@ -9,7 +9,7 @@ public static class OsmAlgorithms
     /// Assuming the ways form a correct multi-polygon, return them in a sorted order.
     /// </summary>
     [Pure]
-    public static List<OsmWay> SortWays(List<OsmWay> ways)
+    public static List<OsmWay>? SortWays(List<OsmWay> ways)
     {
         // We will need to look up ways from terminal nodes, so pre-make such lists
         // (otherwise, it can be extremely slow)
@@ -23,20 +23,23 @@ public static class OsmAlgorithms
                 
             OsmNode first = osmWay.nodes.First();
             OsmNode last = osmWay.nodes.Last();
+            
+            if (first == null) throw new InvalidOperationException();
+            if (last == null) throw new InvalidOperationException();
 
             if (!nodes1.ContainsKey(first))
                 nodes1.Add(first, osmWay);
             else if (!nodes2.ContainsKey(first))
                 nodes2.Add(first, osmWay);
             else
-                throw new InvalidOperationException();
+                return null; // invalid geo
 
             if (!nodes1.ContainsKey(last))
                 nodes1.Add(last, osmWay);
             else if (!nodes2.ContainsKey(last))
                 nodes2.Add(last, osmWay);
             else
-                throw new InvalidOperationException();
+                return null; // invalid geo
         }
 
         // Now build the way "circle" based on their terminal nodes
@@ -55,10 +58,13 @@ public static class OsmAlgorithms
             // Next node has to be the last of this way (which is the "other end" of whichever node we have)
             node = node == first ? last : first;
 
-            OsmWay way1 = nodes1[node];
-            OsmWay way2 = nodes2[node];
+            if (!nodes1.TryGetValue(node, out OsmWay? way1))
+                return null; // invalid geo
+                    
+            if (!nodes2.TryGetValue(node, out OsmWay? way2))
+                return null; // invalid geo
 
-            // Each node has two ways where it's a terminal node, so pick whichever way we haven't add yet
+            // Each node has two ways where it's a terminal node, so pick whichever way we haven't added yet
             way = way == way1 ? way2 : way1;
                 
             sortedWays.Add(way);

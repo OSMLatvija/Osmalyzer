@@ -31,7 +31,7 @@ public class StreetTaggingContinuityAnalyzer : Analyzer
             new HasValue("type", "route"),
             new HasValue("route", "road"),
             new DoesntHaveKey("network"), // these are: lv:local, lv:regional, lv:national, e-road -- none of them are useful for minor city roads 
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // too many OOB hits
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose) // too many OOB hits
         );
 
         // Prepare groups

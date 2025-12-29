@@ -26,7 +26,10 @@ public class ParishAnalyzer : Analyzer
             new IsRelation(),
             new HasValue("boundary", "administrative"),
             new HasAnyValue("admin_level", "8"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
+            new OrMatch(
+                new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside), // lots around edges
+                new CustomMatch(e => e.GetValue("name")?.Contains("pagasts") == true) // due to border shape some centroids escape
+            )
         );
 
         // Get parish data
@@ -38,8 +41,8 @@ public class ParishAnalyzer : Analyzer
         Correlator<Parish> parishCorrelator = new Correlator<Parish>(
             osmParishes,
             adddressData.Parishes.Where(p => p.Valid).ToList(),
-            new MatchDistanceParamater(500),
-            new MatchFarDistanceParamater(2000),
+            new MatchDistanceParamater(10000),
+            new MatchFarDistanceParamater(30000),
             new MatchCallbackParameter<Parish>(GetParishMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("parish", "parishes"),
@@ -63,11 +66,10 @@ public class ParishAnalyzer : Analyzer
         [Pure]
         bool DoesOsmElementLookLikeAParish(OsmElement element)
         {
-            string? boundary = element.GetValue("boundary");
-            string? adminLevel = element.GetValue("admin_level");
-            
-            if (boundary == "administrative" && adminLevel == "8")
+            string? place = element.GetValue("place");
+            if (place == "parish")
                 return true; // explicitly tagged
+            
             
             return true;
         }
@@ -103,7 +105,23 @@ public class ParishAnalyzer : Analyzer
 
                 if (osmElement is OsmRelation relation)
                 {
-                    OsmPolygon relationPloygon = relation.GetOuterWayPolygon();
+                    OsmPolygon? relationPloygon = relation.GetOuterWayPolygon();
+                    
+                    if (relationPloygon == null)
+                    {
+                        report.AddEntry(
+                            ExtraReportGroup.ParishBoundaries,
+                            new IssueReportEntry(
+                                "Parish relation for `" + parish.Name + "` does not have a valid polygon for " + osmElement.OsmViewUrl,
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+                        
+                        continue;
+                    }
+                    
                     OsmPolygon parishBoundary = parish.Boundary!;
 
                     double estimatedCoverage = parishBoundary.GetOverlapCoveragePercent(relationPloygon);

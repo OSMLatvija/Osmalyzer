@@ -7,7 +7,7 @@ using ProjNet.CoordinateSystems.Transformations;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class AddressGeodataAnalysisData : AnalysisData 
+public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
     // todo: , IDatedAnalysisData - need to parse
 {
     public override string Name => "Address Geospatial data";
@@ -130,6 +130,8 @@ public class AddressGeodataAnalysisData : AnalysisData
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("Village in data without a full address");
             string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Village in data without a code");
             
+            // Clean up and normalize values
+            
             bool isValid = status == "EKS" && approved == "Y";
 
             // Process boundary
@@ -207,6 +209,8 @@ public class AddressGeodataAnalysisData : AnalysisData
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("Hamlet in data without a full address");
             string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Hamlet in data without a code");
 
+            // Clean up and normalize values
+           
             bool isValid = status == "EKS" && approved == "Y";
 
             // Entry
@@ -263,7 +267,10 @@ public class AddressGeodataAnalysisData : AnalysisData
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("Parish in data without a full address");
             string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Parish in data without a code");
             
+            // Clean up and normalize values
+            
             bool isValid = status == "EKS" && approved == "Y";
+            name = name.Replace(" pag.", " pagasts");
 
             // Process boundary
 
@@ -331,7 +338,10 @@ public class AddressGeodataAnalysisData : AnalysisData
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("Municipality in data without a full address");
             string id = shapefileReader["KODS"].ToString() ?? throw new Exception("Municipality in data without a code");
             
+            // Clean up and normalize values
+            
             bool isValid = status == "EKS" && approved == "Y";
+            name = name.Replace(" nov.", " novads");
 
             // Process boundary
 

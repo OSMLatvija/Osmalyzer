@@ -25,7 +25,7 @@ public class CityMeadowsAnalyzer : Analyzer
                 new HasValue("natural", "grassland"),
                 new HasValue("landuse", "grass")
             ),
-            new InsidePolygon(BoundaryHelper.GetRigaPolygon(osmMasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetRigaPolygon(osmMasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
             
         // Get meadow data

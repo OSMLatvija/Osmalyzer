@@ -52,7 +52,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             ),
             new HasKey("name"),
             new HasKeyPrefixed("name:"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
         // place=*, boundary = administrative, railway = station
 
@@ -73,13 +73,13 @@ public class ImproperTranslationAnalyzer : Analyzer
             // filter out cross border objects
             new CustomMatch(e => e.HasKey("name") && !Regex.Match(e.GetValue("name")!, @" [-—/] ").Success),
             new HasKeyPrefixed("name:"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
         OsmDataExtract osmRwStationsElements = osmMasterData.Filter(
             new HasValue("railway", "station"),
             new HasKey("name"),
             new HasKeyPrefixed("name:"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
 
 

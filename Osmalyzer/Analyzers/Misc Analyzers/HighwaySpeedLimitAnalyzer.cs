@@ -25,7 +25,7 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
             new HasAnyValue("maxspeed", "80", "90"),
             new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "trunk_link", "primary_link", "secondary_link"),
             new HasKey("surface"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
             
         // Parse

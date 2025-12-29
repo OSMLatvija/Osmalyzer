@@ -25,8 +25,8 @@ public class MunicipalityAnalyzer : Analyzer
         OsmDataExtract osmMunicipalities = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
-            new HasAnyValue("admin_level", "7"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
+            new HasAnyValue("admin_level", "5"),
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
 
         // Get municipality data
@@ -38,8 +38,8 @@ public class MunicipalityAnalyzer : Analyzer
         Correlator<Municipality> municipalityCorrelator = new Correlator<Municipality>(
             osmMunicipalities,
             adddressData.Municipalities.Where(m => m.Valid).ToList(),
-            new MatchDistanceParamater(1000),
-            new MatchFarDistanceParamater(5000),
+            new MatchDistanceParamater(25000),
+            new MatchFarDistanceParamater(60000),
             new MatchCallbackParameter<Municipality>(GetMunicipalityMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("municipality", "municipalities"),
@@ -63,11 +63,19 @@ public class MunicipalityAnalyzer : Analyzer
         [Pure]
         bool DoesOsmElementLookLikeAMunicipality(OsmElement element)
         {
-            string? boundary = element.GetValue("boundary");
-            string? adminLevel = element.GetValue("admin_level");
-            
-            if (boundary == "administrative" && adminLevel == "7")
+            string? place = element.GetValue("place");
+            if (place == "municipality")
                 return true; // explicitly tagged
+            
+            if (place == "city")
+                return false; // explicitly not tagged
+            
+            string? name = element.GetValue("name");
+            if (name is "Daugavpils" or "Jelgava" or "Jēkabpils" or "Jūrmala" or "Liepāja" or "Ogre" or "Rēzekne" or "Rīga" or "Valmiera" or "Ventspils")
+                return false; // cities have the same admin level, but we know them
+                        
+            if (name != null && name.Contains("rajono"))
+                return false; // Lithuanian district
             
             return true;
         }
@@ -103,7 +111,23 @@ public class MunicipalityAnalyzer : Analyzer
 
                 if (osmElement is OsmRelation relation)
                 {
-                    OsmPolygon relationPloygon = relation.GetOuterWayPolygon();
+                    OsmPolygon? relationPloygon = relation.GetOuterWayPolygon();
+                    
+                    if (relationPloygon == null)
+                    {
+                        report.AddEntry(
+                            ExtraReportGroup.MunicipalityBoundaries,
+                            new IssueReportEntry(
+                                "Municipality relation does not have a valid polygon for " + osmElement.OsmViewUrl,
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+                        
+                        continue;
+                    }
+                    
                     OsmPolygon municipalityBoundary = municipality.Boundary!;
 
                     double estimatedCoverage = municipalityBoundary.GetOverlapCoveragePercent(relationPloygon);

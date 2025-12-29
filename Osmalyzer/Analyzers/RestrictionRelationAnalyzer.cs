@@ -23,7 +23,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             new IsRelation(),
             new RelationMustHaveAllMembersDownloaded(),
             new HasAnyValue("type", "restriction"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
 
         // Parse

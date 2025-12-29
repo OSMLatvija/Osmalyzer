@@ -37,7 +37,7 @@ public class StreetNameAnalyzer : Analyzer
         );
             
         // Filter strictly to inside Latvia
-        osmNamedWays = osmNamedWays.Filter(new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy));
+        osmNamedWays = osmNamedWays.Filter(new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose));
             
         // Load known suffixes
             

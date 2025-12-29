@@ -233,7 +233,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
 
                 if (matchCounts[MatchStrength.MatchedAsPoor] > 0) // defining keys not found, however commonly poorly-tagged and semi-acceptable keys found
                 {
-                    if (!latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.Fuzzy)) // expensive check, so only doing it before potentially reporting
+                    if (!latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.FuzzyLoose)) // expensive check, so only doing it before potentially reporting
                         continue;
                     
                     report.AddEntry(
@@ -267,7 +267,7 @@ public class NonDefiningTaggingAnalyzer : Analyzer
                 
                 // At this point we have tags that were not matched
                 
-                if (!latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.Fuzzy)) // expensive check, so only doing it before potentially reporting
+                if (!latviaPolygon.ContainsElement(element, OsmPolygon.RelationInclusionCheck.FuzzyLoose)) // expensive check, so only doing it before potentially reporting
                     continue;
 
                 string keys = string.Join(", ", element.AllKeys!.Select(k => "`" + k + "`"));

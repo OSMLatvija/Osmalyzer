@@ -56,7 +56,7 @@ public class LVCRoadAnalyzer : Analyzer
 
         // Filter strictly to inside Latvia
             
-        InsidePolygon insidePolygonFilter = new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy); // somewhat expensive, so keep outside
+        InsidePolygon insidePolygonFilter = new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose); // somewhat expensive, so keep outside
 
         reffedRoads = reffedRoads.Filter(insidePolygonFilter);
         recognizedReffedRoads = recognizedReffedRoads.Filter(insidePolygonFilter);

@@ -23,7 +23,7 @@ public class MaxspeedTypeAnalyzer : Analyzer
         
         OsmDataExtract elementsWithMaxspeedType = osmMasterData.Filter(
             new HasKeyPrefixed("maxspeed:"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
         
         // Gather tags

@@ -29,7 +29,7 @@ public class SpellingAnalyzer : Analyzer
         OsmDataExtract osmElements = osmMasterData.Filter(
             new IsWay(),
             new HasKey("name"),
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
         
         // Spellcheck

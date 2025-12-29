@@ -59,10 +59,12 @@ public class OsmPolygon
             {
                 switch (relationInclusionCheck)
                 {
-                    case RelationInclusionCheck.Fuzzy:
+                    case RelationInclusionCheck.FuzzyLoose:
+                    case RelationInclusionCheck.FuzzyStrict:
+                    {
                         int count = 0;
                         int contains = 0;
-                    
+
                         foreach (OsmElement osmElement in relation.Elements)
                         {
                             switch (osmElement)
@@ -74,7 +76,7 @@ public class OsmPolygon
                                         contains += way.nodes.Count;
                                     break;
                                 }
-                            
+
                                 case OsmNode node:
                                 {
                                     count++;
@@ -84,9 +86,19 @@ public class OsmPolygon
                                 }
                             }
                         }
-                            
-                        return (float)contains / count > 0.3f;
-                        
+
+                        float threshold =
+                            relationInclusionCheck == RelationInclusionCheck.FuzzyLoose ? 0.3f : 0.8f;
+
+                        return (float)contains / count > threshold;
+                    }
+
+                    case RelationInclusionCheck.CentroidInside:
+                    {
+                        OsmCoord averageCoord = relation.AverageCoord;
+                        return ContainsCoord(averageCoord);
+                    }
+
                     default:
                         throw new ArgumentOutOfRangeException(nameof(relationInclusionCheck), relationInclusionCheck, null);
                 }
@@ -136,12 +148,11 @@ public class OsmPolygon
     /// The closer the two together, the higher the coverage percent.
     /// </summary>
     /// <param name="epsilon">positional uncertainty in meters, i.e. distance at which boundaries are considered the same</param>
-    public double GetOverlapCoveragePercent(OsmPolygon other, double epsilon = 10)
+    /// <param name="maxSamples">maximum number of sample points to check per polygon to avoid over-processing</param>
+    public double GetOverlapCoveragePercent(OsmPolygon other, double epsilon = 10, int maxSamples = 300)
     {
-        double step = epsilon / 2.0;
-
-        double coverageToOther = DirectedCoverage(this, other, step, epsilon);
-        double coverageFromOther = DirectedCoverage(other, this, step, epsilon);
+        double coverageToOther = DirectedCoverage(this, other, epsilon, maxSamples);
+        double coverageFromOther = DirectedCoverage(other, this, epsilon, maxSamples);
 
         return Math.Min(coverageToOther, coverageFromOther);
     }
@@ -149,8 +160,8 @@ public class OsmPolygon
     private static double DirectedCoverage(
         OsmPolygon source,
         OsmPolygon target,
-        double step,
-        double epsilon)
+        double epsilon,
+        int maxSamples)
     {
         GeometryFactory geometryFactory = new GeometryFactory();
         
@@ -164,11 +175,13 @@ public class OsmPolygon
         LengthIndexedLine lil = new LengthIndexedLine(sourceRing);
         double length = sourceRing.Length;
 
-        // Convert epsilon and step from meters to degrees (approximate)
+        // Convert epsilon from meters to degrees (approximate)
         // g.Distance() returns distance in degrees, so we need to convert epsilon
-        // sourceRing.Length is also in degrees, so we need to convert step
         double epsilonInDegrees = epsilon / 111139.0; // 111139 meters per degree
-        double stepInDegrees = step / 111139.0;
+        
+        // Calculate step size to limit number of samples
+        // Ensure we don't exceed maxSamples
+        double stepInDegrees = length / Math.Min(maxSamples, Math.Max(10, (int)(length / (epsilon / 111139.0))));
 
         int total = 0;
         int matched = 0;
@@ -215,6 +228,14 @@ public class OsmPolygon
         /// Relations are included if a decent portion of their elements are included.
         /// This means relations like roads that barely enter the polygon won't get listed.
         /// </summary>
-        Fuzzy
+        FuzzyLoose,
+        
+        /// <summary>
+        /// Relations are included if a big portion of their elements are included.
+        /// This means relations like admin boundaries will get listed only if they are mostly inside.
+        /// </summary>
+        FuzzyStrict,
+        
+        CentroidInside
     }
 }

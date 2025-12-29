@@ -37,8 +37,7 @@ public class VillageAnalyzer : Analyzer
                     new HasAnyValue("admin_level", "9")
                 )
             ),
-            new DoesntHaveKey("EHAK:code"), // some Estonian villages still leak over the border, but they seem to have import values we can use
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
 
         osmVillages = osmVillages.Deduplicate(AreMatchingVillageDefiners);
@@ -46,8 +45,7 @@ public class VillageAnalyzer : Analyzer
         OsmDataExtract osmHamlets = osmMasterData.Filter(
             new IsNode(),
             new HasAnyValue("place", "hamlet"),
-            new DoesntHaveKey("EHAK:code"), // some Estonian villages still leak over the border, but they seem to have import values we can use
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) // lots around edges
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
         
         [Pure]
@@ -185,7 +183,23 @@ public class VillageAnalyzer : Analyzer
 
                 if (osmElement is OsmRelation relation)
                 {
-                    OsmPolygon relationPloygon = relation.GetOuterWayPolygon();
+                    OsmPolygon? relationPloygon = relation.GetOuterWayPolygon();
+                    
+                    if (relationPloygon == null)
+                    {
+                        report.AddEntry(
+                            ExtraReportGroup.VillageBoundaries,
+                            new IssueReportEntry(
+                                "Village relation for `" + village.Name + "` does not have a valid polygon for " + osmElement.OsmViewUrl,
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+                        
+                        continue;
+                    }
+                    
                     OsmPolygon villageBoundary = village.Boundary!;
 
                     double estimatedCoverage = villageBoundary.GetOverlapCoveragePercent(relationPloygon);

@@ -34,13 +34,16 @@ public class OsmRelation : OsmElement
 
         
     [Pure]
-    public OsmPolygon GetOuterWayPolygon()
+    public OsmPolygon? GetOuterWayPolygon()
     {
         List<OsmWay> outerWays = GetOuterWays();
 
-        outerWays = OsmAlgorithms.SortWays(outerWays);
+        List<OsmWay>? sortedWays = OsmAlgorithms.SortWays(outerWays);
 
-        List<OsmNode> nodes = OsmAlgorithms.CollectNodes(outerWays);
+        if (sortedWays == null)
+            return null; // invalid geo
+        
+        List<OsmNode> nodes = OsmAlgorithms.CollectNodes(sortedWays);
 
         return new OsmPolygon(nodes.Select(n => n.coord).ToList());
     }

@@ -29,7 +29,7 @@ public class InfoboardAnalyzer : Analyzer
             new DoesntHaveValue("board_type", "notice"), // notice board, although should be `advertising=board`
             new DoesntHaveValue("indoor", "yes"), // ignoring indoor maps and such
             new DoesntHaveKey("level"), // implies indoor
-            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
 
         // Prepare groups

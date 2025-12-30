@@ -49,6 +49,131 @@ public class OsmRelation : OsmElement
     }
 
     [Pure]
+    public OsmMultiPolygon? GetMultipolygon()
+    {
+        List<OsmPolygon> outerRings = [ ];
+        List<OsmPolygon> innerRings = [ ];
+
+        // Group ways by role
+        List<OsmWay> outerWays = [ ];
+        List<OsmWay> innerWays = [ ];
+
+        foreach (OsmRelationMember member in Members)
+        {
+            if (member.Element is OsmWay wayElement)
+            {
+                if (member.Role == "outer")
+                    outerWays.Add(wayElement);
+                else if (member.Role == "inner")
+                    innerWays.Add(wayElement);
+            }
+        }
+
+        // Process outer ways - find all disconnected rings
+        if (outerWays.Count > 0)
+        {
+            List<List<OsmWay>> outerRingGroups = GroupConnectedWays(outerWays);
+            
+            foreach (List<OsmWay> ringGroup in outerRingGroups)
+            {
+                List<OsmWay>? sortedWays = OsmAlgorithms.SortWays(ringGroup);
+                if (sortedWays == null)
+                    continue; // skip invalid rings, don't fail entire multipolygon
+                
+                List<OsmNode> nodes = OsmAlgorithms.CollectNodes(sortedWays);
+                if (nodes.Count >= 3) // need at least 3 points for a valid polygon
+                    outerRings.Add(new OsmPolygon(nodes.Select(n => n.coord).ToList()));
+            }
+        }
+
+        // Process inner ways - find all disconnected rings
+        if (innerWays.Count > 0)
+        {
+            List<List<OsmWay>> innerRingGroups = GroupConnectedWays(innerWays);
+            
+            foreach (List<OsmWay> ringGroup in innerRingGroups)
+            {
+                List<OsmWay>? sortedWays = OsmAlgorithms.SortWays(ringGroup);
+                if (sortedWays == null)
+                    continue; // skip invalid rings
+                
+                List<OsmNode> nodes = OsmAlgorithms.CollectNodes(sortedWays);
+                if (nodes.Count >= 3) // need at least 3 points for a valid polygon
+                    innerRings.Add(new OsmPolygon(nodes.Select(n => n.coord).ToList()));
+            }
+        }
+
+        if (outerRings.Count == 0)
+            return null; // no valid outer ring
+
+        return new OsmMultiPolygon(outerRings, innerRings);
+    }
+
+    /// <summary>
+    /// Groups ways into connected rings. Ways that share endpoints form a connected ring.
+    /// </summary>
+    private static List<List<OsmWay>> GroupConnectedWays(List<OsmWay> ways)
+    {
+        List<List<OsmWay>> groups = [ ];
+        HashSet<OsmWay> unprocessed = new HashSet<OsmWay>(ways);
+
+        while (unprocessed.Count > 0)
+        {
+            List<OsmWay> currentGroup = [ ];
+            Queue<OsmWay> toProcess = new Queue<OsmWay>();
+            
+            // Start with first unprocessed way
+            OsmWay firstWay = unprocessed.First();
+            toProcess.Enqueue(firstWay);
+            unprocessed.Remove(firstWay);
+
+            // Find all ways connected to this group
+            while (toProcess.Count > 0)
+            {
+                OsmWay currentWay = toProcess.Dequeue();
+                currentGroup.Add(currentWay);
+
+                // Get endpoints of current way
+                if (currentWay.nodes.Count < 2)
+                    continue;
+
+                long firstNodeId = currentWay.nodes[0].Id;
+                long lastNodeId = currentWay.nodes[currentWay.nodes.Count - 1].Id;
+
+                // Find all unprocessed ways that connect to this way
+                List<OsmWay> connected = [ ];
+                foreach (OsmWay way in unprocessed)
+                {
+                    if (way.nodes.Count < 2)
+                        continue;
+
+                    long wayFirstId = way.nodes[0].Id;
+                    long wayLastId = way.nodes[way.nodes.Count - 1].Id;
+
+                    // Check if this way connects to current way
+                    if (wayFirstId == firstNodeId || wayFirstId == lastNodeId ||
+                        wayLastId == firstNodeId || wayLastId == lastNodeId)
+                    {
+                        connected.Add(way);
+                    }
+                }
+
+                // Add connected ways to processing queue
+                foreach (OsmWay way in connected)
+                {
+                    toProcess.Enqueue(way);
+                    unprocessed.Remove(way);
+                }
+            }
+
+            if (currentGroup.Count > 0)
+                groups.Add(currentGroup);
+        }
+
+        return groups;
+    }
+
+    [Pure]
     public List<OsmWay> GetOuterWays()
     {
         List<OsmWay> outerWays = [ ];

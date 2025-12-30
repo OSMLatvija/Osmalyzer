@@ -14,10 +14,10 @@ public class Village : IDataItem
     
     public bool IsHamlet { get; }
     
-    public OsmPolygon? Boundary { get; }
+    public OsmMultiPolygon? Boundary { get; }
 
 
-    public Village(bool valid, string id, OsmCoord coord, string name, string address, bool isHamlet, OsmPolygon? boundary)
+    public Village(bool valid, string id, OsmCoord coord, string name, string address, bool isHamlet, OsmMultiPolygon? boundary)
     {
         Valid = valid;
         ID = id;

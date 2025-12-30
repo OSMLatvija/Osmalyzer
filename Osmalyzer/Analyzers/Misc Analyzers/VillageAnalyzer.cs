@@ -183,9 +183,9 @@ public class VillageAnalyzer : Analyzer
 
                 if (osmElement is OsmRelation relation)
                 {
-                    OsmPolygon? relationPloygon = relation.GetOuterWayPolygon();
+                    OsmMultiPolygon? relationMultiPolygon = relation.GetMultipolygon();
                     
-                    if (relationPloygon == null)
+                    if (relationMultiPolygon == null)
                     {
                         report.AddEntry(
                             ExtraReportGroup.VillageBoundaries,
@@ -200,9 +200,9 @@ public class VillageAnalyzer : Analyzer
                         continue;
                     }
                     
-                    OsmPolygon villageBoundary = village.Boundary!;
+                    OsmMultiPolygon villageBoundary = village.Boundary!;
 
-                    double estimatedCoverage = villageBoundary.GetOverlapCoveragePercent(relationPloygon);
+                    double estimatedCoverage = villageBoundary.GetOverlapCoveragePercent(relationMultiPolygon, 20);
 
                     if (estimatedCoverage < matchLimit)
                     {

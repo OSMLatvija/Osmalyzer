@@ -136,16 +136,10 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
             // Process boundary
 
-            List<OsmCoord> coords = [ ];
-
-            foreach (Coordinate geometryCoord in geometry.Coordinates)
-            {
-                (double lonB, double latB) = coordTransformation.MathTransform.Transform(geometryCoord.X, geometryCoord.Y);
-                
-                coords.Add(new OsmCoord(latB, lonB));
-            }
-            
-            OsmPolygon boundary = new OsmPolygon(coords);
+            OsmMultiPolygon boundary = OsmMultiPolygon.FromNTSGeometry(
+                geometry,
+                (x, y) => coordTransformation.MathTransform.Transform(x, y)
+            );
             
             // Entry
            
@@ -274,16 +268,10 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
             // Process boundary
 
-            List<OsmCoord> coords = [ ];
-
-            foreach (Coordinate geometryCoord in geometry.Coordinates)
-            {
-                (double lonB, double latB) = coordTransformation.MathTransform.Transform(geometryCoord.X, geometryCoord.Y);
-                
-                coords.Add(new OsmCoord(latB, lonB));
-            }
-            
-            OsmPolygon boundary = new OsmPolygon(coords);
+            OsmMultiPolygon boundary = OsmMultiPolygon.FromNTSGeometry(
+                geometry,
+                (x, y) => coordTransformation.MathTransform.Transform(x, y)
+            );
             
             // Entry
            
@@ -345,16 +333,10 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
             // Process boundary
 
-            List<OsmCoord> coords = [ ];
-
-            foreach (Coordinate geometryCoord in geometry.Coordinates)
-            {
-                (double lonB, double latB) = coordTransformation.MathTransform.Transform(geometryCoord.X, geometryCoord.Y);
-                
-                coords.Add(new OsmCoord(latB, lonB));
-            }
-            
-            OsmPolygon boundary = new OsmPolygon(coords);
+            OsmMultiPolygon boundary = OsmMultiPolygon.FromNTSGeometry(
+                geometry,
+                (x, y) => coordTransformation.MathTransform.Transform(x, y)
+            );
             
             // Entry
            

@@ -127,6 +127,14 @@ public class OsmPolygon
         return result;
     }
 
+    /// <summary>
+    /// Returns the coordinates of this polygon
+    /// </summary>
+    public List<OsmCoord> GetCoords()
+    {
+        return _coords;
+    }
+
     public void SaveToFile(string fileName)
     {
         using StreamWriter streamWriter = File.CreateText(fileName);

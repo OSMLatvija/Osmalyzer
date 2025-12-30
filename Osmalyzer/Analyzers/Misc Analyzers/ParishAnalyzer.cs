@@ -105,9 +105,9 @@ public class ParishAnalyzer : Analyzer
 
                 if (osmElement is OsmRelation relation)
                 {
-                    OsmPolygon? relationPloygon = relation.GetOuterWayPolygon();
+                    OsmMultiPolygon? relationMultiPolygon = relation.GetMultipolygon();
                     
-                    if (relationPloygon == null)
+                    if (relationMultiPolygon == null)
                     {
                         report.AddEntry(
                             ExtraReportGroup.ParishBoundaries,
@@ -122,9 +122,9 @@ public class ParishAnalyzer : Analyzer
                         continue;
                     }
                     
-                    OsmPolygon parishBoundary = parish.Boundary!;
+                    OsmMultiPolygon parishBoundary = parish.Boundary!;
 
-                    double estimatedCoverage = parishBoundary.GetOverlapCoveragePercent(relationPloygon);
+                    double estimatedCoverage = parishBoundary.GetOverlapCoveragePercent(relationMultiPolygon, 50);
 
                     if (estimatedCoverage < matchLimit)
                     {

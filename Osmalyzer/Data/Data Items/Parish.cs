@@ -12,10 +12,10 @@ public class Parish : IDataItem
     
     public string Address { get; }
     
-    public OsmPolygon? Boundary { get; }
+    public OsmMultiPolygon? Boundary { get; }
 
 
-    public Parish(bool valid, string id, OsmCoord coord, string name, string address, OsmPolygon? boundary)
+    public Parish(bool valid, string id, OsmCoord coord, string name, string address, OsmMultiPolygon? boundary)
     {
         Valid = valid;
         ID = id;

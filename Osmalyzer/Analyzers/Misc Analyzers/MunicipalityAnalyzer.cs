@@ -111,9 +111,9 @@ public class MunicipalityAnalyzer : Analyzer
 
                 if (osmElement is OsmRelation relation)
                 {
-                    OsmPolygon? relationPloygon = relation.GetOuterWayPolygon();
+                    OsmMultiPolygon? relationMultiPolygon = relation.GetMultipolygon();
                     
-                    if (relationPloygon == null)
+                    if (relationMultiPolygon == null)
                     {
                         report.AddEntry(
                             ExtraReportGroup.MunicipalityBoundaries,
@@ -128,9 +128,9 @@ public class MunicipalityAnalyzer : Analyzer
                         continue;
                     }
                     
-                    OsmPolygon municipalityBoundary = municipality.Boundary!;
+                    OsmMultiPolygon municipalityBoundary = municipality.Boundary!;
 
-                    double estimatedCoverage = municipalityBoundary.GetOverlapCoveragePercent(relationPloygon);
+                    double estimatedCoverage = municipalityBoundary.GetOverlapCoveragePercent(relationMultiPolygon, 50);
 
                     if (estimatedCoverage < matchLimit)
                     {

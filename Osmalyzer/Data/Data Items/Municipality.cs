@@ -10,18 +10,18 @@ public class Municipality : IDataItem
     
     public string Name { get; }
     
-    public string Address { get; }
+    public string RawAddress { get; }
     
     public OsmMultiPolygon? Boundary { get; }
 
 
-    public Municipality(bool valid, string id, OsmCoord coord, string name, string address, OsmMultiPolygon? boundary)
+    public Municipality(bool valid, string id, OsmCoord coord, string name, string rawAddress, OsmMultiPolygon? boundary)
     {
         Valid = valid;
         ID = id;
         Coord = coord;
         Name = name;
-        Address = address;
+        RawAddress = rawAddress;
         Boundary = boundary;
     }
     
@@ -33,6 +33,6 @@ public class Municipality : IDataItem
             "Municipality" + 
             " `" + Name + "`" +
             " #`" + ID + "`" + 
-            " (`" + Address + "`)";
+            " (`" + RawAddress + "`)";
     }
 }

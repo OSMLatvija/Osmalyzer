@@ -110,7 +110,7 @@ public class VillageAnalyzer : Analyzer
                     ExtraReportGroup.SuggestedVillageAdditions,
                     new IssueReportEntry(
                         '`' + village.Name + "` village at `" +
-                        village.Address +
+                        village.ReportString() +
                         "` can be added at " +
                         village.Coord.OsmUrl +
                         " as" + Environment.NewLine + tagsBlock,

@@ -10,18 +10,24 @@ public class Village : IDataItem
     
     public string Name { get; }
     
-    public string Address { get; }
+    public string RawAddress { get; }
+    
+    public string ParishName { get; }
+    
+    public string MunicipalityName { get; }
     
     public OsmMultiPolygon? Boundary { get; }
 
 
-    public Village(bool valid, string id, OsmCoord coord, string name, string address, OsmMultiPolygon? boundary)
+    public Village(bool valid, string id, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName, OsmMultiPolygon? boundary)
     {
         Valid = valid;
         ID = id;
         Coord = coord;
         Name = name;
-        Address = address;
+        RawAddress = rawAddress;
+        ParishName = parishName;
+        MunicipalityName = municipalityName;
         Boundary = boundary;
     }
     
@@ -32,6 +38,6 @@ public class Village : IDataItem
             (!Valid ? "Invalid " : "") + 
             "Village `" + Name + "`" +
             " #`" + ID + "`" + 
-            " (`" + Address + "`)";
+            " (`" + ParishName + ", " + MunicipalityName + "`)";
     }
 }

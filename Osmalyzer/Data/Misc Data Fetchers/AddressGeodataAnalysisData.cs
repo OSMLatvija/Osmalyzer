@@ -87,25 +87,6 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
         using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
 
-        DbaseFileHeader dbaseHeader = shapefileReader.DbaseHeader;
-
-#if !REMOTE_EXECUTION
-        // `KODS` (Int32) -  Attiecīgā adresācijas objekta kods
-        // `TIPS_CD` (Int32) -  Adresācijas objekta tipa kods (skatīt 1. pielikumu (106 = Ciems))
-        // `NOSAUKUMS` (String) -  Adresācijas objekta aktuālais nosaukums
-        // `VKUR_CD` (Int32) -  Tā adresācijas objekta kods, kuram hierarhiski pakļauts attiecīgais adresācijas objekts
-        // `VKUR_TIPS` (Int32) -  Tā adresācijas objekta tipa kods (skatīt 1. pielikumu), kuram hierarhiski pakļauts attiecīgais adresācijas objekts
-        // `APSTIPR` (String) -  Burts “Y” norāda vai adresācijas objekts ir apstiprināts
-        // `APST_PAK` (Int32) -  Adresācijas objekta apstiprinājuma pakāpe (skatīt 3. pielikumu)
-        // `STATUSS` (String) -  Adresācijas objekta statuss: EKS – eksistējošs
-        // `SORT_NOS` (String) -  Kārtošanas nosacījums adresācijas objekta nosaukumam (ja nosaukumā ir tikai teksts, kārtošanas nosacījums ir identisks nosaukumam)
-        // `DAT_SAK` (String) -  Adresācijas objekta izveidošanas vai pirmreizējās reģistrācijas datums, ja nav zināms precīzs adresācijas objekta izveides datums
-        // `DAT_MOD` (String) -  Datums un laiks, kad pēdējo reizi informācijas sistēmā tehniski modificēts ieraksts/ dati par adresācijas objektu (piemēram, aktualizēts statuss, apstiprinājuma pakāpe, pievienots atribūts u.c.) vai mainīts pilnais adreses pieraksts
-        // `DAT_BEIG` (String) -  Adresācijas objekta likvidācijas datums, ja adresācijas objekts beidza pastāvēt
-        // `ATRIB` (String) -  ATVK kods
-        // `STD` (String) -  Pilnais adreses pieraksts
-#endif
-
         // Read shapes
 
         Villages = [ ];
@@ -134,6 +115,15 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             
             bool isValid = status == "EKS" && approved == "Y";
 
+            // Parse address to extract parent names
+            // Format: "Garciems, Carnikavas pag., Ādažu nov."
+            string[] addressParts = address.Split(", ");
+            if (addressParts.Length != 3)
+                throw new Exception($"Village address '{address}' does not match expected format 'VillageName, ParishName pag., MunicipalityName nov.'");
+            
+            string parishName = addressParts[1].Replace(" pag.", " pagasts");
+            string municipalityName = addressParts[2].Replace(" nov.", " novads");
+
             // Process boundary
 
             OsmMultiPolygon boundary = OsmMultiPolygon.FromNTSGeometry(
@@ -150,6 +140,8 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
                     coord,
                     name,
                     address,
+                    parishName,
+                    municipalityName,
                     boundary
                 )
             );
@@ -208,6 +200,15 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
            
             bool isValid = status == "EKS" && approved == "Y";
 
+            // Parse address to extract parent names
+            // Format: "Ķeizarsils, Salaspils pag., Salaspils nov."
+            string[] addressParts = address.Split(", ");
+            if (addressParts.Length != 3)
+                throw new Exception($"Hamlet address '{address}' does not match expected format 'HamletName, ParishName pag., MunicipalityName nov.'");
+            
+            string parishName = addressParts[1].Replace(" pag.", " pagasts");
+            string municipalityName = addressParts[2].Replace(" nov.", " novads");
+
             // Entry
             
             Hamlets.Add(
@@ -216,7 +217,9 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
                     id,
                     coord,
                     name,
-                    address
+                    address,
+                    parishName,
+                    municipalityName
                 )
             );
         }
@@ -265,6 +268,14 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             bool isValid = status == "EKS" && approved == "Y";
             name = name.Replace(" pag.", " pagasts");
 
+            // Parse address to extract parent names
+            // Format: "Brunavas pag., Bauskas nov."
+            string[] addressParts = address.Split(", ");
+            if (addressParts.Length != 2)
+                throw new Exception($"Parish address '{address}' does not match expected format 'ParishName pag., MunicipalityName nov.'");
+            
+            string municipalityName = addressParts[1].Replace(" nov.", " novads");
+
             // Process boundary
 
             OsmMultiPolygon boundary = OsmMultiPolygon.FromNTSGeometry(
@@ -281,6 +292,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
                     coord,
                     name,
                     address,
+                    municipalityName,
                     boundary
                 )
             );
@@ -394,6 +406,27 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             
             bool isValid = status == "EKS" && approved == "Y";
 
+            // Parse address to extract parent names
+            // Format: "Rūjiena, Valmieras nov." (regular city)
+            // Format: "Jūrmala" (valstpilsēta - city by itself)
+            string[] addressParts = address.Split(", ");
+            string? municipalityName;
+            
+            if (addressParts.Length == 1)
+            {
+                // Valstpilsēta - city by itself, no municipality
+                municipalityName = null;
+            }
+            else if (addressParts.Length == 2)
+            {
+                // Regular city within a municipality
+                municipalityName = addressParts[1].Replace(" nov.", " novads");
+            }
+            else
+            {
+                throw new Exception($"City address '{address}' does not match expected format 'CityName' or 'CityName, MunicipalityName nov.'");
+            }
+
             // Process boundary
 
             OsmMultiPolygon boundary = OsmMultiPolygon.FromNTSGeometry(
@@ -410,6 +443,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
                     coord,
                     name,
                     address,
+                    municipalityName,
                     boundary
                 )
             );

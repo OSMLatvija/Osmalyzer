@@ -10,16 +10,22 @@ public class Hamlet : IDataItem
     
     public string Name { get; }
     
-    public string Address { get; }
+    public string RawAddress { get; }
+    
+    public string ParishName { get; }
+    
+    public string MunicipalityName { get; }
 
 
-    public Hamlet(bool valid, string id, OsmCoord coord, string name, string address)
+    public Hamlet(bool valid, string id, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName)
     {
         Valid = valid;
         ID = id;
         Coord = coord;
         Name = name;
-        Address = address;
+        RawAddress = rawAddress;
+        ParishName = parishName;
+        MunicipalityName = municipalityName;
     }
     
     
@@ -29,7 +35,7 @@ public class Hamlet : IDataItem
             (!Valid ? "Invalid " : "") + 
             "Hamlet `" + Name + "`" +
             " #`" + ID + "`" + 
-            " (`" + Address + "`)";
+            " (`" + ParishName + ", " + MunicipalityName + "`)";
     }
 }
 

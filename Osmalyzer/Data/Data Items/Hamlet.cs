@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class Village : IDataItem
+public class Hamlet : IDataItem
 {
     public bool Valid { get; }
     
@@ -11,18 +11,15 @@ public class Village : IDataItem
     public string Name { get; }
     
     public string Address { get; }
-    
-    public OsmMultiPolygon? Boundary { get; }
 
 
-    public Village(bool valid, string id, OsmCoord coord, string name, string address, OsmMultiPolygon? boundary)
+    public Hamlet(bool valid, string id, OsmCoord coord, string name, string address)
     {
         Valid = valid;
         ID = id;
         Coord = coord;
         Name = name;
         Address = address;
-        Boundary = boundary;
     }
     
     
@@ -30,8 +27,9 @@ public class Village : IDataItem
     {
         return 
             (!Valid ? "Invalid " : "") + 
-            "Village `" + Name + "`" +
+            "Hamlet `" + Name + "`" +
             " #`" + ID + "`" + 
             " (`" + Address + "`)";
     }
 }
+

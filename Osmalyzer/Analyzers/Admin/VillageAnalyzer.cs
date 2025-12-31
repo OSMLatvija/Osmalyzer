@@ -40,7 +40,7 @@ public class VillageAnalyzer : Analyzer
 
         Correlator<Village> villageCorrelator = new Correlator<Village>(
             osmVillages,
-            adddressData.Villages.Where(v => !v.IsHamlet && v.Valid).ToList(),
+            adddressData.Villages.Where(v => v.Valid).ToList(),
             new MatchDistanceParamater(500), // todo: lower distance, but allow match inside relation
             new MatchFarDistanceParamater(2000),
             new MatchCallbackParameter<Village>(GetVillageMatchStrength),
@@ -203,7 +203,7 @@ public class VillageAnalyzer : Analyzer
             "There are no invalid villages in the geodata."
         );
 
-        List<Village> invalidVillages = adddressData.Villages.Where(v => !v.IsHamlet && !v.Valid).ToList();
+        List<Village> invalidVillages = adddressData.Villages.Where(v => !v.Valid).ToList();
 
         foreach (Village village in invalidVillages)
         {

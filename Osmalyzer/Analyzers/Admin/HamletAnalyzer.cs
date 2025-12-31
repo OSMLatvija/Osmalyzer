@@ -37,19 +37,19 @@ public class HamletAnalyzer : Analyzer
         
         // Prepare data comparer/correlator
 
-        Correlator<Village> hamletCorrelator = new Correlator<Village>(
+        Correlator<Hamlet> hamletCorrelator = new Correlator<Hamlet>(
             osmHamlets,
-            adddressData.Villages.Where(v => v.IsHamlet && v.Valid).ToList(),
+            adddressData.Hamlets.Where(h => h.Valid).ToList(),
             new MatchDistanceParamater(100), // nodes should have good distance matches since data isnt polygons
             new MatchFarDistanceParamater(2000),
-            new MatchCallbackParameter<Village>(GetHamletMatchStrength),
+            new MatchCallbackParameter<Hamlet>(GetHamletMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("hamlet", "hamlets"),
             new LoneElementAllowanceParameter(DoesOsmElementLookLikeAHamlet)
         );
 
         [Pure]
-        MatchStrength GetHamletMatchStrength(Village hamlet, OsmElement osmElement)
+        MatchStrength GetHamletMatchStrength(Hamlet hamlet, OsmElement osmElement)
         {
             string? name = osmElement.GetValue("name");
 
@@ -88,8 +88,8 @@ public class HamletAnalyzer : Analyzer
         
         // Offer syntax for quick OSM addition for unmatched hamlets
         
-        List<Village> unmatchedHamlets = hamletCorrelation.Correlations
-            .OfType<UnmatchedItemCorrelation<Village>>()
+        List<Hamlet> unmatchedHamlets = hamletCorrelation.Correlations
+            .OfType<UnmatchedItemCorrelation<Hamlet>>()
             .Select(c => c.DataItem)
             .ToList();
 
@@ -101,7 +101,7 @@ public class HamletAnalyzer : Analyzer
                 "These hamlets are not currently matched to OSM and can be added with these (suggested) tags."
             );
 
-            foreach (Village hamlet in unmatchedHamlets)
+            foreach (Hamlet hamlet in unmatchedHamlets)
             {
                 string tagsBlock = BuildSuggestedHamletTags(hamlet);
 
@@ -122,7 +122,7 @@ public class HamletAnalyzer : Analyzer
         
         // Validate hamlet syntax
         
-        Validator<Village> hamletValidator = new Validator<Village>(
+        Validator<Hamlet> hamletValidator = new Validator<Hamlet>(
             hamletCorrelation,
             "Hamlet syntax issues"
         );
@@ -130,7 +130,7 @@ public class HamletAnalyzer : Analyzer
         hamletValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<Village>("ref", h => h.ID)
+            new ValidateElementValueMatchesDataItemValue<Hamlet>("ref", h => h.ID)
         );
         
         // List invalid hamlets that are still in data
@@ -143,9 +143,9 @@ public class HamletAnalyzer : Analyzer
             "There are no invalid hamlets in the geodata."
         );
 
-        List<Village> invalidHamlets = adddressData.Villages.Where(v => v.IsHamlet && !v.Valid).ToList();
+        List<Hamlet> invalidHamlets = adddressData.Hamlets.Where(h => !h.Valid).ToList();
 
-        foreach (Village hamlet in invalidHamlets)
+        foreach (Hamlet hamlet in invalidHamlets)
         {
             report.AddEntry(
                 ExtraReportGroup.InvalidHamlets,
@@ -158,7 +158,7 @@ public class HamletAnalyzer : Analyzer
 
 
     [Pure]
-    private static string BuildSuggestedHamletTags(Village hamlet)
+    private static string BuildSuggestedHamletTags(Hamlet hamlet)
     {
         List<string> lines =
         [

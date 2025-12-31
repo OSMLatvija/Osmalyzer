@@ -19,6 +19,8 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public List<Village> Villages { get; private set; } = null!; // only null before prepared
     
+    public List<Hamlet> Hamlets { get; private set; } = null!; // only null before prepared
+    
     public List<Parish> Parishes { get; private set; } = null!; // only null before prepared
     
     public List<Municipality> Municipalities { get; private set; } = null!; // only null before prepared
@@ -88,11 +90,6 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         DbaseFileHeader dbaseHeader = shapefileReader.DbaseHeader;
 
 #if !REMOTE_EXECUTION
-        foreach (DbaseFieldDescriptor headerField in dbaseHeader.Fields)
-            Debug.WriteLine(
-                $"Village: Field: {headerField.Name}, Type: {headerField.Type.Name}"
-            );
-        
         // `KODS` (Int32) -  Attiecīgā adresācijas objekta kods
         // `TIPS_CD` (Int32) -  Adresācijas objekta tipa kods (skatīt 1. pielikumu (106 = Ciems))
         // `NOSAUKUMS` (String) -  Adresācijas objekta aktuālais nosaukums
@@ -153,7 +150,6 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
                     coord,
                     name,
                     address,
-                    false,
                     boundary
                 )
             );
@@ -186,6 +182,8 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             );
 #endif
 
+        Hamlets = [ ];
+
         while (shapefileReader.Read())
         {
             Geometry geometry = shapefileReader.Geometry;
@@ -212,15 +210,13 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
             // Entry
             
-            Villages.Add(
-                new Village(
+            Hamlets.Add(
+                new Hamlet(
                     isValid,
                     id,
                     coord,
                     name,
-                    address,
-                    true,
-                    null // hamlets have no boundaries in data
+                    address
                 )
             );
         }

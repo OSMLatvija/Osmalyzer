@@ -22,6 +22,8 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
     public List<Parish> Parishes { get; private set; } = null!; // only null before prepared
     
     public List<Municipality> Municipalities { get; private set; } = null!; // only null before prepared
+    
+    public List<City> Cities { get; private set; } = null!; // only null before prepared
 
 
     protected override string DataFileIdentifier => "addresses-geo";
@@ -64,6 +66,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         ParseHamlets();
         ParseParishes();
         ParseMunicipalities();
+        ParseCities();
     }
 
     private void ParseVillages()
@@ -352,4 +355,70 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             );
         }
     }
+
+    private void ParseCities()
+    {
+        string projectionfilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Pilsetas.prj");
+        CoordinateSystem ourWkt = new CoordinateSystemFactory().CreateFromWkt(File.ReadAllText(projectionfilePath));
+            
+        GeographicCoordinateSystem wgs84 = GeographicCoordinateSystem.WGS84;
+            
+        ICoordinateTransformation coordTransformation = new CoordinateTransformationFactory().CreateFromCoordinateSystems(
+            ourWkt, 
+            wgs84
+        );
+
+        string shapefilePath = Path.Combine(Path.GetFullPath(ExtractionFolder), "Pilsetas.shp");
+
+        using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
+
+        Cities = [ ];
+            
+        while (shapefileReader.Read())
+        {
+            Geometry geometry = shapefileReader.Geometry;
+            
+            // Process shape
+                
+            Point centroid = geometry.Centroid;
+
+            (double lon, double lat) = coordTransformation.MathTransform.Transform(centroid.X, centroid.Y);
+
+            OsmCoord coord = new OsmCoord(lat, lon);
+            
+            // Process columns
+            
+            string status = shapefileReader["STATUSS"].ToString() ?? throw new Exception("City in data without a status");
+            string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("City in data without an approval status");
+            string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("City in data without a name");
+            string address = shapefileReader["STD"].ToString() ?? throw new Exception("City in data without a full address");
+            string id = shapefileReader["KODS"].ToString() ?? throw new Exception("City in data without a code");
+            
+            // Clean up and normalize values
+            
+            bool isValid = status == "EKS" && approved == "Y";
+
+            // Process boundary
+
+            OsmMultiPolygon boundary = OsmMultiPolygon.FromNTSGeometry(
+                geometry,
+                (x, y) => coordTransformation.MathTransform.Transform(x, y)
+            );
+            
+            // Entry
+           
+            Cities.Add(
+                new City(
+                    isValid,
+                    id,
+                    coord,
+                    name,
+                    address,
+                    boundary
+                )
+            );
+        }
+    }
 }
+
+

@@ -156,12 +156,17 @@ public class MunicipalityAnalyzer : Analyzer
             "Municipality syntax issues"
         );
 
-        municipalityValidator.Validate(
+        List<SuggestedChange> suggestedChanges = municipalityValidator.Validate(
             report,
             false,
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => m.ID)
         );
-        
+
+#if DEBUG
+        if (suggestedChanges.Count > 0)
+            OsmUploader.CreateChangesetFromSuggestedChanges(suggestedChanges);
+#endif
+
         // List invalid municipalities that are still in data
         
         report.AddGroup(
@@ -191,4 +196,3 @@ public class MunicipalityAnalyzer : Analyzer
         InvalidMunicipalities
     }
 }
-

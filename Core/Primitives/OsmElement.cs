@@ -23,6 +23,8 @@ public abstract class OsmElement : IChunkerItem
     [PublicAPI]
     public long Id { get; } 
 
+    public int Version { get; }
+    
         
     [PublicAPI]
     public int KeyCount => _tags?.Count ?? 0;
@@ -59,6 +61,7 @@ public abstract class OsmElement : IChunkerItem
     protected OsmElement(OsmGeo rawElement)
     {
         Id = rawElement.Id!.Value;
+        Version = rawElement.Version ?? throw new Exception();
 
         if (rawElement.Tags != null)
         {

@@ -1,0 +1,169 @@
+﻿namespace Osmalyzer;
+
+[UsedImplicitly]
+public class HamletAnalyzer : Analyzer
+{
+    public override string Name => "Hamlets";
+
+    public override string Description => 
+        "This report checks that all hamlets are mapped. " +
+        "Hamlet data is much less complete compared to villages.";
+
+    public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
+
+
+    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(AddressGeodataAnalysisData) ];
+        
+
+    public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
+    {
+        // Load OSM data
+
+        LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
+           
+        OsmMasterData osmMasterData = osmData.MasterData;
+
+        OsmDataExtract osmHamlets = osmMasterData.Filter(
+            new IsNode(),
+            new HasAnyValue("place", "hamlet"),
+            new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
+        );
+
+        // Get hamlet data
+
+        AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
+
+        // Parse hamlets
+        
+        // Prepare data comparer/correlator
+
+        Correlator<Village> hamletCorrelator = new Correlator<Village>(
+            osmHamlets,
+            adddressData.Villages.Where(v => v.IsHamlet && v.Valid).ToList(),
+            new MatchDistanceParamater(100), // nodes should have good distance matches since data isnt polygons
+            new MatchFarDistanceParamater(2000),
+            new MatchCallbackParameter<Village>(GetHamletMatchStrength),
+            new OsmElementPreviewValue("name", false),
+            new DataItemLabelsParamater("hamlet", "hamlets"),
+            new LoneElementAllowanceParameter(DoesOsmElementLookLikeAHamlet)
+        );
+
+        [Pure]
+        MatchStrength GetHamletMatchStrength(Village hamlet, OsmElement osmElement)
+        {
+            string? name = osmElement.GetValue("name");
+
+            if (name == hamlet.Name)
+                return MatchStrength.Strong; // exact match on name
+
+            if (DoesOsmElementLookLikeAHamlet(osmElement))
+                return MatchStrength.Good; // looks like a hamlet, but not exact match
+            
+            return MatchStrength.Unmatched;
+        }
+
+        [Pure]
+        bool DoesOsmElementLookLikeAHamlet(OsmElement element)
+        {
+            string? place = element.GetValue("place");
+            if (place == "hamlet")
+                return true; // explicitly tagged
+            
+            string? name = element.GetValue("name");
+            if (name?.EndsWith("apkaime") == true)
+                return false; // e.g. Riga suburb
+            
+            return true;
+        }
+
+        // Parse and report primary matching and location correlation
+
+        CorrelatorReport hamletCorrelation = hamletCorrelator.Parse(
+            report, 
+            ExtraReportGroup.HamletCorrelator,
+            new MatchedPairBatch(),
+            new MatchedLoneOsmBatch(true),
+            new UnmatchedItemBatch(),
+            new MatchedFarPairBatch()
+        );
+        
+        // Offer syntax for quick OSM addition for unmatched hamlets
+        
+        List<Village> unmatchedHamlets = hamletCorrelation.Correlations
+            .OfType<UnmatchedItemCorrelation<Village>>()
+            .Select(c => c.DataItem)
+            .ToList();
+
+        if (unmatchedHamlets.Count > 0)
+        {
+            report.AddGroup(
+                ExtraReportGroup.SuggestedHamletAdditions,
+                "Suggested Hamlet Additions",
+                "These hamlets are not currently matched to OSM and can be added with these (suggested) tags."
+            );
+
+            foreach (Village hamlet in unmatchedHamlets)
+            {
+                string tagsBlock = BuildSuggestedHamletTags(hamlet);
+
+                report.AddEntry(
+                    ExtraReportGroup.SuggestedHamletAdditions,
+                    new IssueReportEntry(
+                        '`' + hamlet.Name + "` hamlet at `" +
+                        hamlet.Address +
+                        "` can be added at " +
+                        hamlet.Coord.OsmUrl +
+                        " as" + Environment.NewLine + tagsBlock,
+                        hamlet.Coord,
+                        MapPointStyle.Suggestion
+                    )
+                );
+            }
+        }
+        
+        // List invalid hamlets that are still in data
+        
+        // Create a group and dump all invalid hamlet entries from geodata for awareness/tracking
+        report.AddGroup(
+            ExtraReportGroup.InvalidHamlets,
+            "Invalid Hamlets",
+            "Hamlets marked invalid in address geodata (not approved or not existing).",
+            "There are no invalid hamlets in the geodata."
+        );
+
+        List<Village> invalidHamlets = adddressData.Villages.Where(v => v.IsHamlet && !v.Valid).ToList();
+
+        foreach (Village hamlet in invalidHamlets)
+        {
+            report.AddEntry(
+                ExtraReportGroup.InvalidHamlets,
+                new IssueReportEntry(
+                    hamlet.ReportString()
+                )
+            );
+        }
+    }
+
+
+    [Pure]
+    private static string BuildSuggestedHamletTags(Village hamlet)
+    {
+        List<string> lines =
+        [
+            "name=" + hamlet.Name,
+            "place=hamlet",
+            "ref=" + hamlet.ID
+        ];
+
+        return "```" + string.Join(Environment.NewLine, lines) + "```";
+    }
+
+
+    private enum ExtraReportGroup
+    {
+        HamletCorrelator,
+        SuggestedHamletAdditions,
+        InvalidHamlets
+    }
+}
+

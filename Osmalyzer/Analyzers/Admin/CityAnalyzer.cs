@@ -96,7 +96,6 @@ public class CityAnalyzer : Analyzer
 
         CorrelatorReport cityCorrelation = cityCorrelator.Parse(
             report, 
-            ExtraReportGroup.CityCorrelator,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
@@ -162,6 +161,19 @@ public class CityAnalyzer : Analyzer
             }
         }
         
+        // Validate city syntax
+        
+        Validator<City> cityValidator = new Validator<City>(
+            cityCorrelation,
+            "City syntax issues"
+        );
+
+        cityValidator.Validate(
+            report,
+            false,
+            new ValidateElementValueMatchesDataItemValue<City>("ref", c => c.ID)
+        );
+        
         // List invalid cities that are still in data
         
         report.AddGroup(
@@ -187,7 +199,6 @@ public class CityAnalyzer : Analyzer
 
     private enum ExtraReportGroup
     {
-        CityCorrelator,
         CityBoundaries,
         InvalidCities
     }

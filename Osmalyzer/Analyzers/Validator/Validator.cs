@@ -304,7 +304,7 @@ public class Validator<T> where T : IDataItem
 
     private enum ReportGroup
     {
-        ValidationResults = -5 // after validation but probably before analyzer extra issues
+        ValidationResults = -5 // after correlator and probably before analyzer extra issues
     }
     
     private enum SortOrder // values used for sorting

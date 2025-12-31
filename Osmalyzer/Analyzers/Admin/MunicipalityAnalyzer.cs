@@ -84,7 +84,6 @@ public class MunicipalityAnalyzer : Analyzer
 
         CorrelatorReport municipalityCorrelation = municipalityCorrelator.Parse(
             report, 
-            ExtraReportGroup.MunicipalityCorrelator,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
@@ -150,6 +149,19 @@ public class MunicipalityAnalyzer : Analyzer
             }
         }
         
+        // Validate municipality syntax
+        
+        Validator<Municipality> municipalityValidator = new Validator<Municipality>(
+            municipalityCorrelation,
+            "Municipality syntax issues"
+        );
+
+        municipalityValidator.Validate(
+            report,
+            false,
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => m.ID)
+        );
+        
         // List invalid municipalities that are still in data
         
         report.AddGroup(
@@ -175,7 +187,6 @@ public class MunicipalityAnalyzer : Analyzer
 
     private enum ExtraReportGroup
     {
-        MunicipalityCorrelator,
         MunicipalityBoundaries,
         InvalidMunicipalities
     }

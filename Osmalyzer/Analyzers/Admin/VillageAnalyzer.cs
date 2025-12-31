@@ -81,7 +81,6 @@ public class VillageAnalyzer : Analyzer
 
         CorrelatorReport villageCorrelation = villageCorrelator.Parse(
             report, 
-            ExtraReportGroup.VillageCorrelator,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
@@ -181,6 +180,19 @@ public class VillageAnalyzer : Analyzer
             }
         }
         
+        // Validate village syntax
+        
+        Validator<Village> villageValidator = new Validator<Village>(
+            villageCorrelation,
+            "Village syntax issues"
+        );
+
+        villageValidator.Validate(
+            report,
+            false,
+            new ValidateElementValueMatchesDataItemValue<Village>("ref", v => v.ID)
+        );
+        
         // List invalid villages that are still in data
         
         // Create a group and dump all invalid village entries from geodata for awareness/tracking
@@ -221,7 +233,6 @@ public class VillageAnalyzer : Analyzer
 
     private enum ExtraReportGroup
     {
-        VillageCorrelator,
         SuggestedVillageAdditions,
         VillageBoundaries,
         InvalidVillages

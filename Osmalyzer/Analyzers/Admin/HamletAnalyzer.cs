@@ -80,7 +80,6 @@ public class HamletAnalyzer : Analyzer
 
         CorrelatorReport hamletCorrelation = hamletCorrelator.Parse(
             report, 
-            ExtraReportGroup.HamletCorrelator,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
@@ -120,6 +119,19 @@ public class HamletAnalyzer : Analyzer
                 );
             }
         }
+        
+        // Validate hamlet syntax
+        
+        Validator<Village> hamletValidator = new Validator<Village>(
+            hamletCorrelation,
+            "Hamlet syntax issues"
+        );
+
+        hamletValidator.Validate(
+            report,
+            false,
+            new ValidateElementValueMatchesDataItemValue<Village>("ref", h => h.ID)
+        );
         
         // List invalid hamlets that are still in data
         
@@ -161,7 +173,6 @@ public class HamletAnalyzer : Analyzer
 
     private enum ExtraReportGroup
     {
-        HamletCorrelator,
         SuggestedHamletAdditions,
         InvalidHamlets
     }

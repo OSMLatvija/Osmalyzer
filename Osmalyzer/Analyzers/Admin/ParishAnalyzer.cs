@@ -78,7 +78,6 @@ public class ParishAnalyzer : Analyzer
 
         CorrelatorReport parishCorrelation = parishCorrelator.Parse(
             report, 
-            ExtraReportGroup.ParishCorrelator,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
@@ -144,6 +143,19 @@ public class ParishAnalyzer : Analyzer
             }
         }
         
+        // Validate parish syntax
+        
+        Validator<Parish> parishValidator = new Validator<Parish>(
+            parishCorrelation,
+            "Parish syntax issues"
+        );
+
+        parishValidator.Validate(
+            report,
+            false,
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => p.ID)
+        );
+        
         // List invalid parishes that are still in data
         
         report.AddGroup(
@@ -169,7 +181,6 @@ public class ParishAnalyzer : Analyzer
 
     private enum ExtraReportGroup
     {
-        ParishCorrelator,
         ParishBoundaries,
         InvalidParishes
     }

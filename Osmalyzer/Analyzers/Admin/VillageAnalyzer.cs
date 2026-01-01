@@ -66,6 +66,9 @@ public class VillageAnalyzer : Analyzer
         [Pure]
         bool DoesOsmElementLookLikeAVillage(OsmElement element)
         {
+            if (element.HasKey("EHAK:code")) // Estonian villages leaking over border
+                return false;
+            
             string? place = element.GetValue("place");
             if (place == "village")
                 return true; // explicitly tagged

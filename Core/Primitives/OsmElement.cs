@@ -69,6 +69,7 @@ public abstract class OsmElement : IChunkerItem
         Id = rawElement.Id!.Value;
         Version = rawElement.Version ?? throw new Exception();
         Changeset = rawElement.ChangeSetId ?? throw new Exception();
+        // todo: value from OsmSharp is 0, I am not sure what it is supposed to be if I want to upload this afterwards
 
         if (rawElement.Tags != null)
         {

@@ -163,13 +163,7 @@ public class MunicipalityAnalyzer : Analyzer
         );
 
 #if DEBUG
-        if (suggestedChanges.Count > 0)
-        {
-            SuggestedActionApplicator.Apply(osmMasterData, suggestedChanges);
-            OsmChange change = new OsmChange(osmMasterData);
-            string xml = change.ToXml();
-            File.WriteAllText(Name + " suggested changes.osc", xml);
-        }
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
 #endif
 
         // List invalid municipalities that are still in data

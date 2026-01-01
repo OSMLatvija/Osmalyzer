@@ -127,11 +127,15 @@ public class HamletAnalyzer : Analyzer
             "Hamlet syntax issues"
         );
 
-        hamletValidator.Validate(
+        List<SuggestedAction> suggestedChanges = hamletValidator.Validate(
             report,
             false,
             new ValidateElementValueMatchesDataItemValue<Hamlet>("ref", h => h.ID)
         );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+#endif
         
         // List invalid hamlets that are still in data
         

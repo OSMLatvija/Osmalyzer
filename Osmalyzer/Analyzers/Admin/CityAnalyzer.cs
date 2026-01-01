@@ -168,11 +168,15 @@ public class CityAnalyzer : Analyzer
             "City syntax issues"
         );
 
-        cityValidator.Validate(
+        List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
             false,
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => c.ID)
         );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+#endif
         
         // List invalid cities that are still in data
         

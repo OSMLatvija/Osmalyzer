@@ -40,7 +40,7 @@ public abstract class OsmData
     [Pure]
     public OsmDataExtract Filter(params OsmFilter[] filters)
     {
-        List<OsmElement> filteredElements = new List<OsmElement>();
+        List<OsmElement> filteredElements = [ ];
 
         IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters);
 
@@ -60,7 +60,7 @@ public abstract class OsmData
         {
             IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters[i]);
 
-            List<OsmElement> filteredElements = new List<OsmElement>();
+            List<OsmElement> filteredElements = [ ];
                 
             foreach (OsmElement element in collection)
                 if (OsmElementMatchesFilters(element, filters[i]))
@@ -140,7 +140,7 @@ public abstract class OsmData
     [Pure]
     public OsmDataExtract Subtract(OsmData other)
     {
-        List<OsmElement> remainingElements = new List<OsmElement>();
+        List<OsmElement> remainingElements = [ ];
 
         foreach (OsmElement element in _elements)
             if (!other._elements.Contains(element))
@@ -180,11 +180,11 @@ public abstract class OsmData
     [Pure]
     private OsmGroups GroupByValues(Func<OsmElement, string?> keySelector, bool split)
     {
-        List<OsmGroup> groups = new List<OsmGroup>();
+        List<OsmGroup> groups = [ ];
 
         Dictionary<string, int> indices = new Dictionary<string, int>(); // for fast lookup
 
-        List<string> values = new List<string>();
+        List<string> values = [ ];
 
         foreach (OsmElement element in _elements)
         {
@@ -230,7 +230,7 @@ public abstract class OsmData
     [Pure]
     public List<string> GetUniqueValues(string tag)
     {
-        List<string> values = new List<string>();
+        List<string> values = [ ];
 
         foreach (OsmElement element in _elements)
         {
@@ -320,6 +320,12 @@ public abstract class OsmData
         return _chunker.GetAllClosest(coord.ToCartesian(), maxDistance);
     }
 
+    [Pure]
+    public OsmChange GetChanges()
+    {
+        return new OsmChange(this);
+    }
+
         
     [Pure]
     protected static bool OsmElementMatchesFilters(OsmElement element, params OsmFilter[] filters)
@@ -350,27 +356,27 @@ public abstract class OsmData
         _elements =
             capacity != null ?
                 new List<OsmElement>(capacity.Value) :
-                new List<OsmElement>();
+                [ ];
 
         _nodes =
             nodeCapacity != null ?
                 new List<OsmNode>(nodeCapacity.Value) :
-                new List<OsmNode>();
+                [ ];
 
         _ways =
             wayCapacity != null ?
                 new List<OsmWay>(wayCapacity.Value) :
-                new List<OsmWay>();
+                [ ];
 
         _relations =
             relationCapacity != null ?
                 new List<OsmRelation>(relationCapacity.Value) :
-                new List<OsmRelation>();
+                [ ];
 
-        _nodesWithTags = new List<OsmNode>();
-        _waysWithTags = new List<OsmWay>();
-        _relationsWithTags = new List<OsmRelation>();
-        _elementsWithTags = new List<OsmElement>();
+        _nodesWithTags = [ ];
+        _waysWithTags = [ ];
+        _relationsWithTags = [ ];
+        _elementsWithTags = [ ];
     }
 
     protected void AddElement(OsmElement newElement)

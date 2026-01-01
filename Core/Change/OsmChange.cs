@@ -10,10 +10,10 @@ public class OsmChange
     private readonly List<OsmChangeAction> _actions;
 
     
-    public OsmChange(OsmMasterData data)
+    public OsmChange(OsmData data)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
-        
+        ArgumentNullException.ThrowIfNull(data);
+
         _actions = [];
         
         // todo:
@@ -57,7 +57,7 @@ public class OsmChange
             Indent = true,
             IndentChars = "    ",
             Encoding = Encoding.UTF8,
-            OmitXmlDeclaration = false
+            OmitXmlDeclaration = true
         };
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -150,8 +150,8 @@ public class OsmChange
     {
         writer.WriteStartElement("node");
         writer.WriteAttributeString("id", node.Id.ToString());
-        writer.WriteAttributeString("changeset", node.Changeset.ToString());
-        writer.WriteAttributeString("version", node.Version.ToString());
+        if (node.Changeset > 0) writer.WriteAttributeString("changeset", node.Changeset.ToString());
+        if (node.Version > 0) writer.WriteAttributeString("version", node.Version.ToString());
         writer.WriteAttributeString("lat", node.coord.lat.ToString("F7"));
         writer.WriteAttributeString("lon", node.coord.lon.ToString("F7"));
         
@@ -165,8 +165,8 @@ public class OsmChange
     {
         writer.WriteStartElement("way");
         writer.WriteAttributeString("id", way.Id.ToString());
-        writer.WriteAttributeString("changeset", way.Changeset.ToString());
-        writer.WriteAttributeString("version", way.Version.ToString());
+        if (way.Changeset > 0) writer.WriteAttributeString("changeset", way.Changeset.ToString());
+        if (way.Version > 0) writer.WriteAttributeString("version", way.Version.ToString());
         
         // Write node references
         foreach (OsmNode node in way.Nodes)
@@ -186,8 +186,8 @@ public class OsmChange
     {
         writer.WriteStartElement("relation");
         writer.WriteAttributeString("id", relation.Id.ToString());
-        writer.WriteAttributeString("changeset", relation.Changeset.ToString());
-        writer.WriteAttributeString("version", relation.Version.ToString());
+        if (relation.Changeset > 0) writer.WriteAttributeString("changeset", relation.Changeset.ToString());
+        if (relation.Version > 0) writer.WriteAttributeString("version", relation.Version.ToString());
         
         // Write members
         foreach (OsmRelationMember member in relation.Members)

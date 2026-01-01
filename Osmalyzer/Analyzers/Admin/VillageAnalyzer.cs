@@ -187,11 +187,15 @@ public class VillageAnalyzer : Analyzer
             "Village syntax issues"
         );
 
-        villageValidator.Validate(
+        List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
             false,
             new ValidateElementValueMatchesDataItemValue<Village>("ref", v => v.ID)
         );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+#endif
         
         // List invalid villages that are still in data
         

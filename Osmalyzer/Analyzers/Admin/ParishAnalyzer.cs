@@ -150,11 +150,15 @@ public class ParishAnalyzer : Analyzer
             "Parish syntax issues"
         );
 
-        parishValidator.Validate(
+        List<SuggestedAction> suggestedChanges = parishValidator.Validate(
             report,
             false,
             new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => p.ID)
         );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+#endif
         
         // List invalid parishes that are still in data
         

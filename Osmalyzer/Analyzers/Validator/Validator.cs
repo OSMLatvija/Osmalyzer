@@ -14,7 +14,7 @@ public class Validator<T> where T : IDataItem
     }
 
 
-    public List<SuggestedChange> Validate(Report report, bool validateUnmatchedElements, params ValidationRule[] rules)
+    public List<OsmChangeAction> Validate(Report report, bool validateUnmatchedElements, params ValidationRule[] rules)
     {
         report.AddGroup(
             ReportGroup.ValidationResults, 
@@ -23,7 +23,7 @@ public class Validator<T> where T : IDataItem
             "No (known) issues found with matched/found OSM elements and/or data items."
         );
 
-        List<SuggestedChange> suggestedChanges = [ ];
+        List<OsmChangeAction> suggestedChanges = [ ];
         
         foreach (Correlation match in _correlatorReport.Correlations)
         {
@@ -73,7 +73,7 @@ public class Validator<T> where T : IDataItem
 
                     case ValidateElementHasValue elementHasValue:
                     {
-                        SuggestedChange? suggestedChange = CheckElementHasValue(elementHasValue);
+                        OsmChangeAction? suggestedChange = CheckElementHasValue(elementHasValue);
                         if (suggestedChange != null)
                             suggestedChanges.Add(suggestedChange);
                         break;
@@ -93,7 +93,7 @@ public class Validator<T> where T : IDataItem
 
                     case ValidateElementValueMatchesDataItemValue<T> elementValueMatchesDataItemValue:
                     {
-                        SuggestedChange? suggestedChange = CheckElementValueMatchesDataItemValue(elementValueMatchesDataItemValue);
+                        OsmChangeAction? suggestedChange = CheckElementValueMatchesDataItemValue(elementValueMatchesDataItemValue);
                         if (suggestedChange != null)
                             suggestedChanges.Add(suggestedChange);
                         break;
@@ -127,7 +127,7 @@ public class Validator<T> where T : IDataItem
                 }
             }
 
-            SuggestedChange? CheckElementHasValue(ValidateElementHasValue rule)
+            OsmChangeAction? CheckElementHasValue(ValidateElementHasValue rule)
             {
                 string? value = osmElement.GetValue(rule.Tag);
 
@@ -145,7 +145,7 @@ public class Validator<T> where T : IDataItem
                     );
                     
                     if (rule.Values.Length == 1)
-                        return new AddValueSuggested(osmElement, rule.Tag, rule.Values[0]);
+                        return new OsmSetValueAction(osmElement, rule.Tag, rule.Values[0]);
                 }
                 else
                 {
@@ -228,7 +228,7 @@ public class Validator<T> where T : IDataItem
                 }
             }
 
-            SuggestedChange? CheckElementValueMatchesDataItemValue(ValidateElementValueMatchesDataItemValue<T> rule)
+            OsmChangeAction? CheckElementValueMatchesDataItemValue(ValidateElementValueMatchesDataItemValue<T> rule)
             {
                 // No item, no "problem"
                 if (dataItem == null)
@@ -251,7 +251,7 @@ public class Validator<T> where T : IDataItem
                                 osmElement
                             )
                         );
-                        return new AddValueSuggested(osmElement, rule.Tag, dataValue);
+                        return new OsmSetValueAction(osmElement, rule.Tag, dataValue);
                     }
                 }
                 else

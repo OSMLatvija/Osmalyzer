@@ -156,7 +156,7 @@ public class MunicipalityAnalyzer : Analyzer
             "Municipality syntax issues"
         );
 
-        List<SuggestedChange> suggestedChanges = municipalityValidator.Validate(
+        List<OsmChangeAction> suggestedChanges = municipalityValidator.Validate(
             report,
             false,
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => m.ID)
@@ -164,7 +164,11 @@ public class MunicipalityAnalyzer : Analyzer
 
 #if DEBUG
         if (suggestedChanges.Count > 0)
-            OsmUploader.CreateChangesetFromSuggestedChanges(suggestedChanges);
+        {
+            OsmChange change = new OsmChange(suggestedChanges);
+            string xml = change.ToXml();
+            File.WriteAllText(Name + " suggested changes.osc", xml);
+        }
 #endif
 
         // List invalid municipalities that are still in data

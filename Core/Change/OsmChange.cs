@@ -7,6 +7,9 @@ namespace Osmalyzer;
 
 public class OsmChange
 {
+    public IReadOnlyList<OsmChangeAction> Actions => _actions;
+    
+    
     private readonly List<OsmChangeAction> _actions;
 
     
@@ -45,7 +48,7 @@ public class OsmChange
         }
     }
 
-    
+
     /// <summary>
     /// Generates osmChange XML format according to OSM specification
     /// </summary>

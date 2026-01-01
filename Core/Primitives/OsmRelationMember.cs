@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using OsmSharp;
 
 namespace Osmalyzer;
@@ -46,6 +46,16 @@ public class OsmRelationMember
         ElementType = RawTypeToOurType(rawType);
     }
 
+    /// <summary>
+    /// Constructor for copying relation members
+    /// </summary>
+    internal OsmRelationMember(OsmRelation owner, MemberElementType elementType, long id, string role)
+    {
+        Owner = owner;
+        Id = id;
+        Role = role;
+        ElementType = elementType;
+    }
         
     private MemberElementType RawTypeToOurType(OsmGeoType rawType)
     {

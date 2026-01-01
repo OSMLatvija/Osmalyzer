@@ -2,12 +2,53 @@
 
 public static class SuggestedActionApplicator
 {
-    public static OsmData Apply(OsmData data, List<SuggestedAction> changes)
+    public static OsmData Apply(OsmData data, List<SuggestedAction> changes, bool temporary)
     {
-        // TODO:
-        // the problem is that this works on shared data directly, so I am modifying the "original" data before other analyzers have run,
-        // so if they read the same element, they will see the modified version already
-        
+        if (temporary)
+        {
+            // Make a deep data copy
+            data = data.Copy();
+            
+            // "Remap" elements in suggested actions from originals to the copies
+            for (int i = 0; i < changes.Count; i++)
+            {
+                SuggestedAction change = changes[i];
+                
+                switch (change)
+                {
+                    case OsmSetValueSuggestedAction setValue:
+                        OsmElement copiedElement = data.GetElementById(setValue.Element.ElementType, setValue.Element.Id);
+                        changes[i] = new OsmSetValueSuggestedAction(copiedElement, setValue.Key, setValue.Value);
+                        
+                        switch (setValue.Element.ElementType)
+                        {
+                            case OsmElement.OsmElementType.Node:
+                                OsmNode copiedNode = data.GetNodeById(setValue.Element.Id);
+                                changes[i] = new OsmSetValueSuggestedAction(copiedNode, setValue.Key, setValue.Value);
+                                break;
+
+                            case OsmElement.OsmElementType.Way:
+                                OsmWay copiedWay = data.GetWayById(setValue.Element.Id);
+                                changes[i] = new OsmSetValueSuggestedAction(copiedWay, setValue.Key, setValue.Value);
+                                break;
+
+                            case OsmElement.OsmElementType.Relation:
+                                OsmRelation copiedRelation = data.GetRelationById(setValue.Element.Id);
+                                changes[i] = new OsmSetValueSuggestedAction(copiedRelation, setValue.Key, setValue.Value);
+                                break;
+
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(change));
+                }
+            }
+        }
+
         foreach (SuggestedAction change in changes)
         {
             switch (change)
@@ -31,10 +72,10 @@ public static class SuggestedActionApplicator
     {
         if (suggestedChanges.Count == 0)
             return;
-        
-        Apply(osmMasterData, suggestedChanges);
-        
-        OsmChange change = osmMasterData.GetChanges();
+
+        OsmData osmData = Apply(osmMasterData, suggestedChanges, true);
+
+        OsmChange change = osmData.GetChanges();
         
         string xml = change.ToXml();
         

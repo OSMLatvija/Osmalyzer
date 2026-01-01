@@ -32,6 +32,16 @@ public class OsmRelation : OsmElement
         members = ((Relation)rawElement).Members.Select(m => new OsmRelationMember(this, m.Type, m.Id, m.Role)).ToList();
     }
 
+    /// <summary>
+    /// Copy constructor for deep copying relations
+    /// </summary>
+    internal OsmRelation(OsmRelation original)
+        : base(original)
+    {
+        // Deep copy members but without linking elements yet (that's done in OsmData.Copy())
+        members = original.members.Select(m => new OsmRelationMember(this, m.ElementType, m.Id, m.Role)).ToList();
+        // Note: member elements and relations backlink are NOT copied here - handled in OsmData.Copy()
+    }
         
     [Pure]
     public OsmPolygon? GetOuterWayPolygon()

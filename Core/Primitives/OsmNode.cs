@@ -29,6 +29,16 @@ public class OsmNode : OsmElement
         );
     }
 
+    /// <summary>
+    /// Copy constructor for deep copying nodes
+    /// </summary>
+    internal OsmNode(OsmNode original)
+        : base(original)
+    {
+        coord = original.coord;
+        // Note: ways backlink is NOT copied here - handled in OsmData.Copy()
+    }
+
 
     public override OsmCoord AverageCoord => coord;
 }

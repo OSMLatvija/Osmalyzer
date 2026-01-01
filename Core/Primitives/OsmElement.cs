@@ -83,6 +83,31 @@ public abstract class OsmElement : IChunkerItem
         }
     }
 
+    /// <summary>
+    /// Copy constructor for deep copying elements
+    /// </summary>
+    protected OsmElement(OsmElement original)
+    {
+        Id = original.Id;
+        Version = original.Version;
+        Changeset = original.Changeset;
+        State = original.State;
+
+        // Deep copy tags
+        if (original._tags != null)
+        {
+            _tags = new Dictionary<string, string>(original._tags);
+        }
+
+        // Deep copy duplicates list if present
+        if (original.Duplicates != null)
+        {
+            Duplicates = new List<OsmElement>(original.Duplicates);
+        }
+
+        // Note: relations and backlinks are NOT copied here - they are handled separately in OsmData.Copy()
+    }
+
 
     internal static OsmElement Create(OsmGeo element)
     {

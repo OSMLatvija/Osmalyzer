@@ -62,10 +62,6 @@ public class OsmMasterData : OsmData
 #endif
             
         // Convert the "raw" elements to our own structure
-
-        Dictionary<long, OsmNode> nodesById = new Dictionary<long, OsmNode>(nodeCount);
-        Dictionary<long, OsmWay> waysById = new Dictionary<long, OsmWay>(wayCount);
-        Dictionary<long, OsmRelation> relationsById = new Dictionary<long, OsmRelation>(relationCount);
             
         CreateElements(rawElements.Count, nodeCount, wayCount, relationCount);
 
@@ -74,24 +70,6 @@ public class OsmMasterData : OsmData
             OsmElement osmElement = OsmElement.Create(element);
 
             AddElement(osmElement);
-
-            switch (osmElement)
-            {
-                case OsmNode osmNode:
-                    nodesById.Add(osmElement.Id, osmNode);
-                    break;
-
-                case OsmWay osmWay:
-                    waysById.Add(osmElement.Id, osmWay);
-                    break;
-                    
-                case OsmRelation osmRelation:
-                    relationsById.Add(osmElement.Id, osmRelation);
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(osmElement));
-            }
         }
             
 #if BENCHMARK

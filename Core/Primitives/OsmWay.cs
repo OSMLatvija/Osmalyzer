@@ -40,6 +40,16 @@ public class OsmWay : OsmElement
         nodeIds = ((Way)rawElement).Nodes;
     }
 
+    /// <summary>
+    /// Copy constructor for deep copying ways
+    /// </summary>
+    internal OsmWay(OsmWay original)
+        : base(original)
+    {
+        nodeIds = original.nodeIds;
+        // Note: nodes list and relations backlink are NOT copied here - handled in OsmData.Copy()
+    }
+
     [Pure]
     public OsmPolygon GetPolygon()
     {

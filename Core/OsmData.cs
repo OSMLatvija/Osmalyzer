@@ -34,6 +34,10 @@ public abstract class OsmData
     private List<OsmRelation> _relationsWithTags = null!;
     private List<OsmElement> _elementsWithTags = null!;
 
+    protected Dictionary<long, OsmNode> nodesById = null!;
+    protected Dictionary<long, OsmWay> waysById = null!;
+    protected Dictionary<long, OsmRelation> relationsById = null!;
+    
     private Chunker<OsmElement>? _chunker;
 
 
@@ -326,7 +330,186 @@ public abstract class OsmData
         return new OsmChange(this);
     }
 
+    /// <summary>
+    /// Makes a deep copy of all the data.
+    /// Any changes to the elements of the copied data will not affect the original data.
+    /// </summary>
+    [Pure]
+    public OsmData Copy()
+    {
+        // Create dictionaries to map old elements to new elements
+        Dictionary<long, OsmNode> newNodesById = new Dictionary<long, OsmNode>(_nodes.Count);
+        Dictionary<long, OsmWay> newWaysById = new Dictionary<long, OsmWay>(_ways.Count);
+        Dictionary<long, OsmRelation> newRelationsById = new Dictionary<long, OsmRelation>(_relations.Count);
+
+        // Create copies of all nodes (without backlinks yet)
+        foreach (OsmNode node in _nodes)
+        {
+            OsmNode newNode = CopyNode(node);
+            newNodesById.Add(node.Id, newNode);
+        }
+
+        // Create copies of all ways (with links to new nodes, without backlinks yet)
+        foreach (OsmWay way in _ways)
+        {
+            OsmWay newWay = CopyWay(way, newNodesById);
+            newWaysById.Add(way.Id, newWay);
+        }
+
+        // Create copies of all relations (with links to new elements, without backlinks yet)
+        foreach (OsmRelation relation in _relations)
+        {
+            OsmRelation newRelation = CopyRelation(relation, newNodesById, newWaysById, newRelationsById);
+            newRelationsById.Add(relation.Id, newRelation);
+        }
+
+        // Establish backlinks for ways in nodes
+        foreach (OsmWay way in _ways)
+        {
+            OsmWay newWay = newWaysById[way.Id];
+
+            foreach (OsmNode node in way.nodes)
+            {
+                OsmNode newNode = newNodesById[node.Id];
+
+                if (newNode.ways == null)
+                    newNode.ways = [ ];
+
+                newNode.ways.Add(newWay);
+            }
+        }
+
+        // Establish backlinks for relations
+        foreach (OsmRelation relation in _relations)
+        {
+            OsmRelation newRelation = newRelationsById[relation.Id];
+
+            foreach (OsmRelationMember member in relation.members)
+            {
+                if (member.Element == null)
+                    continue;
+
+                OsmRelationMember newMember = newRelation.members.First(m => m.Id == member.Id && m.ElementType == member.ElementType);
+
+                switch (member.Element)
+                {
+                    case OsmNode node:
+                        if (newNodesById.TryGetValue(node.Id, out OsmNode? newNode))
+                        {
+                            if (newNode.relations == null)
+                                newNode.relations = [ ];
+                            newNode.relations.Add(newMember);
+                        }
+
+                        break;
+
+                    case OsmWay way:
+                        if (newWaysById.TryGetValue(way.Id, out OsmWay? newWay))
+                        {
+                            if (newWay.relations == null)
+                                newWay.relations = [ ];
+                            newWay.relations.Add(newMember);
+                        }
+
+                        break;
+
+                    case OsmRelation rel:
+                        if (newRelationsById.TryGetValue(rel.Id, out OsmRelation? newRel))
+                        {
+                            if (newRel.relations == null)
+                                newRel.relations = [ ];
+                            newRel.relations.Add(newMember);
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        // Step 6: Create the result data structure
+        List<OsmElement> newElements = [ ];
+        newElements.AddRange(newNodesById.Values);
+        newElements.AddRange(newWaysById.Values);
+        newElements.AddRange(newRelationsById.Values);
+
+        if (this is OsmDataExtract extract)
+            return new OsmDataExtract(extract.FullData, newElements);
+        else
+            return new OsmDataExtract((OsmMasterData)this, newElements);
         
+
+        [Pure]
+        static OsmNode CopyNode(OsmNode original)
+        {
+            OsmNode copy = new OsmNode(original);
+            return copy;
+        }
+
+        [Pure]
+        static OsmWay CopyWay(OsmWay original, Dictionary<long, OsmNode> newNodesById)
+        {
+            OsmWay copy = new OsmWay(original);
+
+            // Link to new nodes
+            foreach (OsmNode node in original.nodes)
+                copy.nodes.Add(newNodesById[node.Id]);
+
+            return copy;
+        }
+
+        [Pure]
+        static OsmRelation CopyRelation(OsmRelation original, Dictionary<long, OsmNode> newNodesById, Dictionary<long, OsmWay> newWaysById, Dictionary<long, OsmRelation> newRelationsById)
+        {
+            OsmRelation copy = new OsmRelation(original);
+
+            // Link members to new elements
+            foreach (OsmRelationMember member in copy.members)
+            {
+                switch (member.ElementType)
+                {
+                    case OsmRelationMember.MemberElementType.Node:
+                        if (newNodesById.TryGetValue(member.Id, out OsmNode? newNode))
+                            member.Element = newNode;
+                        break;
+
+                    case OsmRelationMember.MemberElementType.Way:
+                        if (newWaysById.TryGetValue(member.Id, out OsmWay? newWay))
+                            member.Element = newWay;
+                        break;
+
+                    case OsmRelationMember.MemberElementType.Relation:
+                        if (newRelationsById.TryGetValue(member.Id, out OsmRelation? newRelation))
+                            member.Element = newRelation;
+                        break;
+                }
+            }
+
+            return copy;
+        }
+    }
+
+    [Pure]
+    public OsmNode GetNodeById(long id) => nodesById[id];
+    
+    [Pure]
+    public OsmWay GetWayById(long id) => waysById[id];
+   
+    [Pure]
+    public OsmRelation GetRelationById(long id) => relationsById[id];
+
+    [Pure]
+    public OsmElement GetElementById(OsmElement.OsmElementType type, long id)
+    {
+        return type switch
+        {
+            OsmElement.OsmElementType.Node     => GetNodeById(id),
+            OsmElement.OsmElementType.Way      => GetWayById(id),
+            OsmElement.OsmElementType.Relation => GetRelationById(id),
+            _                                  => throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported OSM element type: {type}"),
+        };
+    }
+
+
     [Pure]
     protected static bool OsmElementMatchesFilters(OsmElement element, params OsmFilter[] filters)
     {
@@ -372,6 +555,21 @@ public abstract class OsmData
             relationCapacity != null ?
                 new List<OsmRelation>(relationCapacity.Value) :
                 [ ];
+        
+        nodesById = 
+            nodeCapacity != null ?
+                new Dictionary<long, OsmNode>(nodeCapacity.Value) :
+                new Dictionary<long, OsmNode>();
+        
+        waysById =
+            wayCapacity != null ?
+                new Dictionary<long, OsmWay>(wayCapacity.Value) :
+                new Dictionary<long, OsmWay>();
+        
+        relationsById =
+            relationCapacity != null ?
+                new Dictionary<long, OsmRelation>(relationCapacity.Value) :
+                new Dictionary<long, OsmRelation>();
 
         _nodesWithTags = [ ];
         _waysWithTags = [ ];
@@ -392,6 +590,7 @@ public abstract class OsmData
         {
             case OsmNode node:
                 _nodes.Add(node);
+                nodesById.Add(node.Id, node);
                     
                 if (hasAnyTags)
                     _nodesWithTags.Add(node);
@@ -399,6 +598,7 @@ public abstract class OsmData
 
             case OsmWay way:
                 _ways.Add(way);
+                waysById.Add(way.Id, way);
                     
                 if (hasAnyTags)
                     _waysWithTags.Add(way);
@@ -406,6 +606,7 @@ public abstract class OsmData
                 
             case OsmRelation relation:
                 _relations.Add(relation);
+                relationsById.Add(relation.Id, relation);
                     
                 if (hasAnyTags)
                     _relationsWithTags.Add(relation);

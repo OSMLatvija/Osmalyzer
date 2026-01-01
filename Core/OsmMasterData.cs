@@ -1,5 +1,6 @@
 ﻿//#if !REMOTE_EXECUTION
 #define BENCHMARK
+//#define BENCHMARK_COMPLETE // we are not using this output, so it's only for benchmarking, see results below 
 using System.Diagnostics;
 //#endif
 
@@ -7,6 +8,11 @@ using System;
 using System.IO;
 using OsmSharp;
 using OsmSharp.Streams;
+
+#if BENCHMARK_COMPLETE
+using OsmSharp.Complete;
+using OsmSharp.Streams.Complete;
+#endif
 
 namespace Osmalyzer;
 
@@ -23,6 +29,11 @@ public class OsmMasterData : OsmData
         // OSM data conversion took 3540 ms
         // OSM data linking took 4402 ms
 
+        // OSMSharp has built-in `source.ToComplete()` that create complete geometry, i.e. what I want,
+        // but unfortunately it's much slower for whatever reason:
+        // OSMSharp complete data loading took 58849 ms
+        // I guess it's not at all optimized for larger data (and LV data isn't even that large).
+        // And it's not even creating backlinks, just references for immediate elements, so I'd need to post-process anyway with custom classes.
 
         // At this point, I cannot think of any (non micro-) optimization to do here.
         // The bulk of the work is 15 sec for the PBF file reading and processing,
@@ -37,7 +48,7 @@ public class OsmMasterData : OsmData
 
         using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
 
-        List<OsmGeo> rawElements = new List<OsmGeo>();
+        List<OsmGeo> rawElements = [ ];
 
         int nodeCount = 0;
         int wayCount = 0;
@@ -58,6 +69,23 @@ public class OsmMasterData : OsmData
 #if BENCHMARK
         stopwatch.Stop();
         Console.WriteLine("OSMSharp data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+
+#if BENCHMARK_COMPLETE
+        stopwatch.Restart();
+        
+        using FileStream fileStreamAgain = new FileInfo(dataFileName).OpenRead();
+        using PBFOsmStreamSource sourceAgain = new PBFOsmStreamSource(fileStreamAgain);
+        using OsmCompleteStreamSource completeSource = sourceAgain.ToComplete();
+        
+        List<ICompleteOsmGeo> rawElementsAgain = [ ];
+        foreach (ICompleteOsmGeo? geo in completeSource)
+            rawElementsAgain.Add(geo);
+        Console.WriteLine("Loaded " + rawElementsAgain.Count + " complete elements.");
+        
+        stopwatch.Stop();
+        Console.WriteLine("OSMSharp complete data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+#endif
+        
         stopwatch.Restart();
 #endif
             

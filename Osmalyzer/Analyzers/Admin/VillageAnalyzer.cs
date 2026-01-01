@@ -32,7 +32,7 @@ public class VillageAnalyzer : Analyzer
 
         // Get village/hamlet data
 
-        AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
+        AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
         // Parse villages
         
@@ -40,7 +40,7 @@ public class VillageAnalyzer : Analyzer
 
         Correlator<Village> villageCorrelator = new Correlator<Village>(
             osmVillages,
-            adddressData.Villages.Where(v => v.Valid).ToList(),
+            addressData.Villages.Where(v => v.Valid).ToList(),
             new MatchDistanceParamater(500), // todo: lower distance, but allow match inside relation
             new MatchFarDistanceParamater(2000),
             new MatchCallbackParameter<Village>(GetVillageMatchStrength),
@@ -131,7 +131,7 @@ public class VillageAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.VillageBoundaries,
             "Village boundary issues",
-            "This section lists villages where the mapped boundary does not sufficiently cover the official boundary area (assuming village boundary is mapped and valid). " +
+            "This section lists villages where the mapped boundary does not sufficiently cover the official boundary polygon (assuming village boundary is mapped and valid). " +
             "Due to data fuzziness, small mismatches are expected and not reported (" + (matchLimit * 100).ToString("F1") + "% coverage required)."
         );
 
@@ -170,7 +170,7 @@ public class VillageAnalyzer : Analyzer
                         report.AddEntry(
                             ExtraReportGroup.VillageBoundaries,
                             new IssueReportEntry(
-                                "Village boundary for `" + village.Name + "` does not match the official boundary area " +
+                                "Village boundary for `" + village.Name + "` does not match the official boundary polygon " +
                                 "(matches at " + (estimatedCoverage * 100).ToString("F1") + "%) for " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(estimatedCoverage),
                                 osmElement.AverageCoord,
@@ -210,7 +210,7 @@ public class VillageAnalyzer : Analyzer
             "There are no invalid villages in the geodata."
         );
 
-        List<Village> invalidVillages = adddressData.Villages.Where(v => !v.Valid).ToList();
+        List<Village> invalidVillages = addressData.Villages.Where(v => !v.Valid).ToList();
 
         foreach (Village village in invalidVillages)
         {

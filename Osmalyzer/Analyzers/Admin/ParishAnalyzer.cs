@@ -11,7 +11,11 @@ public class ParishAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
 
-    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(AddressGeodataAnalysisData) ];
+    public override List<Type> GetRequiredDataTypes() => [ 
+        typeof(LatviaOsmAnalysisData), 
+        typeof(AddressGeodataAnalysisData),
+        typeof(AtvkAnalysisData)
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -34,13 +38,16 @@ public class ParishAnalyzer : Analyzer
 
         // Get parish data
 
-        AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
+        AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
+
+        List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+                                           .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Parish).ToList();
 
         // Prepare data comparer/correlator
 
         Correlator<Parish> parishCorrelator = new Correlator<Parish>(
             osmParishes,
-            adddressData.Parishes.Where(p => p.Valid).ToList(),
+            addressData.Parishes.Where(p => p.Valid).ToList(),
             new MatchDistanceParamater(10000),
             new MatchFarDistanceParamater(30000),
             new MatchCallbackParameter<Parish>(GetParishMatchStrength),
@@ -91,7 +98,7 @@ public class ParishAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.ParishBoundaries,
             "Parish boundary issues",
-            "This section lists parishes where the mapped boundary does not sufficiently cover the official boundary area. " +
+            "This section lists parishes where the mapped boundary does not sufficiently cover the official boundary polygon. " +
             "Due to data fuzziness, small mismatches are expected and not reported (" + (matchLimit * 100).ToString("F1") + "% coverage required)."
         );
 
@@ -130,7 +137,7 @@ public class ParishAnalyzer : Analyzer
                         report.AddEntry(
                             ExtraReportGroup.ParishBoundaries,
                             new IssueReportEntry(
-                                "Parish boundary for `" + parish.Name + "` does not match the official boundary area " +
+                                "Parish boundary for `" + parish.Name + "` does not match the official boundary polygon " +
                                 "(matches at " + (estimatedCoverage * 100).ToString("F1") + "%) for " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(estimatedCoverage),
                                 osmElement.AverageCoord,
@@ -143,6 +150,21 @@ public class ParishAnalyzer : Analyzer
             }
         }
         
+        // Match VZD and ATVK data items
+
+        Equivalator<Parish, AtkvEntry> equivalator = new Equivalator<Parish, AtkvEntry>(
+            addressData.Parishes, 
+            atvkEntries
+        );
+        
+        equivalator.MatchItemsByValues(
+            p => p.Name,
+            e => e.Name
+        );
+        
+        Dictionary<Parish, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
+        
         // Validate parish syntax
         
         Validator<Parish> parishValidator = new Validator<Parish>(
@@ -153,7 +175,8 @@ public class ParishAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = parishValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.ID, [ "ref" ])
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtkvEntry? match) ? match.Code : null)
         );
 
 #if DEBUG
@@ -169,7 +192,7 @@ public class ParishAnalyzer : Analyzer
             "There are no invalid parishes in the geodata."
         );
 
-        List<Parish> invalidParishes = adddressData.Parishes.Where(p => !p.Valid).ToList();
+        List<Parish> invalidParishes = addressData.Parishes.Where(p => !p.Valid).ToList();
 
         foreach (Parish parish in invalidParishes)
         {

@@ -62,6 +62,8 @@ public class Validator<T> where T : IDataItem
             // We may not have a data item matches, so only print label if there is one
             string itemLabel = dataItem != null ? " for " + dataItem.ReportString() : "";
             
+            
+            List<SuggestedAction>? suggestedChangesForElement = null;
 
             foreach (ValidationRule rule in rules)
             {
@@ -73,9 +75,12 @@ public class Validator<T> where T : IDataItem
 
                     case ValidateElementHasValue elementHasValue:
                     {
-                        List<SuggestedAction>? suggestedChange = CheckElementHasValue(elementHasValue);
-                        if (suggestedChange != null)
-                            suggestedChanges.AddRange(suggestedChange);
+                        List<SuggestedAction>? suggestedChangesForRule = CheckElementHasValue(elementHasValue);
+                        if (suggestedChangesForRule != null)
+                        {
+                            suggestedChangesForElement ??= [ ];
+                            suggestedChangesForElement.AddRange(suggestedChangesForRule);
+                        }
                         break;
                     }
 
@@ -93,9 +98,12 @@ public class Validator<T> where T : IDataItem
 
                     case ValidateElementValueMatchesDataItemValue<T> elementValueMatchesDataItemValue:
                     {
-                        List<SuggestedAction>? suggestedChange = CheckElementValueMatchesDataItemValue(elementValueMatchesDataItemValue);
-                        if (suggestedChange != null)
-                            suggestedChanges.AddRange(suggestedChange);
+                        List<SuggestedAction>? suggestedChangesForRule = CheckElementValueMatchesDataItemValue(elementValueMatchesDataItemValue);
+                        if (suggestedChangesForRule != null)
+                        {
+                            suggestedChangesForElement ??= [ ];
+                            suggestedChangesForElement.AddRange(suggestedChangesForRule);
+                        }
                         break;
                     }
 
@@ -104,7 +112,37 @@ public class Validator<T> where T : IDataItem
                 }
             }
 
-            
+            if (suggestedChangesForElement?.Count > 0)
+            {
+                // Remove conflicting suggested changes
+                
+                for (int i = 0; i < suggestedChangesForElement.Count; i++)
+                {
+                    // Set and remove for same key?
+                    
+                    if (suggestedChangesForElement[i] is OsmRemoveKeySuggestedAction removeKey)
+                    {
+                        for (int k = 0; k < suggestedChangesForElement.Count; k++)
+                        {
+                            if (k == i)
+                                continue;
+
+                            if (suggestedChangesForElement[k] is OsmSetValueSuggestedAction setValue)
+                            {
+                                if (setValue.Key == removeKey.Key)
+                                {
+                                    suggestedChangesForElement.RemoveAt(i);
+                                    i--;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                suggestedChanges.AddRange(suggestedChangesForElement);
+            }
+
             continue;
 
 
@@ -129,6 +167,8 @@ public class Validator<T> where T : IDataItem
 
             List<SuggestedAction>? CheckElementHasValue(ValidateElementHasValue rule)
             {
+                List<SuggestedAction>? suggestedChangesForRule = null;
+                
                 string? value = osmElement.GetValue(rule.Tag);
 
                 // Is the expected value in a different tag that is known to be incorrect there?
@@ -141,8 +181,10 @@ public class Validator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element has expected " + GetTagValueDisplayString(rule.Tag, rule.Values[0]) + " set" + itemLabel + 
-                            ", but in incorrect tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + " - " + osmElement.OsmViewUrl,
+                            "OSM element has expected value `" + rule.Values[0] + "` set" + itemLabel +
+                            ", but not in the expected tag `" + rule.Tag + "`" +
+                            " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
+                            " - " + osmElement.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
                             osmElement.AverageCoord,
                             MapPointStyle.Problem,
@@ -150,9 +192,9 @@ public class Validator<T> where T : IDataItem
                         )
                     );
                     
-                    suggestedChanges ??= [ ];
+                    suggestedChangesForRule ??= [ ];
                     foreach (string incorrectTag in foundInIncorrectTags)
-                        suggestedChanges.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
+                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
                 }
 
                 if (value == null)
@@ -167,9 +209,12 @@ public class Validator<T> where T : IDataItem
                             osmElement
                         )
                     );
-                    
+
                     if (rule.Values.Length == 1)
-                        return [ new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Values[0]) ];
+                    {
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Values[0]));
+                    }
                 }
                 else
                 {
@@ -185,11 +230,10 @@ public class Validator<T> where T : IDataItem
                                 osmElement
                             )
                         );
-                        return null;
                     }
                 }
 
-                return null;
+                return suggestedChangesForRule;
             }
 
             void CheckElementHasKey(ValidateElementHasKey rule)
@@ -258,7 +302,7 @@ public class Validator<T> where T : IDataItem
                 if (dataItem == null)
                     return null;
                 
-                List<SuggestedAction>? suggestedChanges = null;
+                List<SuggestedAction>? suggestedChangesForRule = null;
                 
                 string? elementValue = osmElement.GetValue(rule.Tag);
                 string? dataValue = rule.DataItemValueLookup(dataItem);
@@ -271,8 +315,10 @@ public class Validator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element has expected " + GetTagValueDisplayString(rule.Tag, dataValue!) + " set" + itemLabel + 
-                            ", but in incorrect tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + " - " + osmElement.OsmViewUrl,
+                            "OSM element has expected value `" + dataValue + "` set" + itemLabel +
+                            ", but not in the expected tag `" + rule.Tag + "`" +
+                            " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
+                            " - " + osmElement.OsmViewUrl,
                             new SortEntryAsc(SortOrder.Tagging),
                             osmElement.AverageCoord,
                             MapPointStyle.Problem,
@@ -280,9 +326,9 @@ public class Validator<T> where T : IDataItem
                         )
                     );
                     
-                    suggestedChanges ??= [ ];
+                    suggestedChangesForRule ??= [ ];
                     foreach (string incorrectTag in foundInIncorrectTags)
-                        suggestedChanges.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
+                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
                 }
                 
                 if (elementValue == null)
@@ -300,8 +346,8 @@ public class Validator<T> where T : IDataItem
                             )
                         );
                         
-                        suggestedChanges ??= [ ];
-                        suggestedChanges.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
                     }
                 }
                 else

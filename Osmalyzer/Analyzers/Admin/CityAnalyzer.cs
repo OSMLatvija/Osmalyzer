@@ -11,7 +11,11 @@ public class CityAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
 
-    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(AddressGeodataAnalysisData) ];
+    public override List<Type> GetRequiredDataTypes() => [ 
+        typeof(LatviaOsmAnalysisData), 
+        typeof(AddressGeodataAnalysisData),
+        typeof(AtvkAnalysisData)
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -31,13 +35,16 @@ public class CityAnalyzer : Analyzer
 
         // Get city data
 
-        AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
+        AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
+
+        List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+                                           .Where(e => !e.IsExpired && (e.Designation == AtkvDesignation.StateCity || e.Designation == AtkvDesignation.RegionalCity)).ToList();
 
         // Prepare data comparer/correlator
 
         Correlator<City> cityCorrelator = new Correlator<City>(
             osmCities,
-            adddressData.Cities.Where(c => c.Valid).ToList(),
+            addressData.Cities.Where(c => c.Valid).ToList(),
             new MatchDistanceParamater(10000),
             new MatchFarDistanceParamater(30000),
             new MatchCallbackParameter<City>(GetCityMatchStrength),
@@ -109,7 +116,7 @@ public class CityAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.CityBoundaries,
             "City boundary issues",
-            "This section lists cities where the mapped boundary does not sufficiently cover the official boundary area. " +
+            "This section lists cities where the mapped boundary does not sufficiently cover the official boundary polygon. " +
             "Due to data fuzziness, small mismatches are expected and not reported (" + (matchLimit * 100).ToString("F1") + "% coverage required)."
         );
 
@@ -148,7 +155,7 @@ public class CityAnalyzer : Analyzer
                         report.AddEntry(
                             ExtraReportGroup.CityBoundaries,
                             new IssueReportEntry(
-                                "City boundary for `" + city.Name + "` does not match the official boundary area " +
+                                "City boundary for `" + city.Name + "` does not match the official boundary polygon " +
                                 "(matches at " + (estimatedCoverage * 100).ToString("F1") + "%) for " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(estimatedCoverage),
                                 osmElement.AverageCoord,
@@ -161,6 +168,21 @@ public class CityAnalyzer : Analyzer
             }
         }
         
+        // Match VZD and ATVK data items
+
+        Equivalator<City, AtkvEntry> equivalator = new Equivalator<City, AtkvEntry>(
+            addressData.Cities, 
+            atvkEntries
+        );
+        
+        equivalator.MatchItemsByValues(
+            c => c.Name,
+            e => e.Name
+        );
+        
+        Dictionary<City, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
+        
         // Validate city syntax
         
         Validator<City> cityValidator = new Validator<City>(
@@ -171,7 +193,8 @@ public class CityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ])
+            new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null)
         );
 
 #if DEBUG
@@ -187,7 +210,7 @@ public class CityAnalyzer : Analyzer
             "There are no invalid cities in the geodata."
         );
 
-        List<City> invalidCities = adddressData.Cities.Where(c => !c.Valid).ToList();
+        List<City> invalidCities = addressData.Cities.Where(c => !c.Valid).ToList();
 
         foreach (City city in invalidCities)
         {

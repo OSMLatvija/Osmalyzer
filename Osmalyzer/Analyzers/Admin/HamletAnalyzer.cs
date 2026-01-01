@@ -31,7 +31,7 @@ public class HamletAnalyzer : Analyzer
 
         // Get hamlet data
 
-        AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
+        AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
         // Parse hamlets
         
@@ -39,7 +39,7 @@ public class HamletAnalyzer : Analyzer
 
         Correlator<Hamlet> hamletCorrelator = new Correlator<Hamlet>(
             osmHamlets,
-            adddressData.Hamlets.Where(h => h.Valid).ToList(),
+            addressData.Hamlets.Where(h => h.Valid).ToList(),
             new MatchDistanceParamater(100), // nodes should have good distance matches since data isnt polygons
             new MatchFarDistanceParamater(2000),
             new MatchCallbackParameter<Hamlet>(GetHamletMatchStrength),
@@ -147,7 +147,7 @@ public class HamletAnalyzer : Analyzer
             "There are no invalid hamlets in the geodata."
         );
 
-        List<Hamlet> invalidHamlets = adddressData.Hamlets.Where(h => !h.Valid).ToList();
+        List<Hamlet> invalidHamlets = addressData.Hamlets.Where(h => !h.Valid).ToList();
 
         foreach (Hamlet hamlet in invalidHamlets)
         {

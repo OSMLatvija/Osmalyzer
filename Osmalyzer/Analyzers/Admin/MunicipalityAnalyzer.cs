@@ -11,7 +11,11 @@ public class MunicipalityAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
 
-    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(AddressGeodataAnalysisData) ];
+    public override List<Type> GetRequiredDataTypes() => [ 
+        typeof(LatviaOsmAnalysisData), 
+        typeof(AddressGeodataAnalysisData),
+        typeof(AtvkAnalysisData)
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -31,13 +35,16 @@ public class MunicipalityAnalyzer : Analyzer
 
         // Get municipality data
 
-        AddressGeodataAnalysisData adddressData = datas.OfType<AddressGeodataAnalysisData>().First();
+        AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
+
+        List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+                                           .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Municipality).ToList();
 
         // Prepare data comparer/correlator
 
         Correlator<Municipality> municipalityCorrelator = new Correlator<Municipality>(
             osmMunicipalities,
-            adddressData.Municipalities.Where(m => m.Valid).ToList(),
+            addressData.Municipalities.Where(m => m.Valid).ToList(),
             new MatchDistanceParamater(25000),
             new MatchFarDistanceParamater(60000),
             new MatchCallbackParameter<Municipality>(GetMunicipalityMatchStrength),
@@ -97,7 +104,7 @@ public class MunicipalityAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.MunicipalityBoundaries,
             "Municipality boundary issues",
-            "This section lists municipalities where the mapped boundary does not sufficiently cover the official boundary area. " +
+            "This section lists municipalities where the mapped boundary does not sufficiently cover the official boundary polygon. " +
             "Due to data fuzziness, small mismatches are expected and not reported (" + (matchLimit * 100).ToString("F1") + "% coverage required)."
         );
 
@@ -136,7 +143,7 @@ public class MunicipalityAnalyzer : Analyzer
                         report.AddEntry(
                             ExtraReportGroup.MunicipalityBoundaries,
                             new IssueReportEntry(
-                                "Municipality boundary for `" + municipality.Name + "` does not match the official boundary area " +
+                                "Municipality boundary for `" + municipality.Name + "` does not match the official boundary polygon " +
                                 "(matches at " + (estimatedCoverage * 100).ToString("F1") + "%) for " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(estimatedCoverage),
                                 osmElement.AverageCoord,
@@ -149,6 +156,21 @@ public class MunicipalityAnalyzer : Analyzer
             }
         }
         
+        // Match VZD and ATVK data items
+
+        Equivalator<Municipality, AtkvEntry> equivalator = new Equivalator<Municipality, AtkvEntry>(
+            addressData.Municipalities, 
+            atvkEntries
+        );
+        
+        equivalator.MatchItemsByValues(
+            m => m.Name,
+            e => e.Name
+        );
+        
+        Dictionary<Municipality, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
+        
         // Validate municipality syntax
         
         Validator<Municipality> municipalityValidator = new Validator<Municipality>(
@@ -159,7 +181,8 @@ public class MunicipalityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = municipalityValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.ID, [ "ref" ])
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null)
         );
 
 #if DEBUG
@@ -175,7 +198,7 @@ public class MunicipalityAnalyzer : Analyzer
             "There are no invalid municipalities in the geodata."
         );
 
-        List<Municipality> invalidMunicipalities = adddressData.Municipalities.Where(m => !m.Valid).ToList();
+        List<Municipality> invalidMunicipalities = addressData.Municipalities.Where(m => !m.Valid).ToList();
 
         foreach (Municipality municipality in invalidMunicipalities)
         {

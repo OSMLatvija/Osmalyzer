@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using iText.Svg.Renderers.Path.Impl;
 using OsmSharp;
 using OsmSharp.Tags;
 
@@ -21,9 +20,16 @@ public abstract class OsmElement : IChunkerItem
 
 
     [PublicAPI]
-    public long Id { get; } 
+    public long Id { get; }
 
+    [PublicAPI]
     public int Version { get; }
+    
+    [PublicAPI]
+    public long Changeset { get; }
+    
+    [PublicAPI]
+    public OsmElementState State { get; set; } = OsmElementState.Live;
     
         
     [PublicAPI]
@@ -55,13 +61,14 @@ public abstract class OsmElement : IChunkerItem
     internal List<OsmRelationMember>? relations;
 
 
-    private readonly Dictionary<string, string>? _tags;
+    private Dictionary<string, string>? _tags;
 
 
     protected OsmElement(OsmGeo rawElement)
     {
         Id = rawElement.Id!.Value;
         Version = rawElement.Version ?? throw new Exception();
+        Changeset = rawElement.ChangeSetId ?? throw new Exception();
 
         if (rawElement.Tags != null)
         {
@@ -238,7 +245,34 @@ public abstract class OsmElement : IChunkerItem
 
         return s;
     }
+    
+    public void SetValue(string key, string value)
+    {
+        if (_tags == null)
+            _tags = new Dictionary<string, string>();
 
+        if (_tags.TryGetValue(key, out string? existingValue))
+            if (existingValue == value)
+                return;
+
+        State = OsmElementState.Modified;
+        
+        _tags[key] = value;
+    }
+    
+    public void DeleteKey(string key)
+    {
+        if (_tags == null || !_tags.ContainsKey(key))
+            return;
+
+        State = OsmElementState.Modified;
+        
+        _tags.Remove(key);
+
+        if (_tags.Count == 0)
+            _tags = null;
+    }
+    
 
     public abstract OsmCoord AverageCoord { [Pure] get; }
 

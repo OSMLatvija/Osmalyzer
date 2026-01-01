@@ -7,18 +7,42 @@ namespace Osmalyzer;
 
 public class OsmChange
 {
-    public IReadOnlyList<OsmChangeAction> Actions => _actions;
-
-    
     private readonly List<OsmChangeAction> _actions;
 
     
-    public OsmChange(List<OsmChangeAction> actions)
+    public OsmChange(OsmMasterData data)
     {
-        if (actions == null) throw new ArgumentNullException(nameof(actions));
-        if (actions.Count == 0) throw new ArgumentException("Actions list cannot be empty.", nameof(actions));
+        if (data == null) throw new ArgumentNullException(nameof(data));
         
-        _actions = actions;
+        _actions = [];
+        
+        // todo:
+
+        foreach (OsmElement element in data.Elements)
+        {
+            switch (element.State)
+            {
+                case OsmElementState.Live:
+                    // No changes
+                    break;
+                
+                case OsmElementState.Modified:
+                    // We have to pass the whole element for modify actions with all the values, so we don't care about the actual change
+                    _actions.Add(new OsmChangeModifyAction(element));
+                    break;
+                
+                case OsmElementState.Deleted:
+                    _actions.Add(new OsmChangeDeleteAction(element));
+                    break;
+                
+                case OsmElementState.Created:
+                    _actions.Add(new OsmChangeCreateAction(element));
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 
     
@@ -46,35 +70,18 @@ public class OsmChange
             writer.WriteStartElement("osmChange");
             writer.WriteAttributeString("version", "0.6");
             writer.WriteAttributeString("generator", "Osmalyzer");
-            
-            // Convert user actions to XML-specific actions
-            List<XmlAction> xmlActions = [ ];
-            
-            foreach (OsmChangeAction action in _actions)
-            {
-                switch (action)
-                {
-                    case OsmSetValueAction setValue:
-                        // OsmSetValueAction generates a modify action
-                        xmlActions.Add(new XmlModifyAction(setValue.Element, setValue.Changeset));
-                        break;
-                    
-                    default:
-                        throw new NotImplementedException($"Action type {action.GetType().Name} is not supported");
-                }
-            }
-            
+
             // Group by action type
-            List<XmlCreateAction> createActions = xmlActions.OfType<XmlCreateAction>().ToList();
-            List<XmlModifyAction> modifyActions = xmlActions.OfType<XmlModifyAction>().ToList();
-            List<XmlDeleteAction> deleteActions = xmlActions.OfType<XmlDeleteAction>().ToList();
+            List<OsmChangeCreateAction> createActions = _actions.OfType<OsmChangeCreateAction>().ToList();
+            List<OsmChangeModifyAction> modifyActions = _actions.OfType<OsmChangeModifyAction>().ToList();
+            List<OsmChangeDeleteAction> deleteActions = _actions.OfType<OsmChangeDeleteAction>().ToList();
             
             // Write create block
             if (createActions.Count > 0)
             {
                 writer.WriteStartElement("create");
-                foreach (XmlCreateAction action in createActions)
-                    WriteElement(writer, action.Element, action.Changeset);
+                foreach (OsmChangeCreateAction action in createActions)
+                    WriteElement(writer, action.Element);
                 writer.WriteEndElement();
             }
             
@@ -82,8 +89,8 @@ public class OsmChange
             if (modifyActions.Count > 0)
             {
                 writer.WriteStartElement("modify");
-                foreach (XmlModifyAction action in modifyActions)
-                    WriteElement(writer, action.Element, action.Changeset);
+                foreach (OsmChangeModifyAction action in modifyActions)
+                    WriteElement(writer, action.Element);
                 writer.WriteEndElement();
             }
             
@@ -91,23 +98,23 @@ public class OsmChange
             if (deleteActions.Count > 0)
             {
                 // Group by if-unused flag
-                List<XmlDeleteAction> normalDeletes = deleteActions.Where(d => !d.IfUnused).ToList();
-                List<XmlDeleteAction> ifUnusedDeletes = deleteActions.Where(d => d.IfUnused).ToList();
+                List<OsmChangeDeleteAction> normalDeletes = deleteActions.Where(d => !d.IfUnused).ToList();
+                List<OsmChangeDeleteAction> ifUnusedDeletes = deleteActions.Where(d => d.IfUnused).ToList();
                 
                 if (normalDeletes.Count > 0)
                 {
                     writer.WriteStartElement("delete");
-                    foreach (XmlDeleteAction action in normalDeletes)
-                        WriteElement(writer, action.Element, action.Changeset);
+                    foreach (OsmChangeDeleteAction action in normalDeletes)
+                        WriteElement(writer, action.Element); // todo: all of the values?
                     writer.WriteEndElement();
                 }
                 
                 if (ifUnusedDeletes.Count > 0)
                 {
                     writer.WriteStartElement("delete");
-                    writer.WriteAttributeString("if-unused", "true");
-                    foreach (XmlDeleteAction action in ifUnusedDeletes)
-                        WriteElement(writer, action.Element, action.Changeset);
+                    //writer.WriteAttributeString("if-unused", "true"); -- todo: figure out if this is wanted
+                    foreach (OsmChangeDeleteAction action in ifUnusedDeletes)
+                        WriteElement(writer, action.Element);
                     writer.WriteEndElement();
                 }
             }
@@ -120,28 +127,30 @@ public class OsmChange
     }
 
     
-    private void WriteElement(XmlWriter writer, OsmElement element, long changeset)
+    private void WriteElement(XmlWriter writer, OsmElement element)
     {
         switch (element)
         {
             case OsmNode node:
-                WriteNode(writer, node, changeset);
+                WriteNode(writer, node);
                 break;
+            
             case OsmWay way:
-                WriteWay(writer, way, changeset);
+                WriteWay(writer, way);
                 break;
+            
             case OsmRelation relation:
-                WriteRelation(writer, relation, changeset);
+                WriteRelation(writer, relation);
                 break;
         }
     }
 
     
-    private void WriteNode(XmlWriter writer, OsmNode node, long changeset)
+    private void WriteNode(XmlWriter writer, OsmNode node)
     {
         writer.WriteStartElement("node");
         writer.WriteAttributeString("id", node.Id.ToString());
-        writer.WriteAttributeString("changeset", changeset.ToString());
+        writer.WriteAttributeString("changeset", node.Changeset.ToString());
         writer.WriteAttributeString("version", node.Version.ToString());
         writer.WriteAttributeString("lat", node.coord.lat.ToString("F7"));
         writer.WriteAttributeString("lon", node.coord.lon.ToString("F7"));
@@ -152,11 +161,11 @@ public class OsmChange
     }
 
     
-    private void WriteWay(XmlWriter writer, OsmWay way, long changeset)
+    private void WriteWay(XmlWriter writer, OsmWay way)
     {
         writer.WriteStartElement("way");
         writer.WriteAttributeString("id", way.Id.ToString());
-        writer.WriteAttributeString("changeset", changeset.ToString());
+        writer.WriteAttributeString("changeset", way.Changeset.ToString());
         writer.WriteAttributeString("version", way.Version.ToString());
         
         // Write node references
@@ -173,11 +182,11 @@ public class OsmChange
     }
 
     
-    private void WriteRelation(XmlWriter writer, OsmRelation relation, long changeset)
+    private void WriteRelation(XmlWriter writer, OsmRelation relation)
     {
         writer.WriteStartElement("relation");
         writer.WriteAttributeString("id", relation.Id.ToString());
-        writer.WriteAttributeString("changeset", changeset.ToString());
+        writer.WriteAttributeString("changeset", relation.Changeset.ToString());
         writer.WriteAttributeString("version", relation.Version.ToString());
         
         // Write members

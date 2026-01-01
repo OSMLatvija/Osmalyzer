@@ -11,7 +11,7 @@
       <PackageReference Include="itext" Version="9.4.0" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
       <PackageReference Include="NetTopologySuite" Version="2.6.0" />
-      <PackageReference Include="OsmSharp" Version="6.2.0" />
+      <PackageReference Include="OsmSharp" Version="7.0.0-pre022" />
     </ItemGroup>
 
 </Project>

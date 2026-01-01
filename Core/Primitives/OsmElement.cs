@@ -23,7 +23,7 @@ public abstract class OsmElement : IChunkerItem
     public long Id { get; }
 
     [PublicAPI]
-    public int Version { get; }
+    public long Version { get; }
     
     [PublicAPI]
     public long Changeset { get; }

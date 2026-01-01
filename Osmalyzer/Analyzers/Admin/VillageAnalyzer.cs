@@ -112,9 +112,9 @@ public class VillageAnalyzer : Analyzer
                 report.AddEntry(
                     ExtraReportGroup.SuggestedVillageAdditions,
                     new IssueReportEntry(
-                        '`' + village.Name + "` village at `" +
+                        '`' + village.Name + "` village at " +
                         village.ReportString() +
-                        "` can be added at " +
+                        " can be added at " +
                         village.Coord.OsmUrl +
                         " as" + Environment.NewLine + tagsBlock,
                         village.Coord,

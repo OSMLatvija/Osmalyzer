@@ -108,9 +108,9 @@ public class HamletAnalyzer : Analyzer
                 report.AddEntry(
                     ExtraReportGroup.SuggestedHamletAdditions,
                     new IssueReportEntry(
-                        '`' + hamlet.Name + "` hamlet at `" +
+                        '`' + hamlet.Name + "` hamlet at " +
                         hamlet.ReportString() +
-                        "` can be added at " +
+                        " can be added at " +
                         hamlet.Coord.OsmUrl +
                         " as" + Environment.NewLine + tagsBlock,
                         hamlet.Coord,

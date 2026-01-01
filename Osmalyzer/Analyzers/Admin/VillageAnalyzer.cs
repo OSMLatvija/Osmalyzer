@@ -193,7 +193,7 @@ public class VillageAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<Village>("ref", v => v.ID)
+            new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.ID, [ "ref" ])
         );
 
 #if DEBUG
@@ -231,7 +231,7 @@ public class VillageAnalyzer : Analyzer
         [
             "name=" + village.Name,
             "place=village",
-            "ref=" + village.ID
+            "ref:LV:addr=" + village.ID
         ];
 
         return "```" + string.Join(Environment.NewLine, lines) + "```";

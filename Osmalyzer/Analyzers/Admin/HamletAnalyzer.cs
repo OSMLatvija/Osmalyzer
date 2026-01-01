@@ -130,7 +130,7 @@ public class HamletAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = hamletValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<Hamlet>("ref", h => h.ID)
+            new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.ID, [ "ref" ])
         );
 
 #if DEBUG
@@ -168,7 +168,7 @@ public class HamletAnalyzer : Analyzer
         [
             "name=" + hamlet.Name,
             "place=hamlet",
-            "ref=" + hamlet.ID
+            "ref:LV:addr=" + hamlet.ID
         ];
 
         return "```" + string.Join(Environment.NewLine, lines) + "```";

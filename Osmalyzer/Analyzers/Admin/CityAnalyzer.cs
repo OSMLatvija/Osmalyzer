@@ -171,7 +171,7 @@ public class CityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<City>("ref", c => c.ID)
+            new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ])
         );
 
 #if DEBUG

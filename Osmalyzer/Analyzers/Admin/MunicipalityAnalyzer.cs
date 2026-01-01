@@ -159,7 +159,7 @@ public class MunicipalityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = municipalityValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => m.ID)
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.ID, [ "ref" ])
         );
 
 #if DEBUG

@@ -17,31 +17,18 @@ public static class SuggestedActionApplicator
                 switch (change)
                 {
                     case OsmSetValueSuggestedAction setValue:
+                    {
                         OsmElement copiedElement = data.GetElementById(setValue.Element.ElementType, setValue.Element.Id);
                         changes[i] = new OsmSetValueSuggestedAction(copiedElement, setValue.Key, setValue.Value);
-                        
-                        switch (setValue.Element.ElementType)
-                        {
-                            case OsmElement.OsmElementType.Node:
-                                OsmNode copiedNode = data.GetNodeById(setValue.Element.Id);
-                                changes[i] = new OsmSetValueSuggestedAction(copiedNode, setValue.Key, setValue.Value);
-                                break;
-
-                            case OsmElement.OsmElementType.Way:
-                                OsmWay copiedWay = data.GetWayById(setValue.Element.Id);
-                                changes[i] = new OsmSetValueSuggestedAction(copiedWay, setValue.Key, setValue.Value);
-                                break;
-
-                            case OsmElement.OsmElementType.Relation:
-                                OsmRelation copiedRelation = data.GetRelationById(setValue.Element.Id);
-                                changes[i] = new OsmSetValueSuggestedAction(copiedRelation, setValue.Key, setValue.Value);
-                                break;
-
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
-
                         break;
+                    }
+
+                    case OsmRemoveKeySuggestedAction removeKey:
+                    {
+                        OsmElement copiedElement = data.GetElementById(removeKey.Element.ElementType, removeKey.Element.Id);
+                        changes[i] = new OsmRemoveKeySuggestedAction(copiedElement, removeKey.Key);
+                        break;
+                    }
 
                     default:
                         throw new ArgumentOutOfRangeException(nameof(change));
@@ -54,10 +41,11 @@ public static class SuggestedActionApplicator
             switch (change)
             {
                 case OsmSetValueSuggestedAction setValue:
-                    setValue.Element.SetValue(
-                        setValue.Key,
-                        setValue.Value
-                    );
+                    setValue.Element.SetValue(setValue.Key, setValue.Value);
+                    break;
+                
+                case OsmRemoveKeySuggestedAction removeKey:
+                    removeKey.Element.RemoveKey(removeKey.Key);
                     break;
                 
                 default:

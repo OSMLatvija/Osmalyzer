@@ -153,7 +153,7 @@ public class ParishAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = parishValidator.Validate(
             report,
             false,
-            new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => p.ID)
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.ID, [ "ref" ])
         );
 
 #if DEBUG

@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using OsmSharp;
 
 namespace Osmalyzer;
@@ -20,6 +20,18 @@ public class OsmRelationMember
         
     [PublicAPI]
     public string Role { get; }
+
+    /// <summary>
+    /// Type of the member element (node, way, or relation)
+    /// </summary>
+    [PublicAPI]
+    public OsmElement.OsmElementType Type => ElementType switch
+    {
+        MemberElementType.Node => OsmElement.OsmElementType.Node,
+        MemberElementType.Way => OsmElement.OsmElementType.Way,
+        MemberElementType.Relation => OsmElement.OsmElementType.Relation,
+        _ => throw new InvalidOperationException()
+    };
 
         
     internal MemberElementType ElementType { get; }

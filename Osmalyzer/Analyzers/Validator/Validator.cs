@@ -145,7 +145,7 @@ public class Validator<T> where T : IDataItem
                     );
                     
                     if (rule.Values.Length == 1)
-                        return new OsmSetValueAction(osmElement, rule.Tag, rule.Values[0]);
+                        return new OsmSetValueAction(osmElement, 0, rule.Tag, rule.Values[0]);
                 }
                 else
                 {
@@ -251,7 +251,7 @@ public class Validator<T> where T : IDataItem
                                 osmElement
                             )
                         );
-                        return new OsmSetValueAction(osmElement, rule.Tag, dataValue);
+                        return new OsmSetValueAction(osmElement, 0, rule.Tag, dataValue);
                     }
                 }
                 else

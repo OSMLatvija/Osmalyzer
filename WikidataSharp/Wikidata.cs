@@ -5,6 +5,9 @@ namespace WikidataSharp;
 
 public static class Wikidata
 {
+    private const int maxRetryWaitSeconds = 180; // 3 minutes
+
+
     [PublicAPI]
     [MustUseReturnValue]
     public static List<WikidataItem> FetchItemsWithProperty(long propertyID)
@@ -14,12 +17,9 @@ public static class Wikidata
             OPTIONAL { ?item rdfs:label ?itemLabel. BIND(LANG(?itemLabel) AS ?itemLabelLang) }
         }";
 
-        HttpClient httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Osmalyzer");
-
         string requestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(query)}&format=json";
         
-        string requestResult = httpClient.GetStringAsync(requestUri).Result;
+        string requestResult = ExecuteRequestWithRetry(requestUri);
 
         dynamic content = JsonConvert.DeserializeObject(requestResult)!;
         
@@ -76,12 +76,9 @@ public static class Wikidata
             OPTIONAL { ?item rdfs:label ?itemLabel. BIND(LANG(?itemLabel) AS ?itemLabelLang) }
         }";
 
-        HttpClient httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Osmalyzer");
-
         string requestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(query)}&format=json";
         
-        string requestResult = httpClient.GetStringAsync(requestUri).Result;
+        string requestResult = ExecuteRequestWithRetry(requestUri);
 
         dynamic content = JsonConvert.DeserializeObject(requestResult)!;
 
@@ -148,5 +145,42 @@ public static class Wikidata
         }
 
         return items;
+    }
+
+    
+    /// <summary>
+    /// Performs an HTTP GET request with 429 (Too Many Requests) retry handling
+    /// </summary>
+    private static string ExecuteRequestWithRetry(string requestUri)
+    {
+        HttpClient httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "Osmalyzer");
+
+        while (true)
+        {
+            HttpResponseMessage response = httpClient.GetAsync(requestUri).Result;
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                int retryAfterSeconds = 60; // default to 60 seconds if header not present
+                
+                if (response.Headers.RetryAfter != null)
+                {
+                    if (response.Headers.RetryAfter.Delta.HasValue)
+                        retryAfterSeconds = (int)response.Headers.RetryAfter.Delta.Value.TotalSeconds;
+                    else if (response.Headers.RetryAfter.Date.HasValue)
+                        retryAfterSeconds = (int)(response.Headers.RetryAfter.Date.Value - DateTimeOffset.UtcNow).TotalSeconds;
+                }
+                
+                if (retryAfterSeconds > maxRetryWaitSeconds)
+                    throw new InvalidOperationException($"Rate limit exceeded. Retry-After header indicates waiting {retryAfterSeconds} seconds, which exceeds maximum wait time of {maxRetryWaitSeconds} seconds.");
+                
+                Thread.Sleep(TimeSpan.FromSeconds(retryAfterSeconds));
+                continue;
+            }
+            
+            response.EnsureSuccessStatusCode();
+            return response.Content.ReadAsStringAsync().Result;
+        }
     }
 }

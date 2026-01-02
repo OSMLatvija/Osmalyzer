@@ -38,7 +38,7 @@ public class CityAnalyzer : Analyzer
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
         List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
-                                           .Where(e => !e.IsExpired && (e.Designation == AtkvDesignation.StateCity || e.Designation == AtkvDesignation.RegionalCity)).ToList();
+                                           .Where(e => !e.IsExpired && e.Designation is AtkvDesignation.StateCity or AtkvDesignation.RegionalCity).ToList();
 
         // Prepare data comparer/correlator
 
@@ -195,7 +195,8 @@ public class CityAnalyzer : Analyzer
             false,
             new ValidateElementHasValue("place", "city"),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null)
+            new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<City>("ref:nuts", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null)
         );
 
 #if DEBUG

@@ -183,7 +183,8 @@ public class MunicipalityAnalyzer : Analyzer
             false,
             new ValidateElementHasValue("place", "municipality"),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.ID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null)
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:nuts", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null)
         );
 
 #if DEBUG

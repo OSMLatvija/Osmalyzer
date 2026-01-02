@@ -76,11 +76,18 @@ public static class Wikidata
     [MustUseReturnValue]
     private static string FetchItemsWithFilterRaw(string filterClause)
     {
-        // Fetch all properties and values
-        string propertiesQuery = @"SELECT DISTINCT ?item ?property ?value WHERE { 
+        // Fetch all properties, values, ranks, and qualifiers
+        string propertiesQuery = @"SELECT DISTINCT ?item ?property ?value ?rank ?qualifierProperty ?qualifierValue WHERE { 
             " + filterClause + @"
-            ?item ?p ?value.
-            ?property wikibase:directClaim ?p.
+            ?item ?p ?statement.
+            ?statement ?ps ?value.
+            ?property wikibase:claim ?p.
+            ?property wikibase:statementProperty ?ps.
+            ?statement wikibase:rank ?rank.
+            OPTIONAL {
+                ?statement ?pq ?qualifierValue.
+                ?qualifierProperty wikibase:qualifier ?pq.
+            }
         }";
 
         string propertiesRequestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(propertiesQuery)}&format=json";
@@ -120,18 +127,21 @@ public static class Wikidata
     {
         dynamic content = JsonConvert.DeserializeObject(rawJson)!;
 
-        Dictionary<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, string>> statements)> itemsData = new Dictionary<long, (Dictionary<string, string>, Dictionary<long, Dictionary<string, string>>)>();
+        // Store statements with their full context (value, datatype, rank, qualifiers)
+        // Key structure: itemID -> propertyID -> value -> (dataType, rank, qualifiers)
+        Dictionary<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)>> statements)> itemsData = 
+            new Dictionary<long, (Dictionary<string, string>, Dictionary<long, Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>>)>();
 
-        // Process properties and values
+        // Process properties and values with rank and qualifiers
         foreach (dynamic binding in content.properties)
         {
             string itemUri = binding["item"]["value"];
             long wikidataID = long.Parse(itemUri[(itemUri.LastIndexOf('Q') + 1)..]);
 
             if (!itemsData.ContainsKey(wikidataID))
-                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, string>>());
+                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>>());
 
-            if (binding.property != null && binding.value != null)
+            if (binding.property != null && binding.value != null && binding.rank != null)
             {
                 string propertyUri = binding.property.value;
                 string valueRaw = binding.value.value;
@@ -143,11 +153,30 @@ public static class Wikidata
 
                 long propertyID = long.Parse(propertyUri[(propertyUri.LastIndexOf('P') + 1)..]);
 
+                // Parse rank
+                string rankUri = binding.rank.value;
+                WikidataRank rank = WikidataRank.Normal; // default
+                if (rankUri.Contains("PreferredRank"))
+                    rank = WikidataRank.Preferred;
+                else if (rankUri.Contains("DeprecatedRank"))
+                    rank = WikidataRank.Deprecated;
+
                 if (!itemsData[wikidataID].statements.ContainsKey(propertyID))
-                    itemsData[wikidataID].statements[propertyID] = new Dictionary<string, string>();
+                    itemsData[wikidataID].statements[propertyID] = new Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>();
                 
                 if (!itemsData[wikidataID].statements[propertyID].ContainsKey(valueRaw))
-                    itemsData[wikidataID].statements[propertyID][valueRaw] = dataType;
+                    itemsData[wikidataID].statements[propertyID][valueRaw] = (dataType, rank, new Dictionary<long, string>());
+
+                // Process qualifiers
+                if (binding.qualifierProperty != null && binding.qualifierValue != null)
+                {
+                    string qualifierPropertyUri = binding.qualifierProperty.value;
+                    long qualifierPropertyID = long.Parse(qualifierPropertyUri[(qualifierPropertyUri.LastIndexOf('P') + 1)..]);
+                    string qualifierValueRaw = binding.qualifierValue.value;
+
+                    if (!itemsData[wikidataID].statements[propertyID][valueRaw].qualifiers.ContainsKey(qualifierPropertyID))
+                        itemsData[wikidataID].statements[propertyID][valueRaw].qualifiers[qualifierPropertyID] = qualifierValueRaw;
+                }
             }
         }
 
@@ -158,7 +187,7 @@ public static class Wikidata
             long wikidataID = long.Parse(itemUri[(itemUri.LastIndexOf('Q') + 1)..]);
 
             if (!itemsData.ContainsKey(wikidataID))
-                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, string>>());
+                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>>());
 
             if (binding.itemLabel != null && binding.itemLabelLang != null)
             {
@@ -172,14 +201,14 @@ public static class Wikidata
 
         List<WikidataItem> items = [ ];
 
-        foreach (KeyValuePair<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, string>> statements)> kvp in itemsData)
+        foreach (KeyValuePair<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)>> statements)> kvp in itemsData)
         {
             List<WikidataStatement> statementsList = [ ];
             
-            foreach (KeyValuePair<long, Dictionary<string, string>> stmtKvp in kvp.Value.statements)
+            foreach (KeyValuePair<long, Dictionary<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)>> stmtKvp in kvp.Value.statements)
             {
-                foreach (KeyValuePair<string, string> valueDataType in stmtKvp.Value)
-                    statementsList.Add(new WikidataStatement(stmtKvp.Key, valueDataType.Key, valueDataType.Value));
+                foreach (KeyValuePair<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)> valueInfo in stmtKvp.Value)
+                    statementsList.Add(new WikidataStatement(stmtKvp.Key, valueInfo.Key, valueInfo.Value.dataType, valueInfo.Value.rank, valueInfo.Value.qualifiers));
             }
             
             items.Add(

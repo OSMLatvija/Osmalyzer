@@ -22,7 +22,7 @@ public class WikidataItem
     
 
     [PublicAPI]
-    public string? this[long propertyID] => _statements.FirstOrDefault(s => s.PropertyID == propertyID)?.Value ?? null;
+    public string? this[long propertyID] => GetBestStatementValue(propertyID);
 
 
     private readonly Dictionary<string, string> _labels;
@@ -49,12 +49,54 @@ public class WikidataItem
 
 
     [PublicAPI]
-    public string? GetStatementValue(WikiDataProperty property) => GetStatementValue((long)property);
+    public string? GetStatementValue(WikiDataProperty property) => GetBestStatementValue((long)property);
 
     [PublicAPI]
-    public string? GetStatementValue(long propertyID)
+    public string? GetStatementValue(long propertyID) => GetBestStatementValue(propertyID);
+
+    /// <summary>
+    /// Gets the best statement value for a property, prioritizing by rank and filtering out statements with end time
+    /// </summary>
+    private string? GetBestStatementValue(long propertyID)
     {
-        WikidataStatement? statement = _statements.FirstOrDefault(s => s.PropertyID == propertyID);
-        return statement?.Value ?? null;
+        List<WikidataStatement> candidates = _statements.Where(s => s.PropertyID == propertyID).ToList();
+        
+        if (candidates.Count == 0)
+            return null;
+
+        // First, try to find a preferred rank statement without end time
+        WikidataStatement? preferred = candidates
+            .Where(s => s.Rank == WikidataRank.Preferred && !s.HasEndTime())
+            .FirstOrDefault();
+        
+        if (preferred != null)
+            return preferred.Value;
+
+        // If no preferred without end time, try normal rank without end time
+        WikidataStatement? normal = candidates
+            .Where(s => s.Rank == WikidataRank.Normal && !s.HasEndTime())
+            .FirstOrDefault();
+        
+        if (normal != null)
+            return normal.Value;
+
+        // Fall back to any preferred rank (even with end time)
+        WikidataStatement? anyPreferred = candidates
+            .Where(s => s.Rank == WikidataRank.Preferred)
+            .FirstOrDefault();
+        
+        if (anyPreferred != null)
+            return anyPreferred.Value;
+
+        // Fall back to any normal rank
+        WikidataStatement? anyNormal = candidates
+            .Where(s => s.Rank == WikidataRank.Normal)
+            .FirstOrDefault();
+        
+        if (anyNormal != null)
+            return anyNormal.Value;
+
+        // Last resort: return any statement
+        return candidates.FirstOrDefault()?.Value;
     }
 }

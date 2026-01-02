@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
+
+namespace Osmalyzer;
 
 public class City : IDataItem
 {
@@ -15,6 +17,8 @@ public class City : IDataItem
     public string? MunicipalityName { get; }
     
     public OsmMultiPolygon? Boundary { get; }
+
+    public WikidataItem? WikidataItem { get; set; }
 
 
     public City(bool valid, string id, OsmCoord coord, string name, string rawAddress, string? municipalityName, OsmMultiPolygon? boundary)

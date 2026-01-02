@@ -33,6 +33,8 @@ public class HamletAnalyzer : Analyzer
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
+        VillagesWikidataData wikidataData = datas.OfType<VillagesWikidataData>().First();
+
         // Parse hamlets
         
         // Prepare data comparer/correlator
@@ -131,7 +133,8 @@ public class HamletAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "hamlet"),
-            new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.ID, [ "ref" ])
+            new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID)
         );
 
 #if DEBUG

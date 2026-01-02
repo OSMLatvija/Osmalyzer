@@ -14,7 +14,8 @@ public class CityAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => [ 
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
-        typeof(AtvkAnalysisData)
+        typeof(AtvkAnalysisData),
+        typeof(CitiesWikidataData)
     ];
         
 
@@ -196,7 +197,8 @@ public class CityAnalyzer : Analyzer
             new ValidateElementHasValue("place", "city"),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<City>("ref:nuts", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null)
+            //new ValidateElementValueMatchesDataItemValue<City>("ref:nuts", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<City>("wikidata", c => c.WikidataItem?.QID)
         );
 
 #if DEBUG

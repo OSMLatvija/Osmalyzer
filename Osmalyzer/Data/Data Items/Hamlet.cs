@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
+
+namespace Osmalyzer;
 
 public class Hamlet : IDataItem
 {
@@ -15,6 +17,8 @@ public class Hamlet : IDataItem
     public string ParishName { get; }
     
     public string MunicipalityName { get; }
+
+    public WikidataItem? WikidataItem { get; set; }
 
 
     public Hamlet(bool valid, string id, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName)

@@ -142,15 +142,15 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
         }
 
 #if DEBUG
-        // Print out state (Latgale, Zemgale, Kurzeme, Vidzeme) children
-        foreach (AtkvEntry region in Entries.Where(e => !e.IsExpired && e.Level == AtkvLevel.Region))
-        {
-            Console.WriteLine($"Region {region.Name} has children:");
-            if (region.Children == null) throw new Exception("Region has no children list despite being non-expired.");
-            
-            foreach (AtkvEntry child in region.Children)
-                Console.WriteLine($"  - {child.ReportString()}");
-        }
+        // // Print out state (Latgale, Zemgale, Kurzeme, Vidzeme) children
+        // foreach (AtkvEntry region in Entries.Where(e => !e.IsExpired && e.Level == AtkvLevel.Region))
+        // {
+        //     Console.WriteLine($"Region {region.Name} has children:");
+        //     if (region.Children == null) throw new Exception("Region has no children list despite being non-expired.");
+        //     
+        //     foreach (AtkvEntry child in region.Children)
+        //         Console.WriteLine($"  - {child.ReportString()}");
+        // }
 #endif
     }
 

@@ -34,6 +34,8 @@ public class VillageAnalyzer : Analyzer
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
+        VillagesWikidataData wikidataData = datas.OfType<VillagesWikidataData>().First();
+
         // Parse villages
         
         // Prepare data comparer/correlator
@@ -194,7 +196,8 @@ public class VillageAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "village"),
-            new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.ID, [ "ref" ])
+            new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID)
         );
 
 #if DEBUG

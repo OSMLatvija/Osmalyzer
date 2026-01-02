@@ -14,7 +14,8 @@ public class ParishAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => [ 
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
-        typeof(AtvkAnalysisData)
+        typeof(AtvkAnalysisData),
+        typeof(ParishesWikidataData)
     ];
         
 
@@ -42,6 +43,8 @@ public class ParishAnalyzer : Analyzer
 
         List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
                                            .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Parish).ToList();
+
+        ParishesWikidataData wikidataData = datas.OfType<ParishesWikidataData>().First();
 
         // Prepare data comparer/correlator
 
@@ -165,6 +168,14 @@ public class ParishAnalyzer : Analyzer
         Dictionary<Parish, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
         if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
         
+        // Assign WikiData
+        
+        wikidataData.Assign(
+            addressData.Parishes,
+            i => i.Name,
+            (i, wd) => i.WikidataItem = wd
+        );
+        
         // Validate parish syntax
         
         Validator<Parish> parishValidator = new Validator<Parish>(
@@ -178,7 +189,7 @@ public class ParishAnalyzer : Analyzer
             new ValidateElementHasValue("place", "civil_parish"), // not "parish"
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtkvEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<Parish>("ref:nuts", p => dataItemMatches.TryGetValue(p, out AtkvEntry? match) ? match.Code : null)
+            new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID)
         );
 
 #if DEBUG

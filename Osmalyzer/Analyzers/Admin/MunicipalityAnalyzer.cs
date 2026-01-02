@@ -14,7 +14,8 @@ public class MunicipalityAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => [ 
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
-        typeof(AtvkAnalysisData)
+        typeof(AtvkAnalysisData),
+        typeof(MunicipalitiesWikidataData)
     ];
         
 
@@ -39,6 +40,8 @@ public class MunicipalityAnalyzer : Analyzer
 
         List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
                                            .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Municipality).ToList();
+        
+        MunicipalitiesWikidataData wikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
 
         // Prepare data comparer/correlator
 
@@ -171,6 +174,14 @@ public class MunicipalityAnalyzer : Analyzer
         Dictionary<Municipality, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
         if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
         
+        // Assign WikiData
+        
+        wikidataData.Assign(
+            addressData.Municipalities,
+            i => i.Name,
+            (i, wd) => i.WikidataItem = wd
+        );
+        
         // Validate municipality syntax
         
         Validator<Municipality> municipalityValidator = new Validator<Municipality>(
@@ -184,7 +195,8 @@ public class MunicipalityAnalyzer : Analyzer
             new ValidateElementHasValue("place", "municipality"),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:nuts", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null)
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID)
         );
 
 #if DEBUG

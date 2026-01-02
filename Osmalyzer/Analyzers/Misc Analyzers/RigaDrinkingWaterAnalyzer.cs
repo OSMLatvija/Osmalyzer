@@ -77,7 +77,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             correlatorReport
         );
 
-        validator.Validate(
+        List<SuggestedAction> suggestedChanges = validator.Validate(
             report,
             true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasValue("operator", "Rīgas ūdens"),
@@ -86,5 +86,9 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             new ValidateElementHasValue("seasonal", "yes", "no"),
             new ValidateElementFixme()
         );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+#endif
     }
 }

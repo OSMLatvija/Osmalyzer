@@ -25,7 +25,9 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmDataExtract osmTicketVendingMachines = osmData.MasterData.Filter(
+        OsmMasterData osmMasterData = osmData.MasterData;
+        
+        OsmDataExtract osmTicketVendingMachines = osmMasterData.Filter(
             new HasValue("amenity", "vending_machine"),
             new HasValue("vending", "public_transport_tickets")
         );
@@ -71,12 +73,16 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
             "Other ticket vending issues"
         );
 
-        validator.Validate(
+        List<SuggestedAction> suggestedChanges = validator.Validate(
             report,
             true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasValue("operator", "Rīgas satiksme"),
             new ValidateElementHasValue("operator:wikidata", "Q2280274"),
             new ValidateElementFixme()
         );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+#endif
     }
 }

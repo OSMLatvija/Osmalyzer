@@ -97,7 +97,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
             "Tagging issues"
         );
 
-        validator.Validate(
+        List<SuggestedAction> suggestedChanges = validator.Validate(
             report,
             false, // there are non-LP post offices, so we don't check against them
             new ValidateElementValueMatchesDataItemValue<LatviaPostItem>("name", di => di.Name),
@@ -105,6 +105,10 @@ public class LatviaPostOfficeAnalyzer : Analyzer
             new ValidateElementHasValue("operator:wikidata", "Q1807088"),
             new ValidateElementFixme()
         );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+#endif
 
         // Stats
 

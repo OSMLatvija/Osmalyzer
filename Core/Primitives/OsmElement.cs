@@ -286,7 +286,7 @@ public abstract class OsmElement : IChunkerItem
         _tags[key] = value;
     }
     
-    public void DeleteKey(string key)
+    public void RemoveKey(string key)
     {
         if (_tags == null || !_tags.ContainsKey(key))
             return;

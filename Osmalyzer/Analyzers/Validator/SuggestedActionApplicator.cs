@@ -72,6 +72,6 @@ public static class SuggestedActionApplicator
         string fileName = Path.Combine("Suggested changes", analyzer.Name + ".osc");
         File.WriteAllText(fileName, xml);
 
-        Console.WriteLine(change.Actions.Count + " suggested changes for " + analyzer.Name + " written to " + fileName);
+        //Console.WriteLine(change.Actions.Count + " suggested changes for " + analyzer.Name + " written to " + fileName);
     }
 }

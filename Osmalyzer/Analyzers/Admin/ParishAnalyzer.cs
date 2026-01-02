@@ -70,7 +70,7 @@ public class ParishAnalyzer : Analyzer
         wikidataData.Assign(
             addressData.Parishes,
             (i, wd) =>
-                i.Name == AdminWikidataData.GetBestName(wd) &&
+                i.Name == AdminWikidataData.GetBestName(wd, "lv") &&
                 (addressData.IsUniqueParishName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
                  i.MunicipalityName == GetWikidataAdminItemOwnerName(wd))
         );
@@ -89,9 +89,9 @@ public class ParishAnalyzer : Analyzer
             if (ownerItem == null)
                 return null;
 
-            string? ownerName = AdminWikidataData.GetBestName(ownerItem);
+            string? ownerName = AdminWikidataData.GetBestName(ownerItem, "lv");
             
-            Console.WriteLine($"Parish Wikidata item {wikidataItem.QID} owner municipality: {ownerName} ({ownerItem.QID})");
+            //Console.WriteLine($"Parish Wikidata item {wikidataItem.QID} owner municipality: {ownerName} ({ownerItem.QID})");
             
             return ownerName;
         }
@@ -243,6 +243,16 @@ public class ParishAnalyzer : Analyzer
                 )
             );
         }
+        
+#if DEBUG
+        // // Debug-list unmatched wikidata items to console
+        // List<WikidataItem> unmatchedWikidataItems = wikidataData.Items
+        //     .Where(wd => !addressData.Parishes.Any(p => p.WikidataItem != null && p.WikidataItem.QID == wd.QID))
+        //     .ToList();
+        // Console.WriteLine("Unmatched parish Wikidata items:");
+        // foreach (WikidataItem wd in unmatchedWikidataItems)
+        //     Console.WriteLine($"- {AdminWikidataData.GetBestName(wd, "lv")} ({wd.QID})");
+#endif
     }
 
 

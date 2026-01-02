@@ -17,18 +17,22 @@ public class WikidataStatement
     public WikidataRank Rank { get; }
 
     [PublicAPI]
+    public string? Language { get; }
+
+    [PublicAPI]
     public IReadOnlyDictionary<long, string> Qualifiers => _qualifiers;
 
 
     private readonly Dictionary<long, string> _qualifiers;
 
     
-    public WikidataStatement(long propertyID, string value, string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)
+    public WikidataStatement(long propertyID, string value, string dataType, WikidataRank rank, string? language, Dictionary<long, string> qualifiers)
     {
         PropertyID = propertyID;
         Value = value;
         DataType = dataType;
         Rank = rank;
+        Language = language;
         _qualifiers = qualifiers;
     }
 
@@ -46,7 +50,7 @@ public class WikidataStatement
 
     public override string ToString()
     {
-        return $"P{PropertyID} [{DataType}] = {Value} ({Rank})";
+        return $"P{PropertyID} [{DataType}] = {Value} ({Rank}" + (Language != null ? ", " + Language : "") + $")";
     }
 }
 

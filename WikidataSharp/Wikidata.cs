@@ -127,10 +127,10 @@ public static class Wikidata
     {
         dynamic content = JsonConvert.DeserializeObject(rawJson)!;
 
-        // Store statements with their full context (value, datatype, rank, qualifiers)
-        // Key structure: itemID -> propertyID -> value -> (dataType, rank, qualifiers)
-        Dictionary<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)>> statements)> itemsData = 
-            new Dictionary<long, (Dictionary<string, string>, Dictionary<long, Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>>)>();
+        // Store statements with their full context (value, datatype, rank, qualifiers, language)
+        // Key structure: itemID -> propertyID -> value -> (dataType, rank, language, qualifiers)
+        Dictionary<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, (string dataType, WikidataRank rank, string? language, Dictionary<long, string> qualifiers)>> statements)> itemsData = 
+            new Dictionary<long, (Dictionary<string, string>, Dictionary<long, Dictionary<string, (string, WikidataRank, string?, Dictionary<long, string>)>>)>();
 
         // Process properties and values with rank and qualifiers
         foreach (dynamic binding in content.properties)
@@ -139,7 +139,7 @@ public static class Wikidata
             long wikidataID = long.Parse(itemUri[(itemUri.LastIndexOf('Q') + 1)..]);
 
             if (!itemsData.ContainsKey(wikidataID))
-                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>>());
+                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, (string, WikidataRank, string?, Dictionary<long, string>)>>());
 
             if (binding.property != null && binding.value != null && binding.rank != null)
             {
@@ -161,11 +161,16 @@ public static class Wikidata
                 else if (rankUri.Contains("DeprecatedRank"))
                     rank = WikidataRank.Deprecated;
 
+                // Extract language if present (xml:lang attribute)
+                string? language = null;
+                if (binding.value["xml:lang"] != null)
+                    language = (string)binding.value["xml:lang"];
+
                 if (!itemsData[wikidataID].statements.ContainsKey(propertyID))
-                    itemsData[wikidataID].statements[propertyID] = new Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>();
+                    itemsData[wikidataID].statements[propertyID] = new Dictionary<string, (string, WikidataRank, string?, Dictionary<long, string>)>();
                 
                 if (!itemsData[wikidataID].statements[propertyID].ContainsKey(valueRaw))
-                    itemsData[wikidataID].statements[propertyID][valueRaw] = (dataType, rank, new Dictionary<long, string>());
+                    itemsData[wikidataID].statements[propertyID][valueRaw] = (dataType, rank, language, new Dictionary<long, string>());
 
                 // Process qualifiers
                 if (binding.qualifierProperty != null && binding.qualifierValue != null)
@@ -187,7 +192,7 @@ public static class Wikidata
             long wikidataID = long.Parse(itemUri[(itemUri.LastIndexOf('Q') + 1)..]);
 
             if (!itemsData.ContainsKey(wikidataID))
-                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, (string, WikidataRank, Dictionary<long, string>)>>());
+                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, (string, WikidataRank, string?, Dictionary<long, string>)>>());
 
             if (binding.itemLabel != null && binding.itemLabelLang != null)
             {
@@ -201,14 +206,14 @@ public static class Wikidata
 
         List<WikidataItem> items = [ ];
 
-        foreach (KeyValuePair<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)>> statements)> kvp in itemsData)
+        foreach (KeyValuePair<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, (string dataType, WikidataRank rank, string? language, Dictionary<long, string> qualifiers)>> statements)> kvp in itemsData)
         {
             List<WikidataStatement> statementsList = [ ];
             
-            foreach (KeyValuePair<long, Dictionary<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)>> stmtKvp in kvp.Value.statements)
+            foreach (KeyValuePair<long, Dictionary<string, (string dataType, WikidataRank rank, string? language, Dictionary<long, string> qualifiers)>> stmtKvp in kvp.Value.statements)
             {
-                foreach (KeyValuePair<string, (string dataType, WikidataRank rank, Dictionary<long, string> qualifiers)> valueInfo in stmtKvp.Value)
-                    statementsList.Add(new WikidataStatement(stmtKvp.Key, valueInfo.Key, valueInfo.Value.dataType, valueInfo.Value.rank, valueInfo.Value.qualifiers));
+                foreach (KeyValuePair<string, (string dataType, WikidataRank rank, string? language, Dictionary<long, string> qualifiers)> valueInfo in stmtKvp.Value)
+                    statementsList.Add(new WikidataStatement(stmtKvp.Key, valueInfo.Key, valueInfo.Value.dataType, valueInfo.Value.rank, valueInfo.Value.language, valueInfo.Value.qualifiers));
             }
             
             items.Add(

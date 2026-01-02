@@ -16,25 +16,33 @@ public class Equivalator<T1, T2> where T1 : IDataItem
     }
 
 
-    public void MatchItemsByValues<TD>(Func<T1, TD> item1ValueGetter, Func<T2, TD> item2ValueGetter) where TD : notnull
+    public void MatchItems(Func<T1, T2, bool> matcher)
     {
         if (_matches != null) throw new InvalidOperationException("Items have already been matched.");
         
         _matches = [ ];
-        
-        Dictionary<TD, T1> item1ValueMap = new Dictionary<TD, T1>();
-        foreach (T1 item1 in _items1)
-            if (!item1ValueMap.TryAdd(item1ValueGetter(item1), item1))
-                throw new Exception($"Duplicate value '{item1ValueGetter(item1)}' found in first item collection");
-        
-        Dictionary<TD, T2> item2ValueMap = new Dictionary<TD, T2>();
-        foreach (T2 item2 in _items2)
-            if (!item2ValueMap.TryAdd(item2ValueGetter(item2), item2))
-                throw new Exception($"Duplicate value '{item2ValueGetter(item2)}' found in second item collection");
-        
-        foreach (T1 item1 in _items1)
-            if (item2ValueMap.TryGetValue(item1ValueGetter(item1), out T2? item2))
-                _matches.Add((item1, item2));
+
+        List<T1> items1 = _items1.ToList();
+        List<T2> items2 = _items2.ToList();
+
+        for (int i1 = 0; i1 < items1.Count; i1++)
+        {
+            T1 item1 = items1[i1];
+
+            for (int i2 = 0; i2 < items2.Count; i2++)
+            {
+                T2 item2 = items2[i2];
+                
+                if (matcher(item1, item2))
+                {
+                    _matches.Add((item1, item2));
+                    items1.RemoveAt(i1);
+                    i1--;
+                    items2.RemoveAt(i2);
+                    break;
+                }
+            }
+        }
     }
 
     [Pure]

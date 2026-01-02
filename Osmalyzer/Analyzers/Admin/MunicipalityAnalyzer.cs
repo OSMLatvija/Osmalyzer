@@ -166,9 +166,8 @@ public class MunicipalityAnalyzer : Analyzer
             atvkEntries
         );
         
-        equivalator.MatchItemsByValues(
-            m => m.Name,
-            e => e.Name
+        equivalator.MatchItems(
+            (i1, i2) => i1.Name == i2.Name // we have no name conflicts in municipalities, so this is sufficient
         );
         
         Dictionary<Municipality, AtkvEntry> dataItemMatches = equivalator.AsDictionary();

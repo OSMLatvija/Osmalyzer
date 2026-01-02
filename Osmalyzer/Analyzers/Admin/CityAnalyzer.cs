@@ -50,9 +50,8 @@ public class CityAnalyzer : Analyzer
             atvkEntries
         );
         
-        equivalator.MatchItemsByValues(
-            c => c.Name,
-            e => e.Name
+        equivalator.MatchItems(
+            (i1, i2) => i1.Name == i2.Name
         );
         
         Dictionary<City, AtkvEntry> dataItemMatches = equivalator.AsDictionary();

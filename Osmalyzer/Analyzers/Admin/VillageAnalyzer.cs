@@ -201,6 +201,7 @@ public class VillageAnalyzer : Analyzer
             false,
             new ValidateElementHasValue("place", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID)
         );
 

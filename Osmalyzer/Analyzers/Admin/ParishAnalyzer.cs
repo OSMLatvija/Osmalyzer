@@ -160,9 +160,8 @@ public class ParishAnalyzer : Analyzer
             atvkEntries
         );
         
-        equivalator.MatchItemsByValues(
-            p => p.Name,
-            e => e.Name
+        equivalator.MatchItems(
+            (i1, i2) => i1.Name == i2.Name && i1.MunicipalityName == i2.Parent?.Name // there are repeat parish names, specifically "Pilskalnes pagasts" and "Salas pagasts"
         );
         
         Dictionary<Parish, AtkvEntry> dataItemMatches = equivalator.AsDictionary();

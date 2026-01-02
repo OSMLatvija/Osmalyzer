@@ -193,6 +193,7 @@ public class VillageAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
             false,
+            new ValidateElementHasValue("place", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.ID, [ "ref" ])
         );
 

@@ -175,6 +175,7 @@ public class ParishAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = parishValidator.Validate(
             report,
             false,
+            new ValidateElementHasValue("place", "parish"),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtkvEntry? match) ? match.Code : null)
         );

@@ -193,6 +193,7 @@ public class CityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
             false,
+            new ValidateElementHasValue("place", "city"),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null)
         );

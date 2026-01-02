@@ -181,6 +181,7 @@ public class MunicipalityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = municipalityValidator.Validate(
             report,
             false,
+            new ValidateElementHasValue("place", "municipality"),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null)
         );

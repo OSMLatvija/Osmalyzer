@@ -17,6 +17,8 @@ public class AtkvEntry : IDataItem
     public DateTime? ValidityEnd { get; }
 
     public AtkvEntry? Parent { get; internal set; }
+    
+    public List<AtkvEntry>? Children { get; internal set; }
 
     
     public bool IsExpired => ValidityEnd != null;

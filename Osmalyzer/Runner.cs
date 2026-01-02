@@ -6,6 +6,8 @@ public static class Runner
 {
     public static void Run()
     {
+        Console.OutputEncoding = Encoding.UTF8;
+        
 #if REMOTE_EXECUTION
         // Find all analyzer types and make an instance of each (including disabled; we'll report and skip them below)
         List<Analyzer> analyzers = 
@@ -84,8 +86,8 @@ public static class Runner
             //new VillageAnalyzer(),
             //new HamletAnalyzer(),
             new MunicipalityAnalyzer(),
-            new ParishAnalyzer(),
-            new CityAnalyzer(),
+            //new ParishAnalyzer(),
+            //new CityAnalyzer(),
             // new MaxspeedTypeAnalyzer(),
             // new LVMPicnicSiteAnalyzer(),
             // new RestrictionRelationAnalyzer(),

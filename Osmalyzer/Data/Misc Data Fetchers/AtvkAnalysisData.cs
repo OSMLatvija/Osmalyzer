@@ -131,8 +131,27 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
             .ToDictionary(e => e.Code);
 
         foreach (AtkvEntry entry in Entries.Where(e => !e.IsExpired))
+        {
             if (entry.CodeParent != null && activeEntryByCode.TryGetValue(entry.CodeParent, out AtkvEntry? parent))
+            {
                 entry.Parent = parent;
+                
+                parent.Children ??= [ ];
+                parent.Children.Add(entry);
+            }
+        }
+
+#if DEBUG
+        // Print out state (Latgale, Zemgale, Kurzeme, Vidzeme) children
+        foreach (AtkvEntry region in Entries.Where(e => !e.IsExpired && e.Level == AtkvLevel.Region))
+        {
+            Console.WriteLine($"Region {region.Name} has children:");
+            if (region.Children == null) throw new Exception("Region has no children list despite being non-expired.");
+            
+            foreach (AtkvEntry child in region.Children)
+                Console.WriteLine($"  - {child.ReportString()}");
+        }
+#endif
     }
 
 

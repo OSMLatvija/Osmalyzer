@@ -130,7 +130,7 @@ public class HamletAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = hamletValidator.Validate(
             report,
             false,
-            new ValidateElementHasValue("place", "civil_parish"), // not "parish"
+            new ValidateElementHasValue("place", "hamlet"),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.ID, [ "ref" ])
         );
 

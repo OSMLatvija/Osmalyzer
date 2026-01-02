@@ -18,7 +18,7 @@ public class WikidataItem
     public string QID => "Q" + ID;
     
     [PublicAPI]
-    public string WikidataUrl => @"https://www.wikidata.org/entity/" + QID;
+    public string WikidataUrl => @"http://www.wikidata.org/entity/" + QID;
     
 
     [PublicAPI]

@@ -1,8 +1,8 @@
-﻿using WikidataSharp;
+﻿﻿using WikidataSharp;
 
 namespace Osmalyzer;
 
-public class CulturalMonument : IDataItem
+public class CulturalMonument : IDataItem, IHasWikidataItem
 {
     public OsmCoord Coord { get; }
 

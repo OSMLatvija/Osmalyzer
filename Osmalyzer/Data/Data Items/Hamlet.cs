@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Hamlet : IDataItem
+public class Hamlet : IDataItem, IHasWikidataItem
 {
     public bool Valid { get; }
     

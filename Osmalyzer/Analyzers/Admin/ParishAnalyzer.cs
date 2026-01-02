@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class ParishAnalyzer : Analyzer
@@ -15,7 +17,8 @@ public class ParishAnalyzer : Analyzer
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
         typeof(AtvkAnalysisData),
-        typeof(ParishesWikidataData)
+        typeof(ParishesWikidataData),
+        typeof(MunicipalitiesWikidataData)
     ];
         
 
@@ -45,6 +48,53 @@ public class ParishAnalyzer : Analyzer
                                            .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Parish).ToList();
 
         ParishesWikidataData wikidataData = datas.OfType<ParishesWikidataData>().First();
+        
+        MunicipalitiesWikidataData municipalitiesWikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
+        
+        // Match VZD and ATVK data items
+
+        Equivalator<Parish, AtkvEntry> equivalator = new Equivalator<Parish, AtkvEntry>(
+            addressData.Parishes, 
+            atvkEntries
+        );
+        
+        equivalator.MatchItems(
+            (i1, i2) => i1.Name == i2.Name && i1.MunicipalityName == i2.Parent?.Name // there are repeat parish names, specifically "Pilskalnes pagasts" and "Salas pagasts"
+        );
+        
+        Dictionary<Parish, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
+        
+        // Assign WikiData
+
+        wikidataData.Assign(
+            addressData.Parishes,
+            (i, wd) =>
+                i.Name == AdminWikidataData.GetBestName(wd) &&
+                (addressData.IsUniqueParishName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
+                 i.MunicipalityName == GetWikidataAdminItemOwnerName(wd))
+        );
+        
+        string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
+        {
+            string? ownerValue = wikidataItem.GetStatementValue(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
+            if (ownerValue == null)
+                return null;         
+            
+            const string uriPrefix = "http://www.wikidata.org/entity/";
+            if (ownerValue.StartsWith(uriPrefix))
+                ownerValue = ownerValue[uriPrefix.Length..];
+            
+            WikidataItem? ownerItem = municipalitiesWikidataData.Items.FirstOrDefault(w => w.QID == ownerValue);
+            if (ownerItem == null)
+                return null;
+
+            string? ownerName = AdminWikidataData.GetBestName(ownerItem);
+            
+            Console.WriteLine($"Parish Wikidata item {wikidataItem.QID} owner municipality: {ownerName} ({ownerItem.QID})");
+            
+            return ownerName;
+        }
 
         // Prepare data comparer/correlator
 
@@ -152,28 +202,6 @@ public class ParishAnalyzer : Analyzer
                 }
             }
         }
-        
-        // Match VZD and ATVK data items
-
-        Equivalator<Parish, AtkvEntry> equivalator = new Equivalator<Parish, AtkvEntry>(
-            addressData.Parishes, 
-            atvkEntries
-        );
-        
-        equivalator.MatchItems(
-            (i1, i2) => i1.Name == i2.Name && i1.MunicipalityName == i2.Parent?.Name // there are repeat parish names, specifically "Pilskalnes pagasts" and "Salas pagasts"
-        );
-        
-        Dictionary<Parish, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
-        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
-        
-        // Assign WikiData
-        
-        wikidataData.Assign(
-            addressData.Parishes,
-            i => i.Name,
-            (i, wd) => i.WikidataItem = wd
-        );
         
         // Validate parish syntax
         

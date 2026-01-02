@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using WikidataSharp;
+﻿using WikidataSharp;
 
 namespace Osmalyzer;
 
@@ -70,13 +69,14 @@ public class CitiesWikidataData : AdminWikidataData
 
 
 
-    public void Assign<T>(List<T> dataItems, Func<T, string> dataItemNameLookup, Action<T, WikidataItem> dataItemAssigner)
+    public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher) 
+        where T : class, IHasWikidataItem
     {
         List<WikidataItem> allCities = [ ];
         allCities.AddRange(StateCities);
         allCities.AddRange(RegionalCities);
 
-        AssignWikidataItems(dataItems, allCities, dataItemNameLookup, dataItemAssigner);
+        AssignWikidataItems(dataItems, allCities, matcher);
     }
 }
 

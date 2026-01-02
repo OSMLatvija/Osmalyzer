@@ -261,7 +261,7 @@ public class HtmlFileReportWriter : ReportWriter
             
         line = Regex.Replace(line, @"(https://overpass-turbo.eu/\?Q=[a-zA-Z0-9%\-_\.!*()+]+)", @"<a href=""$1"" target=""_blank"">Query</a>");
         
-        line = Regex.Replace(line, @"(https://www.wikidata.org/entity/Q(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Q$2</a>");
+        line = Regex.Replace(line, @"(https?://www.wikidata.org/entity/Q(\d+))", @"<a href=""$1"" class=""osm-link"" target=""_blank"">Q$2</a>");
 
         line = Regex.Replace(line, @"(https://mantojums.lv/(\d+))", @"<a href=""$1"" target=""_blank"">#$2</a>");
 

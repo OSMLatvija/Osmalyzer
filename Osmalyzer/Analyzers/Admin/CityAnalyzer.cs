@@ -74,8 +74,7 @@ public class CityAnalyzer : Analyzer
         
         wikidataData.Assign(
             addressData.Cities,
-            i => i.Name,
-            (i, wd) => i.WikidataItem = wd
+            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd)
         );
         
         // Prepare data comparer/correlator

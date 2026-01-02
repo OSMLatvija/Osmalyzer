@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Municipality : IDataItem
+public class Municipality : IDataItem, IHasWikidataItem
 {
     public bool Valid { get; }
     

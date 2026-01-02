@@ -32,6 +32,8 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
 
     private string ExtractionFolder => "ADRGEO";
+    
+    private HashSet<string>? _duplicateParishNames;
 
 
     protected override void Download()
@@ -448,6 +450,24 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
                 )
             );
         }
+    }
+    
+    [Pure]
+    public bool IsUniqueParishName(string name)
+    {
+        if (_duplicateParishNames == null)
+        {
+            // Build duplicate name set
+            _duplicateParishNames = [ ];
+
+            HashSet<string> seenNames = [ ];
+
+            foreach (Parish parish in Parishes)
+                if (!seenNames.Add(parish.Name))
+                    _duplicateParishNames.Add(parish.Name);
+        }
+        
+        return !_duplicateParishNames.Contains(name);
     }
 }
 

@@ -177,8 +177,7 @@ public class MunicipalityAnalyzer : Analyzer
         
         wikidataData.Assign(
             addressData.Municipalities,
-            i => i.Name,
-            (i, wd) => i.WikidataItem = wd
+            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd) // we have no name conflicts in municipalities, so this is sufficient
         );
         
         // Validate municipality syntax

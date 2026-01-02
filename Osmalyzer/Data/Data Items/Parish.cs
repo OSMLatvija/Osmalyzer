@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Parish : IDataItem
+public class Parish : IDataItem, IHasWikidataItem
 {
     public bool Valid { get; }
     

@@ -24,14 +24,9 @@ public static class Wikidata
     [MustUseReturnValue]
     public static string FetchItemsWithPropertyRaw(long propertyID)
     {
-        string query = @"SELECT DISTINCT ?item ?value ?itemLabel ?itemLabelLang WHERE { 
-            ?item wdt:P" + propertyID + @" ?value. 
-            OPTIONAL { ?item rdfs:label ?itemLabel. BIND(LANG(?itemLabel) AS ?itemLabelLang) }
-        }";
-
-        string requestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(query)}&format=json";
+        string filterClause = "?item wdt:P" + propertyID + " ?tempValue.";
         
-        return ExecuteRequestWithRetry(requestUri);
+        return FetchItemsWithFilterRaw(filterClause);
     }
 
     /// <summary>
@@ -41,47 +36,7 @@ public static class Wikidata
     [MustUseReturnValue]
     public static List<WikidataItem> ProcessItemsWithPropertyRaw(string rawJson, long propertyID)
     {
-        dynamic content = JsonConvert.DeserializeObject(rawJson)!;
-        
-        Dictionary<long, (string value, string dataType, Dictionary<string, string> labels)> itemsData = new Dictionary<long, (string, string, Dictionary<string, string>)>();
-
-        foreach (dynamic binding in content.results.bindings)
-        {
-            string itemUri = binding["item"]["value"];
-            string valueRaw = binding["value"]["value"];
-            string valueType = binding["value"]["type"];
-            string dataType = valueType;
-            
-            if (binding["value"]["datatype"] != null)
-                dataType = (string)binding["value"]["datatype"];
-
-            long wikidataID = long.Parse(itemUri[(itemUri.LastIndexOf('Q') + 1)..]);
-
-            if (!itemsData.ContainsKey(wikidataID))
-                itemsData[wikidataID] = (valueRaw, dataType, new Dictionary<string, string>());
-
-            if (binding.itemLabel != null && binding.itemLabelLang != null)
-            {
-                string label = (string)binding.itemLabel.value;
-                string lang = (string)binding.itemLabelLang.value;
-                
-                itemsData[wikidataID].labels[lang] = label;
-            }
-        }
-
-        List<WikidataItem> items = [ ];
-
-        foreach (KeyValuePair<long, (string value, string dataType, Dictionary<string, string> labels)> kvp in itemsData)
-        {
-            items.Add(
-                new WikidataItem(
-                    kvp.Key,
-                    kvp.Value.labels, [ new WikidataStatement(propertyID, kvp.Value.value, kvp.Value.dataType) ]
-                )
-            );
-        }
-
-        return items;
+        return ProcessItemsRaw(rawJson);
     }
 
     [PublicAPI]
@@ -99,17 +54,8 @@ public static class Wikidata
     [MustUseReturnValue]
     public static string FetchItemsByInstanceOfRaw(long instanceOfQID)
     {
-        // Query for items where P31 (instance of) equals the specified QID, and fetch all their statements
-        string query = @"SELECT ?item ?property ?value ?itemLabel ?itemLabelLang WHERE { 
-            ?item wdt:P31 wd:Q" + instanceOfQID + @". 
-            ?item ?p ?value.
-            ?property wikibase:directClaim ?p.
-            OPTIONAL { ?item rdfs:label ?itemLabel. BIND(LANG(?itemLabel) AS ?itemLabelLang) }
-        }";
-
-        string requestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(query)}&format=json";
-        
-        return ExecuteRequestWithRetry(requestUri);
+        string filterClause = "?item wdt:P31 wd:Q" + instanceOfQID + ".";
+        return FetchItemsWithFilterRaw(filterClause);
     }
 
     /// <summary>
@@ -119,27 +65,71 @@ public static class Wikidata
     [MustUseReturnValue]
     public static List<WikidataItem> ProcessItemsByInstanceOfRaw(string rawJson)
     {
+        return ProcessItemsRaw(rawJson);
+    }
+
+
+    /// <summary>
+    /// Shared method to fetch items with any filter clause, avoiding Cartesian product by splitting properties and labels into separate queries
+    /// </summary>
+    /// <param name="filterClause">SPARQL WHERE clause to filter items (e.g., "?item wdt:P31 wd:Q515.")</param>
+    [MustUseReturnValue]
+    private static string FetchItemsWithFilterRaw(string filterClause)
+    {
+        // Fetch all properties and values
+        string propertiesQuery = @"SELECT DISTINCT ?item ?property ?value WHERE { 
+            " + filterClause + @"
+            ?item ?p ?value.
+            ?property wikibase:directClaim ?p.
+        }";
+
+        string propertiesRequestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(propertiesQuery)}&format=json";
+        string propertiesJson = ExecuteRequestWithRetry(propertiesRequestUri);
+        
+        // Fetch labels separately to avoid Cartesian product
+        string labelsQuery = @"SELECT DISTINCT ?item ?itemLabel ?itemLabelLang WHERE { 
+            " + filterClause + @"
+            ?item rdfs:label ?itemLabel. 
+            BIND(LANG(?itemLabel) AS ?itemLabelLang)
+        }";
+        
+        string labelsRequestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(labelsQuery)}&format=json";
+        string labelsJson = ExecuteRequestWithRetry(labelsRequestUri);
+        
+        // Combine both results into a single JSON structure
+        dynamic propertiesContent = JsonConvert.DeserializeObject(propertiesJson)!;
+        dynamic labelsContent = JsonConvert.DeserializeObject(labelsJson)!;
+        
+        dynamic combinedResult = new
+        {
+            properties = propertiesContent.results.bindings,
+            labels = labelsContent.results.bindings
+        };
+        
+        return JsonConvert.SerializeObject(combinedResult, Formatting.Indented);
+        
+        // todo: better than double-serialize/reserialize
+    }
+
+
+    /// <summary>
+    /// Shared method to process the combined JSON response from <see cref="FetchItemsWithFilterRaw"/> into WikidataItem objects
+    /// </summary>
+    [MustUseReturnValue]
+    private static List<WikidataItem> ProcessItemsRaw(string rawJson)
+    {
         dynamic content = JsonConvert.DeserializeObject(rawJson)!;
 
         Dictionary<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, string>> statements)> itemsData = new Dictionary<long, (Dictionary<string, string>, Dictionary<long, Dictionary<string, string>>)>();
 
-        foreach (dynamic binding in content.results.bindings)
+        // Process properties and values
+        foreach (dynamic binding in content.properties)
         {
             string itemUri = binding["item"]["value"];
-
             long wikidataID = long.Parse(itemUri[(itemUri.LastIndexOf('Q') + 1)..]);
 
             if (!itemsData.ContainsKey(wikidataID))
                 itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, string>>());
-
-            if (binding.itemLabel != null && binding.itemLabelLang != null)
-            {
-                string label = (string)binding.itemLabel.value;
-                string lang = (string)binding.itemLabelLang.value;
-                
-                if (!itemsData[wikidataID].labels.ContainsKey(lang))
-                    itemsData[wikidataID].labels[lang] = label;
-            }
 
             if (binding.property != null && binding.value != null)
             {
@@ -156,9 +146,27 @@ public static class Wikidata
                 if (!itemsData[wikidataID].statements.ContainsKey(propertyID))
                     itemsData[wikidataID].statements[propertyID] = new Dictionary<string, string>();
                 
-                // Store value with its datatype (key = value, value = datatype)
                 if (!itemsData[wikidataID].statements[propertyID].ContainsKey(valueRaw))
                     itemsData[wikidataID].statements[propertyID][valueRaw] = dataType;
+            }
+        }
+
+        // Process labels separately
+        foreach (dynamic binding in content.labels)
+        {
+            string itemUri = binding["item"]["value"];
+            long wikidataID = long.Parse(itemUri[(itemUri.LastIndexOf('Q') + 1)..]);
+
+            if (!itemsData.ContainsKey(wikidataID))
+                itemsData[wikidataID] = (new Dictionary<string, string>(), new Dictionary<long, Dictionary<string, string>>());
+
+            if (binding.itemLabel != null && binding.itemLabelLang != null)
+            {
+                string label = (string)binding.itemLabel.value;
+                string lang = (string)binding.itemLabelLang.value;
+                
+                if (!itemsData[wikidataID].labels.ContainsKey(lang))
+                    itemsData[wikidataID].labels[lang] = label;
             }
         }
 
@@ -185,6 +193,7 @@ public static class Wikidata
 
         return items;
     }
+
 
     
     /// <summary>

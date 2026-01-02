@@ -419,6 +419,9 @@ public class Validator<T> where T : IDataItem
     [Pure]
     private static string GetTagValueDisplayString(string tag, string value)
     {
+        if (tag == "wikidata" || tag.EndsWith(":wikidata") && Regex.IsMatch(value, @"^Q\d+$"))
+            return "`" +  tag + "=" + value + "` (https://www.wikidata.org/entity/" + value + ")"; // link to wikidata
+        
         return "`" +  tag + "=" + value + "`";
     }
     

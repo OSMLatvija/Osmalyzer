@@ -19,6 +19,10 @@ public class City : IDataItem
     public OsmMultiPolygon? Boundary { get; }
 
     public WikidataItem? WikidataItem { get; set; }
+    
+    public CityStatus? Status { get; set; }
+    
+    public bool? IsLAUDivision { get; set; }
 
 
     public City(bool valid, string id, OsmCoord coord, string name, string rawAddress, string? municipalityName, OsmMultiPolygon? boundary)
@@ -37,10 +41,16 @@ public class City : IDataItem
     {
         return 
             (!Valid ? "Invalid " : "") + 
-            "City" + 
+            (Status != null ? Status == CityStatus.StateCity ? "State city" : "Regional city" : "City") +
             " `" + Name + "`" +
             " #`" + ID + "`" + 
             (MunicipalityName != null ? " (`" + MunicipalityName + "`)" : "");
     }
 }
 
+
+public enum CityStatus
+{
+    StateCity,
+    RegionalCity
+}

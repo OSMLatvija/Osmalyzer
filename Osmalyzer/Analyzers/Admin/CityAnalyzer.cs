@@ -41,6 +41,44 @@ public class CityAnalyzer : Analyzer
         List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
                                            .Where(e => !e.IsExpired && e.Designation is AtkvDesignation.StateCity or AtkvDesignation.RegionalCity).ToList();
 
+        CitiesWikidataData wikidataData = datas.OfType<CitiesWikidataData>().First();
+        
+        // Match VZD and ATVK data items
+
+        Equivalator<City, AtkvEntry> equivalator = new Equivalator<City, AtkvEntry>(
+            addressData.Cities, 
+            atvkEntries
+        );
+        
+        equivalator.MatchItemsByValues(
+            c => c.Name,
+            e => e.Name
+        );
+        
+        Dictionary<City, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
+
+        foreach ((City city, AtkvEntry atkvEntry) in dataItemMatches)
+        {
+            city.Status = atkvEntry.Designation switch
+            {
+                AtkvDesignation.StateCity    => CityStatus.StateCity,
+                AtkvDesignation.RegionalCity => CityStatus.RegionalCity,
+                _                            => throw new Exception("Unexpected ATVK designation for city.")
+            };
+            
+            // Cities that are not part of a municipality (i.e. are under region) are LAU divisions
+            city.IsLAUDivision = atkvEntry.Parent?.Designation == AtkvDesignation.Region;
+        }
+        
+        // Assign WikiData
+        
+        wikidataData.Assign(
+            addressData.Cities,
+            i => i.Name,
+            (i, wd) => i.WikidataItem = wd
+        );
+        
         // Prepare data comparer/correlator
 
         Correlator<City> cityCorrelator = new Correlator<City>(
@@ -169,21 +207,6 @@ public class CityAnalyzer : Analyzer
             }
         }
         
-        // Match VZD and ATVK data items
-
-        Equivalator<City, AtkvEntry> equivalator = new Equivalator<City, AtkvEntry>(
-            addressData.Cities, 
-            atvkEntries
-        );
-        
-        equivalator.MatchItemsByValues(
-            c => c.Name,
-            e => e.Name
-        );
-        
-        Dictionary<City, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
-        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
-        
         // Validate city syntax
         
         Validator<City> cityValidator = new Validator<City>(
@@ -197,7 +220,7 @@ public class CityAnalyzer : Analyzer
             new ValidateElementHasValue("place", "city"),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
-            //new ValidateElementValueMatchesDataItemValue<City>("ref:nuts", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision!.Value && dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("wikidata", c => c.WikidataItem?.QID)
         );
 

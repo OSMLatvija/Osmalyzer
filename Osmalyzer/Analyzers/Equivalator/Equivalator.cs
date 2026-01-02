@@ -22,10 +22,15 @@ public class Equivalator<T1, T2> where T1 : IDataItem
         
         _matches = [ ];
         
-        Dictionary<TD, T2> item2ValueMap = new Dictionary<TD, T2>();
+        Dictionary<TD, T1> item1ValueMap = new Dictionary<TD, T1>();
+        foreach (T1 item1 in _items1)
+            if (!item1ValueMap.TryAdd(item1ValueGetter(item1), item1))
+                throw new Exception($"Duplicate value '{item1ValueGetter(item1)}' found in first item collection");
         
+        Dictionary<TD, T2> item2ValueMap = new Dictionary<TD, T2>();
         foreach (T2 item2 in _items2)
-            item2ValueMap.TryAdd(item2ValueGetter(item2), item2);
+            if (!item2ValueMap.TryAdd(item2ValueGetter(item2), item2))
+                throw new Exception($"Duplicate value '{item2ValueGetter(item2)}' found in second item collection");
         
         foreach (T1 item1 in _items1)
             if (item2ValueMap.TryGetValue(item1ValueGetter(item1), out T2? item2))

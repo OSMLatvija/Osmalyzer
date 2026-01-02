@@ -2,6 +2,7 @@
 
 public class AtkvEntry : IDataItem
 {
+    /// <summary> NUTS or LAU code </summary>
     public string Code { get; }
     
     public string Name { get; }

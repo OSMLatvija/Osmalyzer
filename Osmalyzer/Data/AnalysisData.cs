@@ -8,7 +8,7 @@ public abstract class AnalysisData
 
     private const string cacheBaseFolder = "cache";
 
-    private const int undatedDataCachingGracePeriod = 2 * 60 * 60; // sec
+    private const int undatedDataCachingGracePeriod = 5 * 60 * 60; // sec
 
 
     public static string CacheBasePath => Path.GetFullPath(cacheBaseFolder);

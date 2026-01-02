@@ -193,7 +193,7 @@ public class MunicipalityAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "municipality"),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID)

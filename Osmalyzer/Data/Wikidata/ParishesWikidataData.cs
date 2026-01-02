@@ -52,7 +52,7 @@ public class ParishesWikidataData : AdminWikidataData
         if (Items.Count == 0) throw new Exception("No parishes were fetched from Wikidata.");
 
 #if DEBUG
-        foreach (WikidataItem item in Items) Debug.WriteLine($"Parish: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
+        // foreach (WikidataItem item in Items) Debug.WriteLine($"Parish: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
 #endif
     }
 

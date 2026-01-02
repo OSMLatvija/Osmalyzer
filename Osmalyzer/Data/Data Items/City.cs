@@ -6,7 +6,7 @@ public class City : IDataItem
 {
     public bool Valid { get; }
     
-    public string ID { get; }
+    public string AddressID { get; }
 
     public OsmCoord Coord { get; }
     
@@ -25,10 +25,10 @@ public class City : IDataItem
     public bool? IsLAUDivision { get; set; }
 
 
-    public City(bool valid, string id, OsmCoord coord, string name, string rawAddress, string? municipalityName, OsmMultiPolygon? boundary)
+    public City(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string? municipalityName, OsmMultiPolygon? boundary)
     {
         Valid = valid;
-        ID = id;
+        AddressID = addressID;
         Coord = coord;
         Name = name;
         RawAddress = rawAddress;
@@ -43,9 +43,11 @@ public class City : IDataItem
             (!Valid ? "Invalid " : "") + 
             (Status != null ? Status == CityStatus.StateCity ? "State city" : "Regional city" : "City") +
             " `" + Name + "`" +
-            " #`" + ID + "`" + 
+            " #`" + AddressID + "`" + 
             (MunicipalityName != null ? " (`" + MunicipalityName + "`)" : "");
     }
+
+    public override string ToString() => ReportString();
 }
 
 

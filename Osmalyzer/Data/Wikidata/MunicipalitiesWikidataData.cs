@@ -52,16 +52,16 @@ public class MunicipalitiesWikidataData : AdminWikidataData
         if (Items.Count == 0) throw new Exception("No municipalities were fetched from Wikidata.");
 
 #if DEBUG
-        foreach (WikidataItem item in Items)
-        {
-            Debug.WriteLine($"Municipality: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
-            Debug.WriteLine(" - Labels:");
-            foreach (KeyValuePair<string, string> label in item.Labels)
-                Debug.WriteLine($" -- {label.Key}: {label.Value}");
-            Debug.WriteLine(" - Statements:");
-            foreach (WikidataStatement statement in item.Statements)
-                Debug.WriteLine($" -- P{statement.PropertyID}: {string.Join(", ", statement.Value)}");
-        }
+        // foreach (WikidataItem item in Items)
+        // {
+        //     Debug.WriteLine($"Municipality: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
+        //     Debug.WriteLine(" - Labels:");
+        //     foreach (KeyValuePair<string, string> label in item.Labels)
+        //         Debug.WriteLine($" -- {label.Key}: {label.Value}");
+        //     Debug.WriteLine(" - Statements:");
+        //     foreach (WikidataStatement statement in item.Statements)
+        //         Debug.WriteLine($" -- P{statement.PropertyID}: {string.Join(", ", statement.Value)}");
+        // }
 #endif
     }
 

@@ -63,8 +63,8 @@ public class CitiesWikidataData : AdminWikidataData
         if (RegionalCities.Count == 0) throw new Exception("No regional cities were fetched from Wikidata.");
 
 #if DEBUG
-        foreach (WikidataItem item in StateCities) Debug.WriteLine($"State City: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
-        foreach (WikidataItem item in RegionalCities) Debug.WriteLine($"Regional City: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
+        // foreach (WikidataItem item in StateCities) Debug.WriteLine($"State City: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
+        // foreach (WikidataItem item in RegionalCities) Debug.WriteLine($"Regional City: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
 #endif
     }
 

@@ -12,7 +12,11 @@ public class HamletAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
 
-    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(AddressGeodataAnalysisData) ];
+    public override List<Type> GetRequiredDataTypes() => [ 
+        typeof(LatviaOsmAnalysisData), 
+        typeof(AddressGeodataAnalysisData),
+        typeof(VillagesWikidataData)
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -133,7 +137,7 @@ public class HamletAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "hamlet"),
-            new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID)
         );
 
@@ -172,7 +176,7 @@ public class HamletAnalyzer : Analyzer
         [
             "name=" + hamlet.Name,
             "place=hamlet",
-            "ref:LV:addr=" + hamlet.ID
+            "ref:LV:addr=" + hamlet.AddressID
         ];
 
         return "```" + string.Join(Environment.NewLine, lines) + "```";

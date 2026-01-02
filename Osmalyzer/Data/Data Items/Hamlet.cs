@@ -6,7 +6,7 @@ public class Hamlet : IDataItem
 {
     public bool Valid { get; }
     
-    public string ID { get; }
+    public string AddressID { get; }
 
     public OsmCoord Coord { get; }
     
@@ -21,10 +21,10 @@ public class Hamlet : IDataItem
     public WikidataItem? WikidataItem { get; set; }
 
 
-    public Hamlet(bool valid, string id, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName)
+    public Hamlet(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName)
     {
         Valid = valid;
-        ID = id;
+        AddressID = addressID;
         Coord = coord;
         Name = name;
         RawAddress = rawAddress;
@@ -38,8 +38,10 @@ public class Hamlet : IDataItem
         return 
             (!Valid ? "Invalid " : "") + 
             "Hamlet `" + Name + "`" +
-            " #`" + ID + "`" + 
+            " #`" + AddressID + "`" + 
             " (`" + ParishName + ", " + MunicipalityName + "`)";
     }
+
+    public override string ToString() => ReportString();
 }
 

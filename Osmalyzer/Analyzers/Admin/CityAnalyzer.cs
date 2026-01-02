@@ -218,9 +218,9 @@ public class CityAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "city"),
-            new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.ID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision!.Value && dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision!.Value && dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null, [ "ref:nuts" ]),
+            new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<City>("wikidata", c => c.WikidataItem?.QID)
         );
 

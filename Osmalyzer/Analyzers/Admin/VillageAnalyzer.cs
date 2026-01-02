@@ -12,7 +12,11 @@ public class VillageAnalyzer : Analyzer
     public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
 
-    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(AddressGeodataAnalysisData) ];
+    public override List<Type> GetRequiredDataTypes() => [ 
+        typeof(LatviaOsmAnalysisData), 
+        typeof(AddressGeodataAnalysisData),
+        typeof(VillagesWikidataData)
+    ];
         
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -196,7 +200,7 @@ public class VillageAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "village"),
-            new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID)
         );
 
@@ -235,7 +239,7 @@ public class VillageAnalyzer : Analyzer
         [
             "name=" + village.Name,
             "place=village",
-            "ref:LV:addr=" + village.ID
+            "ref:LV:addr=" + village.AddressID
         ];
 
         return "```" + string.Join(Environment.NewLine, lines) + "```";

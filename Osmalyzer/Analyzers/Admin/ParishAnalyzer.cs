@@ -187,7 +187,7 @@ public class ParishAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "civil_parish"), // not "parish"
-            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.ID, [ "ref" ]),
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID)
         );

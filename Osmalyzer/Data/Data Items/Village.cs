@@ -6,7 +6,7 @@ public class Village : IDataItem
 {
     public bool Valid { get; }
     
-    public string ID { get; }
+    public string AddressID { get; }
 
     public OsmCoord Coord { get; }
     
@@ -23,10 +23,10 @@ public class Village : IDataItem
     public WikidataItem? WikidataItem { get; set; }
 
 
-    public Village(bool valid, string id, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName, OsmMultiPolygon? boundary)
+    public Village(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName, OsmMultiPolygon? boundary)
     {
         Valid = valid;
-        ID = id;
+        AddressID = addressID;
         Coord = coord;
         Name = name;
         RawAddress = rawAddress;
@@ -41,7 +41,9 @@ public class Village : IDataItem
         return 
             (!Valid ? "Invalid " : "") + 
             "Village `" + Name + "`" +
-            " #`" + ID + "`" + 
+            " #`" + AddressID + "`" + 
             " (`" + ParishName + ", " + MunicipalityName + "`)";
     }
+
+    public override string ToString() => ReportString();
 }

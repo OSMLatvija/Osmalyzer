@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public abstract class AdminWikidataData : AnalysisData
+public abstract class AdminWikidataData : AnalysisData, IUndatedAnalysisData
 {
     /// <summary>
     /// Assigns Wikidata items to data items by matching names

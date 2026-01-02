@@ -12,6 +12,17 @@ public static class Wikidata
     [MustUseReturnValue]
     public static List<WikidataItem> FetchItemsWithProperty(long propertyID)
     {
+        string rawJson = FetchItemsWithPropertyRaw(propertyID);
+        return ProcessItemsWithPropertyRaw(rawJson, propertyID);
+    }
+
+    /// <summary>
+    /// Fetches raw JSON response for items with a specific property
+    /// </summary>
+    [PublicAPI]
+    [MustUseReturnValue]
+    public static string FetchItemsWithPropertyRaw(long propertyID)
+    {
         string query = @"SELECT DISTINCT ?item ?value ?itemLabel ?itemLabelLang WHERE { 
             ?item wdt:P" + propertyID + @" ?value. 
             OPTIONAL { ?item rdfs:label ?itemLabel. BIND(LANG(?itemLabel) AS ?itemLabelLang) }
@@ -19,9 +30,17 @@ public static class Wikidata
 
         string requestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(query)}&format=json";
         
-        string requestResult = ExecuteRequestWithRetry(requestUri);
+        return ExecuteRequestWithRetry(requestUri);
+    }
 
-        dynamic content = JsonConvert.DeserializeObject(requestResult)!;
+    /// <summary>
+    /// Processes raw JSON response from <see cref="FetchItemsWithPropertyRaw"/> into WikidataItem objects
+    /// </summary>
+    [PublicAPI]
+    [MustUseReturnValue]
+    public static List<WikidataItem> ProcessItemsWithPropertyRaw(string rawJson, long propertyID)
+    {
+        dynamic content = JsonConvert.DeserializeObject(rawJson)!;
         
         Dictionary<long, (string value, string dataType, Dictionary<string, string> labels)> itemsData = new Dictionary<long, (string, string, Dictionary<string, string>)>();
 
@@ -68,6 +87,17 @@ public static class Wikidata
     [MustUseReturnValue]
     public static List<WikidataItem> FetchItemsByInstanceOf(long instanceOfQID)
     {
+        string rawJson = FetchItemsByInstanceOfRaw(instanceOfQID);
+        return ProcessItemsByInstanceOfRaw(rawJson);
+    }
+
+    /// <summary>
+    /// Fetches raw JSON response for items by instance of
+    /// </summary>
+    [PublicAPI]
+    [MustUseReturnValue]
+    public static string FetchItemsByInstanceOfRaw(long instanceOfQID)
+    {
         // Query for items where P31 (instance of) equals the specified QID, and fetch all their statements
         string query = @"SELECT ?item ?property ?value ?itemLabel ?itemLabelLang WHERE { 
             ?item wdt:P31 wd:Q" + instanceOfQID + @". 
@@ -78,9 +108,17 @@ public static class Wikidata
 
         string requestUri = $"https://query.wikidata.org/sparql?query={Uri.EscapeDataString(query)}&format=json";
         
-        string requestResult = ExecuteRequestWithRetry(requestUri);
+        return ExecuteRequestWithRetry(requestUri);
+    }
 
-        dynamic content = JsonConvert.DeserializeObject(requestResult)!;
+    /// <summary>
+    /// Processes raw JSON response from <see cref="FetchItemsByInstanceOfRaw"/> into WikidataItem objects
+    /// </summary>
+    [PublicAPI]
+    [MustUseReturnValue]
+    public static List<WikidataItem> ProcessItemsByInstanceOfRaw(string rawJson)
+    {
+        dynamic content = JsonConvert.DeserializeObject(rawJson)!;
 
         Dictionary<long, (Dictionary<string, string> labels, Dictionary<long, Dictionary<string, string>> statements)> itemsData = new Dictionary<long, (Dictionary<string, string>, Dictionary<long, Dictionary<string, string>>)>();
 

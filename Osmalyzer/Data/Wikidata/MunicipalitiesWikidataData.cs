@@ -13,7 +13,7 @@ public class MunicipalitiesWikidataData : AdminWikidataData
 
     public override string ReportWebLink => @"https://www.wikidata.org/wiki/Q" + municipalityOfLatviaQID;
 
-    public override bool NeedsPreparation => false;
+    public override bool NeedsPreparation => true;
 
 
     private const long municipalityOfLatviaQID = 3345345;
@@ -22,13 +22,33 @@ public class MunicipalitiesWikidataData : AdminWikidataData
     protected override string DataFileIdentifier => "municipalities-wikidata";
 
 
+    private string RawFilePath => Path.Combine(CacheBasePath, DataFileIdentifier + "-raw.json");
+
+
     public List<WikidataItem> Items { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
     {
         // Fetch municipalities (e.g., Madona Municipality)
-        Items = Wikidata.FetchItemsByInstanceOf(municipalityOfLatviaQID);
+        string rawJson = Wikidata.FetchItemsByInstanceOfRaw(municipalityOfLatviaQID);
+        File.WriteAllText(RawFilePath, rawJson);
+        
+        // Process immediately after download
+        ProcessDownloadedData();
+    }
+
+    protected override void DoPrepare()
+    {
+        // Load from cached files and process
+        ProcessDownloadedData();
+    }
+
+    
+    private void ProcessDownloadedData()
+    {
+        string rawJson = File.ReadAllText(RawFilePath);
+        Items = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
         if (Items.Count == 0) throw new Exception("No municipalities were fetched from Wikidata.");
 
 #if DEBUG
@@ -45,10 +65,6 @@ public class MunicipalitiesWikidataData : AdminWikidataData
 #endif
     }
 
-    protected override void DoPrepare()
-    {
-        throw new InvalidOperationException();
-    }
 
 
     public void Assign<T>(List<T> dataItems, Func<T, string> dataItemNameLookup, Action<T, WikidataItem> dataItemAssigner)

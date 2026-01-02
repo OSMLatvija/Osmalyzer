@@ -1,16 +1,16 @@
-﻿using WikidataSharp;
+﻿﻿using WikidataSharp;
 
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CulturalMonumentsWikidataData : AnalysisData
+public class CulturalMonumentsWikidataData : AnalysisData, IUndatedAnalysisData
     // todo: to generic reusable wikidata provider data
 {
     public override string Name => "Cultural Monuments Wikidata";
 
     public override string ReportWebLink => @"https://www.wikidata.org/wiki/Property:P" + PropertyID;
 
-    public override bool NeedsPreparation => false;
+    public override bool NeedsPreparation => true;
 
 
     public long PropertyID => 2494; // "Latvian cultural heritage register ID"
@@ -19,18 +19,32 @@ public class CulturalMonumentsWikidataData : AnalysisData
     protected override string DataFileIdentifier => "cultural-monuments-wikidata";
 
 
+    private string RawFilePath => Path.Combine(CacheBasePath, DataFileIdentifier + "-raw.json");
+
+
     public List<WikidataItem> Items { get; private set; } = null!; // only null before prepared
     
 
     protected override void Download()
     {
-        Items = Wikidata.FetchItemsWithProperty(PropertyID);
-        // todo: cache, would need fetch and parse
+        string rawJson = Wikidata.FetchItemsWithPropertyRaw(PropertyID);
+        File.WriteAllText(RawFilePath, rawJson);
+        
+        // Process immediately after download
+        ProcessDownloadedData();
     }
 
     protected override void DoPrepare()
     {
-        throw new InvalidOperationException();
+        // Load from cached files and process
+        ProcessDownloadedData();
+    }
+
+    
+    private void ProcessDownloadedData()
+    {
+        string rawJson = File.ReadAllText(RawFilePath);
+        Items = Wikidata.ProcessItemsWithPropertyRaw(rawJson, PropertyID);
     }
 
 

@@ -13,13 +13,16 @@ public class VillagesWikidataData : AdminWikidataData
 
     public override string ReportWebLink => @"https://www.wikidata.org/wiki/Q" + villageInLatviaQID;
 
-    public override bool NeedsPreparation => false;
+    public override bool NeedsPreparation => true;
 
 
     private const long villageInLatviaQID = 22580836; // includes both villages and hamlets
 
 
     protected override string DataFileIdentifier => "villages-wikidata";
+
+
+    private string RawFilePath => Path.Combine(CacheBasePath, DataFileIdentifier + "-raw.json");
 
 
     public List<WikidataItem> Items { get; private set; } = null!; // only null before prepared
@@ -29,7 +32,24 @@ public class VillagesWikidataData : AdminWikidataData
     {
         // Fetch villages and hamlets (e.g., village Ulbroka, hamlet Pilda)
         // Note: Wikidata doesn't differentiate between villages and hamlets - both use the same instance-of
-        Items = Wikidata.FetchItemsByInstanceOf(villageInLatviaQID);
+        string rawJson = Wikidata.FetchItemsByInstanceOfRaw(villageInLatviaQID);
+        File.WriteAllText(RawFilePath, rawJson);
+        
+        // Process immediately after download
+        ProcessDownloadedData();
+    }
+
+    protected override void DoPrepare()
+    {
+        // Load from cached files and process
+        ProcessDownloadedData();
+    }
+
+    
+    private void ProcessDownloadedData()
+    {
+        string rawJson = File.ReadAllText(RawFilePath);
+        Items = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
         if (Items.Count == 0) throw new Exception("No villages were fetched from Wikidata.");
 
 #if DEBUG
@@ -37,10 +57,6 @@ public class VillagesWikidataData : AdminWikidataData
 #endif
     }
 
-    protected override void DoPrepare()
-    {
-        throw new InvalidOperationException();
-    }
 
 
     public void Assign<T>(List<T> dataItems, Func<T, string> dataItemNameLookup, Action<T, WikidataItem> dataItemAssigner)

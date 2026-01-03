@@ -147,7 +147,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
             new ValidateElementHasValue("brand", "Depozīta punkts"),
             new ValidateElementHasValue("brand:wikidata", "Q110979381"),
             new ValidateElementHasValue("recycling:cans", "yes"),
-            new ValidateElementHasValue("recycling:glass_bottles", "yes", "no"),
+            new ValidateElementHasAnyValue("recycling:glass_bottles", "yes", "no"),
             new ValidateElementHasValue("recycling:plastic_bottles", "yes"),
             new ValidateElementDoesntHaveTag("building"),
             // todo: operator needed ?

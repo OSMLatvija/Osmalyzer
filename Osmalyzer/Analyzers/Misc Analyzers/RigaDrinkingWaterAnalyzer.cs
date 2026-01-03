@@ -83,7 +83,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
             new ValidateElementHasValue("operator", "Rīgas ūdens"),
             new ValidateElementHasValue("man_made", "water_tap"),
             new ValidateElementHasValue("drinking_water", "yes"),
-            new ValidateElementHasValue("seasonal", "yes", "no"),
+            new ValidateElementHasAnyValue("seasonal", "yes", "no"),
             new ValidateElementFixme()
         );
 

@@ -84,6 +84,17 @@ public class Validator<T> where T : IDataItem
                         break;
                     }
 
+                    case ValidateElementHasAnyValue elementHasAnyValue:
+                    {
+                        List<SuggestedAction>? suggestedChangesForRule = CheckElementHasAnyValue(elementHasAnyValue);
+                        if (suggestedChangesForRule != null)
+                        {
+                            suggestedChangesForElement ??= [ ];
+                            suggestedChangesForElement.AddRange(suggestedChangesForRule);
+                        }
+                        break;
+                    }
+
                     case ValidateElementHasKey elementHasKey:
                         CheckElementHasKey(elementHasKey);
                         break;
@@ -169,19 +180,20 @@ public class Validator<T> where T : IDataItem
             {
                 List<SuggestedAction>? suggestedChangesForRule = null;
                 
-                string? value = osmElement.GetValue(rule.Tag);
+                string? elementValue = osmElement.GetValue(rule.Tag);
+                
+                if (rule.Value == null)
+                    return null;
 
                 // Is the expected value in a different tag that is known to be incorrect there?
-                List<string>? foundInIncorrectTags = null;
-                if (rule.Values.Length == 1)
-                    foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, osmElement, rule.Values[0]);
+                List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, osmElement, rule.Value);
 
                 if (foundInIncorrectTags != null)
                 {
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element has expected value `" + rule.Values[0] + "` set" + itemLabel +
+                            "OSM element has expected value `" + rule.Value + "` set" + itemLabel +
                             ", but not in the expected tag `" + rule.Tag + "`" +
                             " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
                             " - " + osmElement.OsmViewUrl,
@@ -197,6 +209,51 @@ public class Validator<T> where T : IDataItem
                         suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
                 }
 
+                if (elementValue != "")
+                {
+                    report.AddEntry(
+                        ReportGroup.ValidationResults,
+                        new IssueReportEntry(
+                            "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                            new SortEntryAsc(GetSortKey(osmElement)),
+                            osmElement.AverageCoord,
+                            MapPointStyle.Problem,
+                            osmElement
+                        )
+                    );
+
+                    suggestedChangesForRule ??= [ ];
+                    suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value));
+                }
+                else
+                {
+                    if (rule.Value != elementValue)
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(osmElement)),
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+                        
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value) );
+                    }
+                }
+
+                return suggestedChangesForRule;
+            }
+
+            List<SuggestedAction>? CheckElementHasAnyValue(ValidateElementHasAnyValue rule)
+            {
+                List<SuggestedAction>? suggestedChangesForRule = null;
+                
+                string? value = osmElement.GetValue(rule.Tag);
+
                 if (value == null)
                 {
                     report.AddEntry(
@@ -209,12 +266,6 @@ public class Validator<T> where T : IDataItem
                             osmElement
                         )
                     );
-
-                    if (rule.Values.Length == 1)
-                    {
-                        suggestedChangesForRule ??= [ ];
-                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Values[0]));
-                    }
                 }
                 else
                 {
@@ -383,10 +434,10 @@ public class Validator<T> where T : IDataItem
                                 osmElement
                             )
                         );
-                    }
                     
-                    suggestedChangesForRule ??= [ ];
-                    suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, rule.Tag));
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, rule.Tag));
+                    }
                 }
 
                 return null;

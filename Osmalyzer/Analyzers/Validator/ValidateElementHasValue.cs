@@ -8,21 +8,20 @@ public class ValidateElementHasValue : ValidationRule
 {
     public string Tag { get; }
 
-    public string[] Values { get; }
+    /// <summary>
+    /// A value set means that specific value is expected.
+    /// Empty means value is expected to NOT be set.
+    /// Null means we don't know what value if any is expected.
+    /// </summary>
+    public string? Value { get; }
 
     public string[]? IncorrectTags { get; }
     
     
-    public ValidateElementHasValue(string tag, string value, string[]? incorrectTags = null)
+    public ValidateElementHasValue(string tag, string? value, string[]? incorrectTags = null)
     {
         Tag = tag;
-        Values = [ value ];
+        Value = value;
         IncorrectTags = incorrectTags;
-    }
-    
-    public ValidateElementHasValue(string tag, params string[] values)
-    {
-        Tag = tag;
-        Values = values;
     }
 }

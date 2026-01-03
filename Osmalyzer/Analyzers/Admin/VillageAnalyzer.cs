@@ -60,15 +60,11 @@ public class VillageAnalyzer : Analyzer
         
         string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
         {
-            string? ownerValue = wikidataItem.GetStatementValue(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
+            long? ownerValue = wikidataItem.GetStatementBestQIDValue(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
             if (ownerValue == null)
-                return null;         
+                return null;
             
-            const string uriPrefix = "http://www.wikidata.org/entity/";
-            if (ownerValue.StartsWith(uriPrefix))
-                ownerValue = ownerValue[uriPrefix.Length..];
-            
-            WikidataItem? ownerItem = parishesWikidataData.Parishes.FirstOrDefault(w => w.QID == ownerValue);
+            WikidataItem? ownerItem = parishesWikidataData.Parishes.FirstOrDefault(w => w.ID == ownerValue);
             if (ownerItem == null)
                 return null;
 

@@ -22,10 +22,10 @@ public class WikidataItem
     
 
     [PublicAPI]
-    public string? this[long propertyID] => GetStatementValue(propertyID);
+    public string? this[long propertyID] => GetStatementBestStringValue(propertyID);
     
     [PublicAPI]
-    public string? this[WikiDataProperty property] => GetStatementValue(property);
+    public string? this[WikiDataProperty property] => GetStatementBestStringValue(property);
 
 
     private readonly Dictionary<string, string> _labels;
@@ -55,16 +55,30 @@ public class WikidataItem
 
     [PublicAPI]
     [Pure]
-    public string? GetStatementValue(WikiDataProperty property, string? language = null) => GetStatementValue((long)property, language);
+    public string? GetStatementBestStringValue(WikiDataProperty property, string? language = null) => GetStatementBestStringValue((long)property, language);
 
     [PublicAPI]
     [Pure]
-    public string? GetStatementValue(long propertyID, string? language = null)
+    public string? GetStatementBestStringValue(long propertyID, string? language = null)
     {
         return _statements
-               .Where(s => s.PropertyID == propertyID && !s.HasEndTime() && (s.Language == null || s.Language == language))
+               .Where(s => s.PropertyID == propertyID && s.Type == WikidataValueType.Literal && !s.HasEndTime() && (s.Language == null || s.Language == language))
                .OrderByDescending(s => s.Rank)
-               .FirstOrDefault()?.Value;
+               .FirstOrDefault()?.AsString;
+    }
+    
+    [PublicAPI]
+    [Pure]
+    public long? GetStatementBestQIDValue(WikiDataProperty property) => GetStatementBestQIDValue((long)property);
+
+    [PublicAPI]
+    [Pure]
+    public long? GetStatementBestQIDValue(long propertyID)
+    {
+        return _statements
+               .Where(s => s.PropertyID == propertyID && s.Type == WikidataValueType.Uri && s.UriType == WikidataUriType.Entity && !s.HasEndTime())
+               .OrderByDescending(s => s.Rank)
+               .FirstOrDefault()?.AsQID;
     }
     
     [PublicAPI]
@@ -84,6 +98,23 @@ public class WikidataItem
             .OrderByDescending(s => s.Rank)
             .FirstOrDefault();
     }
+
+    [PublicAPI]
+    [Pure]
+    public decimal? GetStatementValueAsDecimal(WikiDataProperty property) => GetStatementValueAsDecimal((long)property);
+
+    [PublicAPI]
+    [Pure]
+    public decimal? GetStatementValueAsDecimal(long propertyID) => GetStatement(propertyID)?.AsDecimal;
+
+    [PublicAPI]
+    [Pure]
+    public DateTime? GetStatementValueAsDateTime(WikiDataProperty property) => GetStatementValueAsDateTime((long)property);
+
+    [PublicAPI]
+    [Pure]
+    public DateTime? GetStatementValueAsDateTime(long propertyID) => GetStatement(propertyID)?.AsDateTime;
+
 
     [PublicAPI]
     [Pure]

@@ -14,8 +14,8 @@ public abstract class AdminWikidataData : AnalysisData, IUndatedAnalysisData
     {
         // todo: cache?
         
-        return item.GetStatementValue(WikiDataProperty.OfficialName, language) ?? // prefer specific official name property
-               item.GetStatementValue(WikiDataProperty.Name, language) ?? // accept specific general name property
+        return item.GetStatementBestStringValue(WikiDataProperty.OfficialName, language) ?? // prefer specific official name property
+               item.GetStatementBestStringValue(WikiDataProperty.Name, language) ?? // accept specific general name property
                item.GetLabel(language) ?? // if preferred properties are missing, use Latvian label
                item.GetLabel("mul"); // fallback to multilingual label
     }

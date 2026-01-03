@@ -16,6 +16,7 @@ public class VillagesWikidataData : AdminWikidataData
 
 
     private const long villageInLatviaQID = 22580836; // includes both villages and hamlets
+    private const long smallVillageInLatviaQID = 16363214; // small village in Latvia, i.e. mazciems = hamlet
 
 
     protected override string DataFileIdentifier => "villages-wikidata";
@@ -24,13 +25,16 @@ public class VillagesWikidataData : AdminWikidataData
     private string RawFilePath => Path.Combine(CacheBasePath, DataFileIdentifier + "-raw.json");
 
 
-    public List<WikidataItem> Villages { get; private set; } = null!; // only null before prepared
+    public List<WikidataItem> AllVillages { get; private set; } = null!; // only null before prepared
+    
+    public List<WikidataItem> Hamlets { get; private set; } = null!; // only null before prepared
+    public List<WikidataItem> NonHamlets { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
     {
         // Fetch villages and hamlets (e.g., village Ulbroka, hamlet Pilda)
-        // Note: Wikidata doesn't differentiate between villages and hamlets - both use the same instance-of
+        // Note: Wikidata doesn't directly differentiate between villages and hamlets - both use the same instance-of
         string rawJson = Wikidata.FetchItemsByInstanceOfRaw(villageInLatviaQID);
         File.WriteAllText(RawFilePath, rawJson);
         
@@ -48,8 +52,16 @@ public class VillagesWikidataData : AdminWikidataData
     private void ProcessDownloadedData()
     {
         string rawJson = File.ReadAllText(RawFilePath);
-        Villages = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
-        if (Villages.Count == 0) throw new Exception("No villages were fetched from Wikidata.");
+        AllVillages = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
+        if (AllVillages.Count == 0) throw new Exception("No villages were fetched from Wikidata.");
+        
+        Hamlets = AllVillages
+            .Where(item => item.HasStatementValueAsQID(WikiDataProperty.InstanceOf, smallVillageInLatviaQID))
+            .ToList();
+        if (Hamlets.Count == 0) throw new Exception("No hamlets were identified among the villages from Wikidata, which is not expected and probably means Wikidata has changed something");
+        
+        NonHamlets = AllVillages.Except(Hamlets).ToList();
+        if (NonHamlets.Count == 0) throw new Exception("All villages were classified as hamlets, which is not expected and probably means Wikidata has changed something");
 
 #if DEBUG
         // foreach (WikidataItem item in Items) Debug.WriteLine($"Village/Hamlet: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
@@ -58,10 +70,16 @@ public class VillagesWikidataData : AdminWikidataData
 
 
 
-    public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher) 
+    public void AssignHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches) 
         where T : class, IHasWikidataItem
     {
-        AssignWikidataItems(dataItems, Villages, matcher);
+        AssignWikidataItems(dataItems, Hamlets, matcher, out multiMatches);
+    }
+    
+    public void AssignNonHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches)
+        where T : class, IHasWikidataItem
+    {
+        AssignWikidataItems(dataItems, NonHamlets, matcher, out multiMatches);
     }
 }
 

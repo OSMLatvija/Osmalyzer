@@ -72,7 +72,8 @@ public class ParishAnalyzer : Analyzer
             (i, wd) =>
                 i.Name == AdminWikidataData.GetBestName(wd, "lv") &&
                 (addressData.IsUniqueParishName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
-                 i.MunicipalityName == GetWikidataAdminItemOwnerName(wd))
+                 i.MunicipalityName == GetWikidataAdminItemOwnerName(wd)),
+            out List<(Parish, List<WikidataItem>)> multiMatches
         );
         
         string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
@@ -268,7 +269,7 @@ public class ParishAnalyzer : Analyzer
         }
         
         List<WikidataItem> extraWikidataItems = wikidataData.Parishes
-                                                            .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
+                                                            .Where(wd => addressData.Parishes.All(c => c.WikidataItem != wd))
                                                             .ToList();
 
         foreach (WikidataItem wikidataItem in extraWikidataItems)
@@ -278,7 +279,18 @@ public class ParishAnalyzer : Analyzer
             report.AddEntry(
                 ExtraReportGroup.ExtraDataItems,
                 new IssueReportEntry(
-                    "Wikidata parish item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
+                    "Wikidata parish item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
+                )
+            );
+        }
+        
+        foreach ((Parish parish, List<WikidataItem> matches) in multiMatches)
+        {
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    parish.ReportString() + " matched multiple Wikidata items: " +
+                    string.Join(", ", matches.Select(wd => wd.WikidataUrl))
                 )
             );
         }

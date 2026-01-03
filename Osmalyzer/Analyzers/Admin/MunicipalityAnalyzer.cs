@@ -66,7 +66,8 @@ public class MunicipalityAnalyzer : Analyzer
         
         wikidataData.Assign(
             addressData.Municipalities,
-            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv") // we have no name conflicts in municipalities, so this is sufficient
+            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv"), // we have no name conflicts in municipalities, so this is sufficient
+            out List<(Municipality, List<WikidataItem>)> multiMatches
         );
 
         // Prepare data comparer/correlator
@@ -251,7 +252,7 @@ public class MunicipalityAnalyzer : Analyzer
         }
         
         List<WikidataItem> extraWikidataItems = wikidataData.Municipalities
-                                                            .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
+                                                            .Where(wd => addressData.Municipalities.All(c => c.WikidataItem != wd))
                                                             .ToList();
 
         foreach (WikidataItem wikidataItem in extraWikidataItems)
@@ -261,7 +262,18 @@ public class MunicipalityAnalyzer : Analyzer
             report.AddEntry(
                 ExtraReportGroup.ExtraDataItems,
                 new IssueReportEntry(
-                    "Wikidata municipality item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
+                    "Wikidata municipality item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
+                )
+            );
+        }
+        
+        foreach ((Municipality municipality, List<WikidataItem> matches) in multiMatches)
+        {
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    municipality.ReportString() + " matched multiple Wikidata items: " +
+                    string.Join(", ", matches.Select(wd => wd.WikidataUrl))
                 )
             );
         }

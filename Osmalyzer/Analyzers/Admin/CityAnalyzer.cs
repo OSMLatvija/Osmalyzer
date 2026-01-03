@@ -74,7 +74,8 @@ public class CityAnalyzer : Analyzer
         
         wikidataData.Assign(
             addressData.Cities,
-            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv") // we have no name conflicts in cities, so this is sufficient
+            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv"), // we have no name conflicts in cities, so this is sufficient
+            out List<(City, List<WikidataItem>)> multiMatches
         );
         
         // Prepare data comparer/correlator
@@ -281,7 +282,18 @@ public class CityAnalyzer : Analyzer
             report.AddEntry(
                 ExtraReportGroup.ExtraDataItems,
                 new IssueReportEntry(
-                    "Wikidata city item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
+                    "Wikidata city item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
+                )
+            );
+        }
+        
+        foreach ((City city, List<WikidataItem> matches) in multiMatches)
+        {
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    city.ReportString() + " matched multiple Wikidata items: " +
+                    string.Join(", ", matches.Select(wd => wd.WikidataUrl))
                 )
             );
         }

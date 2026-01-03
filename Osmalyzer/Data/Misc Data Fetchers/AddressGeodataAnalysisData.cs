@@ -34,6 +34,8 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
     private string ExtractionFolder => "ADRGEO";
     
     private HashSet<string>? _duplicateParishNames;
+    private HashSet<string>? _duplicateVillageNames;
+    private HashSet<string>? _duplicateHamletNames;
 
 
     protected override void Download()
@@ -468,6 +470,42 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         }
         
         return !_duplicateParishNames.Contains(name);
+    }
+
+    [Pure]
+    public bool IsUniqueVillageName(string name)
+    {
+        if (_duplicateVillageNames == null)
+        {
+            // Build duplicate name set
+            _duplicateVillageNames = [ ];
+
+            HashSet<string> seenNames = [ ];
+
+            foreach (Village village in Villages)
+                if (!seenNames.Add(village.Name))
+                    _duplicateVillageNames.Add(village.Name);
+        }
+        
+        return !_duplicateVillageNames.Contains(name);
+    }
+
+    [Pure]
+    public bool IsUniqueHamletName(string name)
+    {
+        if (_duplicateHamletNames == null)
+        {
+            // Build duplicate name set
+            _duplicateHamletNames = [ ];
+
+            HashSet<string> seenNames = [ ];
+
+            foreach (Hamlet hamlet in Hamlets)
+                if (!seenNames.Add(hamlet.Name))
+                    _duplicateHamletNames.Add(hamlet.Name);
+        }
+        
+        return !_duplicateHamletNames.Contains(name);
     }
 }
 

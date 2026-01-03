@@ -9,7 +9,7 @@ public class VillageAnalyzer : Analyzer
 
     public override string Description => 
         "This report checks that all villages are mapped. " +
-        "The village VAR data is pretty much complete.";
+        "The village VAR data is pretty much complete (but hamlet data is not).";
 
     public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
@@ -17,7 +17,8 @@ public class VillageAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() => [ 
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
-        typeof(VillagesWikidataData)
+        typeof(VillagesWikidataData),
+        typeof(ParishesWikidataData)
     ];
         
 
@@ -40,7 +41,43 @@ public class VillageAnalyzer : Analyzer
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
-        VillagesWikidataData wikidataData = datas.OfType<VillagesWikidataData>().First();
+        VillagesWikidataData villagesWikidataData = datas.OfType<VillagesWikidataData>().First();
+        
+        ParishesWikidataData parishesWikidataData = datas.OfType<ParishesWikidataData>().First();
+        
+        // Assign WikiData
+
+        villagesWikidataData.AssignNonHamlets(
+            addressData.Villages,
+            (i, wd) =>
+                i.Name == AdminWikidataData.GetBestName(wd, "lv") &&
+                //(addressData.IsUniqueVillageName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
+                 i.ParishName == GetWikidataAdminItemOwnerName(wd),//)
+                // todo: there is also Pilskalne in both same-named Pilskalne pagasts, so we need to check the owner of parish...
+                // we cannot assume wikidata is correct to rely on unique names and it has lots of hamlet mistagging, so their list includes hamlets too
+            out List<(Village, List<WikidataItem>)> multiMatches
+        );
+        
+        string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
+        {
+            string? ownerValue = wikidataItem.GetStatementValue(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
+            if (ownerValue == null)
+                return null;         
+            
+            const string uriPrefix = "http://www.wikidata.org/entity/";
+            if (ownerValue.StartsWith(uriPrefix))
+                ownerValue = ownerValue[uriPrefix.Length..];
+            
+            WikidataItem? ownerItem = parishesWikidataData.Parishes.FirstOrDefault(w => w.QID == ownerValue);
+            if (ownerItem == null)
+                return null;
+
+            string? ownerName = AdminWikidataData.GetBestName(ownerItem, "lv");
+            
+            //Console.WriteLine($"Parish Wikidata item {wikidataItem.QID} owner municipality: {ownerName} ({ownerItem.QID})");
+            
+            return ownerName;
+        }
 
         // Parse villages
         
@@ -203,7 +240,6 @@ public class VillageAnalyzer : Analyzer
             false,
             new ValidateElementHasValue("place", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID)
         );
 
@@ -235,29 +271,39 @@ public class VillageAnalyzer : Analyzer
         
         // List extra data items from non-OSM that were not matched
         
-        // report.AddGroup(
-        //     ExtraReportGroup.ExtraDataItems,
-        //     "Extra data items",
-        //     "This section lists data items from additional external data sources that were not matched to any OSM element.",
-        //     "All external data items were matched to OSM elements."
-        // );
+        report.AddGroup(
+            ExtraReportGroup.ExtraDataItems,
+            "Extra data items",
+            "This section lists data items from additional external data sources that were not matched to any OSM element.",
+            "All external data items were matched to OSM elements."
+        );
+
+        List<WikidataItem> extraWikidataItems = villagesWikidataData.NonHamlets
+                                                                    .Where(wd => addressData.Villages.All(c => c.WikidataItem != wd))
+                                                                    .ToList();
         
-        // TODO: WE CAN'T TELL APART HAMLETS FROM VILLAGES IN WIKIDATA
-        // List<WikidataItem> extraWikidataItems = wikidataData.Villages
-        //                                                     .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
-        //                                                     .ToList();
-        //
-        // foreach (WikidataItem wikidataItem in extraWikidataItems)
-        // {
-        //     string? name = AdminWikidataData.GetBestName(wikidataItem, "lv") ?? null;
-        //
-        //     report.AddEntry(
-        //         ExtraReportGroup.ExtraDataItems,
-        //         new IssueReportEntry(
-        //             "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
-        //         )
-        //     );
-        // }
+        foreach (WikidataItem wikidataItem in extraWikidataItems)
+        {
+            string? name = AdminWikidataData.GetBestName(wikidataItem, "lv") ?? null;
+        
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
+                )
+            );
+        }
+
+        foreach ((Village village, List<WikidataItem> matches) in multiMatches)
+        {
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    village.ReportString() + " matched multiple Wikidata items: " +
+                    string.Join(", ", matches.Select(wd => wd.WikidataUrl))
+                )
+            );
+        }
     }
 
 

@@ -54,7 +54,7 @@ public static class Wikidata
     [MustUseReturnValue]
     public static string FetchItemsByInstanceOfRaw(long instanceOfQID)
     {
-        string filterClause = "?item wdt:P31 wd:Q" + instanceOfQID + ".";
+        string filterClause = "?item wdt:P31 wd:Q" + instanceOfQID + "."; // todo: dehardcode P31
         return FetchItemsWithFilterRaw(filterClause);
     }
 

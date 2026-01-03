@@ -99,7 +99,7 @@ public class ParishAnalyzer : Analyzer
             osmParishes,
             addressData.Parishes.Where(p => p.Valid).ToList(),
             new MatchDistanceParamater(10000),
-            new MatchFarDistanceParamater(30000),
+            new MatchFarDistanceParamater(50000),
             new MatchCallbackParameter<Parish>(GetParishMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("parish", "parishes"),
@@ -127,6 +127,13 @@ public class ParishAnalyzer : Analyzer
             if (place == "parish")
                 return true; // explicitly tagged
             
+            string? name = element.GetValue("name");
+            
+            if (name != null && name.Contains("Савет"))
+                return true; // Belarusian parishes leaking over
+            
+            if (name != null && name.Contains("поселение"))
+                return true; // Russian town thing leaking over
             
             return true;
         }

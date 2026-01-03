@@ -228,21 +228,24 @@ public class Validator<T> where T : IDataItem
                         suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value));
                     }
                 }
-                else // we don't know what it should be
+                else // we expect no value (empty string)
                 {
-                    report.AddEntry(
-                        ReportGroup.ValidationResults,
-                        new IssueReportEntry(
-                            "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
-                            new SortEntryAsc(GetSortKey(osmElement)),
-                            osmElement.AverageCoord,
-                            MapPointStyle.Problem,
-                            osmElement
-                        )
-                    );
+                    if (elementValue != null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(osmElement)),
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
                     
-                    suggestedChangesForRule ??= [ ];
-                    suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value) );
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, rule.Tag));
+                    }
                 }
 
                 return suggestedChangesForRule;
@@ -266,6 +269,13 @@ public class Validator<T> where T : IDataItem
                             osmElement
                         )
                     );
+                    
+                    // Suggest the first value if available
+                    if (rule.Values.Length > 0)
+                    {
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Values[0]));
+                    }
                 }
                 else
                 {
@@ -281,6 +291,13 @@ public class Validator<T> where T : IDataItem
                                 osmElement
                             )
                         );
+                        
+                        // Suggest the first value if available
+                        if (rule.Values.Length > 0)
+                        {
+                            suggestedChangesForRule ??= [ ];
+                            suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Values[0]));
+                        }
                     }
                 }
 
@@ -420,7 +437,7 @@ public class Validator<T> where T : IDataItem
                         suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
                     }
                 }
-                else // we don't know what it should be
+                else // we expect no value (empty string)
                 {
                     if (elementValue != null)
                     {
@@ -440,7 +457,7 @@ public class Validator<T> where T : IDataItem
                     }
                 }
 
-                return null;
+                return suggestedChangesForRule;
             }
         }
         

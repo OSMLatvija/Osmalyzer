@@ -76,7 +76,7 @@ public class MunicipalityAnalyzer : Analyzer
             osmMunicipalities,
             addressData.Municipalities.Where(m => m.Valid).ToList(),
             new MatchDistanceParamater(25000),
-            new MatchFarDistanceParamater(60000),
+            new MatchFarDistanceParamater(75000),
             new MatchCallbackParameter<Municipality>(GetMunicipalityMatchStrength),
             new OsmElementPreviewValue("name", false),
             new DataItemLabelsParamater("municipality", "municipalities"),

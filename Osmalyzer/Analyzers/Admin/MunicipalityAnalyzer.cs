@@ -45,6 +45,27 @@ public class MunicipalityAnalyzer : Analyzer
         MunicipalitiesWikidataData wikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
         
         StateCitiesAnalysisData stateCitiesData = datas.OfType<StateCitiesAnalysisData>().First();
+        
+        // Match VZD and ATVK data items
+
+        Equivalator<Municipality, AtkvEntry> equivalator = new Equivalator<Municipality, AtkvEntry>(
+            addressData.Municipalities, 
+            atvkEntries
+        );
+        
+        equivalator.MatchItems(
+            (i1, i2) => i1.Name == i2.Name // we have no name conflicts in municipalities, so this is sufficient
+        );
+        
+        Dictionary<Municipality, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
+        
+        // Assign WikiData
+        
+        wikidataData.Assign(
+            addressData.Municipalities,
+            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv") // we have no name conflicts in municipalities, so this is sufficient
+        );
 
         // Prepare data comparer/correlator
 
@@ -161,27 +182,6 @@ public class MunicipalityAnalyzer : Analyzer
                 }
             }
         }
-        
-        // Match VZD and ATVK data items
-
-        Equivalator<Municipality, AtkvEntry> equivalator = new Equivalator<Municipality, AtkvEntry>(
-            addressData.Municipalities, 
-            atvkEntries
-        );
-        
-        equivalator.MatchItems(
-            (i1, i2) => i1.Name == i2.Name // we have no name conflicts in municipalities, so this is sufficient
-        );
-        
-        Dictionary<Municipality, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
-        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
-        
-        // Assign WikiData
-        
-        wikidataData.Assign(
-            addressData.Municipalities,
-            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv") // we have no name conflicts in municipalities, so this is sufficient
-        );
         
         // Validate municipality syntax
         

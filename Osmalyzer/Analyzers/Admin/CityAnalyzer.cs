@@ -54,7 +54,7 @@ public class CityAnalyzer : Analyzer
         );
         
         equivalator.MatchItems(
-            (i1, i2) => i1.Name == i2.Name
+            (i1, i2) => i1.Name == i2.Name // we have no name conflicts in cities, so this is sufficient
         );
         
         Dictionary<City, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
@@ -72,7 +72,7 @@ public class CityAnalyzer : Analyzer
         
         wikidataData.Assign(
             addressData.Cities,
-            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv")
+            (i, wd) => i.Name == AdminWikidataData.GetBestName(wd, "lv") // we have no name conflicts in cities, so this is sufficient
         );
         
         // Prepare data comparer/correlator

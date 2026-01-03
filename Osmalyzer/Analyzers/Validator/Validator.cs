@@ -403,21 +403,21 @@ public class Validator<T> where T : IDataItem
                         suggestedChangesForRule ??= [ ];
                         suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
                     }
-                    else
+                    else if (elementValue != dataValue)
                     {
-                        if (elementValue != dataValue)
-                        {
-                            report.AddEntry(
-                                ReportGroup.ValidationResults,
-                                new IssueReportEntry(
-                                    "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
-                                    new SortEntryAsc(GetSortKey(osmElement)),
-                                    osmElement.AverageCoord,
-                                    MapPointStyle.Problem,
-                                    osmElement
-                                )
-                            );
-                        }
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(osmElement)),
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+                        
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
                     }
                 }
                 else // we don't know what it should be

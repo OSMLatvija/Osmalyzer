@@ -24,7 +24,7 @@ public class MunicipalitiesWikidataData : AdminWikidataData
     private string RawFilePath => Path.Combine(CacheBasePath, DataFileIdentifier + "-raw.json");
 
 
-    public List<WikidataItem> Items { get; private set; } = null!; // only null before prepared
+    public List<WikidataItem> Municipalities { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
@@ -47,8 +47,8 @@ public class MunicipalitiesWikidataData : AdminWikidataData
     private void ProcessDownloadedData()
     {
         string rawJson = File.ReadAllText(RawFilePath);
-        Items = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
-        if (Items.Count == 0) throw new Exception("No municipalities were fetched from Wikidata.");
+        Municipalities = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
+        if (Municipalities.Count == 0) throw new Exception("No municipalities were fetched from Wikidata.");
 
 #if DEBUG
         // foreach (WikidataItem item in Items)
@@ -69,7 +69,7 @@ public class MunicipalitiesWikidataData : AdminWikidataData
     public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher) 
         where T : class, IHasWikidataItem
     {
-        AssignWikidataItems(dataItems, Items, matcher);
+        AssignWikidataItems(dataItems, Municipalities, matcher);
     }
 }
 

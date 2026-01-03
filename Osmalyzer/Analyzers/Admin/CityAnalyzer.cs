@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class CityAnalyzer : Analyzer
@@ -215,7 +217,7 @@ public class CityAnalyzer : Analyzer
             false,
             new ValidateElementHasValue("place", "city"),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision!.Value && dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null, [ "ref:nuts" ]),
+            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<City>("wikidata", c => c.WikidataItem?.QID)
         );
@@ -244,13 +246,53 @@ public class CityAnalyzer : Analyzer
                 )
             );
         }
+        
+        // List extra data items from non-OSM that were not matched
+        
+        report.AddGroup(
+            ExtraReportGroup.ExtraDataItems,
+            "Extra data items",
+            "This section lists data items from additional external data sources that were not matched to any OSM element.",
+            "All external data items were matched to OSM elements."
+        );
+        
+        List<AtkvEntry> extraAtvkEntries = atvkEntries
+            .Where(e => !dataItemMatches.Values.Contains(e))
+            .ToList();
+        
+        foreach (AtkvEntry atvkEntry in extraAtvkEntries)
+        {
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    "ATVK entry for city `" + atvkEntry.Name + "` (#`" + atvkEntry.Code + "`) was not matched to any OSM element."
+                )
+            );
+        }
+        
+        List<WikidataItem> extraWikidataItems = wikidataData.AllCities
+            .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
+            .ToList();
+
+        foreach (WikidataItem wikidataItem in extraWikidataItems)
+        {
+            string? name = AdminWikidataData.GetBestName(wikidataItem, "lv") ?? null;
+
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    "Wikidata city item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
+                )
+            );
+        }
     }
 
 
     private enum ExtraReportGroup
     {
         CityBoundaries,
-        InvalidCities
+        InvalidCities,
+        ExtraDataItems
     }
 }
 

@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class HamletAnalyzer : Analyzer
@@ -166,6 +168,32 @@ public class HamletAnalyzer : Analyzer
                 )
             );
         }
+        
+        // List extra data items from non-OSM that were not matched
+        
+        // report.AddGroup(
+        //     ExtraReportGroup.ExtraDataItems,
+        //     "Extra data items",
+        //     "This section lists data items from additional external data sources that were not matched to any OSM element.",
+        //     "All external data items were matched to OSM elements."
+        // );
+        
+        // TODO: WE CAN'T TELL APART HAMLETS FROM VILLAGES IN WIKIDATA
+        // List<WikidataItem> extraWikidataItems = wikidataData.Villages
+        //                                                     .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
+        //                                                     .ToList();
+        //
+        // foreach (WikidataItem wikidataItem in extraWikidataItems)
+        // {
+        //     string? name = AdminWikidataData.GetBestName(wikidataItem, "lv") ?? null;
+        //
+        //     report.AddEntry(
+        //         ExtraReportGroup.ExtraDataItems,
+        //         new IssueReportEntry(
+        //             "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
+        //         )
+        //     );
+        // }
     }
 
 
@@ -186,7 +214,8 @@ public class HamletAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         SuggestedHamletAdditions,
-        InvalidHamlets
+        InvalidHamlets,
+        ExtraDataItems
     }
 }
 

@@ -85,7 +85,7 @@ public class ParishAnalyzer : Analyzer
             if (ownerValue.StartsWith(uriPrefix))
                 ownerValue = ownerValue[uriPrefix.Length..];
             
-            WikidataItem? ownerItem = municipalitiesWikidataData.Items.FirstOrDefault(w => w.QID == ownerValue);
+            WikidataItem? ownerItem = municipalitiesWikidataData.Municipalities.FirstOrDefault(w => w.QID == ownerValue);
             if (ownerItem == null)
                 return null;
 
@@ -244,21 +244,51 @@ public class ParishAnalyzer : Analyzer
             );
         }
         
-#if DEBUG
-        // // Debug-list unmatched wikidata items to console
-        // List<WikidataItem> unmatchedWikidataItems = wikidataData.Items
-        //     .Where(wd => !addressData.Parishes.Any(p => p.WikidataItem != null && p.WikidataItem.QID == wd.QID))
-        //     .ToList();
-        // Console.WriteLine("Unmatched parish Wikidata items:");
-        // foreach (WikidataItem wd in unmatchedWikidataItems)
-        //     Console.WriteLine($"- {AdminWikidataData.GetBestName(wd, "lv")} ({wd.QID})");
-#endif
+        // List extra data items from non-OSM that were not matched
+        
+        report.AddGroup(
+            ExtraReportGroup.ExtraDataItems,
+            "Extra data items",
+            "This section lists data items from additional external data sources that were not matched to any OSM element.",
+            "All external data items were matched to OSM elements."
+        );
+        
+        List<AtkvEntry> extraAtvkEntries = atvkEntries
+                                           .Where(e => !dataItemMatches.Values.Contains(e))
+                                           .ToList();
+        
+        foreach (AtkvEntry atvkEntry in extraAtvkEntries)
+        {
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    "ATVK entry for parish `" + atvkEntry.Name + "` (#`" + atvkEntry.Code + "`) was not matched to any OSM element."
+                )
+            );
+        }
+        
+        List<WikidataItem> extraWikidataItems = wikidataData.Parishes
+                                                            .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
+                                                            .ToList();
+
+        foreach (WikidataItem wikidataItem in extraWikidataItems)
+        {
+            string? name = AdminWikidataData.GetBestName(wikidataItem, "lv") ?? null;
+
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    "Wikidata parish item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
+                )
+            );
+        }
     }
 
 
     private enum ExtraReportGroup
     {
         ParishBoundaries,
-        InvalidParishes
+        InvalidParishes,
+        ExtraDataItems
     }
 }

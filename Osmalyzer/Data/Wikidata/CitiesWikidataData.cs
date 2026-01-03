@@ -26,6 +26,7 @@ public class CitiesWikidataData : AdminWikidataData
     private string RegionalCitiesRawFilePath => Path.Combine(CacheBasePath, DataFileIdentifier + "-regional-raw.json");
 
 
+    public List<WikidataItem> AllCities { get; private set; } = null!; // only null before prepared
     public List<WikidataItem> StateCities { get; private set; } = null!; // only null before prepared
     public List<WikidataItem> RegionalCities { get; private set; } = null!; // only null before prepared
 
@@ -61,6 +62,10 @@ public class CitiesWikidataData : AdminWikidataData
         RegionalCities = Wikidata.ProcessItemsByInstanceOfRaw(regionalCitiesRaw);
         if (RegionalCities.Count == 0) throw new Exception("No regional cities were fetched from Wikidata.");
 
+        AllCities = [ ];
+        AllCities.AddRange(StateCities);
+        AllCities.AddRange(RegionalCities);
+        
 #if DEBUG
         // foreach (WikidataItem item in StateCities) Debug.WriteLine($"State City: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
         // foreach (WikidataItem item in RegionalCities) Debug.WriteLine($"Regional City: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
@@ -72,11 +77,7 @@ public class CitiesWikidataData : AdminWikidataData
     public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher) 
         where T : class, IHasWikidataItem
     {
-        List<WikidataItem> allCities = [ ];
-        allCities.AddRange(StateCities);
-        allCities.AddRange(RegionalCities);
-
-        AssignWikidataItems(dataItems, allCities, matcher);
+        AssignWikidataItems(dataItems, AllCities, matcher);
     }
 }
 

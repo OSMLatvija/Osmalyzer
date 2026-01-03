@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class MunicipalityAnalyzer : Analyzer
@@ -224,12 +226,52 @@ public class MunicipalityAnalyzer : Analyzer
                 )
             );
         }
+        
+        // List extra data items from non-OSM that were not matched
+        
+        report.AddGroup(
+            ExtraReportGroup.ExtraDataItems,
+            "Extra data items",
+            "This section lists data items from additional external data sources that were not matched to any OSM element.",
+            "All external data items were matched to OSM elements."
+        );
+        
+        List<AtkvEntry> extraAtvkEntries = atvkEntries
+                                           .Where(e => !dataItemMatches.Values.Contains(e))
+                                           .ToList();
+        
+        foreach (AtkvEntry atvkEntry in extraAtvkEntries)
+        {
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    "ATVK entry for municipality `" + atvkEntry.Name + "` (#`" + atvkEntry.Code + "`) was not matched to any OSM element."
+                )
+            );
+        }
+        
+        List<WikidataItem> extraWikidataItems = wikidataData.Municipalities
+                                                            .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
+                                                            .ToList();
+
+        foreach (WikidataItem wikidataItem in extraWikidataItems)
+        {
+            string? name = AdminWikidataData.GetBestName(wikidataItem, "lv") ?? null;
+
+            report.AddEntry(
+                ExtraReportGroup.ExtraDataItems,
+                new IssueReportEntry(
+                    "Wikidata municipality item " + wikidataItem.WikidataUrl + (name != null ? "`" + name + "` " : "") + " was not matched to any OSM element."
+                )
+            );
+        }
     }
 
 
     private enum ExtraReportGroup
     {
         MunicipalityBoundaries,
-        InvalidMunicipalities
+        InvalidMunicipalities,
+        ExtraDataItems
     }
 }

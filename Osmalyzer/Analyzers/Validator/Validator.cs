@@ -182,7 +182,7 @@ public class Validator<T> where T : IDataItem
                 
                 string? elementValue = osmElement.GetValue(rule.Tag);
                 
-                if (rule.Value == null)
+                if (rule.Value == null) // we don't know what is expected
                     return null;
 
                 // Is the expected value in a different tag that is known to be incorrect there?
@@ -209,40 +209,40 @@ public class Validator<T> where T : IDataItem
                         suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
                 }
 
-                if (elementValue != "")
+                if (rule.Value != "") // we know what it should be 
                 {
-                    report.AddEntry(
-                        ReportGroup.ValidationResults,
-                        new IssueReportEntry(
-                            "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
-                            new SortEntryAsc(GetSortKey(osmElement)),
-                            osmElement.AverageCoord,
-                            MapPointStyle.Problem,
-                            osmElement
-                        )
-                    );
-
-                    suggestedChangesForRule ??= [ ];
-                    suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value));
-                }
-                else
-                {
-                    if (rule.Value != elementValue)
+                    if (rule.Value != elementValue) // but it's not that
                     {
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                                "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
                                 osmElement
                             )
                         );
-                        
+
                         suggestedChangesForRule ??= [ ];
-                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value) );
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value));
                     }
+                }
+                else // we don't know what it should be
+                {
+                    report.AddEntry(
+                        ReportGroup.ValidationResults,
+                        new IssueReportEntry(
+                            "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                            new SortEntryAsc(GetSortKey(osmElement)),
+                            osmElement.AverageCoord,
+                            MapPointStyle.Problem,
+                            osmElement
+                        )
+                    );
+                    
+                    suggestedChangesForRule ??= [ ];
+                    suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value) );
                 }
 
                 return suggestedChangesForRule;
@@ -361,7 +361,7 @@ public class Validator<T> where T : IDataItem
                 if (dataValue == null)
                     return null; // we don't know what it is supposed to be 
 
-                if (dataValue != "")
+                if (dataValue != "") // we know what it should be
                 {
                     // Is the expected value in a different tag that is known to be incorrect there?
                     List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, osmElement, dataValue);
@@ -420,7 +420,7 @@ public class Validator<T> where T : IDataItem
                         }
                     }
                 }
-                else
+                else // we don't know what it should be
                 {
                     if (elementValue != null)
                     {

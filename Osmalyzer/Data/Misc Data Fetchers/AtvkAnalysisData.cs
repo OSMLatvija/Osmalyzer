@@ -88,7 +88,7 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
                 // There is no 2 (in active)
                 
                 // Rīga, Daugavpils, Jelgava, ... Aizkraukles novads, Augšdaugavas novads, Balvu novads, ...
-                3 => AtkvLevel.StateCityOrMunicipality,
+                3 => AtkvLevel.CityOrMunicipality,
                 
                 // Aizkraukle, Jaunjelgava, Koknese, ... Aiviekstes pagasts, Aizkraukles pagasts, Bebru pagasts...
                 4 => AtkvLevel.CityOrParish,
@@ -101,8 +101,8 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
             {
                 AtkvLevel.Country                 => AtkvDesignation.Country,
                 AtkvLevel.Region                  => AtkvDesignation.Region,
-                AtkvLevel.StateCityOrMunicipality => name.EndsWith(" novads") ? AtkvDesignation.Municipality : AtkvDesignation.StateCity,
-                AtkvLevel.CityOrParish            => name.EndsWith(" pagasts") ? AtkvDesignation.Parish : AtkvDesignation.RegionalCity,
+                AtkvLevel.CityOrMunicipality => name.EndsWith(" novads") ? AtkvDesignation.Municipality : AtkvDesignation.CityInRegion,
+                AtkvLevel.CityOrParish            => name.EndsWith(" pagasts") ? AtkvDesignation.Parish : AtkvDesignation.CityInMunicipality,
                 _                                 => throw new Exception()
             } : AtkvDesignation.Expired;
 

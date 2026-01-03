@@ -13,7 +13,7 @@ public class FeatureNameQualifiersAnalysisData : AnalysisData
 
     private readonly string[] locales = [ "ru", "en" ];
 
-    public Dictionary<string, Dictionary<string, List<string>>> Names { get; private set; } = null!; // only null until downloaded
+    public Dictionary<string, Dictionary<string, List<string>>> Names { get; private set; } = null!; // only null until loaded
 
 
     protected override void Download()

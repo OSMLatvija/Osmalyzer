@@ -51,22 +51,24 @@ public class AtkvEntry : IDataItem
         [Pure]
         string LevelName() => Designation switch
         {
-            AtkvDesignation.Country      => "Country",
-            AtkvDesignation.Region       => "Region",
-            AtkvDesignation.StateCity    => "State city",
-            AtkvDesignation.Municipality => "Municipality",
-            AtkvDesignation.RegionalCity => "Regional city",
-            AtkvDesignation.Parish       => "Parish",
-            _                            => throw new Exception()
+            AtkvDesignation.Country            => "Country",
+            AtkvDesignation.Region             => "Region",
+            AtkvDesignation.CityInRegion       => "City (in region)",
+            AtkvDesignation.Municipality       => "Municipality",
+            AtkvDesignation.CityInMunicipality => "City (in municipality)",
+            AtkvDesignation.Parish             => "Parish",
+            _                                  => throw new Exception()
         };
     }
+
+    public override string ToString() => ReportString();
 }
 
 public enum AtkvLevel
 {
     Country,
     Region,
-    StateCityOrMunicipality,
+    CityOrMunicipality,
     CityOrParish,
     Expired
 }
@@ -75,9 +77,9 @@ public enum AtkvDesignation
 {
     Country,
     Region,
-    StateCity,
+    CityInRegion,
     Municipality,
-    RegionalCity,
+    CityInMunicipality,
     Parish,
     Expired
 }

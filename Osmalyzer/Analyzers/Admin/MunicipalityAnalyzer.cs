@@ -15,7 +15,8 @@ public class MunicipalityAnalyzer : Analyzer
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
         typeof(AtvkAnalysisData),
-        typeof(MunicipalitiesWikidataData)
+        typeof(MunicipalitiesWikidataData),
+        typeof(StateCitiesAnalysisData)
     ];
         
 
@@ -42,6 +43,8 @@ public class MunicipalityAnalyzer : Analyzer
                                            .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Municipality).ToList();
         
         MunicipalitiesWikidataData wikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
+        
+        StateCitiesAnalysisData stateCitiesData = datas.OfType<StateCitiesAnalysisData>().First();
 
         // Prepare data comparer/correlator
 
@@ -81,8 +84,8 @@ public class MunicipalityAnalyzer : Analyzer
                 return false; // explicitly not tagged
             
             string? name = element.GetValue("name");
-            if (name is "Daugavpils" or "Jelgava" or "Jēkabpils" or "Jūrmala" or "Liepāja" or "Ogre" or "Rēzekne" or "Rīga" or "Valmiera" or "Ventspils")
-                return false; // cities have the same admin level, but we know them
+            if (name != null && stateCitiesData.Names.Contains(name))
+                return false; // state cities have the same admin level as municipalities, but we know them, so we can exclude them
                         
             if (name != null && name.Contains("rajono"))
                 return false; // Lithuanian district

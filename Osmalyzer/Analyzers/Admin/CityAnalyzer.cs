@@ -15,7 +15,8 @@ public class CityAnalyzer : Analyzer
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
         typeof(AtvkAnalysisData),
-        typeof(CitiesWikidataData)
+        typeof(CitiesWikidataData),
+        typeof(StateCitiesAnalysisData)
     ];
         
 
@@ -39,9 +40,11 @@ public class CityAnalyzer : Analyzer
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
         List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
-                                           .Where(e => !e.IsExpired && e.Designation is AtkvDesignation.StateCity or AtkvDesignation.RegionalCity).ToList();
+                                           .Where(e => !e.IsExpired && e.Designation is AtkvDesignation.CityInRegion or AtkvDesignation.CityInMunicipality).ToList();
 
         CitiesWikidataData wikidataData = datas.OfType<CitiesWikidataData>().First();
+        
+        StateCitiesAnalysisData stateCitiesData = datas.OfType<StateCitiesAnalysisData>().First();
         
         // Match VZD and ATVK data items
 
@@ -59,15 +62,10 @@ public class CityAnalyzer : Analyzer
 
         foreach ((City city, AtkvEntry atkvEntry) in dataItemMatches)
         {
-            city.Status = atkvEntry.Designation switch
-            {
-                AtkvDesignation.StateCity    => CityStatus.StateCity,
-                AtkvDesignation.RegionalCity => CityStatus.RegionalCity,
-                _                            => throw new Exception("Unexpected ATVK designation for city.")
-            };
-            
             // Cities that are not part of a municipality (i.e. are under region) are LAU divisions
             city.IsLAUDivision = atkvEntry.Parent?.Designation == AtkvDesignation.Region;
+            
+            city.Status = stateCitiesData.Names.Contains(city.Name) ? CityStatus.StateCity : CityStatus.RegionalCity;
         }
         
         // Assign WikiData
@@ -126,8 +124,8 @@ public class CityAnalyzer : Analyzer
             if (adminLevel == "5")
             {
                 string? name = element.GetValue("name");
-                if (name is "Daugavpils" or "Jelgava" or "Jēkabpils" or "Jūrmala" or "Liepāja" or "Ogre" or "Rēzekne" or "Rīga" or "Valmiera" or "Ventspils")
-                    return true;
+                if (name != null && stateCitiesData.Names.Contains(name))
+                    return true; // state cities have high admin level shared with municipalities, but we know them
                 
                 if (name != null && name.Contains("rajono"))
                     return false; // Lithuanian district

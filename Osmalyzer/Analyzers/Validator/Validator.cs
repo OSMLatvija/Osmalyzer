@@ -307,33 +307,36 @@ public class Validator<T> where T : IDataItem
                 string? elementValue = osmElement.GetValue(rule.Tag);
                 string? dataValue = rule.DataItemValueLookup(dataItem);
 
-                // Is the expected value in a different tag that is known to be incorrect there?
-                List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, osmElement, dataValue);
+                if (dataValue == null)
+                    return null; // we don't know what it is supposed to be 
 
-                if (foundInIncorrectTags != null)
+                if (dataValue != "")
                 {
-                    report.AddEntry(
-                        ReportGroup.ValidationResults,
-                        new IssueReportEntry(
-                            "OSM element has expected value `" + dataValue + "` set" + itemLabel +
-                            ", but not in the expected tag `" + rule.Tag + "`" +
-                            " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
-                            " - " + osmElement.OsmViewUrl,
-                            new SortEntryAsc(GetSortKey(osmElement)),
-                            osmElement.AverageCoord,
-                            MapPointStyle.Problem,
-                            osmElement
-                        )
-                    );
-                    
-                    suggestedChangesForRule ??= [ ];
-                    foreach (string incorrectTag in foundInIncorrectTags)
-                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
-                }
-                
-                if (elementValue == null)
-                {
-                    if (dataValue != null)
+                    // Is the expected value in a different tag that is known to be incorrect there?
+                    List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, osmElement, dataValue);
+
+                    if (foundInIncorrectTags != null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                "OSM element has expected value `" + dataValue + "` set" + itemLabel +
+                                ", but not in the expected tag `" + rule.Tag + "`" +
+                                " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
+                                " - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(osmElement)),
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+
+                        suggestedChangesForRule ??= [ ];
+                        foreach (string incorrectTag in foundInIncorrectTags)
+                            suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
+                    }
+
+                    if (elementValue == null)
                     {
                         report.AddEntry(
                             ReportGroup.ValidationResults,
@@ -345,16 +348,13 @@ public class Validator<T> where T : IDataItem
                                 osmElement
                             )
                         );
-                        
+
                         suggestedChangesForRule ??= [ ];
                         suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
                     }
-                }
-                else
-                {
-                    if (elementValue != dataValue)
+                    else
                     {
-                        if (dataValue != null)
+                        if (elementValue != dataValue)
                         {
                             report.AddEntry(
                                 ReportGroup.ValidationResults,
@@ -367,22 +367,28 @@ public class Validator<T> where T : IDataItem
                                 )
                             );
                         }
-                        else
-                        {
-                            report.AddEntry(
-                                ReportGroup.ValidationResults,
-                                new IssueReportEntry(
-                                    "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
-                                    new SortEntryAsc(GetSortKey(osmElement)),
-                                    osmElement.AverageCoord,
-                                    MapPointStyle.Problem,
-                                    osmElement
-                                )
-                            );
-                        }
                     }
                 }
-                
+                else
+                {
+                    if (elementValue != null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(osmElement)),
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+                    }
+                    
+                    suggestedChangesForRule ??= [ ];
+                    suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, rule.Tag));
+                }
+
                 return null;
             }
         }

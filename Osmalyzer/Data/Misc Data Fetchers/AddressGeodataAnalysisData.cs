@@ -172,10 +172,10 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         DbaseFileHeader dbaseHeader = shapefileReader.DbaseHeader;
 
 #if !REMOTE_EXECUTION
-        foreach (DbaseFieldDescriptor headerField in dbaseHeader.Fields)
-            Debug.WriteLine(
-                $"Hamlet: Field: {headerField.Name}, Type: {headerField.Type.Name}"
-            );
+        // foreach (DbaseFieldDescriptor headerField in dbaseHeader.Fields)
+        //     Debug.WriteLine(
+        //         $"Hamlet: Field: {headerField.Name}, Type: {headerField.Type.Name}"
+        //     );
 #endif
 
         Hamlets = [ ];

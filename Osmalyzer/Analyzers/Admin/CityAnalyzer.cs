@@ -220,7 +220,8 @@ public class CityAnalyzer : Analyzer
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<City>("wikidata", c => c.WikidataItem?.QID)
+            new ValidateElementValueMatchesDataItemValue<City>("wikidata", c => c.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<City>("designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null)
         );
 
 #if DEBUG

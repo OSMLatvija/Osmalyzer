@@ -89,6 +89,13 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ReportGroup.ProposedChanges);
 #endif
+    }
+    
+    
+    private enum ReportGroup
+    {
+        ProposedChanges
     }
 }

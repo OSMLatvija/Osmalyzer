@@ -83,6 +83,13 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ReportGroup.ProposedChanges);
 #endif
+    }
+    
+    
+    private enum ReportGroup
+    {
+        ProposedChanges
     }
 }

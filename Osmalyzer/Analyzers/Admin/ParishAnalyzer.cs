@@ -225,6 +225,7 @@ public class ParishAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid parishes that are still in data
@@ -304,6 +305,7 @@ public class ParishAnalyzer : Analyzer
     {
         ParishBoundaries,
         InvalidParishes,
-        ExtraDataItems
+        ExtraDataItems,
+        ProposedChanges
     }
 }

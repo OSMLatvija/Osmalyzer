@@ -241,6 +241,7 @@ public class VillageAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid villages that are still in data
@@ -322,6 +323,7 @@ public class VillageAnalyzer : Analyzer
         SuggestedVillageAdditions,
         VillageBoundaries,
         InvalidVillages,
-        ExtraDataItems
+        ExtraDataItems,
+        ProposedChanges
     }
 }

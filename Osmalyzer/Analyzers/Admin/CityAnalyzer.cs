@@ -226,6 +226,7 @@ public class CityAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid cities that are still in data
@@ -305,7 +306,8 @@ public class CityAnalyzer : Analyzer
     {
         CityBoundaries,
         InvalidCities,
-        ExtraDataItems
+        ExtraDataItems,
+        ProposedChanges
     }
 }
 

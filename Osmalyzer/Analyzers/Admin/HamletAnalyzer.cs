@@ -177,6 +177,7 @@ public class HamletAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid hamlets that are still in data
@@ -257,7 +258,8 @@ public class HamletAnalyzer : Analyzer
     {
         SuggestedHamletAdditions,
         InvalidHamlets,
-        ExtraDataItems
+        ExtraDataItems,
+        ProposedChanges
     }
 }
 

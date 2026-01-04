@@ -19,8 +19,6 @@ public class OsmChange
 
         _actions = [];
         
-        // todo:
-
         foreach (OsmElement element in data.Elements)
         {
             switch (element.State)

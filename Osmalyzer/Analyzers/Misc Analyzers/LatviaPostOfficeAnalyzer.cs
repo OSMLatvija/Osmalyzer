@@ -108,6 +108,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ReportGroup.ProposedChanges);
 #endif
 
         // Stats
@@ -125,6 +126,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
     
     private enum ReportGroup
     {
-        Stats
+        Stats,
+        ProposedChanges
     }
 }

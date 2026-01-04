@@ -205,6 +205,7 @@ public class MunicipalityAnalyzer : Analyzer
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
 
         // List invalid municipalities that are still in data
@@ -284,6 +285,7 @@ public class MunicipalityAnalyzer : Analyzer
     {
         MunicipalityBoundaries,
         InvalidMunicipalities,
-        ExtraDataItems
+        ExtraDataItems,
+        ProposedChanges
     }
 }

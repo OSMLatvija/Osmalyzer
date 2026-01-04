@@ -130,10 +130,10 @@ public class ParishAnalyzer : Analyzer
             string? name = element.GetValue("name");
             
             if (name != null && name.Contains("Савет"))
-                return true; // Belarusian parishes leaking over
+                return false; // Belarusian parishes leaking over
             
             if (name != null && name.Contains("поселение"))
-                return true; // Russian town thing leaking over
+                return false; // Russian town thing leaking over
             
             return true;
         }

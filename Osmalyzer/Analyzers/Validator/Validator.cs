@@ -17,9 +17,9 @@ public class Validator<T> where T : IDataItem
     public List<SuggestedAction> Validate(Report report, bool validateUnmatchedElements, params ValidationRule[] rules)
     {
         report.AddGroup(
-            ReportGroup.ValidationResults, 
+            ReportGroup.ValidationResults,
             _customTitle ?? "Other issues",
-            "These OSM elements and/or data items have additional individual (known) issues.",
+            "These " + (!validateUnmatchedElements ? "data-matched " : "") + "OSM elements and/or data items have additional individual (known) issues.",
             "No (known) issues found with matched/found OSM elements and/or data items."
         );
 

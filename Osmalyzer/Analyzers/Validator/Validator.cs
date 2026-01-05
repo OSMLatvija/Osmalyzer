@@ -178,35 +178,44 @@ public class Validator<T> where T : IDataItem
 
             List<SuggestedAction>? CheckElementHasValue(ValidateElementHasValue rule)
             {
+                if (rule.ShouldCheckElement != null)
+                    if (!rule.ShouldCheckElement(osmElement))
+                        return null; // don't need to check this element
+
+                OsmElement targetElement = osmElement;
+                
+                if (rule.ElementSelector != null)
+                    targetElement = rule.ElementSelector(targetElement); // different element to check than the matched one
+                
                 List<SuggestedAction>? suggestedChangesForRule = null;
                 
-                string? elementValue = osmElement.GetValue(rule.Tag);
+                string? elementValue = targetElement.GetValue(rule.Tag);
                 
                 if (rule.Value == null) // we don't know what is expected
                     return null;
 
                 // Is the expected value in a different tag that is known to be incorrect there?
-                List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, osmElement, rule.Value);
+                List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, targetElement, rule.Value);
 
                 if (foundInIncorrectTags != null)
                 {
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            ElementLabel(osmElement) + " has expected value `" + rule.Value + "` set" + itemLabel +
+                            ElementLabel(targetElement) + " has expected value `" + rule.Value + "` set" + itemLabel +
                             ", but not in the expected tag `" + rule.Tag + "`" +
                             " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
-                            " - " + osmElement.OsmViewUrl,
-                            new SortEntryAsc(GetSortKey(osmElement)),
-                            osmElement.AverageCoord,
+                            " - " + targetElement.OsmViewUrl,
+                            new SortEntryAsc(GetSortKey(targetElement)),
+                            targetElement.AverageCoord,
                             MapPointStyle.Problem,
-                            osmElement
+                            targetElement
                         )
                     );
                     
                     suggestedChangesForRule ??= [ ];
                     foreach (string incorrectTag in foundInIncorrectTags)
-                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
+                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(targetElement, incorrectTag));
                 }
 
                 if (rule.Value != "") // we know what it should be 
@@ -216,16 +225,16 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
-                                new SortEntryAsc(GetSortKey(osmElement)),
-                                osmElement.AverageCoord,
+                                ElementLabel(targetElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + targetElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(targetElement)),
+                                targetElement.AverageCoord,
                                 MapPointStyle.Problem,
-                                osmElement
+                                targetElement
                             )
                         );
 
                         suggestedChangesForRule ??= [ ];
-                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, rule.Value));
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(targetElement, rule.Tag, rule.Value));
                     }
                 }
                 else // we expect no value (empty string)
@@ -235,20 +244,20 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(osmElement) + " has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
-                                new SortEntryAsc(GetSortKey(osmElement)),
-                                osmElement.AverageCoord,
+                                ElementLabel(targetElement) + " has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + targetElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(targetElement)),
+                                targetElement.AverageCoord,
                                 MapPointStyle.Problem,
-                                osmElement
+                                targetElement
                             )
                         );
                     
                         suggestedChangesForRule ??= [ ];
-                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, rule.Tag));
+                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(targetElement, rule.Tag));
                     }
                 }
 
-                TrySimplifyToChangeKey(suggestedChangesForRule, osmElement);
+                TrySimplifyToChangeKey(suggestedChangesForRule, targetElement);
 
                 return suggestedChangesForRule;
             }
@@ -327,6 +336,10 @@ public class Validator<T> where T : IDataItem
 
             void CheckElementDoesntHaveValue(ValidateElementDoesntHaveTag rule)
             {
+                if (rule.ShouldCheckElement != null)
+                    if (!rule.ShouldCheckElement(osmElement))
+                        return; // don't need to check this element
+                
                 string? value = osmElement.GetValue(rule.Tag);
 
                 if (value != null)
@@ -372,9 +385,18 @@ public class Validator<T> where T : IDataItem
                 if (dataItem == null)
                     return null;
                 
+                if (rule.ShouldCheckElement != null)
+                    if (!rule.ShouldCheckElement(osmElement))
+                        return null; // don't need to check this element
+
+                OsmElement targetElement = osmElement;
+                
+                if (rule.ElementSelector != null)
+                    targetElement = rule.ElementSelector(targetElement); // different element to check than the matched one
+                
                 List<SuggestedAction>? suggestedChangesForRule = null;
                 
-                string? elementValue = osmElement.GetValue(rule.Tag);
+                string? elementValue = targetElement.GetValue(rule.Tag);
                 string? dataValue = rule.DataItemValueLookup(dataItem);
 
                 if (dataValue == null)
@@ -383,27 +405,27 @@ public class Validator<T> where T : IDataItem
                 if (dataValue != "") // we know what it should be
                 {
                     // Is the expected value in a different tag that is known to be incorrect there?
-                    List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, osmElement, dataValue);
+                    List<string>? foundInIncorrectTags = CheckIncorrectTagsForValue(rule.IncorrectTags, targetElement, dataValue);
 
                     if (foundInIncorrectTags != null)
                     {
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(osmElement) + " has expected value `" + dataValue + "` set" + itemLabel +
+                                ElementLabel(targetElement) + " has expected value `" + dataValue + "` set" + itemLabel +
                                 ", but not in the expected tag `" + rule.Tag + "`" +
                                 " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
-                                " - " + osmElement.OsmViewUrl,
-                                new SortEntryAsc(GetSortKey(osmElement)),
-                                osmElement.AverageCoord,
+                                " - " + targetElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(targetElement)),
+                                targetElement.AverageCoord,
                                 MapPointStyle.Problem,
-                                osmElement
+                                targetElement
                             )
                         );
 
                         suggestedChangesForRule ??= [ ];
                         foreach (string incorrectTag in foundInIncorrectTags)
-                            suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, incorrectTag));
+                            suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(targetElement, incorrectTag));
                     }
 
                     if (elementValue == null)
@@ -411,32 +433,32 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
-                                new SortEntryAsc(GetSortKey(osmElement)),
-                                osmElement.AverageCoord,
+                                ElementLabel(targetElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + " - " + targetElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(targetElement)),
+                                targetElement.AverageCoord,
                                 MapPointStyle.Problem,
-                                osmElement
+                                targetElement
                             )
                         );
 
                         suggestedChangesForRule ??= [ ];
-                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(targetElement, rule.Tag, dataValue));
                     }
                     else if (elementValue != dataValue)
                     {
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
-                                new SortEntryAsc(GetSortKey(osmElement)),
-                                osmElement.AverageCoord,
+                                ElementLabel(targetElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + ", instead `" + elementValue + "` - " + targetElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(targetElement)),
+                                targetElement.AverageCoord,
                                 MapPointStyle.Problem,
-                                osmElement
+                                targetElement
                             )
                         );
                         
                         suggestedChangesForRule ??= [ ];
-                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, rule.Tag, dataValue));
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(targetElement, rule.Tag, dataValue));
                     }
                 }
                 else // we expect no value (empty string)
@@ -446,20 +468,20 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(osmElement) + " has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
-                                new SortEntryAsc(GetSortKey(osmElement)),
-                                osmElement.AverageCoord,
+                                ElementLabel(targetElement) + " has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + targetElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(targetElement)),
+                                targetElement.AverageCoord,
                                 MapPointStyle.Problem,
-                                osmElement
+                                targetElement
                             )
                         );
                     
                         suggestedChangesForRule ??= [ ];
-                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, rule.Tag));
+                        suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(targetElement, rule.Tag));
                     }
                 }
 
-                TrySimplifyToChangeKey(suggestedChangesForRule, osmElement);
+                TrySimplifyToChangeKey(suggestedChangesForRule, targetElement);
 
                 return suggestedChangesForRule;
             }

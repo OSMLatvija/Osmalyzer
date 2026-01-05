@@ -36,6 +36,17 @@ public class VillageAnalyzer : Analyzer
             new HasAnyValue("admin_level", "9"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
+        
+        // Find preset centers of boundaries
+        // (we won't need to set some values if there is the "master" node for the relation)
+
+        foreach (OsmRelation relation in osmVillages.Relations)
+        {
+            List<OsmRelationMember> knownCenters = relation.Members.Where(m => m.Role == "admin_centre" && m.Element != null).ToList();
+
+            if (knownCenters.Count == 1) // todo: else report
+                relation.UserData = knownCenters[0].Element;
+        }
 
         // Get village/hamlet data
 
@@ -234,9 +245,15 @@ public class VillageAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
             false,
-            new ValidateElementHasValue("place", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID)
+            new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID),
+            // If no admin center given, check tags directly on relation
+            new ValidateElementHasValue(e => e.UserData == null, "place", "village"),
+            new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"),
+            new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
+            // If admin center given, check tags on the admin center node
+            new ValidateElementHasValue(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", "village"),
+            new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID)
         );
 
 #if DEBUG

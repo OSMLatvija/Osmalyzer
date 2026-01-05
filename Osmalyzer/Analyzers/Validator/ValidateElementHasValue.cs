@@ -6,6 +6,10 @@
 /// </summary>
 public class ValidateElementHasValue : ValidationRule
 {
+    public Func<OsmElement, bool>? ShouldCheckElement { get; }
+    
+    public Func<OsmElement, OsmElement>? ElementSelector { get; }
+
     public string Tag { get; }
 
     /// <summary>
@@ -16,8 +20,25 @@ public class ValidateElementHasValue : ValidationRule
     public string? Value { get; }
 
     public string[]? IncorrectTags { get; }
-    
-    
+
+
+    public ValidateElementHasValue(Func<OsmElement, bool> shouldCheckElement, Func<OsmElement, OsmElement> elementSelector, string tag, string? value, string[]? incorrectTags = null)
+    {
+        ShouldCheckElement = shouldCheckElement;
+        ElementSelector = elementSelector;
+        Tag = tag;
+        Value = value;
+        IncorrectTags = incorrectTags;
+    }
+
+    public ValidateElementHasValue(Func<OsmElement, bool> shouldCheckElement, string tag, string? value, string[]? incorrectTags = null)
+    {
+        ShouldCheckElement = shouldCheckElement;
+        Tag = tag;
+        Value = value;
+        IncorrectTags = incorrectTags;
+    }
+
     public ValidateElementHasValue(string tag, string? value, string[]? incorrectTags = null)
     {
         Tag = tag;

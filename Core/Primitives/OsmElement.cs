@@ -53,6 +53,9 @@ public abstract class OsmElement : IChunkerItem
     /// <summary> Filled by <see cref="OsmData.Deduplicate"/>, if called and if duplicated </summary>
     [PublicAPI]
     public List<OsmElement>? Duplicates { get; private set; }
+    
+    /// <summary> Arbitrary user data that can be attached to this element. </summary>
+    public object? UserData { get; set; }
 
    
     public (double x, double y) ChunkCoord => AverageCoord.ToCartesian();
@@ -92,6 +95,7 @@ public abstract class OsmElement : IChunkerItem
         Version = original.Version;
         Changeset = original.Changeset;
         State = original.State;
+        UserData = original.UserData is ICloneable clonable ? clonable.Clone() : original.UserData;
 
         // Deep copy tags
         if (original._tags != null)

@@ -1,4 +1,5 @@
-﻿using WikidataSharp;
+﻿using System.Diagnostics;
+using WikidataSharp;
 
 namespace Osmalyzer;
 
@@ -42,8 +43,16 @@ public class CityAnalyzer : Analyzer
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
         
-        // todo: find nodes as cities, i.e. admin center nodes
-        // todo: if it's not linked to boundary relation, report it
+        // Find preset centers of boundaries
+        // (we won't need to set some values if there is the "master" node for the relation)
+
+        foreach (OsmRelation relation in osmCities.Relations)
+        {
+            List<OsmRelationMember> knownCenters = relation.Members.Where(m => m.Role == "admin_centre" && m.Element != null).ToList();
+
+            if (knownCenters.Count == 1) // todo: else report
+                relation.UserData = knownCenters[0].Element;
+        }
 
         // Get city data
 
@@ -224,13 +233,19 @@ public class CityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
             false,
-            new ValidateElementHasValue("place", "city"),
             new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? stateCityAdminLevel : regionalCityAdminLevel),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<City>("wikidata", c => c.WikidataItem?.QID),
-            new ValidateElementValueMatchesDataItemValue<City>("designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null)
+            // If no admin center given, check tags directly on relation
+            new ValidateElementHasValue(e => e.UserData == null, "place", "city"),
+            new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null),
+            // If admin center given, check tags on the admin center node
+            new ValidateElementHasValue(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", "city"),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null)
         );
 
 #if DEBUG

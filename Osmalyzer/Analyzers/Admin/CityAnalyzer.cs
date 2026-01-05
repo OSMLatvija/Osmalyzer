@@ -20,7 +20,11 @@ public class CityAnalyzer : Analyzer
         typeof(CitiesWikidataData),
         typeof(StateCitiesAnalysisData)
     ];
-        
+
+    
+    private const string stateCityAdminLevel = "5";
+    private const string regionalCityAdminLevel = "7";
+
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
@@ -30,12 +34,16 @@ public class CityAnalyzer : Analyzer
            
         OsmMasterData osmMasterData = osmData.MasterData;
 
+
         OsmDataExtract osmCities = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
-            new HasAnyValue("admin_level", "5", "7"), // 5 - valstspilsētas, 7 - pilsētas
+            new HasAnyValue("admin_level", stateCityAdminLevel, regionalCityAdminLevel), // 5 - valstspilsētas, 7 - pilsētas
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
+        
+        // todo: find nodes as cities, i.e. admin center nodes
+        // todo: if it's not linked to boundary relation, report it
 
         // Get city data
 
@@ -115,7 +123,7 @@ public class CityAnalyzer : Analyzer
                 return false; // other place type tagged
             
             string adminLevel = element.GetValue("admin_level")!;
-            if (adminLevel == "7")
+            if (adminLevel == regionalCityAdminLevel)
             {
                 string? name = element.GetValue("name");
                 if (name != null && name.EndsWith(" vald")) // Estonian towns leaking
@@ -124,7 +132,7 @@ public class CityAnalyzer : Analyzer
                 return true; // city admin level
             }
 
-            if (adminLevel == "5")
+            if (adminLevel == stateCityAdminLevel)
             {
                 string? name = element.GetValue("name");
                 if (name != null && stateCitiesData.Names.Contains(name))
@@ -217,6 +225,7 @@ public class CityAnalyzer : Analyzer
             report,
             false,
             new ValidateElementHasValue("place", "city"),
+            new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? stateCityAdminLevel : regionalCityAdminLevel),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),

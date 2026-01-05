@@ -39,6 +39,20 @@ public static class OsmKnowledge
     }
 
     [Pure]
+    public static string GetFeatureLabel(OsmElement element, bool capitalize)
+    {
+        string fallbackLabel = element.ElementType switch
+        {
+            OsmElement.OsmElementType.Node     => "node",
+            OsmElement.OsmElementType.Way      => "way",
+            OsmElement.OsmElementType.Relation => "relation",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        
+        return GetFeatureLabel(element, fallbackLabel, capitalize);
+    }
+
+    [Pure]
     public static string GetFeatureLabel(OsmElement element, string fallbackValue, bool capitalize)
     {
         string? labelRaw = GetFeatureLabelRaw(element);
@@ -53,6 +67,46 @@ public static class OsmKnowledge
         
         static string? GetFeatureLabelRaw(OsmElement element)
         {
+            if (element is OsmRelation)
+            {
+                string? type = element.GetValue("type");
+
+                if (type == "boundary")
+                {
+                    string? boundary = element.GetValue("boundary");
+
+                    if (boundary == "administrative")
+                    {
+                        string? adminPlace = element.GetValue("place");
+
+                        if (adminPlace != null)
+                        {
+                            switch (adminPlace)
+                            {
+                                case "country":       return "country boundary";
+                                case "state":         return "state boundary";
+                                case "region":        return "region boundary";
+                                case "province":      return "province boundary";
+                                case "district":      return "district boundary";
+                                case "county":        return "county boundary";
+                                case "subdistrict":   return "subdistrict boundary";
+                                case "municipality":  return "municipality boundary";
+                                case "civic_parish":  return "parish boundary";
+                                case "city":          return "city boundary";
+                                case "borough":       return "borough boundary";
+                                case "suburb":        return "suburb boundary";
+                                case "quarter":       return "quarter boundary";
+                                case "neighbourhood": return "neighbourhood boundary";
+                                case "village":       return "village boundary";
+                                case "hamlet":        return "hamlet boundary";
+                            }
+                        }
+
+                        return "admin boundary";
+                    }
+                }
+            }
+            
             // TODO: all the others
             
             string? amenity = element.GetValue("amenity");
@@ -104,6 +158,7 @@ public static class OsmKnowledge
                     case "county":            return "county";
                     case "subdistrict":       return "subdistrict";
                     case "municipality":      return "municipality";
+                    case "civic_parish":      return "parish";
                     case "city":              return "city";
                     case "borough":           return "borough";
                     case "suburb":            return "suburb";

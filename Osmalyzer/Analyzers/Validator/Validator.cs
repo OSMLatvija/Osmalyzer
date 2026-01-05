@@ -166,7 +166,7 @@ public class Validator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element has a `fixme=" + fixmeValue + "` set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                            ElementLabel(osmElement) + " has a `fixme=" + fixmeValue + "` set" + itemLabel + " - " + osmElement.OsmViewUrl,
                             new SortEntryAsc(GetSortKey(osmElement)),
                             osmElement.AverageCoord,
                             MapPointStyle.Problem,
@@ -193,7 +193,7 @@ public class Validator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element has expected value `" + rule.Value + "` set" + itemLabel +
+                            ElementLabel(osmElement) + " has expected value `" + rule.Value + "` set" + itemLabel +
                             ", but not in the expected tag `" + rule.Tag + "`" +
                             " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
                             " - " + osmElement.OsmViewUrl,
@@ -216,7 +216,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -235,7 +235,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -264,7 +264,7 @@ public class Validator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Values) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                            ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Values) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
                             new SortEntryAsc(GetSortKey(osmElement)),
                             osmElement.AverageCoord,
                             MapPointStyle.Problem,
@@ -286,7 +286,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Values) + " set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Values) + " set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -315,7 +315,7 @@ public class Validator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element doesn't have expected `" + rule.Tag + "` set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                            ElementLabel(osmElement) + " doesn't have expected `" + rule.Tag + "` set" + itemLabel + " - " + osmElement.OsmViewUrl,
                             new SortEntryAsc(GetSortKey(osmElement)),
                             osmElement.AverageCoord,
                             MapPointStyle.Problem,
@@ -334,7 +334,7 @@ public class Validator<T> where T : IDataItem
                     report.AddEntry(
                         ReportGroup.ValidationResults,
                         new IssueReportEntry(
-                            "OSM element isn't expected to have `" + rule.Tag + "` set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
+                            ElementLabel(osmElement) + " isn't expected to have `" + rule.Tag + "` set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
                             new SortEntryAsc(GetSortKey(osmElement)),
                             osmElement.AverageCoord,
                             MapPointStyle.Problem,
@@ -355,7 +355,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element doesn't have a " + rule.ValueLabel + " set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " doesn't have a " + rule.ValueLabel + " set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -390,7 +390,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element has expected value `" + dataValue + "` set" + itemLabel +
+                                ElementLabel(osmElement) + " has expected value `" + dataValue + "` set" + itemLabel +
                                 ", but not in the expected tag `" + rule.Tag + "`" +
                                 " (found in tag(s): " + string.Join(", ", foundInIncorrectTags.Select(t => "`" + t + "`")) + ")" +
                                 " - " + osmElement.OsmViewUrl,
@@ -411,7 +411,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + " - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -427,7 +427,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, dataValue) + " set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -446,7 +446,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                "OSM element has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " has unexpected " + GetTagValueDisplayString(rule.Tag, elementValue) + " set" + itemLabel + ", expecting none - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -466,6 +466,9 @@ public class Validator<T> where T : IDataItem
         }
         
         return suggestedChanges;
+        
+        
+        string ElementLabel(OsmElement osmElement) => "OSM " + OsmKnowledge.GetFeatureLabel(osmElement, false);
     }
 
     private static void TrySimplifyToChangeKey(List<SuggestedAction>? actions, OsmElement osmElement)

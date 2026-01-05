@@ -260,7 +260,7 @@ public class VillageAnalyzer : Analyzer
             new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID),
             // If no admin center given, check tags directly on relation
             new ValidateElementHasValue(e => e.UserData == null, "place", "village"),
-            new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"),
+            //new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"), -- these were imported for a LOT of them and are not really that wrong, so avoid removing them en masse
             new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
             // If admin center given, check tags on the admin center node
             new ValidateElementHasValue(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", "village"),

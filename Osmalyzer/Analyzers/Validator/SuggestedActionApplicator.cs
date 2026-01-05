@@ -233,8 +233,8 @@ public static class SuggestedActionApplicator
                 if (valueCounts.Count == 1)
                 {
                     string onlyValue = valueCounts.Keys.First();
-                    
-                    AddLine($"Key `{keyChange.Key}` has all {valueCounts.Count} values changed to " + (onlyValue == "" ? "<removed>" : "`" + onlyValue + "`"));
+
+                    AddLine($"Key `{keyChange.Key}` has all {valueCounts[onlyValue]} values changed to " + (onlyValue == "" ? "<removed>" : "`" + onlyValue + "`"));
                 }
                 else if (valueCounts.Count < 10)
                 {

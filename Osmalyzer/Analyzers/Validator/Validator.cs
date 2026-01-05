@@ -16,6 +16,8 @@ public class Validator<T> where T : IDataItem
 
     public List<SuggestedAction> Validate(Report report, bool validateUnmatchedElements, params ValidationRule[] rules)
     {
+        // todo: list all the rules that we are applying
+        
         report.AddGroup(
             ReportGroup.ValidationResults,
             _customTitle ?? "Other issues",

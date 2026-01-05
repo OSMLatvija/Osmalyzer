@@ -225,7 +225,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(targetElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + " - " + targetElement.OsmViewUrl,
+                                ElementLabel(targetElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + ", instead `" + elementValue + "`  - " + targetElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(targetElement)),
                                 targetElement.AverageCoord,
                                 MapPointStyle.Problem,

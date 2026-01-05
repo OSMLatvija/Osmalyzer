@@ -52,6 +52,15 @@ public class CityAnalyzer : Analyzer
 
             if (knownCenters.Count == 1) // todo: else report
                 relation.UserData = knownCenters[0].Element;
+
+            if (knownCenters.Count == 0)
+            {
+                List<OsmRelationMember> labelCenters = relation.Members.Where(m => m.Role == "label" && m.Element != null).ToList();
+                
+                if (labelCenters.Count == 1)
+                    relation.UserData = labelCenters[0].Element; // label is fine too
+                // todo: do we need to check values like place= on it to make sure it's actually representing the center?
+            }
         }
 
         // Get city data
@@ -233,6 +242,8 @@ public class CityAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
             false,
+            // On relation itself
+            new ValidateElementHasValue("border_type", "city"),
             new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? stateCityAdminLevel : regionalCityAdminLevel),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),

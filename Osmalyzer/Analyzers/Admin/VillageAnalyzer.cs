@@ -46,6 +46,15 @@ public class VillageAnalyzer : Analyzer
 
             if (knownCenters.Count == 1) // todo: else report
                 relation.UserData = knownCenters[0].Element;
+
+            if (knownCenters.Count == 0)
+            {
+                List<OsmRelationMember> labelCenters = relation.Members.Where(m => m.Role == "label" && m.Element != null).ToList();
+                
+                if (labelCenters.Count == 1)
+                    relation.UserData = labelCenters[0].Element; // label is fine too
+                // todo: do we need to check values like place= on it to make sure it's actually representing the center?
+            }
         }
 
         // Get village/hamlet data
@@ -245,6 +254,8 @@ public class VillageAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
             false,
+            // On relation itself
+            new ValidateElementHasValue("border_type", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID),
             // If no admin center given, check tags directly on relation

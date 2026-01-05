@@ -244,7 +244,7 @@ public class CityAnalyzer : Analyzer
             false,
             // On relation itself
             new ValidateElementHasValue("border_type", "city"),
-            new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? stateCityAdminLevel : regionalCityAdminLevel),
+            //new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? stateCityAdminLevel : regionalCityAdminLevel), -- this is not correct because state cities != entities at municipality-level, i.e. those state cities are still within municipalities
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),

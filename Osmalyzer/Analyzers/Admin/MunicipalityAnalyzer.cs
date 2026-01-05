@@ -108,7 +108,7 @@ public class MunicipalityAnalyzer : Analyzer
                 return false; // explicitly not tagged
             
             string? name = element.GetValue("name");
-            if (name != null && stateCitiesData.Names.Contains(name))
+            if (name != null && stateCitiesData.StateCities.Any(sc => sc.Name == name))
                 return false; // state cities have the same admin level as municipalities, but we know them, so we can exclude them
                         
             if (name != null && name.Contains("rajono"))

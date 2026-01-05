@@ -11,12 +11,12 @@ public class StateCitiesAnalysisData : AnalysisData
     
     protected override string DataFileIdentifier => "";
 
-    public List<string> Names { get; private set; } = null!; // only null until loaded
+    public List<KnownStateCity> StateCities { get; private set; } = null!; // only null until loaded
 
 
     protected override void Download()
     {
-        Names = [ ];
+        StateCities = [ ];
         
         string dataFileName = @"data/state cities.tsv";
 
@@ -25,15 +25,39 @@ public class StateCitiesAnalysisData : AnalysisData
             
         string[] lines = File.ReadAllLines(dataFileName, Encoding.UTF8);
 
-        Names = lines
+        StateCities = lines
+                .Skip(1) // header
                 .Select(l => l.Trim())
                 .Where(l => !string.IsNullOrEmpty(l))
+                .Select(MakeEntry)
                 .ToList();
+
+        KnownStateCity MakeEntry(string line)
+        {
+            string[] parts = line.Split('\t');
+            return new KnownStateCity(
+                parts[0],
+                parts[1] == "yes"
+            );
+        }
     }
 
     protected override void DoPrepare()
     {
         // Not doing preparation
         throw new Exception();
+    }
+}
+
+
+public class KnownStateCity
+{
+    public string Name { get; }
+    public bool IndependentOfMunicipality { get; }
+
+    public KnownStateCity(string name, bool independentOfMunicipality)
+    {
+        Name = name;
+        IndependentOfMunicipality = independentOfMunicipality;
     }
 }

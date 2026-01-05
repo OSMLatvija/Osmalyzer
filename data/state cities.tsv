@@ -1,10 +1,11 @@
-Daugavpils
-Jelgava
-Jēkabpils
-Jūrmala
-Liepāja
-Ogre
-Rēzekne
-Rīga
-Valmiera
-Ventspils
+name	independent of municipality?
+Daugavpils	yes
+Jelgava	yes
+Jēkabpils	no
+Jūrmala	yes
+Liepāja	yes
+Ogre	no
+Rēzekne	yes
+Rīga	yes
+Valmiera	no
+Ventspils	yes

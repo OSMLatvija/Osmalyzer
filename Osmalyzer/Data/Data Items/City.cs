@@ -22,6 +22,8 @@ public class City : IDataItem, IHasWikidataItem
     
     public CityStatus? Status { get; set; }
     
+    public bool IndependentStateCity { get; set; }
+    
     public bool? IsLAUDivision { get; set; }
 
 

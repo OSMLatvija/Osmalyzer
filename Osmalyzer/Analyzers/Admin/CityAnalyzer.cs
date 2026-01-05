@@ -23,8 +23,9 @@ public class CityAnalyzer : Analyzer
     ];
 
     
-    private const string stateCityAdminLevel = "5";
-    private const string regionalCityAdminLevel = "7";
+    private const string independentStateCityAdminLevel = "5"; // valstspilsēta on the same level as municipalities
+    private const string dependentStateCityAdminLevel = "7"; // valstspilsēta within its municipality, on the same level as regional cities
+    private const string regionalCityAdminLevel = "7"; // all other pilsēta within its municipality
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -39,9 +40,11 @@ public class CityAnalyzer : Analyzer
         OsmDataExtract osmCities = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
-            new HasAnyValue("admin_level", stateCityAdminLevel, regionalCityAdminLevel), // 5 - valstspilsētas, 7 - pilsētas
+            new HasAnyValue("admin_level", independentStateCityAdminLevel, dependentStateCityAdminLevel, regionalCityAdminLevel), // 5 - valstspilsētas, 7 - pilsētas
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
+        
+        // todo: get place=city and place=town and also check no others are tagged as such
         
         // Find preset centers of boundaries
         // (we won't need to set some values if there is the "master" node for the relation)
@@ -92,8 +95,13 @@ public class CityAnalyzer : Analyzer
         {
             // Cities that are not part of a municipality (i.e. are under region) are LAU divisions
             city.IsLAUDivision = atkvEntry.Parent?.Designation == AtkvDesignation.Region;
+
+            KnownStateCity? knownStateCity = stateCitiesData.StateCities.FirstOrDefault(sc => sc.Name == city.Name);
+
+            city.Status = knownStateCity != null ? CityStatus.StateCity : CityStatus.RegionalCity;
             
-            city.Status = stateCitiesData.Names.Contains(city.Name) ? CityStatus.StateCity : CityStatus.RegionalCity;
+            if (knownStateCity != null)
+                city.IndependentStateCity = knownStateCity.IndependentOfMunicipality;
         }
         
         // Assign WikiData
@@ -150,10 +158,10 @@ public class CityAnalyzer : Analyzer
                 return true; // city admin level
             }
 
-            if (adminLevel == stateCityAdminLevel)
+            if (adminLevel is independentStateCityAdminLevel or dependentStateCityAdminLevel)
             {
                 string? name = element.GetValue("name");
-                if (name != null && stateCitiesData.Names.Contains(name))
+                if (name != null && stateCitiesData.StateCities.Any(sc => sc.Name == name))
                     return true; // state cities have high admin level shared with municipalities, but we know them
                 
                 if (name != null && name.Contains("rajono"))
@@ -243,21 +251,23 @@ public class CityAnalyzer : Analyzer
             report,
             false,
             // On relation itself
-            new ValidateElementHasValue("border_type", "city"),
-            //new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? stateCityAdminLevel : regionalCityAdminLevel), -- this is not correct because state cities != entities at municipality-level, i.e. those state cities are still within municipalities
+            new ValidateElementValueMatchesDataItemValue<City>("border_type", GetPlaceType),
+            new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? c.IndependentStateCity ? independentStateCityAdminLevel : dependentStateCityAdminLevel : regionalCityAdminLevel),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
             // If no admin center given, check tags directly on relation
-            new ValidateElementHasValue(e => e.UserData == null, "place", "city"),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "place", GetPlaceType),
             new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null),
             // If admin center given, check tags on the admin center node
-            new ValidateElementHasValue(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", "city"),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", GetPlaceType),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null)
         );
+
+        string GetPlaceType(City c) => c.Status == CityStatus.StateCity ? "city" : "town"; // apparently, regional cities are place=town in Latvia atm
 
 #if DEBUG
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);

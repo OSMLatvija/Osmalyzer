@@ -182,7 +182,6 @@ public class HamletAnalyzer : Analyzer
         
         // List invalid hamlets that are still in data
         
-        // Create a group and dump all invalid hamlet entries from geodata for awareness/tracking
         report.AddGroup(
             ExtraReportGroup.InvalidHamlets,
             "Invalid Hamlets",
@@ -201,6 +200,12 @@ public class HamletAnalyzer : Analyzer
                 )
             );
         }
+        
+        // Check that Wikidata values match OSM values
+        
+        // TODO:
+        // TODO:
+        // TODO:
         
         // List extra data items from non-OSM that were not matched
         

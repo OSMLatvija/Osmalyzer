@@ -246,7 +246,6 @@ public class VillageAnalyzer : Analyzer
         
         // List invalid villages that are still in data
         
-        // Create a group and dump all invalid village entries from geodata for awareness/tracking
         report.AddGroup(
             ExtraReportGroup.InvalidVillages,
             "Invalid Villages",
@@ -265,6 +264,12 @@ public class VillageAnalyzer : Analyzer
                 )
             );
         }
+        
+        // Check that Wikidata values match OSM values
+        
+        // TODO:
+        // TODO:
+        // TODO:
         
         // List extra data items from non-OSM that were not matched
         

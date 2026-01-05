@@ -229,6 +229,12 @@ public class MunicipalityAnalyzer : Analyzer
             );
         }
         
+        // Check that Wikidata values match OSM values
+        
+        // TODO:
+        // TODO:
+        // TODO:
+        
         // List extra data items from non-OSM that were not matched
         
         report.AddGroup(

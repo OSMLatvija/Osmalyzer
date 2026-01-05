@@ -227,7 +227,7 @@ public class Validator<T> where T : IDataItem
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(targetElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + ", instead `" + elementValue + "`  - " + targetElement.OsmViewUrl,
+                                ElementLabel(targetElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Value) + " set" + itemLabel + (elementValue != null ? ", instead `" + elementValue + "`" : "") + " - " + targetElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(targetElement)),
                                 targetElement.AverageCoord,
                                 MapPointStyle.Problem,
@@ -268,9 +268,9 @@ public class Validator<T> where T : IDataItem
             {
                 List<SuggestedAction>? suggestedChangesForRule = null;
                 
-                string? value = osmElement.GetValue(rule.Tag);
+                string? elementValue = osmElement.GetValue(rule.Tag);
 
-                if (value == null)
+                if (elementValue == null)
                 {
                     report.AddEntry(
                         ReportGroup.ValidationResults,
@@ -292,12 +292,12 @@ public class Validator<T> where T : IDataItem
                 }
                 else
                 {
-                    if (!rule.Values.Contains(value))
+                    if (!rule.Values.Contains(elementValue))
                     {
                         report.AddEntry(
                             ReportGroup.ValidationResults,
                             new IssueReportEntry(
-                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Values) + " set" + itemLabel + ", instead `" + value + "` - " + osmElement.OsmViewUrl,
+                                ElementLabel(osmElement) + " doesn't have expected " + GetTagValueDisplayString(rule.Tag, rule.Values) + " set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
                                 new SortEntryAsc(GetSortKey(osmElement)),
                                 osmElement.AverageCoord,
                                 MapPointStyle.Problem,

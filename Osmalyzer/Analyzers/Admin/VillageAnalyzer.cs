@@ -257,7 +257,6 @@ public class VillageAnalyzer : Analyzer
             // On relation itself
             new ValidateElementHasValue("border_type", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Village>("wikidata", v => v.WikidataItem?.QID),
             // If no admin center given, check tags directly on relation
             new ValidateElementHasValue(e => e.UserData == null, "place", "village"),
             //new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"), -- these were imported for a LOT of them and are not really that wrong, so avoid removing them en masse

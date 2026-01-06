@@ -5,7 +5,7 @@ public class DoesntHaveValue : OsmFilter
     public override bool ForNodesOnly => false;
     public override bool ForWaysOnly => false;
     public override bool ForRelationsOnly => false;
-    public override bool TaggedOnly => true;
+    public override bool TaggedOnly => false; // no key = no value
 
 
     private readonly string _key;

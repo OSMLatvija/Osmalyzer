@@ -8,8 +8,7 @@ public class HamletAnalyzer : Analyzer
     public override string Name => "Hamlets";
 
     public override string Description => 
-        "This report checks that all hamlets are mapped. " +
-        "Hamlet data is much less complete compared to villages and lots that are mapped and seemingly valid are missing from VZD data.";
+        "This report checks that all hamlets are mapped.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.Administrative;
 
@@ -138,16 +137,52 @@ public class HamletAnalyzer : Analyzer
             report.AddGroup(
                 ExtraReportGroup.SuggestedHamletAdditions,
                 "Suggested Hamlet Additions",
-                "These hamlets are not currently matched to OSM and can be added with these (suggested) tags based on the source data items."
+                "These hamlets are not currently matched to OSM and can potentially be added based on the source data items."
             );
             
 #if DEBUG
             OsmData additionsData = osmMasterData.Copy();
             List<SuggestedAction> suggestedAdditions = [ ];
 #endif
+            
+            OsmDataExtract namedNodes = osmMasterData.Filter(
+                new HasKey("name"),
+                // Manually filter out known non-hamlet things that have the same names
+                new DoesntHaveKey("ref:LV:addr"), // we know this is a real separate feature, even if the name matches 
+                new DoesntHaveAnyValue("public_transport", "platform", "stop_position", "stop_area"),
+                new DoesntHaveKey("waterway"),
+                new DoesntHaveValue("type", "waterway"),
+                new DoesntHaveValue("highway", "bus_stop"),
+                new DoesntHaveValue("historic", "manor"),
+                new DoesntHaveValue("place", "village"), // we check all villages separately, so it's definitely not that 
+                new DoesntHaveValue("place", "isolated_dwelling"),  // while it may actually be mistagging, it's very unlikely, but at the same time lots of hamlets and stuff are named after local name, which also often matches isolated dwellings
+                new DoesntHaveValue("place", "suburb"),
+                new DoesntHaveValue("place", "neighbourhood"),
+                new DoesntHaveValue("railway", "station"),
+                new DoesntHaveValue("abandoned:railway", "station")
+            );
 
             foreach (Hamlet hamlet in unmatchedHamlets)
             {
+                const double newElementConflictDistance = 30000; // km
+                List<OsmElement> closestElements = namedNodes.GetClosestElementsTo(hamlet.Coord, newElementConflictDistance);
+                List<OsmElement> matchingNamed = closestElements.Where(e => e.GetValue("name") == hamlet.Name).ToList();
+
+                if (matchingNamed.Count > 0)
+                {
+                    report.AddEntry(
+                        ExtraReportGroup.SuggestedHamletAdditions,
+                        new IssueReportEntry(
+                            hamlet.ReportString() + " could be added at " + hamlet.Coord.OsmUrl + ", but there are nearby OSM element(s) with matching `name`, so it possibly already exists, but is mistagged: " +
+                            string.Join(", ", matchingNamed.Select(e => e.OsmViewUrl)),
+                            hamlet.Coord,
+                            MapPointStyle.Dubious
+                        )
+                    );
+                    
+                    continue;
+                }
+                
 #if DEBUG
                 OsmNode newHamletNode = additionsData.CreateNewNode(hamlet.Coord);
                 // todo: just set values directly instead of this, I only needed this for validator, which doesn't edit data directly

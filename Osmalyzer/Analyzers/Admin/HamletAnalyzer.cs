@@ -138,26 +138,40 @@ public class HamletAnalyzer : Analyzer
             report.AddGroup(
                 ExtraReportGroup.SuggestedHamletAdditions,
                 "Suggested Hamlet Additions",
-                "These hamlets are not currently matched to OSM and can be added with these (suggested) tags."
+                "These hamlets are not currently matched to OSM and can be added with these (suggested) tags based on the source data items."
             );
+            
+#if DEBUG
+            OsmData additionsData = osmMasterData.Copy();
+            List<SuggestedAction> suggestedAdditions = [ ];
+#endif
 
             foreach (Hamlet hamlet in unmatchedHamlets)
             {
-                string tagsBlock = BuildSuggestedHamletTags(hamlet);
+#if DEBUG
+                OsmNode newHamletNode = additionsData.CreateNewNode(hamlet.Coord);
+                // todo: just set values directly instead of this, I only needed this for validator, which doesn't edit data directly
+                suggestedAdditions.Add(new OsmCreateElementAction(newHamletNode));
+                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "name", hamlet.Name));
+                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "place", "hamlet"));
+                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "ref:LV:addr", hamlet.AddressID));
+                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "designation", "mazciems"));
+#endif
 
                 report.AddEntry(
                     ExtraReportGroup.SuggestedHamletAdditions,
                     new IssueReportEntry(
-                        '`' + hamlet.Name + "` hamlet at " +
-                        hamlet.ReportString() +
-                        " can be added at " +
-                        hamlet.Coord.OsmUrl +
-                        " as" + Environment.NewLine + tagsBlock,
+                        '`' + hamlet.Name + "` hamlet at " + hamlet.ReportString() + " can be added at " + hamlet.Coord.OsmUrl,
                         hamlet.Coord,
                         MapPointStyle.Suggestion
                     )
                 );
             }
+            
+#if DEBUG
+            SuggestedActionApplicator.ApplyAndProposeXml(additionsData, suggestedAdditions, this, "additions");
+            SuggestedActionApplicator.ExplainForReport(suggestedAdditions, report, ExtraReportGroup.SuggestedHamletAdditions);
+#endif
         }
         
         // Validate hamlet syntax
@@ -172,11 +186,12 @@ public class HamletAnalyzer : Analyzer
             false, false,
             new ValidateElementHasValue("place", "hamlet"),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID)
+            new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID),
+            new ValidateElementHasValue("designation", "mazciems")
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this, "changes");
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         
@@ -242,20 +257,6 @@ public class HamletAnalyzer : Analyzer
                 )
             );
         }
-    }
-
-
-    [Pure]
-    private static string BuildSuggestedHamletTags(Hamlet hamlet)
-    {
-        List<string> lines =
-        [
-            "name=" + hamlet.Name,
-            "place=hamlet",
-            "ref:LV:addr=" + hamlet.AddressID
-        ];
-
-        return "```" + string.Join(Environment.NewLine, lines) + "```";
     }
 
 

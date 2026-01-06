@@ -18,6 +18,17 @@ public class OsmNode : OsmElement
     internal List<OsmWay>? ways;
 
 
+    private static long _currentTempId = -1;
+
+
+    internal OsmNode(OsmCoord coord)
+        : base(_currentTempId)
+    {
+        _currentTempId--;
+        
+        this.coord = coord;
+    }
+        
     internal OsmNode(OsmGeo rawElement)
         : base(rawElement)
     {

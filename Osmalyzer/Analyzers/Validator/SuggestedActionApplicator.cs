@@ -29,6 +29,20 @@ public static class SuggestedActionApplicator
                         changes[i] = new OsmRemoveKeySuggestedAction(copiedElement, removeKey.Key);
                         break;
                     }
+                    
+                    case OsmChangeKeySuggestedAction changeKey:
+                    {
+                        OsmElement copiedElement = data.GetElementById(changeKey.Element.ElementType, changeKey.Element.Id);
+                        changes[i] = new OsmChangeKeySuggestedAction(copiedElement, changeKey.OldKey, changeKey.NewKey, changeKey.Value);
+                        break;
+                    }
+                    
+                    case OsmCreateElementAction createElement:
+                    {
+                        OsmElement copiedElement = data.GetElementById(createElement.Element.ElementType, createElement.Element.Id);
+                        changes[i] = new OsmCreateElementAction(copiedElement);
+                        break;
+                    }
 
                     default:
                         throw new ArgumentOutOfRangeException(nameof(change));
@@ -53,6 +67,9 @@ public static class SuggestedActionApplicator
                     changeKey.Element.SetValue(changeKey.NewKey, changeKey.Value);
                     break;
                 
+                case OsmCreateElementAction:
+                    break;
+                
                 default:
                     throw new ArgumentOutOfRangeException(nameof(change));
             }
@@ -61,7 +78,7 @@ public static class SuggestedActionApplicator
         return data;
     }
 
-    public static OsmChange? ApplyAndProposeXml(OsmData osmMasterData, List<SuggestedAction> suggestedChanges, Analyzer analyzer)
+    public static OsmChange? ApplyAndProposeXml(OsmData osmMasterData, List<SuggestedAction> suggestedChanges, Analyzer analyzer, string? caption = null)
     {
         if (suggestedChanges.Count == 0)
             return null;
@@ -74,7 +91,12 @@ public static class SuggestedActionApplicator
         
         if (!Directory.Exists("Suggested changes"))
             Directory.CreateDirectory("Suggested changes");
-        string fileName = Path.Combine("Suggested changes", analyzer.Name + ".osc");
+        
+        string fileName =
+            caption != null ?
+                Path.Combine("Suggested changes", analyzer.Name + " - " + caption + ".osc") :
+                Path.Combine("Suggested changes", analyzer.Name + ".osc");
+        
         File.WriteAllText(fileName, xml);
 
         //Console.WriteLine(change.Actions.Count + " suggested changes for " + analyzer.Name + " written to " + fileName);
@@ -108,6 +130,7 @@ public static class SuggestedActionApplicator
         HashSet<string> keysToModify = [ ];
         HashSet<string> keysToChange = [ ];
         Dictionary<string, List<string?>> perKeyChanges = [ ];
+        int nodeCreations = 0;
         
         foreach (SuggestedAction change in changes)
         {
@@ -166,12 +189,25 @@ public static class SuggestedActionApplicator
                     perKeyChanges[changeKey.NewKey].Add(changeKey.Value);
                     break;
                 
+                case OsmCreateElementAction createElement:
+                    switch (createElement.Element)
+                    {
+                        case OsmNode: nodeCreations++; break;
+                        case OsmWay: break;
+                        case OsmRelation: break;
+                        default: throw new ArgumentOutOfRangeException();
+                    }
+                    break;
+                
                 default:
                     throw new ArgumentOutOfRangeException(nameof(change));
             }
         }
 
         AddLine(changes.Count + " changes are proposed:");
+        
+        if (nodeCreations > 0) AddLine(nodeCreations + " node creations");
+        
         if (keyAdditions > 0) AddLine(keyAdditions + " key additions");
         if (keyModifications > 0) AddLine(keyModifications + " key modifications");
         if (keyRemovals > 0) AddLine(keyRemovals + " key removals");

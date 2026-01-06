@@ -330,6 +330,13 @@ public abstract class OsmData
         return new OsmChange(this);
     }
 
+    public OsmNode CreateNewNode(OsmCoord coord)
+    {
+        OsmNode newNode = new OsmNode(coord);
+        AddElement(newNode);
+        return newNode;
+    }
+
     /// <summary>
     /// Makes a deep copy of all the data.
     /// Any changes to the elements of the copied data will not affect the original data.

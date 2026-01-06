@@ -7,3 +7,5 @@ public record OsmSetValueSuggestedAction(OsmElement Element, string Key, string 
 public record OsmRemoveKeySuggestedAction(OsmElement Element, string Key) : SuggestedAction(Element);
 
 public record OsmChangeKeySuggestedAction(OsmElement Element, string OldKey, string NewKey, string Value) : SuggestedAction(Element);
+
+public record OsmCreateElementAction(OsmElement Element) : SuggestedAction(Element);

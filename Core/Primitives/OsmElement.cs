@@ -23,10 +23,10 @@ public abstract class OsmElement : IChunkerItem
     public long Id { get; }
 
     [PublicAPI]
-    public long Version { get; }
+    public long? Version { get; }
     
     [PublicAPI]
-    public long Changeset { get; }
+    public long? Changeset { get; }
     
     [PublicAPI]
     public OsmElementState State { get; set; } = OsmElementState.Live;
@@ -66,6 +66,13 @@ public abstract class OsmElement : IChunkerItem
 
     private Dictionary<string, string>? _tags;
 
+
+    protected OsmElement(long id)
+    {
+        Id = id;
+        
+        State = OsmElementState.Created;
+    }
 
     protected OsmElement(OsmGeo rawElement)
     {

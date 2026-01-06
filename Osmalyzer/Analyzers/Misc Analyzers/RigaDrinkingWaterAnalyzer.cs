@@ -79,7 +79,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
         List<SuggestedAction> suggestedChanges = validator.Validate(
             report,
-            true, // all elements we checked against are "real", so should follow the rules
+            true, true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasValue("operator", "Rīgas ūdens"),
             new ValidateElementHasValue("man_made", "water_tap"),
             new ValidateElementHasValue("drinking_water", "yes"),

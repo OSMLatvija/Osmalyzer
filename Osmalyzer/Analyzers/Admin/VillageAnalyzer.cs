@@ -253,7 +253,7 @@ public class VillageAnalyzer : Analyzer
 
         List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
-            false,
+            false, false,
             // On relation itself
             new ValidateElementHasValue("border_type", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),

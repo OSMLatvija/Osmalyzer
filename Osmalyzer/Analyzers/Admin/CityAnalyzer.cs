@@ -249,7 +249,7 @@ public class CityAnalyzer : Analyzer
 
         List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
-            false,
+            false, false,
             // On relation itself
             new ValidateElementValueMatchesDataItemValue<City>("border_type", GetPlaceType),
             new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? c.IndependentStateCity ? independentStateCityAdminLevel : dependentStateCityAdminLevel : regionalCityAdminLevel),

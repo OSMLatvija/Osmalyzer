@@ -122,7 +122,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         kisokValidator.Validate(
             report,
-            true, // all elements we checked against are "real", so should follow the rules
+            true, true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasValue("name", "Depozīta punkts"),
             new ValidateElementHasValue("brand", "Depozīta punkts"),
             new ValidateElementHasValue("brand:wikidata", "Q110979381"),
@@ -142,7 +142,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         vendingValidator.Validate(
             report,
-            true, // all elements we checked against are "real", so should follow the rules
+            true, true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasValue("name", "Depozīta punkts"),
             new ValidateElementHasValue("brand", "Depozīta punkts"),
             new ValidateElementHasValue("brand:wikidata", "Q110979381"),

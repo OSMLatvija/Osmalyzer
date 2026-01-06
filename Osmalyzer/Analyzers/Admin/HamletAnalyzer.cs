@@ -169,7 +169,7 @@ public class HamletAnalyzer : Analyzer
 
         List<SuggestedAction> suggestedChanges = hamletValidator.Validate(
             report,
-            false,
+            false, false,
             new ValidateElementHasValue("place", "hamlet"),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID)

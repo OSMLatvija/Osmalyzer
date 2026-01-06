@@ -130,7 +130,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
             validator.Validate(
                 report,
-                true, // all elements we checked against are "real", so should follow the rules 
+                true, true,
                 rules.ToArray()
             );
         }
@@ -233,7 +233,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
             validator.Validate(
                 report,
-                false, // we match many elements that may or may not be relevant, so don't check unmatched pairs
+                false, false, // we match many elements that may or may not be relevant, so don't check unmatched pairs
                 rules.ToArray()
             );
         }

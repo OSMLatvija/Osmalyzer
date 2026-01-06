@@ -195,7 +195,7 @@ public class MunicipalityAnalyzer : Analyzer
 
         List<SuggestedAction> suggestedChanges = municipalityValidator.Validate(
             report,
-            false,
+            false, false,
             new ValidateElementHasValue("place", "municipality"),
             new ValidateElementHasValue("border_type", "municipality"),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.AddressID, [ "ref" ]),

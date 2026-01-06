@@ -75,7 +75,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
         List<SuggestedAction> suggestedChanges = validator.Validate(
             report,
-            true, // all elements we checked against are "real", so should follow the rules
+            true, true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasValue("operator", "Rīgas satiksme"),
             new ValidateElementHasValue("operator:wikidata", "Q2280274"),
             new ValidateElementFixme()

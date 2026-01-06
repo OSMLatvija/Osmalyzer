@@ -127,7 +127,9 @@ public class WikidataItem
         return _statements.Any(s => s.PropertyID == propertyID && s.AsQID == qid && !s.HasEndTime());
     }
 
-    // todo: other typed versions
+    [PublicAPI]
+    [Pure]
+    public bool HasStatement(WikiDataProperty property) => HasStatement((long)property);
 
     [PublicAPI]
     [Pure]

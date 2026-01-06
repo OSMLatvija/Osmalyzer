@@ -6,7 +6,7 @@ namespace Osmalyzer;
 /// Wikidata entries for Latvian municipalities
 /// </summary>
 [UsedImplicitly]
-public class MunicipalitiesWikidataData : AdminWikidataData
+public class MunicipalitiesWikidataData : WikidataData
 {
     public override string Name => "Municipalities Wikidata";
 
@@ -49,6 +49,8 @@ public class MunicipalitiesWikidataData : AdminWikidataData
         string rawJson = File.ReadAllText(RawFilePath);
         Municipalities = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
         if (Municipalities.Count == 0) throw new Exception("No municipalities were fetched from Wikidata.");
+
+        Municipalities = FilterOutDissolved(Municipalities);
 
 #if DEBUG
         // foreach (WikidataItem item in Items)

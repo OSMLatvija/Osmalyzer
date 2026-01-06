@@ -6,7 +6,7 @@ namespace Osmalyzer;
 /// Wikidata entries for Latvian villages and hamlets
 /// </summary>
 [UsedImplicitly]
-public class VillagesWikidataData : AdminWikidataData
+public class VillagesWikidataData : WikidataData
 {
     public override string Name => "Villages Wikidata";
 
@@ -54,6 +54,8 @@ public class VillagesWikidataData : AdminWikidataData
         string rawJson = File.ReadAllText(RawFilePath);
         AllVillages = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
         if (AllVillages.Count == 0) throw new Exception("No villages were fetched from Wikidata.");
+
+        AllVillages = FilterOutDissolved(AllVillages);
         
         Hamlets = AllVillages
             .Where(item => item.HasStatementValueAsQID(WikiDataProperty.InstanceOf, smallVillageInLatviaQID))
@@ -67,7 +69,6 @@ public class VillagesWikidataData : AdminWikidataData
         // foreach (WikidataItem item in Items) Debug.WriteLine($"Village/Hamlet: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
 #endif
     }
-
 
 
     public void AssignHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches) 

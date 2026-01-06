@@ -1,4 +1,4 @@
-﻿﻿using WikidataSharp;
+﻿using WikidataSharp;
 
 namespace Osmalyzer;
 

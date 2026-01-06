@@ -70,7 +70,7 @@ public class VillageAnalyzer : Analyzer
         villagesWikidataData.AssignNonHamlets(
             addressData.Villages,
             (i, wd) =>
-                i.Name == AdminWikidataData.GetBestName(wd, "lv") &&
+                i.Name == WikidataData.GetBestName(wd, "lv") &&
                 //(addressData.IsUniqueVillageName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
                  i.ParishName == GetWikidataAdminItemOwnerName(wd),//)
                 // todo: there is also Pilskalne in both same-named Pilskalne pagasts, so we need to check the owner of parish...
@@ -88,7 +88,7 @@ public class VillageAnalyzer : Analyzer
             if (ownerItem == null)
                 return null;
 
-            string? ownerName = AdminWikidataData.GetBestName(ownerItem, "lv");
+            string? ownerName = WikidataData.GetBestName(ownerItem, "lv");
             
             //Console.WriteLine($"Parish Wikidata item {wikidataItem.QID} owner municipality: {ownerName} ({ownerItem.QID})");
             
@@ -313,7 +313,7 @@ public class VillageAnalyzer : Analyzer
         
         foreach (WikidataItem wikidataItem in extraWikidataItems)
         {
-            string? name = AdminWikidataData.GetBestName(wikidataItem, "lv") ?? null;
+            string? name = WikidataData.GetBestName(wikidataItem, "lv") ?? null;
         
             report.AddEntry(
                 ExtraReportGroup.ExtraDataItems,

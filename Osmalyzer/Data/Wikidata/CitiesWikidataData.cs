@@ -6,7 +6,7 @@ namespace Osmalyzer;
 /// Wikidata entries for Latvian cities including state cities and regional cities
 /// </summary>
 [UsedImplicitly]
-public class CitiesWikidataData : AdminWikidataData
+public class CitiesWikidataData : WikidataData
 {
     public override string Name => "Cities Wikidata";
 
@@ -58,9 +58,13 @@ public class CitiesWikidataData : AdminWikidataData
         StateCities = Wikidata.ProcessItemsByInstanceOfRaw(stateCitiesRaw);
         if (StateCities.Count == 0) throw new Exception("No state cities were fetched from Wikidata.");
 
+        StateCities = FilterOutDissolved(StateCities);
+
         string regionalCitiesRaw = File.ReadAllText(RegionalCitiesRawFilePath);
         RegionalCities = Wikidata.ProcessItemsByInstanceOfRaw(regionalCitiesRaw);
         if (RegionalCities.Count == 0) throw new Exception("No regional cities were fetched from Wikidata.");
+
+        RegionalCities = FilterOutDissolved(RegionalCities);
 
         AllCities = [ ];
         AllCities.AddRange(StateCities);

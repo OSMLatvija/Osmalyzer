@@ -1,9 +1,9 @@
-﻿﻿using WikidataSharp;
+﻿using WikidataSharp;
 
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CulturalMonumentsWikidataData : AnalysisData, IUndatedAnalysisData
+public class CulturalMonumentsWikidataData : WikidataData, IUndatedAnalysisData
     // todo: to generic reusable wikidata provider data
 {
     public override string Name => "Cultural Monuments Wikidata";
@@ -45,6 +45,8 @@ public class CulturalMonumentsWikidataData : AnalysisData, IUndatedAnalysisData
     {
         string rawJson = File.ReadAllText(RawFilePath);
         Items = Wikidata.ProcessItemsWithPropertyRaw(rawJson, PropertyID);
+
+        Items = FilterOutDissolved(Items);
     }
 
 

@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public abstract class AdminWikidataData : AnalysisData, IUndatedAnalysisData
+public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
 {
     /// <summary>
     /// Gets the name to use for matching from a <see cref="WikidataItem"/>
@@ -55,5 +55,13 @@ public abstract class AdminWikidataData : AnalysisData, IUndatedAnalysisData
         
         if (count == 0) throw new Exception("No Wikidata items were matched, which is unexpected and likely means data or logic is broken.");
             
+    }
+
+    [Pure]
+    protected static List<WikidataItem> FilterOutDissolved(List<WikidataItem> items)
+    {
+        return items
+            .Where(item => !item.HasStatement(WikiDataProperty.DissolvedAbolishedOrDemolishedDate))
+            .ToList();
     }
 }

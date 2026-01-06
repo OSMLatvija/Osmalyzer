@@ -6,7 +6,7 @@ namespace Osmalyzer;
 /// Wikidata entries for Latvian parishes
 /// </summary>
 [UsedImplicitly]
-public class ParishesWikidataData : AdminWikidataData
+public class ParishesWikidataData : WikidataData
 {
     public override string Name => "Parishes Wikidata";
 
@@ -49,6 +49,8 @@ public class ParishesWikidataData : AdminWikidataData
         string rawJson = File.ReadAllText(RawFilePath);
         Parishes = Wikidata.ProcessItemsByInstanceOfRaw(rawJson);
         if (Parishes.Count == 0) throw new Exception("No parishes were fetched from Wikidata.");
+
+        Parishes = FilterOutDissolved(Parishes);
 
 #if DEBUG
         // foreach (WikidataItem item in Items) Debug.WriteLine($"Parish: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");

@@ -29,6 +29,12 @@ public static class Wikidata
         return FetchItemsWithFilterRaw(filterClause);
     }
 
+    /// <summary> <inheritdoc cref="ProcessItemsWithPropertyRaw(string, long)"/> </summary>
+    [PublicAPI]
+    [MustUseReturnValue]
+    public static List<WikidataItem> ProcessItemsWithPropertyRaw(string rawJson, WikiDataProperty property) => 
+        ProcessItemsWithPropertyRaw(rawJson, (long)property);
+
     /// <summary>
     /// Processes raw JSON response from <see cref="FetchItemsWithPropertyRaw"/> into WikidataItem objects
     /// </summary>

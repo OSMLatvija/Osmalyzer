@@ -36,8 +36,7 @@ public class Municipality : IDataItem, IHasWikidataItem
             (!Valid ? "Invalid " : "") + 
             "Municipality" + 
             " `" + Name + "`" +
-            " #`" + AddressID + "`" + 
-            " (`" + RawAddress + "`)";
+            " #`" + AddressID + "`";
     }
 
     public override string ToString() => ReportString();

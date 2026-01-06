@@ -233,6 +233,9 @@ public static class WebsiteBrowsingHelper
         options.AddArgument("--log-level=3");
         // it still has "ChromeDriver was started successfully." spam that I don't know how to disable
         
+        // Disable Chrome's optimization guide features that can interfere with downloads
+        options.AddArgument("--disable-features=OptimizationGuideModelDownloading,OptimizationHintsFetching,OptimizationTargetPrediction,OptimizationHints");
+        
         // Ignore any SSL and such problems, because sites seem to have issues on GitHub 
         options.AcceptInsecureCertificates = true;
         options.AddArgument("--ignore-certificate-errors");

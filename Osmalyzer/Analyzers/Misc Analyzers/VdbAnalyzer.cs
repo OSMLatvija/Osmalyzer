@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
 
 namespace Osmalyzer;
 
@@ -41,6 +41,9 @@ public class VdbAnalyzer : Analyzer
 
             foreach (string value in fieldValues)
             {
+                if (value.Contains(Environment.NewLine))
+                    Debug.WriteLine("Multiline value found in field \"" + fieldName + "\": `" + value + "`");
+                
                 valueCounts.TryAdd(value, 0);
                 valueCounts[value]++;
             }

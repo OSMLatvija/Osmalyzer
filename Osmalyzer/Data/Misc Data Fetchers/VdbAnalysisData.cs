@@ -119,10 +119,10 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         using StreamReader reader = new StreamReader(csvFilePath, encoding);
         CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            HasHeaderRecord = true,
-            Delimiter = ";",
-            Encoding = encoding,
-            TrimOptions = TrimOptions.Trim
+            HasHeaderRecord = true, // first row is (known) header
+            Delimiter = ";", // it's semicolon-separated
+            TrimOptions = TrimOptions.Trim,
+            LineBreakInQuotedFieldIsBadData = false // it's actually found a lot
         };
         using CsvReader csv = new CsvReader(reader, config);
         
@@ -153,97 +153,14 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             
             RawEntries.Add(rawEntry);
             
-            // Extract all fields
-
-            // todo: only stuff we care about
+            // Parse fields
             
-            string? objectId = csv.GetField(0);
-            string? objectIdAlt = csv.GetField(1);
-            string? mainName = csv.GetField(2);
-            string? secondaryMainName = csv.GetField(3); 
-            string? status = csv.GetField(4);
-            string? atkCode = csv.GetField(5);
-            string? parish = csv.GetField(6);
-            string? municipality = csv.GetField(7);
-            string? type = csv.GetField(8);
-            string? geoLatitude = csv.GetField(9); 
-            string? geoLongitude = csv.GetField(10);
-            string? officialName = csv.GetField(11);
-            string? officialSource = csv.GetField(12);
-            string? nameId = csv.GetField(13);
-            string? name = csv.GetField(14);
-            string? pronunciation = csv.GetField(15);
-            string? isMain = csv.GetField(16);
-            string? declinableForm = csv.GetField(17);
-            string? enunciation = csv.GetField(18);
-            string? transferred = csv.GetField(19);
-            string? startTime = csv.GetField(20);
-            string? endTime = csv.GetField(21);
-            string? usageArea = csv.GetField(22);
-            string? usageFrequency = csv.GetField(23);
-            string? comments = csv.GetField(24);
-            string? mapName = csv.GetField(25);
-            string? officialNameAndSource = csv.GetField(26);
-            string? allNames = csv.GetField(27);
-            string? official = csv.GetField(28);
-            string? geoLongitudeAlt = csv.GetField(29);
-            string? geoLatitudeAlt = csv.GetField(30);
-            string? form = csv.GetField(31);
-            string? formId = csv.GetField(32);
-            string? dateModified = csv.GetField(33);
-
-            // Parse coordinates
             
-            double? lat = null;
-            double? lon = null;
-
-            if (!string.IsNullOrWhiteSpace(geoLatitude) && double.TryParse(geoLatitude, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedLat))
-                lat = parsedLat;
-
-            if (!string.IsNullOrWhiteSpace(geoLongitude) && double.TryParse(geoLongitude, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedLon))
-                lon = parsedLon;
-            
-            OsmCoord? coord = null;
-            
-            if (lat.HasValue && lon.HasValue)
-                coord = new OsmCoord(lat.Value, lon.Value);
             
             // Make entry
 
             VdbEntry entry = new VdbEntry(
-                objectId,
-                objectIdAlt,
-                mainName,
-                secondaryMainName,
-                status,
-                atkCode,
-                parish,
-                municipality,
-                type,
-                coord,
-                officialName,
-                officialSource,
-                nameId,
-                name,
-                pronunciation,
-                isMain,
-                declinableForm,
-                enunciation,
-                transferred,
-                startTime,
-                endTime,
-                usageArea,
-                usageFrequency,
-                comments,
-                mapName,
-                officialNameAndSource,
-                allNames,
-                official,
-                geoLongitudeAlt,
-                geoLatitudeAlt,
-                form,
-                formId,
-                dateModified
+                
             );
 
             Entries.Add(entry);
@@ -260,108 +177,12 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
 public class VdbEntry
 {
-    public string? ObjectId { get; }
-    public string? ObjectIdAlt { get; }
-    public string? MainName { get; }
-    public string? SecondaryMainName { get; }
-    public string? Status { get; }
-    public string? AtkCode { get; }
-    public string? Parish { get; }
-    public string? Municipality { get; }
-    public string? Type { get; }
-    public OsmCoord? Coord { get; }
-    public string? OfficialName { get; }
-    public string? OfficialSource { get; }
-    public string? NameId { get; }
-    public string? Name { get; }
-    public string? Pronunciation { get; }
-    public string? IsMain { get; }
-    public string? DeclinableForm { get; }
-    public string? Enunciation { get; }
-    public string? Transferred { get; }
-    public string? StartTime { get; }
-    public string? EndTime { get; }
-    public string? UsageArea { get; }
-    public string? UsageFrequency { get; }
-    public string? Comments { get; }
-    public string? MapName { get; }
-    public string? OfficialNameAndSource { get; }
-    public string? AllNames { get; }
-    public string? Official { get; }
-    public string? GeoLongitudeAlt { get; }
-    public string? GeoLatitudeAlt { get; }
-    public string? Form { get; }
-    public string? FormId { get; }
-    public string? DateModified { get; }
+    
 
     public VdbEntry(
-        string? objectId,
-        string? objectIdAlt,
-        string? mainName,
-        string? secondaryMainName,
-        string? status,
-        string? atkCode,
-        string? parish,
-        string? municipality,
-        string? type,
-        OsmCoord? coord,
-        string? officialName,
-        string? officialSource,
-        string? nameId,
-        string? name,
-        string? pronunciation,
-        string? isMain,
-        string? declinableForm,
-        string? enunciation,
-        string? transferred,
-        string? startTime,
-        string? endTime,
-        string? usageArea,
-        string? usageFrequency,
-        string? comments,
-        string? mapName,
-        string? officialNameAndSource,
-        string? allNames,
-        string? official,
-        string? geoLongitudeAlt,
-        string? geoLatitudeAlt,
-        string? form,
-        string? formId,
-        string? dateModified)
+       )
     {
-        ObjectId = objectId;
-        ObjectIdAlt = objectIdAlt;
-        MainName = mainName;
-        SecondaryMainName = secondaryMainName;
-        Status = status;
-        AtkCode = atkCode;
-        Parish = parish;
-        Municipality = municipality;
-        Type = type;
-        Coord = coord;
-        OfficialName = officialName;
-        OfficialSource = officialSource;
-        NameId = nameId;
-        Name = name;
-        Pronunciation = pronunciation;
-        IsMain = isMain;
-        DeclinableForm = declinableForm;
-        Enunciation = enunciation;
-        Transferred = transferred;
-        StartTime = startTime;
-        EndTime = endTime;
-        UsageArea = usageArea;
-        UsageFrequency = usageFrequency;
-        Comments = comments;
-        MapName = mapName;
-        OfficialNameAndSource = officialNameAndSource;
-        AllNames = allNames;
-        Official = official;
-        GeoLongitudeAlt = geoLongitudeAlt;
-        GeoLatitudeAlt = geoLatitudeAlt;
-        Form = form;
-        FormId = formId;
-        DateModified = dateModified;
+        
     }
 }
 

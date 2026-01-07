@@ -627,37 +627,43 @@ public abstract class OsmData
     [Pure]
     private IEnumerable<OsmElement> ChooseCollectionForFiltering(OsmFilter[] filters)
     {
-        // todo: return back a new filter list without the redundant filter we dismissed
-            
-        // todo: go through filters one at a time and keep flags insetad of multiple enumerations
-            
-        if (filters.Any(f => f.ForNodesOnly))
+        bool nodesOnly = filters.Any(f => f.ForNodesOnly);
+        bool waysOnly = filters.Any(f => f.ForWaysOnly);
+        bool relationsOnly = filters.Any(f => f.ForRelationsOnly);
+        bool taggedOnly = filters.Any(f => f.TaggedOnly);
+        // todo: go through filters one at a time and keep flags instead of multiple enumerations
+
+        // todo: all the combos, like nodes + ways
+        
+        if (nodesOnly)
         {
-            if (filters.Any(f => f.TaggedOnly))
+            if (taggedOnly)
                 return _nodesWithTags;
 
             return _nodes;
         }
 
-        if (filters.Any(f => f.ForWaysOnly))
+        if (waysOnly)
         {
-            if (filters.Any(f => f.TaggedOnly))
+            if (taggedOnly)
                 return _waysWithTags;
 
             return _ways;
         }
 
-        if (filters.Any(f => f.ForRelationsOnly))
+        if (relationsOnly)
         {
-            if (filters.Any(f => f.TaggedOnly))
+            if (taggedOnly)
                 return _relationsWithTags;
 
             return _relations;
         }
         
-        if (filters.Any(f => f.TaggedOnly))
+        if (taggedOnly)
             return _elementsWithTags;
 
+        // todo: return back a new filter list without the redundant filter we dismissed
+        
         return _elements;
     }
 }

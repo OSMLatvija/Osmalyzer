@@ -21,45 +21,47 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public List<VdbEntry> Entries { get; private set; } = null!; // only null before prepared
     
+    public List<VdbEntry> AdminEntries { get; private set; } = null!; // only null before prepared
+    
     public List<RawVdbEntry> RawEntries { get; private set; } = null!; // only null before prepared
 
 
     public static readonly string[] FieldNames =
     [
-        "OBJECTID",
-        "OBJEKTAID",
-        "PAMATNOSAUKUMS",
-        "PAMATNOSAUKUMS2",
-        "STAVOKLIS",
-        "ATKKODS",
-        "PAGASTS",
-        "NOVADS",
-        "VEIDS",
-        "GEOPLATUMS",
-        "GEOGARUMS",
-        "OFICIALS_NOSAUKUMS",
-        "OFICIALS_AVOTS",
-        "NOSAUKUMAID",
-        "NOSAUKUMS",
-        "IZSKANA",
-        "GALVENAIS",
-        "SKAUZAMAFORMA",
-        "IZRUNA",
-        "PARDEVETS",
-        "SAKUMALAIKS",
-        "BEIGULAIKS",
-        "LIETOSANASVIDE",
-        "LIETOSANASBIEZUMS",
-        "KOMENTARI",
-        "KARTESNOS",
-        "OFIC_NOS_UN_AVOTS",
-        "VISI_NOS",
-        "OFICIALS",
-        "GEO_GAR",
-        "GEO_PLAT",
-        "FORMA",
-        "FORMASID",
-        "DATUMSIZM"
+        "OBJECTID", // row number basically, useless
+        "OBJEKTAID", // the actual unqiue ID of the VDB, presumably
+        "PAMATNOSAUKUMS", // primary name of the feature, all have it
+        "PAMATNOSAUKUMS2", // alternative name of the feature, 99.4% don't have it
+        "STAVOKLIS", // state of the feature, 96% exist, all have it
+        "ATKKODS", // TODO: don't know what this is
+        "PAGASTS", // as expected "Naujenes pagasts", but also stuff like "Latvija", "Rīga", "Ogres novads"
+        "NOVADS", // mostly as expected "Augšdaugavas novads", but also "Latvija" and "Eiropas Savienība"
+        "VEIDS", // type of feature, all have it, seems strictly-defined
+        "GEOPLATUMS", // decimal latitude in WGS84, all have it
+        "GEOGARUMS", // decimal longitude in WGS84, all have it
+        "OFICIALS_NOSAUKUMS", // official name from some source, like addresses, but this can be multiname like "Mārupes novads, Mārupes pagasts" or "Kašatniki, Kašatniki"
+        "OFICIALS_AVOTS", // the source of the official name
+        "NOSAUKUMAID", // presumably the id within the source
+        "NOSAUKUMS", // todo: not sure what this is
+        "IZSKANA", // related to pronunciation
+        "GALVENAIS", // todo: no idea, values are mostly 97% "1", 12% "0" and 0.4% "1" 
+        "SKAUZAMAFORMA", // todo: not sure, declinable form? 99.6% are "0" and rest are empty, related to pronunciation?
+        "IZRUNA", // related to pronunciation
+        "PARDEVETS", // todo: not sure, I would guess old name, but 99.975% of entries don't have it
+        "SAKUMALAIKS", // presumably incomplete, 99.6% don't have it and values are freeform like "muižas laiks", "2012.g." etc.
+        "BEIGULAIKS", // about the same as above
+        "LIETOSANASVIDE", // free-form way of use like "vietējie iedzīvotāji", but 99.5% don't have it
+        "LIETOSANASBIEZUMS", // related to above presumably, mostly empty
+        "KOMENTARI", // some unparsable internal comments
+        "KARTESNOS", // whether it should appear on maps, 87% is "1", rest "0"
+        "OFIC_NOS_UN_AVOTS", // seems like combination of official name and source like "Kalniņi [AR]" for official name "Kalniņi" and source "AR", presumably for website
+        "VISI_NOS", // some kind of combined names field, presumably for website
+        "OFICIALS", // two values "Oficiāls" fo 60% and "Neoficiāls" for 40%, but there seem to be errors
+        "GEO_GAR", // presumably parsed from GEOGARUMS to readable "26° 22' 21""
+        "GEO_PLAT", // presumably parsed from GEOPLATUMS to readable "56° 33' 56""
+        "FORMA", // seems to describe some special flag like "literārā forma", "kļūdaina forma", etc. but 99% don't have it
+        "FORMASID", // todo: no idea, it has numeric values from 1 to 11, 99.2% are "6" - probably some internal code
+        "DATUMSIZM" // last change date like "02.02.2004 00:00", presumably internal changes
     ];
 
 
@@ -140,10 +142,12 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
         Entries = [ ];
         RawEntries = [ ];
+        AdminEntries = [ ];
 
         HashSet<string> objectIds = [ ];
 
         // Parse data rows
+        
         while (csv.Read())
         {
             if (csv.ColumnCount != FieldNames.Length)
@@ -165,17 +169,98 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             RawEntries.Add(rawEntry);
             
             // Parse fields
+
+            long id = long.Parse(rawEntry.ObjectId);
+
+            // All entries have coordinates specified
+            double latitude = double.Parse(rawEntry.GeoLatitude!, CultureInfo.InvariantCulture);
+            double longitude = double.Parse(rawEntry.GeoLongitude!, CultureInfo.InvariantCulture);
+            OsmCoord coord = new OsmCoord(latitude, longitude);
             
+            // All entries have main name specified and some have alt name
+            string name = rawEntry.MainName?.Trim() ?? throw new Exception("Missing PAMATNOSAUKUMS in VDB CSV data (record " + csv.CurrentIndex + ")");
+            string? altName = rawEntry.SecondaryMainName?.Trim();
+            string? officialName = rawEntry.OfficialName?.Trim();
             
+            if (altName == "") altName = null;
+            if (officialName == "") officialName = null;
+            
+            // All entries have one of the pre-defined states specified
+            VdbEntryState state = rawEntry.State switch
+            {
+                "pastāv"               => VdbEntryState.Exists,
+                "daļēji izzudis"       => VdbEntryState.PartiallyGone,
+                "nepastāv"             => VdbEntryState.Gone,
+                "nedarbojas"           => VdbEntryState.NotOperating,
+                "nezināms"             => VdbEntryState.Unknown,
+                "nosusināts/ nolaists" => VdbEntryState.Drained,
+                null                   => throw new Exception("Missing STAVOKLIS in VDB CSV data (record " + csv.CurrentIndex + ")"),
+                _                      => throw new Exception("Unknown STAVOKLIS value in VDB CSV data: " + rawEntry.State + " (record " + csv.CurrentIndex + ")")
+            };
+            
+            // All entries have parish and municipality specified
+            string location1 = rawEntry.Parish?.Trim() ?? throw new Exception("Missing PAGASTS in VDB CSV data (record " + csv.CurrentIndex + ")");
+            string location2 = rawEntry.Municipality?.Trim() ?? throw new Exception("Missing NOVADS in VDB CSV data (record " + csv.CurrentIndex + ")");
+            
+            // There are a lot of types, so process the ones of immediate interest 
+
+            VdbEntryObjectType objectType = rawEntry.Type switch
+            {
+                "viensēta" => VdbEntryObjectType.Hamlet,
+
+                // Admin divisions
+                "ciems"          => VdbEntryObjectType.Village,
+                "mazciems"       => VdbEntryObjectType.Hamlet,
+                "pagasts"        => VdbEntryObjectType.Parish,
+                "novads"         => VdbEntryObjectType.Municipality,
+                "valstspilsēta"  => VdbEntryObjectType.StateCity,
+                "novada pilsēta" => VdbEntryObjectType.MunicipalCities,
+                // These seem to line up with VZD and admin law divisions
+                // Note that "novada pašvaldība" and "valstspilsētas pašvaldība" means "the office" location not some division
+
+                _ => VdbEntryObjectType.Unparsed
+            };
+            
+            bool official = rawEntry.Official switch
+            {
+                "Oficiāls"   => true,
+                "Neoficiāls" => false,
+                null         => throw new Exception("Missing OFICIALS in VDB CSV data (record " + csv.CurrentIndex + ")"),
+                _            => throw new Exception("Unknown OFICIALS value in VDB CSV data: " + rawEntry.Official + " (record " + csv.CurrentIndex + ")")
+            };
             
             // Make entry
 
             VdbEntry entry = new VdbEntry(
-                
+                id,
+                coord,
+                objectType,
+                official,
+                name,
+                altName,
+                officialName,
+                state,
+                location1,
+                location2
             );
+
+            switch (objectType)
+            {
+                case VdbEntryObjectType.Village:
+                case VdbEntryObjectType.Hamlet:
+                case VdbEntryObjectType.Parish:
+                case VdbEntryObjectType.Municipality:
+                case VdbEntryObjectType.StateCity:
+                case VdbEntryObjectType.MunicipalCities:
+                    AdminEntries.Add(entry);
+                    break;
+            }
 
             Entries.Add(entry);
         }
+        
+        if (RawEntries.Count == 0)
+            throw new Exception("No entries found in VDB CSV data.");
         
 #if DEBUG
         // Resave properly formatted CSV for easier debugging
@@ -199,16 +284,93 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 }
 
 
-public class VdbEntry
+public class VdbEntry : IDataItem
 {
+    public long ID { get; }
     
+    public OsmCoord Coord { get; }
+    
+    public VdbEntryObjectType ObjectType { get; }
+    
+    public bool Official { get; }
 
-    public VdbEntry(
-       )
+    public string Name { get; }
+    
+    public string? AltName { get; }
+    
+    public string? OfficialName { get; }
+
+    /// <summary> Strongly-typed known feature type, if implemented </summary>
+    public VdbEntryState State { get; }
+    
+    /// <summary> Usually parish, but can also be city, country or municipality </summary>
+    public string Location1 { get; }
+    
+    /// <summary> Usually municipality, but can also be "Latvija" and "Eiropas Savienība" </summary>
+    public string Location2 { get; }
+
+
+    public bool IsActive => State == VdbEntryState.Exists; // not including PartiallyGone to be more strict
+
+
+    public VdbEntry(long id, OsmCoord coord, VdbEntryObjectType objectType, bool official, string name, string? altName, string? officialName, VdbEntryState state, string location1, string location2)
     {
+        if (name == "") throw new ArgumentException("VDB entry name cannot be empty string.");
+        if (altName == "") throw new ArgumentException("VDB entry alt name cannot be empty string.");
+        if (officialName == "") throw new ArgumentException("VDB entry official name cannot be empty string.");
+        if (location1 == "") throw new ArgumentException("VDB entry location1 cannot be empty string.");
+        if (location2 == "") throw new ArgumentException("VDB entry location2 cannot be empty string.");
         
+        ID = id;
+        Coord = coord;
+        ObjectType = objectType;
+        Official = official;
+        Name = name;
+        AltName = altName;
+        OfficialName = officialName;
+        State = state;
+        Location1 = location1;
+        Location2 = location2;
+    }
+
+    public string ReportString()
+    {
+        return
+            ObjectType +
+            (!Official ? " (Unofficial)" : "") +
+            (State != VdbEntryState.Exists ? " [" + State + "]" : "") +
+            " `" + Name + "`" +
+            (AltName != null ? " / `" + AltName + "` (A)" : "") +
+            (OfficialName != null && Name != OfficialName ? " / `" + OfficialName + "` (O)" : "") +
+            " #" + ID +
+            " in `" + Location1 + "`, `" + Location2 + "`" +
+            " at " + Coord.OsmUrl;
     }
 }
+
+public enum VdbEntryState
+{
+    Exists,
+    PartiallyGone,
+    Gone,
+    NotOperating,
+    Unknown,
+    Drained
+}
+
+public enum VdbEntryObjectType
+{
+    /// <summary> Not yet parsed into a specific type </summary>
+    Unparsed = -1,
+    
+    Hamlet,
+    Village,
+    Parish,
+    MunicipalCities,
+    Municipality,
+    StateCity
+}
+
 
 public class RawVdbEntry
 {
@@ -216,7 +378,7 @@ public class RawVdbEntry
     [Index(1)] [UsedImplicitly] public string? ObjectId { get; set; }
     [Index(2)] [UsedImplicitly] public string? MainName { get; set; }
     [Index(3)] [UsedImplicitly] public string? SecondaryMainName { get; set; } 
-    [Index(4)] [UsedImplicitly] public string? Status { get; set; }
+    [Index(4)] [UsedImplicitly] public string? State { get; set; }
     [Index(5)] [UsedImplicitly] public string? AtkCode { get; set; }
     [Index(6)] [UsedImplicitly] public string? Parish { get; set; }
     [Index(7)] [UsedImplicitly] public string? Municipality { get; set; }

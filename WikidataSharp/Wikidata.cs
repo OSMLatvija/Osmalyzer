@@ -6,7 +6,6 @@ namespace WikidataSharp;
 public static class Wikidata
 {
     private const int maxRetryWaitSeconds = 180; // 3 minutes
-    private const int requestTimeoutSeconds = 20; // todo: param if higher needed
 
 
     [PublicAPI]
@@ -252,7 +251,6 @@ public static class Wikidata
         
         using HttpClient httpClient = new HttpClient(handler);
         httpClient.DefaultRequestHeaders.Add("User-Agent", "Osmalyzer");
-        httpClient.Timeout = TimeSpan.FromSeconds(requestTimeoutSeconds);
 
         while (true)
         {

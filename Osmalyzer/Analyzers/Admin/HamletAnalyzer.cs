@@ -159,7 +159,12 @@ public class HamletAnalyzer : Analyzer
                 new DoesntHaveValue("place", "suburb"),
                 new DoesntHaveValue("place", "neighbourhood"),
                 new DoesntHaveValue("railway", "station"),
-                new DoesntHaveValue("abandoned:railway", "station")
+                new DoesntHaveValue("\nhistoric:railway", "station"),
+                new DoesntHaveValue("abandoned:railway", "station"),
+                new DoesntHaveValue("landuse", "military"),
+                new DoesntHaveKey("traffic_sign"),
+                new DoesntHaveKey("power"),
+                new DoesntHaveKey("advertising")
             );
 
             foreach (Hamlet hamlet in unmatchedHamlets)

@@ -18,7 +18,8 @@ public class VillageAnalyzer : Analyzer
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
         typeof(VillagesWikidataData),
-        typeof(ParishesWikidataData)
+        typeof(ParishesWikidataData),
+        typeof(VdbAnalysisData)
     ];
         
 
@@ -64,6 +65,12 @@ public class VillageAnalyzer : Analyzer
         VillagesWikidataData villagesWikidataData = datas.OfType<VillagesWikidataData>().First();
         
         ParishesWikidataData parishesWikidataData = datas.OfType<ParishesWikidataData>().First();
+        
+        VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
+        // Assign VDB data
+        
+        vdbData.AssignToVillages(addressData.Villages);
         
         // Assign WikiData
 

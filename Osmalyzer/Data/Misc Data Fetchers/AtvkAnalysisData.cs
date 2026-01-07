@@ -55,7 +55,7 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
 
             // Parse CSV line (handling quoted fields properly)
             // Fields: Level,Code,Code_version,Name,Code_parent,Validity_period_begin,Validity_period_end,Predecessors,Successors
-            string[] fields = ParseCsvLine(line);
+            string[] fields = CsvParser.ParseLine(line, ',');
 
             if (fields.Length < 9)
                 throw new Exception($"Expected at least 9 fields in CSV line, got {fields.Length}: {line}");
@@ -152,52 +152,6 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
         //         Console.WriteLine($"  - {child.ReportString()}");
         // }
 #endif
-    }
-
-
-    /// <summary>
-    /// Parse a CSV line handling quoted fields properly
-    /// </summary>
-    private static string[] ParseCsvLine(string line)
-    {
-        List<string> fields = [ ];
-        bool inQuotes = false;
-        StringBuilder currentField = new StringBuilder();
-
-        for (int i = 0; i < line.Length; i++)
-        {
-            char c = line[i];
-
-            if (c == '"')
-            {
-                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
-                {
-                    // escaped quote
-                    currentField.Append('"');
-                    i++; // skip next quote
-                }
-                else
-                {
-                    // toggle quote mode
-                    inQuotes = !inQuotes;
-                }
-            }
-            else if (c == ',' && !inQuotes)
-            {
-                // field separator
-                fields.Add(currentField.ToString());
-                currentField.Clear();
-            }
-            else
-            {
-                currentField.Append(c);
-            }
-        }
-
-        // add last field
-        fields.Add(currentField.ToString());
-
-        return fields.ToArray();
     }
 }
 

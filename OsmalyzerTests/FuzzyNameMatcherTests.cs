@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
-using Osmalyzer;
 
-namespace OsmalyzerTests;
+namespace Osmalyzer.Tests;
 
 public class FuzzyNameMatcherTests
 {

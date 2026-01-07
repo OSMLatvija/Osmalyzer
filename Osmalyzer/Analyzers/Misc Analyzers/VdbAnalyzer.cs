@@ -41,8 +41,13 @@ public class VdbAnalyzer : Analyzer
 
             foreach (string value in fieldValues)
             {
+#if DEBUG
                 if (value.Contains(Environment.NewLine))
                     Debug.WriteLine("Multiline value found in field \"" + fieldName + "\": `" + value + "`");
+                
+                if (value == "<Null>")
+                    Debug.WriteLine("Literal \"<Null>\" value found in field \"" + fieldName + "\".");
+#endif
                 
                 valueCounts.TryAdd(value, 0);
                 valueCounts[value]++;
@@ -55,40 +60,53 @@ public class VdbAnalyzer : Analyzer
                 $"Field \"{fieldName}\""
             );
 
-            // Sort by count descending
-            List<KeyValuePair<string, int>> sortedCounts = valueCounts
-                .OrderByDescending(kvp => kvp.Value)
-                .ToList();
-
-            const int listLimit = 30;
-
-            // Report top values
-            foreach (KeyValuePair<string, int> kvp in sortedCounts.Take(listLimit))
+            if (fieldName is "OBJECTID" or "OBJEKTAID")
             {
-                string displayValue = kvp.Key == "" ? "<empty>" : "`" + kvp.Key.Replace(Environment.NewLine, "↲") + "`";
-                float portion = (float)kvp.Value / entries.Count;
-
+                // Skip reporting for unique ID fields
                 report.AddEntry(
                     fieldIndex,
                     new GenericReportEntry(
-                        $"{displayValue} × {kvp.Value:N0} ({portion * 100f:F1} %)"
+                        $"Field \"{fieldName}\" contains {entries.Count} unique values."
                     )
                 );
             }
-
-            // Report if there are more values
-            if (sortedCounts.Count > listLimit)
+            else
             {
-                int remaining = sortedCounts.Count - listLimit;
-                int remainingCount = sortedCounts.Skip(listLimit).Sum(kvp => kvp.Value);
-                float remainingPortion = (float)remainingCount / entries.Count;
+                // Sort by count descending
+                List<KeyValuePair<string, int>> sortedCounts = valueCounts
+                                                               .OrderByDescending(kvp => kvp.Value)
+                                                               .ToList();
 
-                report.AddEntry(
-                    fieldIndex,
-                    new GenericReportEntry(
-                        $"... and {remaining:N0} more unique values ({remainingCount:N0} entries, {remainingPortion * 100f:F1} %)"
-                    )
-                );
+                const int listLimit = 30;
+
+                // Report top values
+                foreach (KeyValuePair<string, int> kvp in sortedCounts.Take(listLimit))
+                {
+                    string displayValue = kvp.Key == "" ? "<empty>" : "`" + kvp.Key.Replace(Environment.NewLine, "↲") + "`";
+                    float portion = (float)kvp.Value / entries.Count;
+
+                    report.AddEntry(
+                        fieldIndex,
+                        new GenericReportEntry(
+                            $"{displayValue} × {kvp.Value} ({portion * 100f:F3} %)"
+                        )
+                    );
+                }
+
+                // Report if there are more values
+                if (sortedCounts.Count > listLimit)
+                {
+                    int remaining = sortedCounts.Count - listLimit;
+                    int remainingCount = sortedCounts.Skip(listLimit).Sum(kvp => kvp.Value);
+                    float remainingPortion = (float)remainingCount / entries.Count;
+
+                    report.AddEntry(
+                        fieldIndex,
+                        new GenericReportEntry(
+                            $"... and {remaining} more unique values ({remainingCount} entries, {remainingPortion * 100f:F1} %)"
+                        )
+                    );
+                }
             }
         }
     }

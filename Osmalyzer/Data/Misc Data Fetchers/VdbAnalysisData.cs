@@ -122,7 +122,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             HasHeaderRecord = true, // first row is (known) header
             Delimiter = ";", // it's semicolon-separated
             TrimOptions = TrimOptions.Trim,
-            LineBreakInQuotedFieldIsBadData = false // it's actually found a lot
+            LineBreakInQuotedFieldIsBadData = false // it's found a lot in comments / KOMENTARI
         };
         using CsvReader csv = new CsvReader(reader, config);
         
@@ -141,6 +141,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         Entries = [ ];
         RawEntries = [ ];
 
+        HashSet<string> objectIds = [ ];
+
         // Parse data rows
         while (csv.Read())
         {
@@ -151,6 +153,15 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             
             RawVdbEntry rawEntry = csv.GetRecord<RawVdbEntry>();
             
+            // Validate fields
+            
+            if (rawEntry.ObjectId == null) 
+                throw new Exception("Missing OBJECTID in VDB CSV data (record " + csv.CurrentIndex + ")");
+            
+            if (!objectIds.Add(rawEntry.ObjectId))
+                throw new Exception("Duplicate OBJECTID found in VDB CSV data: " + rawEntry.ObjectId);
+            
+            // Looks good
             RawEntries.Add(rawEntry);
             
             // Parse fields
@@ -165,6 +176,19 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
             Entries.Add(entry);
         }
+        
+#if DEBUG
+        // Resave properly formatted CSV for easier debugging
+        using StreamWriter debugWriter = new StreamWriter("vdb_debug.csv", false, Encoding.UTF8);
+        using CsvWriter debugCsv = new CsvWriter(debugWriter, CultureInfo.InvariantCulture);
+        debugCsv.WriteHeader<RawVdbEntry>();
+        debugCsv.NextRecord();
+        foreach (RawVdbEntry rawEntry in RawEntries)
+        {
+            debugCsv.WriteRecord(rawEntry);
+            debugCsv.NextRecord();
+        }
+#endif        
     }
 
     
@@ -188,8 +212,8 @@ public class VdbEntry
 
 public class RawVdbEntry
 {
-    [Index(0)] [UsedImplicitly] public string? ObjectId { get; set; }
-    [Index(1)] [UsedImplicitly] public string? ObjectIdAlt { get; set; }
+    [Index(0)] [UsedImplicitly] public string? EntryID { get; set; }
+    [Index(1)] [UsedImplicitly] public string? ObjectId { get; set; }
     [Index(2)] [UsedImplicitly] public string? MainName { get; set; }
     [Index(3)] [UsedImplicitly] public string? SecondaryMainName { get; set; } 
     [Index(4)] [UsedImplicitly] public string? Status { get; set; }

@@ -15,8 +15,8 @@ public class VillagesWikidataData : WikidataData
     public override bool NeedsPreparation => true;
 
 
-    private const long villageInLatviaQID = 22580836; // includes both villages and hamlets
-    private const long smallVillageInLatviaQID = 16363214; // small village in Latvia, i.e. mazciems = hamlet
+    private const long villageInLatviaQID = 22580836; // ciems proper (currently includes all villages and hamlets from old scheme)
+    private const long hamletInLatviaQID = 137705728; // mazciems proper
 
 
     protected override string DataFileIdentifier => "villages-wikidata";
@@ -36,7 +36,7 @@ public class VillagesWikidataData : WikidataData
     {
         // Fetch villages and hamlets (e.g., village Ulbroka, hamlet Pilda)
         // Note: Wikidata doesn't directly differentiate between villages and hamlets - both use the same instance-of
-        string rawJson = Wikidata.FetchItemsByInstanceOfRaw(villageInLatviaQID);
+        string rawJson = Wikidata.FetchItemsByInstanceOfRaw(villageInLatviaQID, hamletInLatviaQID);
         File.WriteAllText(RawFilePath, rawJson);
         
         // Process immediately after download

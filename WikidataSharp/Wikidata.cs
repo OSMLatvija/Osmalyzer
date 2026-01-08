@@ -57,9 +57,23 @@ public static class Wikidata
     /// </summary>
     [PublicAPI]
     [MustUseReturnValue]
-    public static string FetchItemsByInstanceOfRaw(long instanceOfQID)
+    public static string FetchItemsByInstanceOfRaw(params long[] instanceOfQID)
     {
-        string filterClause = "?item wdt:P31 wd:Q" + instanceOfQID + "."; // todo: dehardcode P31
+        if (instanceOfQID.Length == 0) throw new ArgumentException("At least one instanceOfQID must be provided.", nameof(instanceOfQID));
+
+        string filterClause;
+
+        if (instanceOfQID.Length == 1)
+        {
+            filterClause = "?item wdt:P" + (long)WikiDataProperty.InstanceOf + " wd:Q" + instanceOfQID[0] + ".";
+        }
+        else
+        {
+            filterClause =
+                "VALUES ?targets { " + string.Join(" ", instanceOfQID.Select(i => "wd:Q" + i)) + " }" + Environment.NewLine +
+                "?item wdt:P" + (long)WikiDataProperty.InstanceOf + " ?targets.";
+        }
+
         return FetchItemsWithFilterRaw(filterClause);
     }
 

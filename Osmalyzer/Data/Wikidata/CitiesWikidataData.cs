@@ -78,7 +78,7 @@ public class CitiesWikidataData : WikidataData
 
 
 
-    public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches)
+    public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<WikidataMatchIssue> multiMatches)
         where T : class, IHasWikidataItem
     {
         AssignWikidataItems(dataItems, AllCities, matcher, out multiMatches);

@@ -52,7 +52,7 @@ public class HamletAnalyzer : Analyzer
                 //(addressData.IsUniqueHamletName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
                  i.ParishName == GetWikidataAdminItemOwnerName(wd),//)
                 // we cannot assume wikidata is correct to rely on unique names and it has lots of hamlet mistagging, so their list includes non-hamlets too
-            out List<(Hamlet, List<WikidataItem>)> multiMatches
+            out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
         );
         
         string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
@@ -265,10 +265,10 @@ public class HamletAnalyzer : Analyzer
         // List extra data items from non-OSM that were not matched
         
         report.AddGroup(
-            ExtraReportGroup.ExtraDataItems,
-            "Extra data items",
-            "This section lists data items from additional external data sources that were not matched to any OSM element.",
-            "All external data items were matched to OSM elements."
+            ExtraReportGroup.ExternalDataMatchingIssues,
+            "Extra data item matching issues",
+            "This section lists any issues with data item matching ti additional external data sources.",
+            "No issues found."
         );
 
         // todo: restore when wikidata is fixed, otherwise we small all the regular villages too 
@@ -281,22 +281,30 @@ public class HamletAnalyzer : Analyzer
         //     string? name = wikidataItem.GetBestName("lv") ?? null;
         //
         //     report.AddEntry(
-        //         ExtraReportGroup.ExtraDataItems,
+        //         ExtraReportGroup.ExternalDataMatchingIssues,
         //         new IssueReportEntry(
         //             "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
         //         )
         //     );
         // }
 
-        foreach ((Hamlet hamlet, List<WikidataItem> matches) in multiMatches)
+        foreach (WikidataData.WikidataMatchIssue matchIssue in wikidataMatchIssues)
         {
-            report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
-                new IssueReportEntry(
-                    hamlet.ReportString() + " matched multiple Wikidata items: " +
-                    string.Join(", ", matches.Select(wd => wd.WikidataUrl))
-                )
-            );
+            switch (matchIssue)
+            {
+                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Village> multipleWikidataMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
+                            string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
+                        )
+                    );
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(matchIssue));
+            }
         }
     }
 
@@ -305,7 +313,7 @@ public class HamletAnalyzer : Analyzer
     {
         SuggestedHamletAdditions,
         InvalidHamlets,
-        ExtraDataItems,
+        ExternalDataMatchingIssues,
         ProposedChanges
     }
 }

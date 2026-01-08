@@ -11,10 +11,10 @@ public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
         List<T> dataItems, 
         List<WikidataItem> wikidataItems,
         Func<T, WikidataItem, bool> matcher,
-        out List<(T, List<WikidataItem>)> multiMatches)
+        out List<WikidataMatchIssue> issues)
         where T : class, IHasWikidataItem
     {
-        multiMatches = [ ];
+        issues = [ ];
         
         int count = 0;
         
@@ -27,7 +27,7 @@ public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
             
             if (matches.Count > 1)
             {
-                multiMatches.Add((dataItem, matches));
+                issues.Add(new MultipleWikidataMatchesWikidataMatchIssue<T>(dataItem, matches));
                 
                 continue;
             }
@@ -47,4 +47,9 @@ public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
             .Where(item => !item.HasActiveStatement(WikiDataProperty.DissolvedAbolishedOrDemolishedDate))
             .ToList();
     }
+
+
+    public abstract record WikidataMatchIssue;
+
+    public record MultipleWikidataMatchesWikidataMatchIssue<T>(T DataItem, List<WikidataItem> WikidataItems) : WikidataMatchIssue;
 }

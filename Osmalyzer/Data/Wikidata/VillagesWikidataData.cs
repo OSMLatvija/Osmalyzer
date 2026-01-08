@@ -72,22 +72,22 @@ public class VillagesWikidataData : WikidataData
     }
 
 
-    public void AssignVillageOrHamlet<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches) 
+    public void AssignVillageOrHamlet<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<WikidataMatchIssue> issues) 
         where T : class, IHasWikidataItem
     {
-        AssignWikidataItems(dataItems, AllVillages, matcher, out multiMatches);
+        AssignWikidataItems(dataItems, AllVillages, matcher, out issues);
     }
 
-    // public void AssignHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches) 
+    // public void AssignHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<WikidataMatchIssue> issues) 
     //     where T : class, IHasWikidataItem
     // {
-    //     AssignWikidataItems(dataItems, Hamlets, matcher, out multiMatches);
+    //     AssignWikidataItems(dataItems, Hamlets, matcher, out issues);
     // }
     //
-    // public void AssignNonHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches)
+    // public void AssignNonHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<WikidataMatchIssue> issues)
     //     where T : class, IHasWikidataItem
     // {
-    //     AssignWikidataItems(dataItems, NonHamlets, matcher, out multiMatches);
+    //     AssignWikidataItems(dataItems, NonHamlets, matcher, out issues);
     // }
 }
 

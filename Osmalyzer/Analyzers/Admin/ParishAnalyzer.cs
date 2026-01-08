@@ -73,7 +73,7 @@ public class ParishAnalyzer : Analyzer
                 i.Name == wd.GetBestName("lv") &&
                 (addressData.IsUniqueParishName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
                  i.MunicipalityName == GetWikidataAdminItemOwnerName(wd)),
-            out List<(Parish, List<WikidataItem>)> multiMatches
+            out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
         );
         
         string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
@@ -259,10 +259,10 @@ public class ParishAnalyzer : Analyzer
         // List extra data items from non-OSM that were not matched
         
         report.AddGroup(
-            ExtraReportGroup.ExtraDataItems,
-            "Extra data items",
-            "This section lists data items from additional external data sources that were not matched to any OSM element.",
-            "All external data items were matched to OSM elements."
+            ExtraReportGroup.ExternalDataMatchingIssues,
+            "Extra data item matching issues",
+            "This section lists any issues with data item matching ti additional external data sources.",
+            "No issues found."
         );
         
         List<AtkvEntry> extraAtvkEntries = atvkEntries
@@ -272,7 +272,7 @@ public class ParishAnalyzer : Analyzer
         foreach (AtkvEntry atvkEntry in extraAtvkEntries)
         {
             report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
+                ExtraReportGroup.ExternalDataMatchingIssues,
                 new IssueReportEntry(
                     "ATVK entry for parish `" + atvkEntry.Name + "` (#`" + atvkEntry.Code + "`) was not matched to any OSM element."
                 )
@@ -288,22 +288,30 @@ public class ParishAnalyzer : Analyzer
             string? name = wikidataItem.GetBestName("lv") ?? null;
 
             report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
+                ExtraReportGroup.ExternalDataMatchingIssues,
                 new IssueReportEntry(
                     "Wikidata parish item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
                 )
             );
         }
         
-        foreach ((Parish parish, List<WikidataItem> matches) in multiMatches)
+        foreach (WikidataData.WikidataMatchIssue matchIssue in wikidataMatchIssues)
         {
-            report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
-                new IssueReportEntry(
-                    parish.ReportString() + " matched multiple Wikidata items: " +
-                    string.Join(", ", matches.Select(wd => wd.WikidataUrl))
-                )
-            );
+            switch (matchIssue)
+            {
+                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Village> multipleWikidataMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
+                            string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
+                        )
+                    );
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(matchIssue));
+            }
         }
     }
 
@@ -312,7 +320,7 @@ public class ParishAnalyzer : Analyzer
     {
         ParishBoundaries,
         InvalidParishes,
-        ExtraDataItems,
+        ExternalDataMatchingIssues,
         ProposedChanges
     }
 }

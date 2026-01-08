@@ -109,7 +109,7 @@ public class CityAnalyzer : Analyzer
         wikidataData.Assign(
             addressData.Cities,
             (i, wd) => i.Name == wd.GetBestName("lv"), // we have no name conflicts in cities, so this is sufficient
-            out List<(City, List<WikidataItem>)> multiMatches
+            out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
         );
         
         // Prepare data comparer/correlator
@@ -304,10 +304,10 @@ public class CityAnalyzer : Analyzer
         // List extra data items from non-OSM that were not matched
         
         report.AddGroup(
-            ExtraReportGroup.ExtraDataItems,
-            "Extra data items",
-            "This section lists data items from additional external data sources that were not matched to any OSM element.",
-            "All external data items were matched to OSM elements."
+            ExtraReportGroup.ExternalDataMatchingIssues,
+            "Extra data item matching issues",
+            "This section lists any issues with data item matching ti additional external data sources.",
+            "No issues found."
         );
         
         List<AtkvEntry> extraAtvkEntries = atvkEntries
@@ -317,7 +317,7 @@ public class CityAnalyzer : Analyzer
         foreach (AtkvEntry atvkEntry in extraAtvkEntries)
         {
             report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
+                ExtraReportGroup.ExternalDataMatchingIssues,
                 new IssueReportEntry(
                     "ATVK entry for city `" + atvkEntry.Name + "` (#`" + atvkEntry.Code + "`) was not matched to any OSM element."
                 )
@@ -333,22 +333,30 @@ public class CityAnalyzer : Analyzer
             string? name = wikidataItem.GetBestName("lv") ?? null;
 
             report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
+                ExtraReportGroup.ExternalDataMatchingIssues,
                 new IssueReportEntry(
                     "Wikidata city item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
                 )
             );
         }
         
-        foreach ((City city, List<WikidataItem> matches) in multiMatches)
+        foreach (WikidataData.WikidataMatchIssue matchIssue in wikidataMatchIssues)
         {
-            report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
-                new IssueReportEntry(
-                    city.ReportString() + " matched multiple Wikidata items: " +
-                    string.Join(", ", matches.Select(wd => wd.WikidataUrl))
-                )
-            );
+            switch (matchIssue)
+            {
+                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Village> multipleWikidataMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
+                            string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
+                        )
+                    );
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(matchIssue));
+            }
         }
     }
 
@@ -357,7 +365,7 @@ public class CityAnalyzer : Analyzer
     {
         CityBoundaries,
         InvalidCities,
-        ExtraDataItems,
+        ExternalDataMatchingIssues,
         ProposedChanges
     }
 }

@@ -31,6 +31,9 @@ public class WikidataItem
     private readonly Dictionary<string, string> _labels;
     private readonly List<WikidataStatement> _statements;
 
+    private string? _bestName;
+    private string? _bestNameLanguage;
+    
 
     internal WikidataItem(long id, Dictionary<string, string> labels, List<WikidataStatement> statements)
     {
@@ -136,5 +139,26 @@ public class WikidataItem
     public bool HasStatement(long propertyID)
     {
         return _statements.Any(s => s.PropertyID == propertyID && !s.HasEndTime());
+    }
+    
+    /// <summary>
+    /// Gets the name to use for matching from a <see cref="WikidataItem"/>
+    /// </summary>
+    /// <remarks>
+    /// Prefers official name property, then general name property, then Latvian label, then multilingual label
+    /// </remarks>
+    public string? GetBestName(string language)
+    {
+        if (_bestNameLanguage != null)
+            return _bestName; // could be null
+
+        string? value = GetStatementBestStringValue(WikiDataProperty.OfficialName, language) ?? // prefer specific official name property
+                        GetStatementBestStringValue(WikiDataProperty.Name, language) ?? // accept specific general name property
+                        GetLabel(language) ?? // if preferred properties are missing, use Latvian label
+                        GetLabel("mul"); // fallback to multilingual label
+
+        _bestNameLanguage = language;
+        _bestName = value;
+        return value;
     }
 }

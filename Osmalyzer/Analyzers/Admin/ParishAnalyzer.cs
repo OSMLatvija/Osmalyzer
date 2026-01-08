@@ -70,7 +70,7 @@ public class ParishAnalyzer : Analyzer
         wikidataData.Assign(
             addressData.Parishes,
             (i, wd) =>
-                i.Name == WikidataData.GetBestName(wd, "lv") &&
+                i.Name == wd.GetBestName("lv") &&
                 (addressData.IsUniqueParishName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
                  i.MunicipalityName == GetWikidataAdminItemOwnerName(wd)),
             out List<(Parish, List<WikidataItem>)> multiMatches
@@ -86,7 +86,7 @@ public class ParishAnalyzer : Analyzer
             if (ownerItem == null)
                 return null;
 
-            string? ownerName = WikidataData.GetBestName(ownerItem, "lv");
+            string? ownerName = ownerItem.GetBestName("lv");
             
             //Console.WriteLine($"Parish Wikidata item {wikidataItem.QID} owner municipality: {ownerName} ({ownerItem.QID})");
             
@@ -285,7 +285,7 @@ public class ParishAnalyzer : Analyzer
 
         foreach (WikidataItem wikidataItem in extraWikidataItems)
         {
-            string? name = WikidataData.GetBestName(wikidataItem, "lv") ?? null;
+            string? name = wikidataItem.GetBestName("lv") ?? null;
 
             report.AddEntry(
                 ExtraReportGroup.ExtraDataItems,

@@ -48,7 +48,7 @@ public class HamletAnalyzer : Analyzer
         villagesWikidataData.AssignHamlets(
             addressData.Hamlets,
             (i, wd) =>
-                i.Name == WikidataData.GetBestName(wd, "lv") &&
+                i.Name == wd.GetBestName("lv") &&
                 //(addressData.IsUniqueHamletName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
                  i.ParishName == GetWikidataAdminItemOwnerName(wd),//)
                 // we cannot assume wikidata is correct to rely on unique names and it has lots of hamlet mistagging, so their list includes non-hamlets too
@@ -65,7 +65,7 @@ public class HamletAnalyzer : Analyzer
             if (ownerItem == null)
                 return null;
 
-            string? ownerName = WikidataData.GetBestName(ownerItem, "lv");
+            string? ownerName = ownerItem.GetBestName("lv");
             
             //Console.WriteLine($"Parish Wikidata item {wikidataItem.QID} owner municipality: {ownerName} ({ownerItem.QID})");
             
@@ -277,7 +277,7 @@ public class HamletAnalyzer : Analyzer
 
         foreach (WikidataItem wikidataItem in extraWikidataItems)
         {
-            string? name = WikidataData.GetBestName(wikidataItem, "lv") ?? null;
+            string? name = wikidataItem.GetBestName("lv") ?? null;
 
             report.AddEntry(
                 ExtraReportGroup.ExtraDataItems,

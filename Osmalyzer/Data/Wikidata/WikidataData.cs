@@ -5,23 +5,6 @@ namespace Osmalyzer;
 public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
 {
     /// <summary>
-    /// Gets the name to use for matching from a <see cref="WikidataItem"/>
-    /// </summary>
-    /// <remarks>
-    /// Prefers official name property, then general name property, then Latvian label, then multilingual label
-    /// </remarks>
-    public static string? GetBestName(WikidataItem item, string language)
-    {
-        // todo: cache?
-        
-        return item.GetStatementBestStringValue(WikiDataProperty.OfficialName, language) ?? // prefer specific official name property
-               item.GetStatementBestStringValue(WikiDataProperty.Name, language) ?? // accept specific general name property
-               item.GetLabel(language) ?? // if preferred properties are missing, use Latvian label
-               item.GetLabel("mul"); // fallback to multilingual label
-    }
-
-
-    /// <summary>
     /// Assigns Wikidata items to data items by matching with a custom matcher function
     /// </summary>
     protected void AssignWikidataItems<T>(

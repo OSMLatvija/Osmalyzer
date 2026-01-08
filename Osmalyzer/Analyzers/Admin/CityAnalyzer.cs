@@ -108,7 +108,7 @@ public class CityAnalyzer : Analyzer
         
         wikidataData.Assign(
             addressData.Cities,
-            (i, wd) => i.Name == WikidataData.GetBestName(wd, "lv"), // we have no name conflicts in cities, so this is sufficient
+            (i, wd) => i.Name == wd.GetBestName("lv"), // we have no name conflicts in cities, so this is sufficient
             out List<(City, List<WikidataItem>)> multiMatches
         );
         
@@ -330,7 +330,7 @@ public class CityAnalyzer : Analyzer
 
         foreach (WikidataItem wikidataItem in extraWikidataItems)
         {
-            string? name = WikidataData.GetBestName(wikidataItem, "lv") ?? null;
+            string? name = wikidataItem.GetBestName("lv") ?? null;
 
             report.AddEntry(
                 ExtraReportGroup.ExtraDataItems,

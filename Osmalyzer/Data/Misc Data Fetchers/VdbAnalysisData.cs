@@ -229,6 +229,33 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 _            => throw new Exception("Unknown OFICIALS value in VDB CSV data: " + rawEntry.Official + " (record " + csv.CurrentIndex + ")")
             };
             
+            // Known bad entries
+            
+            // ID      In data   On website
+            // 19276   Sabile    Sabile
+            // 79612   Sabile    Sabiles novads
+            // 64246   Rēzekne   Rēzekne
+            // 119034  Rēzekne   Latgale
+            // 28278   Jelgava   Jelgava
+            // 119032  Jelgava   Zemgale
+            // 16034   Kuldīga   Kuldīga
+            // 119030  Kuldīga   Kurzeme
+            // 29779   Rīga      Rīga
+            // 104609  Rīga      Latvijas Republika
+            // 42170   Valmiera  Valmiera
+            // 119031  Valmiera  Vidzeme
+            // 50652   Aknīste   Aknīste
+            // 119033  Aknīste   Sēlija
+            // like wtf...
+            
+            if (id == 79612 && name == "Sabile") continue;
+            if (id == 119034 && name == "Rēzekne") continue;
+            if (id == 119032 && name == "Jelgava") continue;
+            if (id == 119030 && name == "Kuldīga") continue;
+            if (id == 104609 && name == "Rīga") continue;
+            if (id == 119031 && name == "Valmiera") continue;
+            if (id == 119033 && name == "Aknīste") continue;
+            
             // Make entry
 
             VdbEntry entry = new VdbEntry(
@@ -272,6 +299,47 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         {
             debugCsv.WriteRecord(rawEntry);
             debugCsv.NextRecord();
+        }
+#endif    
+        
+#if DEBUG
+        // Find entries with all fields exactly the same except row and main ID and modified date
+        // This is how I first cities broken, so just mass-check it all for the same symptom
+        
+        Dictionary<string, List<RawVdbEntry>> duplicateCandidates = [ ];
+        
+        foreach (RawVdbEntry rawEntry in RawEntries)
+        {
+            // Create a key based on all fields except OBJECTID, OBJEKTAID and DATUMSIZM
+            List<string?> keyFields = [ ];
+            
+            for (int i = 0; i < FieldNames.Length; i++)
+            {
+                if (FieldNames[i] == "OBJECTID" || FieldNames[i] == "OBJEKTAID" || FieldNames[i] == "DATUMSIZM")
+                    continue;
+                
+                keyFields.Add(rawEntry.GetValue(i));
+            }
+
+            string key = string.Join("|", keyFields);
+            
+            if (!duplicateCandidates.ContainsKey(key))
+                duplicateCandidates[key] = [ ];
+            
+            duplicateCandidates[key].Add(rawEntry);
+        }
+
+        using StreamWriter debugWriter2 = new StreamWriter("vdb_broken_dupes.csv", false, Encoding.UTF8);
+        using CsvWriter debugCsv2 = new CsvWriter(debugWriter2, CultureInfo.InvariantCulture);
+        debugCsv2.WriteHeader<RawVdbEntry>();
+        debugCsv2.NextRecord();
+        foreach (KeyValuePair<string, List<RawVdbEntry>> dupeList in duplicateCandidates.Where(kvp => kvp.Value.Count > 1))
+        {
+            foreach (RawVdbEntry rawEntry in dupeList.Value)
+            {
+                debugCsv2.WriteRecord(rawEntry);
+                debugCsv2.NextRecord();
+            }
         }
 #endif        
     }

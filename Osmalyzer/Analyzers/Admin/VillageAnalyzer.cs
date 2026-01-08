@@ -85,9 +85,9 @@ public class VillageAnalyzer : Analyzer
         
         vdbData.AssignToDataItems(
             addressData.Villages,
+            vdbData.Villages,
             (i, vdb) => 
                 i.Name == vdb.Name &&
-                vdb.ObjectType == VdbEntryObjectType.Village &&
                 i.ParishName == vdb.Location1 &&
                 i.MunicipalityName == vdb.Location2,
             10000,
@@ -452,7 +452,7 @@ public class VillageAnalyzer : Analyzer
             
             if (village.VdbEntry == null)
             {
-                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType == VdbEntryObjectType.Village && e.Name == village.Name).ToList();
+                List<VdbEntry> potentials = vdbData.Villages.Where(e => e.Name == village.Name).ToList();
 
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,

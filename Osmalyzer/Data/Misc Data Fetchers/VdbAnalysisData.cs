@@ -21,7 +21,15 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public List<VdbEntry> Entries { get; private set; } = null!; // only null before prepared
     
-    public List<VdbEntry> AdminEntries { get; private set; } = null!; // only null before prepared
+    public List<VdbEntry> Villages { get; private set; } = null!; // only null before prepared
+    
+    public List<VdbEntry> Hamlets { get; private set; } = null!; // only null before prepared
+    
+    public List<VdbEntry> Parishes { get; private set; } = null!; // only null before prepared
+    
+    public List<VdbEntry> Municipalities { get; private set; } = null!; // only null before prepared
+    
+    public List<VdbEntry> Cities { get; private set; } = null!; // only null before prepared
     
     public List<RawVdbEntry> RawEntries { get; private set; } = null!; // only null before prepared
 
@@ -142,7 +150,11 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
         Entries = [ ];
         RawEntries = [ ];
-        AdminEntries = [ ];
+        Villages = [ ];
+        Hamlets = [ ];
+        Parishes = [ ];
+        Municipalities = [ ];
+        Cities = [ ];
 
         HashSet<string> objectIds = [ ];
 
@@ -330,12 +342,24 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             switch (objectType)
             {
                 case VdbEntryObjectType.Village:
+                    Villages.Add(entry);
+                    break;
+                
                 case VdbEntryObjectType.Hamlet:
+                    Hamlets.Add(entry);
+                    break;
+                
                 case VdbEntryObjectType.Parish:
+                    Parishes.Add(entry);
+                    break;
+                
                 case VdbEntryObjectType.Municipality:
+                    Municipalities.Add(entry);
+                    break;
+                
                 case VdbEntryObjectType.StateCity:
                 case VdbEntryObjectType.MunicipalCity:
-                    AdminEntries.Add(entry);
+                    Cities.Add(entry);
                     break;
             }
 
@@ -365,6 +389,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
     /// </summary>
     public void AssignToDataItems<T>(
         List<T> dataItems,
+        List<VdbEntry> vdbEntries,
         Func<T, VdbEntry, bool> matcher,
         double coordMismatchDistance,
         out List<VdbMatchIssue> issues)
@@ -376,7 +401,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         
         foreach (T dataItem in dataItems)
         {
-            List<VdbEntry> matches = Entries.Where(vdb => vdb.IsActive && vdb.Official && matcher(dataItem, vdb)).ToList();
+            List<VdbEntry> matches = vdbEntries.Where(vdb => vdb.IsActive && vdb.Official && matcher(dataItem, vdb)).ToList();
            
             if (matches.Count == 0)
                 continue;
@@ -401,6 +426,20 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         }
         
         if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");
+    }
+    
+    /// <summary>
+    /// Assigns VDB entries to data items by matching with name and location (legacy method that searches all entries)
+    /// </summary>
+    [Obsolete("Use overload with explicit vdbEntries parameter for better performance and type safety")]
+    public void AssignToDataItems<T>(
+        List<T> dataItems,
+        Func<T, VdbEntry, bool> matcher,
+        double coordMismatchDistance,
+        out List<VdbMatchIssue> issues)
+        where T : class, IDataItem, IHasVdbEntry
+    {
+        AssignToDataItems(dataItems, Entries, matcher, coordMismatchDistance, out issues);
     }
 }
 

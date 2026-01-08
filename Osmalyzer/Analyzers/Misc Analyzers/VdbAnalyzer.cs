@@ -37,25 +37,24 @@ public class VdbAnalyzer : Analyzer
         report.AddEntry(
             ReportGroup.RawValues,
             new GenericReportEntry(
-                $"Admin (hamlet, village, parish, city, municipality) division entries: {vdbData.AdminEntries.Count}, of which active: " +
-                $"municipalities x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Municipality)}" +
-                $", municipal cities x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.MunicipalCity)}" +
-                $", state cities x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.StateCity)}" +
-                $", parishes x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Parish)}" +
-                $", villages x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Village)}" +
-                $", hamlets x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Hamlet)}"
+                $"Admin (hamlet, village, parish, city, municipality) division entries: " +
+                $"{vdbData.Municipalities.Count + vdbData.Cities.Count + vdbData.Parishes.Count + vdbData.Villages.Count + vdbData.Hamlets.Count}, of which active: " +
+                $"municipalities x {vdbData.Municipalities.Count(e => e.IsActive)}" +
+                $", cities x {vdbData.Cities.Count(e => e.IsActive)}" +
+                $", parishes x {vdbData.Parishes.Count(e => e.IsActive)}" +
+                $", villages x {vdbData.Villages.Count(e => e.IsActive)}" +
+                $", hamlets x {vdbData.Hamlets.Count(e => e.IsActive)}"
             )
         );
         
 #if DEBUG
         using FileStream fileStream = File.Create(Name + " - Active admin entries.txt");
         using StreamWriter writer = new StreamWriter(fileStream, Encoding.UTF8);
-        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Municipality)) writer.WriteLine(entry.ReportString());
-        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.MunicipalCity)) writer.WriteLine(entry.ReportString());
-        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.StateCity)) writer.WriteLine(entry.ReportString());
-        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Parish)) writer.WriteLine(entry.ReportString());
-        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Village)) writer.WriteLine(entry.ReportString());
-        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Hamlet)) writer.WriteLine(entry.ReportString());
+        foreach (VdbEntry entry in vdbData.Municipalities.Where(e => e.IsActive)) writer.WriteLine(entry.ReportString());
+        foreach (VdbEntry entry in vdbData.Cities.Where(e => e.IsActive)) writer.WriteLine(entry.ReportString());
+        foreach (VdbEntry entry in vdbData.Parishes.Where(e => e.IsActive)) writer.WriteLine(entry.ReportString());
+        foreach (VdbEntry entry in vdbData.Villages.Where(e => e.IsActive)) writer.WriteLine(entry.ReportString());
+        foreach (VdbEntry entry in vdbData.Hamlets.Where(e => e.IsActive)) writer.WriteLine(entry.ReportString());
 #endif
         
         // Report statistics for each raw field

@@ -50,9 +50,9 @@ public class HamletAnalyzer : Analyzer
 
         vdbData.AssignToDataItems(
             addressData.Hamlets,
+            vdbData.Hamlets,
             (i, vdb) => 
                 i.Name == vdb.Name &&
-                vdb.ObjectType == VdbEntryObjectType.Hamlet &&
                 i.ParishName == vdb.Location1 &&
                 i.MunicipalityName == vdb.Location2,
             10000,
@@ -377,7 +377,7 @@ public class HamletAnalyzer : Analyzer
             
             if (hamlet.VdbEntry == null)
             {
-                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType == VdbEntryObjectType.Hamlet && e.Name == hamlet.Name).ToList();
+                List<VdbEntry> potentials = vdbData.Hamlets.Where(e => e.Name == hamlet.Name).ToList();
 
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,

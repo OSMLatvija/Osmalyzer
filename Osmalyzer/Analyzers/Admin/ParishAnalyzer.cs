@@ -101,9 +101,9 @@ public class ParishAnalyzer : Analyzer
 
         vdbData.AssignToDataItems(
             addressData.Parishes,
+            vdbData.Parishes,
             (i, vdb) =>
                 i.Name == vdb.Name &&
-                vdb.ObjectType == VdbEntryObjectType.Parish &&
                 i.MunicipalityName == vdb.Location1,
             50000,
             out List<VdbMatchIssue> vdbMatchIssues
@@ -383,7 +383,7 @@ public class ParishAnalyzer : Analyzer
             
             if (parish.VdbEntry == null)
             {
-                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType == VdbEntryObjectType.Parish && e.Name == parish.Name).ToList();
+                List<VdbEntry> potentials = vdbData.Parishes.Where(e => e.Name == parish.Name).ToList();
 
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,

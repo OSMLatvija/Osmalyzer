@@ -129,9 +129,6 @@ public class ParishAnalyzer : Analyzer
 
             if (name == parish.Name)
                 return MatchStrength.Strong; // exact match on name
-
-            if (DoesOsmElementLookLikeAParish(osmElement))
-                return MatchStrength.Good; // looks like a parish, but not exact match
             
             return MatchStrength.Unmatched;
         }

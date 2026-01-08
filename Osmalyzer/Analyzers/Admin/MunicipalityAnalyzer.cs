@@ -106,9 +106,6 @@ public class MunicipalityAnalyzer : Analyzer
 
             if (name == municipality.Name)
                 return MatchStrength.Strong; // exact match on name
-
-            if (DoesOsmElementLookLikeAMunicipality(osmElement))
-                return MatchStrength.Good; // looks like a municipality, but not exact match
             
             return MatchStrength.Unmatched;
         }

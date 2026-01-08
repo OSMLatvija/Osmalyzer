@@ -152,9 +152,6 @@ public class VillageAnalyzer : Analyzer
 
             if (name == village.Name)
                 return MatchStrength.Strong; // exact match on name
-
-            if (DoesOsmElementLookLikeAVillage(osmElement))
-                return MatchStrength.Good; // looks like a village, but not exact match
             
             return MatchStrength.Unmatched;
         }

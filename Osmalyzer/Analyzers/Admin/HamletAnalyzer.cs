@@ -110,9 +110,6 @@ public class HamletAnalyzer : Analyzer
 
             if (name == hamlet.Name)
                 return MatchStrength.Strong; // exact match on name
-
-            if (DoesOsmElementLookLikeAHamlet(osmElement))
-                return MatchStrength.Good; // looks like a hamlet, but not exact match
             
             return MatchStrength.Unmatched;
         }

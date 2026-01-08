@@ -148,9 +148,6 @@ public class CityAnalyzer : Analyzer
 
             if (name == city.Name)
                 return MatchStrength.Strong; // exact match on name
-
-            if (DoesOsmElementLookLikeACity(osmElement))
-                return MatchStrength.Good; // looks like a city, but not exact match
             
             return MatchStrength.Unmatched;
         }

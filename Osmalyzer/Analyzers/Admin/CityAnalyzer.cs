@@ -122,8 +122,7 @@ public class CityAnalyzer : Analyzer
             addressData.Cities,
             (i, vdb) =>
                 i.Name == vdb.Name &&
-                vdb.ObjectType is VdbEntryObjectType.StateCity or VdbEntryObjectType.MunicipalCities &&
-                vdb.IsActive,
+                vdb.ObjectType is VdbEntryObjectType.StateCity or VdbEntryObjectType.MunicipalCities,
             30000,
             out List<VdbMatchIssue> vdbMatchIssues
         );

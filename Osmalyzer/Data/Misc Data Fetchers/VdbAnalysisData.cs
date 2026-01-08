@@ -376,7 +376,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         
         foreach (T dataItem in dataItems)
         {
-            List<VdbEntry> matches = Entries.Where(vdb => matcher(dataItem, vdb)).ToList();
+            List<VdbEntry> matches = Entries.Where(vdb => vdb.IsActive && vdb.Official && matcher(dataItem, vdb)).ToList();
            
             if (matches.Count == 0)
                 continue;

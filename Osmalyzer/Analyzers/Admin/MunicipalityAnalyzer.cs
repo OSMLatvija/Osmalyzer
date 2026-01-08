@@ -80,8 +80,7 @@ public class MunicipalityAnalyzer : Analyzer
             addressData.Municipalities,
             (i, vdb) =>
                 i.Name == vdb.Name &&
-                vdb.ObjectType == VdbEntryObjectType.Municipality &&
-                vdb.IsActive,
+                vdb.ObjectType == VdbEntryObjectType.Municipality,
             75000,
             out List<VdbMatchIssue> vdbMatchIssues
         );

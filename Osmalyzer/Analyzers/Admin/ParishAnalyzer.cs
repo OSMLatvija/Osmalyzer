@@ -104,7 +104,6 @@ public class ParishAnalyzer : Analyzer
             (i, vdb) =>
                 i.Name == vdb.Name &&
                 vdb.ObjectType == VdbEntryObjectType.Parish &&
-                vdb.IsActive &&
                 i.MunicipalityName == vdb.Location1,
             50000,
             out List<VdbMatchIssue> vdbMatchIssues

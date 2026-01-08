@@ -88,7 +88,6 @@ public class VillageAnalyzer : Analyzer
             (i, vdb) => 
                 i.Name == vdb.Name &&
                 vdb.ObjectType == VdbEntryObjectType.Village &&
-                vdb.IsActive &&
                 i.ParishName == vdb.Location1 &&
                 i.MunicipalityName == vdb.Location2,
             10000,

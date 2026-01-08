@@ -122,7 +122,7 @@ public class CityAnalyzer : Analyzer
             addressData.Cities,
             (i, vdb) =>
                 i.Name == vdb.Name &&
-                vdb.ObjectType is VdbEntryObjectType.StateCity or VdbEntryObjectType.MunicipalCities,
+                vdb.ObjectType is VdbEntryObjectType.StateCity or VdbEntryObjectType.MunicipalCity,
             30000,
             out List<VdbMatchIssue> vdbMatchIssues
         );
@@ -427,10 +427,13 @@ public class CityAnalyzer : Analyzer
             
             if (city.VdbEntry == null)
             {
+                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType is VdbEntryObjectType.StateCity or VdbEntryObjectType.MunicipalCity && e.Name == city.Name).ToList();
+
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,
                     new IssueReportEntry(
-                        city.ReportString() + " does not have a matched VDB entry."
+                        city.ReportString() + " does not have a matched VDB entry." +
+                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
                     )
                 );
             }

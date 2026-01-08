@@ -452,10 +452,13 @@ public class VillageAnalyzer : Analyzer
             
             if (village.VdbEntry == null)
             {
+                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType == VdbEntryObjectType.Village && e.Name == village.Name).ToList();
+
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,
                     new IssueReportEntry(
-                        village.ReportString() + " does not have a matched VDB entry."
+                        village.ReportString() + " does not have a matched VDB entry." +
+                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
                     )
                 );
             }

@@ -377,10 +377,13 @@ public class HamletAnalyzer : Analyzer
             
             if (hamlet.VdbEntry == null)
             {
+                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType == VdbEntryObjectType.Hamlet && e.Name == hamlet.Name).ToList();
+
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,
                     new IssueReportEntry(
-                        hamlet.ReportString() + " does not have a matched VDB entry."
+                        hamlet.ReportString() + " does not have a matched VDB entry." +
+                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
                     )
                 );
             }

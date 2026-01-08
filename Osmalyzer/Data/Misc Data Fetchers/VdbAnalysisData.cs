@@ -297,7 +297,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 "pagasts"        => VdbEntryObjectType.Parish,
                 "novads"         => VdbEntryObjectType.Municipality,
                 "valstspilsēta"  => VdbEntryObjectType.StateCity,
-                "novada pilsēta" => VdbEntryObjectType.MunicipalCities,
+                "novada pilsēta" => VdbEntryObjectType.MunicipalCity,
                 // These seem to line up with VZD and admin law divisions
                 // Note that "novada pašvaldība" and "valstspilsētas pašvaldība" means "the office" location not some division
 
@@ -334,7 +334,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 case VdbEntryObjectType.Parish:
                 case VdbEntryObjectType.Municipality:
                 case VdbEntryObjectType.StateCity:
-                case VdbEntryObjectType.MunicipalCities:
+                case VdbEntryObjectType.MunicipalCity:
                     AdminEntries.Add(entry);
                     break;
             }
@@ -494,7 +494,7 @@ public enum VdbEntryObjectType
     Hamlet,
     Village,
     Parish,
-    MunicipalCities,
+    MunicipalCity,
     Municipality,
     StateCity
 }

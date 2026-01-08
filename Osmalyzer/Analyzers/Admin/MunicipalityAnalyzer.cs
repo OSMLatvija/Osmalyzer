@@ -362,10 +362,13 @@ public class MunicipalityAnalyzer : Analyzer
             
             if (municipality.VdbEntry == null)
             {
+                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType == VdbEntryObjectType.Municipality && e.Name == municipality.Name).ToList();
+
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,
                     new IssueReportEntry(
-                        municipality.ReportString() + " does not have a matched VDB entry."
+                        municipality.ReportString() + " does not have a matched VDB entry." +
+                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
                     )
                 );
             }

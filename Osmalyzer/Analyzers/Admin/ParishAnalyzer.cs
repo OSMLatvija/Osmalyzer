@@ -383,10 +383,13 @@ public class ParishAnalyzer : Analyzer
             
             if (parish.VdbEntry == null)
             {
+                List<VdbEntry> potentials = vdbData.AdminEntries.Where(e => e.ObjectType == VdbEntryObjectType.Parish && e.Name == parish.Name).ToList();
+
                 report.AddEntry(
                     ExtraReportGroup.ExternalDataMatchingIssues,
                     new IssueReportEntry(
-                        parish.ReportString() + " does not have a matched VDB entry."
+                        parish.ReportString() + " does not have a matched VDB entry." +
+                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
                     )
                 );
             }

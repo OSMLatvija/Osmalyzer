@@ -39,7 +39,7 @@ public class VdbAnalyzer : Analyzer
             new GenericReportEntry(
                 $"Admin (hamlet, village, parish, city, municipality) division entries: {vdbData.AdminEntries.Count}, of which active: " +
                 $"municipalities x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Municipality)}" +
-                $", municipal cities x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.MunicipalCities)}" +
+                $", municipal cities x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.MunicipalCity)}" +
                 $", state cities x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.StateCity)}" +
                 $", parishes x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Parish)}" +
                 $", villages x {vdbData.AdminEntries.Count(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Village)}" +
@@ -51,7 +51,7 @@ public class VdbAnalyzer : Analyzer
         using FileStream fileStream = File.Create(Name + " - Active admin entries.txt");
         using StreamWriter writer = new StreamWriter(fileStream, Encoding.UTF8);
         foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Municipality)) writer.WriteLine(entry.ReportString());
-        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.MunicipalCities)) writer.WriteLine(entry.ReportString());
+        foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.MunicipalCity)) writer.WriteLine(entry.ReportString());
         foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.StateCity)) writer.WriteLine(entry.ReportString());
         foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Parish)) writer.WriteLine(entry.ReportString());
         foreach (VdbEntry entry in vdbData.AdminEntries.Where(e => e.IsActive && e.ObjectType == VdbEntryObjectType.Village)) writer.WriteLine(entry.ReportString());

@@ -262,12 +262,6 @@ public class ParishAnalyzer : Analyzer
             );
         }
         
-        // Check that Wikidata values match OSM values
-        
-        // TODO:
-        // TODO:
-        // TODO:
-        
         // List extra data items from non-OSM that were not matched
         
         report.AddGroup(
@@ -400,6 +394,28 @@ public class ParishAnalyzer : Analyzer
                         (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
                     )
                 );
+            }
+        }
+
+        foreach (MatchedCorrelation<Parish> match in parishCorrelation.Correlations.OfType<MatchedCorrelation<Parish>>())
+        {
+            if (match.DataItem.WikidataItem == null)
+            {
+                string? wikidata = match.OsmElement.GetValue("wikidata");
+
+                if (wikidata != null && Regex.IsMatch(wikidata, @"^Q\d+$"))
+                {
+                    List<Parish> others = addressData.Parishes.Where(v => v.WikidataItem != null && v.WikidataItem!.QID == wikidata).ToList();
+
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            match.DataItem.ReportString() + " has a `wikidata=" + wikidata + "` http://www.wikidata.org/entity/Q" + wikidata + " on OSM element " + match.OsmElement.OsmViewUrl +
+                            " but the matched data item did not match to a Wikidata element." +
+                            (others.Count > 0 ? " This Wikidata item was matched to other entries: " + string.Join(", ", others.Select(v => v.ReportString())) : "")
+                        )
+                    );
+                }
             }
         }
     }

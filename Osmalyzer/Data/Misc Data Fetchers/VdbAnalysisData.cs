@@ -147,6 +147,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         HashSet<string> objectIds = [ ];
 
         // Parse data rows
+
+        Dictionary<string, List<RawVdbEntry>> duplicateCandidates = [ ];
         
         while (csv.Read())
         {
@@ -154,23 +156,104 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 throw new Exception($"Expected {FieldNames.Length} fields in VDB CSV data row, got {csv.ColumnCount} (record {csv.CurrentIndex})");
 
             // Get full raw record
-            
+
             RawVdbEntry rawEntry = csv.GetRecord<RawVdbEntry>();
-            
+
             // Validate fields
-            
-            if (rawEntry.ObjectId == null) 
+
+            if (rawEntry.ObjectId == null)
                 throw new Exception("Missing OBJECTID in VDB CSV data (record " + csv.CurrentIndex + ")");
-            
+
             if (!objectIds.Add(rawEntry.ObjectId))
                 throw new Exception("Duplicate OBJECTID found in VDB CSV data: " + rawEntry.ObjectId);
-            
+
             // Looks good
             RawEntries.Add(rawEntry);
             
+            // Find entries with all fields exactly the same except row and main ID and modified date
+            // This is how I first cities broken, so just mass-check it all for the same symptom
+            
+            List<string?> keyFields = [ ];
+            for (int i = 0; i < FieldNames.Length; i++)
+            {
+                if (FieldNames[i] == "OBJECTID" || FieldNames[i] == "OBJEKTAID" || FieldNames[i] == "DATUMSIZM") continue;
+                keyFields.Add(rawEntry.GetValue(i));
+            }
+            string key = string.Join("|", keyFields);
+            duplicateCandidates.TryAdd(key, [ ]);
+            duplicateCandidates[key].Add(rawEntry);
+        }
+        
+#if DEBUG
+        // Print dupes
+        
+        using StreamWriter debugWriter2 = new StreamWriter("vdb_broken_dupes.csv", false, Encoding.UTF8);
+        using CsvWriter debugCsv2 = new CsvWriter(debugWriter2, CultureInfo.InvariantCulture);
+        debugCsv2.WriteHeader<RawVdbEntry>();
+        debugCsv2.NextRecord();
+        foreach (KeyValuePair<string, List<RawVdbEntry>> dupeList in duplicateCandidates.Where(kvp => kvp.Value.Count > 1))
+        {
+            foreach (RawVdbEntry rawEntry in dupeList.Value)
+            {
+                debugCsv2.WriteRecord(rawEntry);
+                debugCsv2.NextRecord();
+            }
+        }
+#endif
+        
+        // De-duplicate known entries
+            
+        // ID      In data   On website
+        // 19276   Sabile    Sabile
+        // 79612   Sabile    Sabiles novads
+        // 64246   Rēzekne   Rēzekne
+        // 119034  Rēzekne   Latgale
+        // 28278   Jelgava   Jelgava
+        // 119032  Jelgava   Zemgale
+        // 16034   Kuldīga   Kuldīga
+        // 119030  Kuldīga   Kurzeme
+        // 29779   Rīga      Rīga
+        // 104609  Rīga      Latvijas Republika
+        // 42170   Valmiera  Valmiera
+        // 119031  Valmiera  Vidzeme
+        // 50652   Aknīste   Aknīste
+        // 119033  Aknīste   Sēlija
+        // like wtf...
+        // but I checked these manually
+
+        foreach (KeyValuePair<string, List<RawVdbEntry>> dupes in duplicateCandidates)
+        {
+            if (dupes.Value.Count == 2)
+            {
+                if (Known(dupes.Value[0]))
+                    RawEntries.Remove(dupes.Value[1]);
+                else if (Known(dupes.Value[1]))
+                    RawEntries.Remove(dupes.Value[0]);
+                else
+                {
+                    // We cannot deal with this manually, so let's not pollute the data
+                    RawEntries.Remove(dupes.Value[0]);
+                    RawEntries.Remove(dupes.Value[1]);
+                }
+
+                bool Known(RawVdbEntry e)
+                    => e.ObjectId == "19276" && e.MainName == "Sabile" ||
+                       e.ObjectId == "64246" && e.MainName == "Rēzekne" ||
+                       e.ObjectId == "28278" && e.MainName == "Jelgava" ||
+                       e.ObjectId == "16034" && e.MainName == "Kuldīga" ||
+                       e.ObjectId == "29779" && e.MainName == "Rīga" ||
+                       e.ObjectId == "42170" && e.MainName == "Valmiera" ||
+                       e.ObjectId == "50652" && e.MainName == "Aknīste";
+            }
+        }
+        
+        // Process raw entries into typed entries
+
+        foreach (RawVdbEntry rawEntry in RawEntries)
+        {
             // Parse fields
 
-            long id = long.Parse(rawEntry.ObjectId);
+            long id = long.Parse(rawEntry.ObjectId!);
 
             // All entries have coordinates specified
             double latitude = double.Parse(rawEntry.GeoLatitude!, CultureInfo.InvariantCulture);
@@ -229,33 +312,6 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 _            => throw new Exception("Unknown OFICIALS value in VDB CSV data: " + rawEntry.Official + " (record " + csv.CurrentIndex + ")")
             };
             
-            // Known bad entries
-            
-            // ID      In data   On website
-            // 19276   Sabile    Sabile
-            // 79612   Sabile    Sabiles novads
-            // 64246   Rēzekne   Rēzekne
-            // 119034  Rēzekne   Latgale
-            // 28278   Jelgava   Jelgava
-            // 119032  Jelgava   Zemgale
-            // 16034   Kuldīga   Kuldīga
-            // 119030  Kuldīga   Kurzeme
-            // 29779   Rīga      Rīga
-            // 104609  Rīga      Latvijas Republika
-            // 42170   Valmiera  Valmiera
-            // 119031  Valmiera  Vidzeme
-            // 50652   Aknīste   Aknīste
-            // 119033  Aknīste   Sēlija
-            // like wtf...
-            
-            if (id == 79612 && name == "Sabile") continue;
-            if (id == 119034 && name == "Rēzekne") continue;
-            if (id == 119032 && name == "Jelgava") continue;
-            if (id == 119030 && name == "Kuldīga") continue;
-            if (id == 104609 && name == "Rīga") continue;
-            if (id == 119031 && name == "Valmiera") continue;
-            if (id == 119033 && name == "Aknīste") continue;
-            
             // Make entry
 
             VdbEntry entry = new VdbEntry(
@@ -300,48 +356,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             debugCsv.WriteRecord(rawEntry);
             debugCsv.NextRecord();
         }
-#endif    
-        
-#if DEBUG
-        // Find entries with all fields exactly the same except row and main ID and modified date
-        // This is how I first cities broken, so just mass-check it all for the same symptom
-        
-        Dictionary<string, List<RawVdbEntry>> duplicateCandidates = [ ];
-        
-        foreach (RawVdbEntry rawEntry in RawEntries)
-        {
-            // Create a key based on all fields except OBJECTID, OBJEKTAID and DATUMSIZM
-            List<string?> keyFields = [ ];
-            
-            for (int i = 0; i < FieldNames.Length; i++)
-            {
-                if (FieldNames[i] == "OBJECTID" || FieldNames[i] == "OBJEKTAID" || FieldNames[i] == "DATUMSIZM")
-                    continue;
-                
-                keyFields.Add(rawEntry.GetValue(i));
-            }
-
-            string key = string.Join("|", keyFields);
-            
-            if (!duplicateCandidates.ContainsKey(key))
-                duplicateCandidates[key] = [ ];
-            
-            duplicateCandidates[key].Add(rawEntry);
-        }
-
-        using StreamWriter debugWriter2 = new StreamWriter("vdb_broken_dupes.csv", false, Encoding.UTF8);
-        using CsvWriter debugCsv2 = new CsvWriter(debugWriter2, CultureInfo.InvariantCulture);
-        debugCsv2.WriteHeader<RawVdbEntry>();
-        debugCsv2.NextRecord();
-        foreach (KeyValuePair<string, List<RawVdbEntry>> dupeList in duplicateCandidates.Where(kvp => kvp.Value.Count > 1))
-        {
-            foreach (RawVdbEntry rawEntry in dupeList.Value)
-            {
-                debugCsv2.WriteRecord(rawEntry);
-                debugCsv2.NextRecord();
-            }
-        }
-#endif        
+#endif         
     }
 
     

@@ -385,12 +385,14 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
     
     /// <summary>
-    /// Assigns VDB entries to data items by matching with name and location
+    /// Assigns best match VDB entries to data items
     /// </summary>
     public void AssignToDataItems<T>(
         List<T> dataItems,
         List<VdbEntry> vdbEntries,
-        Func<T, VdbEntry, bool> matcher,
+        Func<T, string> nameGetter,
+        Func<T, string?>? location1Getter,
+        Func<T, string?>? location2Getter,
         double coordMismatchDistance,
         out List<VdbMatchIssue> issues)
         where T : class, IDataItem, IHasVdbEntry
@@ -401,8 +403,18 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         
         foreach (T dataItem in dataItems)
         {
-            List<VdbEntry> matches = vdbEntries.Where(vdb => vdb.IsActive && vdb.Official && matcher(dataItem, vdb)).ToList();
-           
+            string name = nameGetter(dataItem);
+            string? location1 = location1Getter?.Invoke(dataItem);
+            string? location2 = location2Getter?.Invoke(dataItem);
+            
+            List<VdbEntry> matches = vdbEntries.Where(vdb => 
+                vdb.IsActive && 
+                vdb.Official && 
+                vdb.Name == name &&
+                (location1 == null || vdb.Location1 == location1) &&
+                (location2 == null || vdb.Location2 == location2)
+            ).ToList();
+            
             if (matches.Count == 0)
                 continue;
             
@@ -426,20 +438,6 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         }
         
         if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");
-    }
-    
-    /// <summary>
-    /// Assigns VDB entries to data items by matching with name and location (legacy method that searches all entries)
-    /// </summary>
-    [Obsolete("Use overload with explicit vdbEntries parameter for better performance and type safety")]
-    public void AssignToDataItems<T>(
-        List<T> dataItems,
-        Func<T, VdbEntry, bool> matcher,
-        double coordMismatchDistance,
-        out List<VdbMatchIssue> issues)
-        where T : class, IDataItem, IHasVdbEntry
-    {
-        AssignToDataItems(dataItems, Entries, matcher, coordMismatchDistance, out issues);
     }
 }
 

@@ -79,8 +79,9 @@ public class MunicipalityAnalyzer : Analyzer
         vdbData.AssignToDataItems(
             addressData.Municipalities,
             vdbData.Municipalities,
-            (i, vdb) =>
-                i.Name == vdb.Name,
+            i => i.Name,
+            null,
+            null,
             75000,
             out List<VdbMatchIssue> vdbMatchIssues
         );

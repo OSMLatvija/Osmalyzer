@@ -86,10 +86,9 @@ public class VillageAnalyzer : Analyzer
         vdbData.AssignToDataItems(
             addressData.Villages,
             vdbData.Villages,
-            (i, vdb) => 
-                i.Name == vdb.Name &&
-                i.ParishName == vdb.Location1 &&
-                i.MunicipalityName == vdb.Location2,
+            i => i.Name,
+            i => i.ParishName,
+            i => i.MunicipalityName,
             10000,
             out List<VdbMatchIssue> vdbMatchIssues
         );

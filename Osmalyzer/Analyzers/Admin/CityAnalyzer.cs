@@ -121,8 +121,9 @@ public class CityAnalyzer : Analyzer
         vdbData.AssignToDataItems(
             addressData.Cities,
             vdbData.Cities,
-            (i, vdb) =>
-                i.Name == vdb.Name,
+            i => i.Name,
+            null,
+            null,
             30000,
             out List<VdbMatchIssue> vdbMatchIssues
         );

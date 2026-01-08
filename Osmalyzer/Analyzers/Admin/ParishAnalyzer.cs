@@ -102,9 +102,9 @@ public class ParishAnalyzer : Analyzer
         vdbData.AssignToDataItems(
             addressData.Parishes,
             vdbData.Parishes,
-            (i, vdb) =>
-                i.Name == vdb.Name &&
-                i.MunicipalityName == vdb.Location1,
+            i => i.Name,
+            i => i.MunicipalityName,
+            null,
             50000,
             out List<VdbMatchIssue> vdbMatchIssues
         );

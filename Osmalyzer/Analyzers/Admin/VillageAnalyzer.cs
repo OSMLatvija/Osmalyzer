@@ -1,4 +1,5 @@
-﻿using WikidataSharp;
+﻿using System.Diagnostics;
+using WikidataSharp;
 
 namespace Osmalyzer;
 
@@ -25,12 +26,16 @@ public class VillageAnalyzer : Analyzer
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
+        Console.WriteLine(); 
+        
         // Load OSM data
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
         OsmMasterData osmMasterData = osmData.MasterData;
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        
         OsmDataExtract osmVillages = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
@@ -38,9 +43,13 @@ public class VillageAnalyzer : Analyzer
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
         
+        Console.WriteLine("OSM data filtered (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
         // Find preset centers of boundaries
         // (we won't need to set some values if there is the "master" node for the relation)
 
+        stopwatch.Restart();
+        
         foreach (OsmRelation relation in osmVillages.Relations)
         {
             List<OsmRelationMember> knownCenters = relation.Members.Where(m => m.Role == "admin_centre" && m.Element != null).ToList();
@@ -58,7 +67,9 @@ public class VillageAnalyzer : Analyzer
             }
         }
 
-        // Get village/hamlet data
+        Console.WriteLine("OSM admin centers identified (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
+        // Get extra related data
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
@@ -69,11 +80,17 @@ public class VillageAnalyzer : Analyzer
         VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
         
         // Assign VDB data
+
+        stopwatch.Restart();
         
         vdbData.AssignToVillages(addressData.Villages);
         
+        Console.WriteLine("VDB data assigned (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
         // Assign WikiData
 
+        stopwatch.Restart();
+        
         villagesWikidataData.AssignNonHamlets(
             addressData.Villages,
             (i, wd) =>
@@ -101,11 +118,13 @@ public class VillageAnalyzer : Analyzer
             
             return ownerName;
         }
+        
+        Console.WriteLine("Wikidata assigned (" + stopwatch.ElapsedMilliseconds + " ms)"); // 2245 ms
 
         // Parse villages
         
         // Prepare data comparer/correlator
-
+        
         Correlator<Village> villageCorrelator = new Correlator<Village>(
             osmVillages,
             addressData.Villages.Where(v => v.Valid).ToList(),
@@ -150,6 +169,8 @@ public class VillageAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
+        stopwatch.Restart();
+        
         CorrelatorReport villageCorrelation = villageCorrelator.Parse(
             report, 
             new MatchedPairBatch(),
@@ -158,12 +179,18 @@ public class VillageAnalyzer : Analyzer
             new MatchedFarPairBatch()
         );
         
+        Console.WriteLine("Villages correlated (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
         // Offer syntax for quick OSM addition for unmatched villages
+        
+        stopwatch.Restart();
         
         List<Village> unmatchedVillages = villageCorrelation.Correlations
             .OfType<UnmatchedItemCorrelation<Village>>()
             .Select(c => c.DataItem)
             .ToList();
+        
+        Console.WriteLine("Unmatched villages identified (" + stopwatch.ElapsedMilliseconds + " ms)");
 
         if (unmatchedVillages.Count > 0)
         {
@@ -203,6 +230,8 @@ public class VillageAnalyzer : Analyzer
             "Due to data fuzziness, small mismatches are expected and not reported (" + (matchLimit * 100).ToString("F1") + "% coverage required)."
         );
 
+        stopwatch.Restart();
+        
         foreach (Correlation correlation in villageCorrelation.Correlations)
         {
             if (correlation is MatchedCorrelation<Village> matchedCorrelation)
@@ -251,6 +280,8 @@ public class VillageAnalyzer : Analyzer
             }
         }
         
+        Console.WriteLine("Village boundaries validated (" + stopwatch.ElapsedMilliseconds + " ms)"); // 8850 ms
+        
         // Validate village syntax
         
         Validator<Village> villageValidator = new Validator<Village>(
@@ -258,6 +289,8 @@ public class VillageAnalyzer : Analyzer
             "Village syntax issues"
         );
 
+        stopwatch.Restart();
+        
         List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
             false, false,
@@ -274,9 +307,13 @@ public class VillageAnalyzer : Analyzer
             //todo:? new ValidateElementHasValue(e => e.UserData != null, e => (OsmElement)e.UserData!, "designation", "ciems"),
             new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID)
         );
+        
+        Console.WriteLine("Village syntax validated (" + stopwatch.ElapsedMilliseconds + " ms)");
 
 #if DEBUG
+        stopwatch = Stopwatch.StartNew();
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         
@@ -316,9 +353,13 @@ public class VillageAnalyzer : Analyzer
             "All external data items were matched to OSM elements."
         );
 
+        stopwatch.Restart();
+        
         List<WikidataItem> extraWikidataItems = villagesWikidataData.NonHamlets
                                                                     .Where(wd => addressData.Villages.All(c => c.WikidataItem != wd))
                                                                     .ToList();
+        
+        Console.WriteLine("Extra WikiData items identified (" + stopwatch.ElapsedMilliseconds + " ms)");
         
         foreach (WikidataItem wikidataItem in extraWikidataItems)
         {

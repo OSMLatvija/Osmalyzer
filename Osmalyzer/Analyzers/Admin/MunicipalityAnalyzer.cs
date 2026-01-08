@@ -343,6 +343,16 @@ public class MunicipalityAnalyzer : Analyzer
                         )
                     );
                     break;
+                
+                case PoorMatchVdbMatchIssue<Municipality> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new GenericReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but poorly as a fallback (and might be wrong)" +
+                            " -- " + coordinateMismatch.VdbEntry.ReportString()
+                        )
+                    );
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));

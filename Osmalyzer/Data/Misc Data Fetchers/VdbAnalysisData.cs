@@ -407,34 +407,76 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             string? location1 = location1Getter?.Invoke(dataItem);
             string? location2 = location2Getter?.Invoke(dataItem);
             
-            List<VdbEntry> matches = vdbEntries.Where(vdb => 
-                vdb.IsActive && 
-                vdb.Official && 
-                vdb.Name == name &&
-                (location1 == null || vdb.Location1 == location1) &&
-                (location2 == null || vdb.Location2 == location2)
-            ).ToList();
+            List<VdbEntry> nameMatches = vdbEntries.Where(vdb => vdb.Name == name).ToList();
+
+            // Try matching fully - what we ideally expect
             
-            if (matches.Count == 0)
-                continue;
+            List<VdbEntry> fullMatches = nameMatches.Where(vdb => vdb.Official &&
+                                                              (location1 == null || vdb.Location1 == location1) &&
+                                                              (location2 == null || vdb.Location2 == location2)
+                                                ).ToList();
             
-            if (matches.Count > 1)
+            if (fullMatches.Count > 1)
             {
-                issues.Add(new MultipleVdbMatchesVdbMatchIssue<T>(dataItem, matches));
+                issues.Add(new MultipleVdbMatchesVdbMatchIssue<T>(dataItem, fullMatches));
+                continue;
+            }
+
+            if (fullMatches.Count == 1)
+            {
+                double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, fullMatches[0].Coord);
+
+                if (distance > coordMismatchDistance)
+                {
+                    issues.Add(new CoordinateMismatchVdbMatchIssue<T>(dataItem, fullMatches[0], distance));
+                    continue;
+                }
+
+                dataItem.VdbEntry = fullMatches[0];
+                count++;
+                continue;
+            }
+
+            if (nameMatches.Count > 0)
+            {
+                // Try matching everything except official status
                 
-                continue;
-            }
+                List<VdbEntry> unofficialMatches = nameMatches.Where(vdb => (location1 == null || vdb.Location1 == location1) &&
+                                                                            (location2 == null || vdb.Location2 == location2)
+                ).ToList();
 
-            double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, matches[0].Coord);
+                if (unofficialMatches.Count == 1)
+                {
+                    double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, unofficialMatches[0].Coord);
+
+                    if (distance < coordMismatchDistance)
+                    {
+                        issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0]));
+
+                        dataItem.VdbEntry = unofficialMatches[0];
+                        count++;
+                        continue;
+                    }
+                }
+                
+                // Try matching by coordinates without location (assume entry location is wrong)
+                
+                List<VdbEntry> coordMatches = nameMatches.Where(vdb => 
+                                                                    vdb.Official &&
+                                                                    OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, vdb.Coord) < coordMismatchDistance
+                                                                    ).ToList();
+
+                if (coordMatches.Count == 1)
+                {
+                    issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0]));
+                    dataItem.VdbEntry = coordMatches[0];
+                    count++;
+                    continue;
+                }
+            }
             
-            if (distance > coordMismatchDistance)
-            {
-                issues.Add(new CoordinateMismatchVdbMatchIssue<T>(dataItem, matches[0], distance));
-                continue;
-            }
-
-            dataItem.VdbEntry = matches[0];
-            count++;
+            // Didn't match
+            // todo: should return this as issue otherwise each admin analuzer is doing its own another loop
         }
         
         if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");
@@ -447,6 +489,8 @@ public abstract record VdbMatchIssue;
 public record MultipleVdbMatchesVdbMatchIssue<T>(T DataItem, List<VdbEntry> VdbEntries) : VdbMatchIssue;
 
 public record CoordinateMismatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry, double DistanceMeters) : VdbMatchIssue;
+
+public record PoorMatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry) : VdbMatchIssue;
 
 
 public class VdbEntry : IDataItem

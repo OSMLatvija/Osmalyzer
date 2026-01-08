@@ -356,6 +356,16 @@ public class HamletAnalyzer : Analyzer
                         )
                     );
                     break;
+                
+                case PoorMatchVdbMatchIssue<Hamlet> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new GenericReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but poorly as a fallback (and might be wrong)" +
+                            " -- " + coordinateMismatch.VdbEntry.ReportString()
+                        )
+                    );
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));

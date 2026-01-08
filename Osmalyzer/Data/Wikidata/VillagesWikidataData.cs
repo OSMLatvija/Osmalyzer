@@ -26,9 +26,10 @@ public class VillagesWikidataData : WikidataData
 
 
     public List<WikidataItem> AllVillages { get; private set; } = null!; // only null before prepared
-    
-    public List<WikidataItem> Hamlets { get; private set; } = null!; // only null before prepared
-    public List<WikidataItem> NonHamlets { get; private set; } = null!; // only null before prepared
+
+    // todo: once wikidata itself is fixed
+    // public List<WikidataItem> Hamlets { get; private set; } = null!; // only null before prepared
+    // public List<WikidataItem> NonHamlets { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
@@ -57,13 +58,13 @@ public class VillagesWikidataData : WikidataData
 
         AllVillages = FilterOutDissolved(AllVillages);
         
-        Hamlets = AllVillages
-            .Where(item => item.HasActiveStatementValueAsQID(WikiDataProperty.InstanceOf, smallVillageInLatviaQID))
-            .ToList();
-        if (Hamlets.Count == 0) throw new Exception("No hamlets were identified among the villages from Wikidata, which is not expected and probably means Wikidata has changed something");
-        
-        NonHamlets = AllVillages.Except(Hamlets).ToList();
-        if (NonHamlets.Count == 0) throw new Exception("All villages were classified as hamlets, which is not expected and probably means Wikidata has changed something");
+        // Hamlets = AllVillages
+        //     .Where(item => item.HasActiveStatementValueAsQID(WikiDataProperty.InstanceOf, smallVillageInLatviaQID))
+        //     .ToList();
+        // if (Hamlets.Count == 0) throw new Exception("No hamlets were identified among the villages from Wikidata, which is not expected and probably means Wikidata has changed something");
+        //
+        // NonHamlets = AllVillages.Except(Hamlets).ToList();
+        // if (NonHamlets.Count == 0) throw new Exception("All villages were classified as hamlets, which is not expected and probably means Wikidata has changed something");
 
 #if DEBUG
         // foreach (WikidataItem item in Items) Debug.WriteLine($"Village/Hamlet: \"{item.GetLabel("lv")}\" ({item.QID}) w/ {item.Statements.Count} statements");
@@ -71,17 +72,23 @@ public class VillagesWikidataData : WikidataData
     }
 
 
-    public void AssignHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches) 
+    public void AssignVillageOrHamlet<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches) 
         where T : class, IHasWikidataItem
     {
-        AssignWikidataItems(dataItems, Hamlets, matcher, out multiMatches);
+        AssignWikidataItems(dataItems, AllVillages, matcher, out multiMatches);
     }
-    
-    public void AssignNonHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches)
-        where T : class, IHasWikidataItem
-    {
-        AssignWikidataItems(dataItems, NonHamlets, matcher, out multiMatches);
-    }
+
+    // public void AssignHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches) 
+    //     where T : class, IHasWikidataItem
+    // {
+    //     AssignWikidataItems(dataItems, Hamlets, matcher, out multiMatches);
+    // }
+    //
+    // public void AssignNonHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<(T, List<WikidataItem>)> multiMatches)
+    //     where T : class, IHasWikidataItem
+    // {
+    //     AssignWikidataItems(dataItems, NonHamlets, matcher, out multiMatches);
+    // }
 }
 
 

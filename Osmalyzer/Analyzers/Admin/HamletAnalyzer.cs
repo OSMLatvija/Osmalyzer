@@ -45,7 +45,7 @@ public class HamletAnalyzer : Analyzer
         
         // Assign WikiData
 
-        villagesWikidataData.AssignHamlets(
+        villagesWikidataData.AssignVillageOrHamlet( // todo: specific once wikidata is fixed
             addressData.Hamlets,
             (i, wd) =>
                 i.Name == wd.GetBestName("lv") &&
@@ -271,21 +271,22 @@ public class HamletAnalyzer : Analyzer
             "All external data items were matched to OSM elements."
         );
 
-        List<WikidataItem> extraWikidataItems = villagesWikidataData.Hamlets
-                                                                    .Where(wd => addressData.Hamlets.All(c => c.WikidataItem != wd))
-                                                                    .ToList();
-
-        foreach (WikidataItem wikidataItem in extraWikidataItems)
-        {
-            string? name = wikidataItem.GetBestName("lv") ?? null;
-
-            report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
-                new IssueReportEntry(
-                    "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
-                )
-            );
-        }
+        // todo: restore when wikidata is fixed, otherwise we small all the regular villages too 
+        // List<WikidataItem> extraWikidataItems = villagesWikidataData.Hamlets
+        //                                                             .Where(wd => addressData.Hamlets.All(c => c.WikidataItem != wd))
+        //                                                             .ToList();
+        //
+        // foreach (WikidataItem wikidataItem in extraWikidataItems)
+        // {
+        //     string? name = wikidataItem.GetBestName("lv") ?? null;
+        //
+        //     report.AddEntry(
+        //         ExtraReportGroup.ExtraDataItems,
+        //         new IssueReportEntry(
+        //             "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
+        //         )
+        //     );
+        // }
 
         foreach ((Hamlet hamlet, List<WikidataItem> matches) in multiMatches)
         {

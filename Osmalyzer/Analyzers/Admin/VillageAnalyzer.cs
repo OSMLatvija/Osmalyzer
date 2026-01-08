@@ -91,7 +91,7 @@ public class VillageAnalyzer : Analyzer
 
         stopwatch.Restart();
         
-        villagesWikidataData.AssignNonHamlets(
+        villagesWikidataData.AssignVillageOrHamlet( // todo: specific once wikidata is fixed
             addressData.Villages,
             (i, wd) =>
                 i.Name == wd.GetBestName("lv") &&
@@ -353,25 +353,22 @@ public class VillageAnalyzer : Analyzer
             "All external data items were matched to OSM elements."
         );
 
-        stopwatch.Restart();
-        
-        List<WikidataItem> extraWikidataItems = villagesWikidataData.NonHamlets
-                                                                    .Where(wd => addressData.Villages.All(c => c.WikidataItem != wd))
-                                                                    .ToList();
-        
-        Console.WriteLine("Extra WikiData items identified (" + stopwatch.ElapsedMilliseconds + " ms)");
-        
-        foreach (WikidataItem wikidataItem in extraWikidataItems)
-        {
-            string? name = wikidataItem.GetBestName("lv") ?? null;
-        
-            report.AddEntry(
-                ExtraReportGroup.ExtraDataItems,
-                new IssueReportEntry(
-                    "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
-                )
-            );
-        }
+        // todo: restore when wikidata is fixed, otherwise we small all the hamlets too 
+        // List<WikidataItem> extraWikidataItems = villagesWikidataData.AllVillages
+        //                                                             .Where(wd => addressData.Villages.All(c => c.WikidataItem != wd))
+        //                                                             .ToList();
+        //
+        // foreach (WikidataItem wikidataItem in extraWikidataItems)
+        // {
+        //     string? name = wikidataItem.GetBestName("lv") ?? null;
+        //
+        //     report.AddEntry(
+        //         ExtraReportGroup.ExtraDataItems,
+        //         new IssueReportEntry(
+        //             "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
+        //         )
+        //     );
+        // }
 
         foreach ((Village village, List<WikidataItem> matches) in multiMatches)
         {

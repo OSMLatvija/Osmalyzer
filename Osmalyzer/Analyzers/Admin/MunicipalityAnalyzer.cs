@@ -18,7 +18,8 @@ public class MunicipalityAnalyzer : Analyzer
         typeof(AddressGeodataAnalysisData),
         typeof(AtvkAnalysisData),
         typeof(MunicipalitiesWikidataData),
-        typeof(StateCitiesAnalysisData)
+        typeof(StateCitiesAnalysisData),
+        typeof(VdbAnalysisData)
     ];
         
 
@@ -41,16 +42,18 @@ public class MunicipalityAnalyzer : Analyzer
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
-        List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
-                                           .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Municipality).ToList();
+        List<AtvkEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+                                           .Where(e => !e.IsExpired && e.Designation == AtvkDesignation.Municipality).ToList();
         
         MunicipalitiesWikidataData wikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
         
         StateCitiesAnalysisData stateCitiesData = datas.OfType<StateCitiesAnalysisData>().First();
         
+        VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
         // Match VZD and ATVK data items
 
-        Equivalator<Municipality, AtkvEntry> equivalator = new Equivalator<Municipality, AtkvEntry>(
+        Equivalator<Municipality, AtvkEntry> equivalator = new Equivalator<Municipality, AtvkEntry>(
             addressData.Municipalities, 
             atvkEntries
         );
@@ -59,7 +62,7 @@ public class MunicipalityAnalyzer : Analyzer
             (i1, i2) => i1.Name == i2.Name // we have no name conflicts in municipalities, so this is sufficient
         );
         
-        Dictionary<Municipality, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        Dictionary<Municipality, AtvkEntry> dataItemMatches = equivalator.AsDictionary();
         if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
         
         // Assign WikiData
@@ -69,6 +72,18 @@ public class MunicipalityAnalyzer : Analyzer
             (i, wd) => i.Name == wd.GetBestName("lv"), // we have no name conflicts in municipalities, so this is sufficient
             75000,
             out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
+        );
+
+        // Assign VDB data
+
+        vdbData.AssignToDataItems(
+            addressData.Municipalities,
+            (i, vdb) =>
+                i.Name == vdb.Name &&
+                vdb.ObjectType == VdbEntryObjectType.Municipality &&
+                vdb.IsActive,
+            75000,
+            out List<VdbMatchIssue> vdbMatchIssues
         );
 
         // Prepare data comparer/correlator
@@ -200,8 +215,8 @@ public class MunicipalityAnalyzer : Analyzer
             new ValidateElementHasValue("place", "municipality"),
             new ValidateElementHasValue("border_type", "municipality"),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => dataItemMatches.TryGetValue(m, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtvkEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => dataItemMatches.TryGetValue(m, out AtvkEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID)
         );
 
@@ -246,11 +261,11 @@ public class MunicipalityAnalyzer : Analyzer
             "No issues found."
         );
         
-        List<AtkvEntry> extraAtvkEntries = atvkEntries
+        List<AtvkEntry> extraAtvkEntries = atvkEntries
                                            .Where(e => !dataItemMatches.Values.Contains(e))
                                            .ToList();
         
-        foreach (AtkvEntry atvkEntry in extraAtvkEntries)
+        foreach (AtvkEntry atvkEntry in extraAtvkEntries)
         {
             report.AddEntry(
                 ExtraReportGroup.ExternalDataMatchingIssues,
@@ -303,6 +318,36 @@ public class MunicipalityAnalyzer : Analyzer
                 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(matchIssue));
+            }
+        }
+
+        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
+        {
+            switch (vdbMatchIssue)
+            {
+                case MultipleVdbMatchesVdbMatchIssue<Municipality> multipleVdbMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
+                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
+                        )
+                    );
+                    break;
+                
+                case CoordinateMismatchVdbMatchIssue<Municipality> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.VdbEntry.ReportString()
+                        )
+                    );
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
             }
         }
     }

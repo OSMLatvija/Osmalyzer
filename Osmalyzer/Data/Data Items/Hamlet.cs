@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Hamlet : IDataItem, IHasWikidataItem
+public class Hamlet : IDataItem, IHasWikidataItem, IHasVdbEntry
 {
     public bool Valid { get; }
     
@@ -19,6 +19,8 @@ public class Hamlet : IDataItem, IHasWikidataItem
     public string MunicipalityName { get; }
 
     public WikidataItem? WikidataItem { get; set; }
+
+    public VdbEntry? VdbEntry { get; set; }
 
 
     public Hamlet(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName)

@@ -15,7 +15,7 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
     protected override string DataFileIdentifier => "atvk";
 
 
-    public List<AtkvEntry> Entries { get; private set; } = null!; // only null before prepared
+    public List<AtvkEntry> Entries { get; private set; } = null!; // only null before prepared
 
 
     protected override void Download()
@@ -76,40 +76,40 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
             // We ignore predecessors (field[7]) and successors (field[8])
 
             // Convert level to enum
-            AtkvLevel atkvLevel = validityEnd == null ? int.Parse(level) switch
+            AtvkLevel atvkLevel = validityEnd == null ? int.Parse(level) switch
             {
                 // 0 is highest
                 // Latvija
-                0 => AtkvLevel.Country,
+                0 => AtvkLevel.Country,
                     
                 // Latgale, Zemgale, Rīga, Kurzeme, Vidzeme
-                1 => AtkvLevel.Region,
+                1 => AtvkLevel.Region,
                 
                 // There is no 2 (in active)
                 
                 // Rīga, Daugavpils, Jelgava, ... Aizkraukles novads, Augšdaugavas novads, Balvu novads, ...
-                3 => AtkvLevel.CityOrMunicipality,
+                3 => AtvkLevel.CityOrMunicipality,
                 
                 // Aizkraukle, Jaunjelgava, Koknese, ... Aiviekstes pagasts, Aizkraukles pagasts, Bebru pagasts...
-                4 => AtkvLevel.CityOrParish,
+                4 => AtvkLevel.CityOrParish,
                 // 4 is lowest
                 
                 _ => throw new Exception($"Unknown ATVK level value: {level}")
-            } : AtkvLevel.Expired;
+            } : AtvkLevel.Expired;
 
-            AtkvDesignation designation = validityEnd == null ? atkvLevel switch
+            AtvkDesignation designation = validityEnd == null ? atvkLevel switch
             {
-                AtkvLevel.Country                 => AtkvDesignation.Country,
-                AtkvLevel.Region                  => AtkvDesignation.Region,
-                AtkvLevel.CityOrMunicipality => name.EndsWith(" novads") ? AtkvDesignation.Municipality : AtkvDesignation.CityInRegion,
-                AtkvLevel.CityOrParish            => name.EndsWith(" pagasts") ? AtkvDesignation.Parish : AtkvDesignation.CityInMunicipality,
+                AtvkLevel.Country                 => AtvkDesignation.Country,
+                AtvkLevel.Region                  => AtvkDesignation.Region,
+                AtvkLevel.CityOrMunicipality => name.EndsWith(" novads") ? AtvkDesignation.Municipality : AtvkDesignation.CityInRegion,
+                AtvkLevel.CityOrParish            => name.EndsWith(" pagasts") ? AtvkDesignation.Parish : AtvkDesignation.CityInMunicipality,
                 _                                 => throw new Exception()
-            } : AtkvDesignation.Expired;
+            } : AtvkDesignation.Expired;
 
-            AtkvEntry entry = new AtkvEntry(
+            AtvkEntry entry = new AtvkEntry(
                 code,
                 name,
-                atkvLevel,
+                atvkLevel,
                 designation,
                 codeParent,
                 validityBegin,
@@ -126,13 +126,13 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
 
         // Second pass: Link parents for active entries only
         // Assumption: codes are unique among active entries
-        Dictionary<string, AtkvEntry> activeEntryByCode = Entries
+        Dictionary<string, AtvkEntry> activeEntryByCode = Entries
             .Where(e => !e.IsExpired)
             .ToDictionary(e => e.Code);
 
-        foreach (AtkvEntry entry in Entries.Where(e => !e.IsExpired))
+        foreach (AtvkEntry entry in Entries.Where(e => !e.IsExpired))
         {
-            if (entry.CodeParent != null && activeEntryByCode.TryGetValue(entry.CodeParent, out AtkvEntry? parent))
+            if (entry.CodeParent != null && activeEntryByCode.TryGetValue(entry.CodeParent, out AtvkEntry? parent))
             {
                 entry.Parent = parent;
                 
@@ -143,12 +143,12 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
 
 #if DEBUG
         // // Print out state (Latgale, Zemgale, Kurzeme, Vidzeme) children
-        // foreach (AtkvEntry region in Entries.Where(e => !e.IsExpired && e.Level == AtkvLevel.Region))
+        // foreach (AtvkEntry region in Entries.Where(e => !e.IsExpired && e.Level == AtvkLevel.Region))
         // {
         //     Console.WriteLine($"Region {region.Name} has children:");
         //     if (region.Children == null) throw new Exception("Region has no children list despite being non-expired.");
         //     
-        //     foreach (AtkvEntry child in region.Children)
+        //     foreach (AtvkEntry child in region.Children)
         //         Console.WriteLine($"  - {child.ReportString()}");
         // }
 #endif

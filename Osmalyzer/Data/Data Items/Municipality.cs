@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Municipality : IDataItem, IHasWikidataItem
+public class Municipality : IDataItem, IHasWikidataItem, IHasVdbEntry
 {
     public bool Valid { get; }
     
@@ -17,6 +17,8 @@ public class Municipality : IDataItem, IHasWikidataItem
     public OsmMultiPolygon? Boundary { get; }
 
     public WikidataItem? WikidataItem { get; set; }
+
+    public VdbEntry? VdbEntry { get; set; }
 
 
     public Municipality(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, OsmMultiPolygon? boundary)

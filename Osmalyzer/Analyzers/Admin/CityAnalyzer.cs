@@ -19,7 +19,8 @@ public class CityAnalyzer : Analyzer
         typeof(AddressGeodataAnalysisData),
         typeof(AtvkAnalysisData),
         typeof(CitiesWikidataData),
-        typeof(StateCitiesAnalysisData)
+        typeof(StateCitiesAnalysisData),
+        typeof(VdbAnalysisData)
     ];
 
     
@@ -70,16 +71,18 @@ public class CityAnalyzer : Analyzer
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
-        List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
-                                           .Where(e => !e.IsExpired && e.Designation is AtkvDesignation.CityInRegion or AtkvDesignation.CityInMunicipality).ToList();
+        List<AtvkEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+                                           .Where(e => !e.IsExpired && e.Designation is AtvkDesignation.CityInRegion or AtvkDesignation.CityInMunicipality).ToList();
 
         CitiesWikidataData wikidataData = datas.OfType<CitiesWikidataData>().First();
         
         StateCitiesAnalysisData stateCitiesData = datas.OfType<StateCitiesAnalysisData>().First();
         
+        VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
         // Match VZD and ATVK data items
 
-        Equivalator<City, AtkvEntry> equivalator = new Equivalator<City, AtkvEntry>(
+        Equivalator<City, AtvkEntry> equivalator = new Equivalator<City, AtvkEntry>(
             addressData.Cities, 
             atvkEntries
         );
@@ -88,13 +91,13 @@ public class CityAnalyzer : Analyzer
             (i1, i2) => i1.Name == i2.Name // we have no name conflicts in cities, so this is sufficient
         );
         
-        Dictionary<City, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        Dictionary<City, AtvkEntry> dataItemMatches = equivalator.AsDictionary();
         if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
 
-        foreach ((City city, AtkvEntry atkvEntry) in dataItemMatches)
+        foreach ((City city, AtvkEntry atvkEntry) in dataItemMatches)
         {
             // Cities that are not part of a municipality (i.e. are under region) are LAU divisions
-            city.IsLAUDivision = atkvEntry.Parent?.Designation == AtkvDesignation.Region;
+            city.IsLAUDivision = atvkEntry.Parent?.Designation == AtvkDesignation.Region;
 
             KnownStateCity? knownStateCity = stateCitiesData.StateCities.FirstOrDefault(sc => sc.Name == city.Name);
 
@@ -111,6 +114,18 @@ public class CityAnalyzer : Analyzer
             (i, wd) => i.Name == wd.GetBestName("lv"), // we have no name conflicts in cities, so this is sufficient
             30000, 
             out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
+        );
+
+        // Assign VDB data
+
+        vdbData.AssignToDataItems(
+            addressData.Cities,
+            (i, vdb) =>
+                i.Name == vdb.Name &&
+                vdb.ObjectType is VdbEntryObjectType.StateCity or VdbEntryObjectType.MunicipalCities &&
+                vdb.IsActive,
+            30000,
+            out List<VdbMatchIssue> vdbMatchIssues
         );
         
         // Prepare data comparer/correlator
@@ -254,8 +269,8 @@ public class CityAnalyzer : Analyzer
             // On relation itself
             new ValidateElementValueMatchesDataItemValue<City>("border_type", GetPlaceType),
             new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? c.IndependentStateCity ? independentStateCityAdminLevel : dependentStateCityAdminLevel : regionalCityAdminLevel),
-            new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtkvEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
+            new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtvkEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtvkEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
             // If no admin center given, check tags directly on relation
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "place", GetPlaceType),
@@ -311,11 +326,11 @@ public class CityAnalyzer : Analyzer
             "No issues found."
         );
         
-        List<AtkvEntry> extraAtvkEntries = atvkEntries
+        List<AtvkEntry> extraAtvkEntries = atvkEntries
             .Where(e => !dataItemMatches.Values.Contains(e))
             .ToList();
         
-        foreach (AtkvEntry atvkEntry in extraAtvkEntries)
+        foreach (AtvkEntry atvkEntry in extraAtvkEntries)
         {
             report.AddEntry(
                 ExtraReportGroup.ExternalDataMatchingIssues,
@@ -368,6 +383,36 @@ public class CityAnalyzer : Analyzer
                 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(matchIssue));
+            }
+        }
+
+        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
+        {
+            switch (vdbMatchIssue)
+            {
+                case MultipleVdbMatchesVdbMatchIssue<City> multipleVdbMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
+                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
+                        )
+                    );
+                    break;
+                
+                case CoordinateMismatchVdbMatchIssue<City> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.VdbEntry.ReportString()
+                        )
+                    );
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
             }
         }
     }

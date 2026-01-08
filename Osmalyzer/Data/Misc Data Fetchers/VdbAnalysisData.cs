@@ -277,11 +277,56 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
     
-    public void AssignToVillages(List<Village> villages)
+    /// <summary>
+    /// Assigns VDB entries to data items by matching with name and location
+    /// </summary>
+    public void AssignToDataItems<T>(
+        List<T> dataItems,
+        Func<T, VdbEntry, bool> matcher,
+        double coordMismatchDistance,
+        out List<VdbMatchIssue> issues)
+        where T : class, IDataItem, IHasVdbEntry
     {
-        // todo:
+        issues = [ ];
+        
+        int count = 0;
+        
+        foreach (T dataItem in dataItems)
+        {
+            List<VdbEntry> matches = Entries.Where(vdb => matcher(dataItem, vdb)).ToList();
+           
+            if (matches.Count == 0)
+                continue;
+            
+            if (matches.Count > 1)
+            {
+                issues.Add(new MultipleVdbMatchesVdbMatchIssue<T>(dataItem, matches));
+                
+                continue;
+            }
+
+            double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, matches[0].Coord);
+            
+            if (distance > coordMismatchDistance)
+            {
+                issues.Add(new CoordinateMismatchVdbMatchIssue<T>(dataItem, matches[0], distance));
+                continue;
+            }
+
+            dataItem.VdbEntry = matches[0];
+            count++;
+        }
+        
+        if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");
     }
 }
+
+
+public abstract record VdbMatchIssue;
+
+public record MultipleVdbMatchesVdbMatchIssue<T>(T DataItem, List<VdbEntry> VdbEntries) : VdbMatchIssue;
+
+public record CoordinateMismatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry, double DistanceMeters) : VdbMatchIssue;
 
 
 public class VdbEntry : IDataItem
@@ -429,4 +474,10 @@ public class RawVdbEntry
         
         return (string?)_fieldGetters[fieldIndex].Invoke(this, null);
     }
+}
+
+
+public interface IHasVdbEntry
+{
+    VdbEntry? VdbEntry { get; set; }
 }

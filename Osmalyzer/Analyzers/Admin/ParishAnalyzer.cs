@@ -18,7 +18,8 @@ public class ParishAnalyzer : Analyzer
         typeof(AddressGeodataAnalysisData),
         typeof(AtvkAnalysisData),
         typeof(ParishesWikidataData),
-        typeof(MunicipalitiesWikidataData)
+        typeof(MunicipalitiesWikidataData),
+        typeof(VdbAnalysisData)
     ];
         
 
@@ -44,16 +45,18 @@ public class ParishAnalyzer : Analyzer
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
-        List<AtkvEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
-                                           .Where(e => !e.IsExpired && e.Designation == AtkvDesignation.Parish).ToList();
+        List<AtvkEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+                                           .Where(e => !e.IsExpired && e.Designation == AtvkDesignation.Parish).ToList();
 
         ParishesWikidataData wikidataData = datas.OfType<ParishesWikidataData>().First();
         
         MunicipalitiesWikidataData municipalitiesWikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
         
+        VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
         // Match VZD and ATVK data items
 
-        Equivalator<Parish, AtkvEntry> equivalator = new Equivalator<Parish, AtkvEntry>(
+        Equivalator<Parish, AtvkEntry> equivalator = new Equivalator<Parish, AtvkEntry>(
             addressData.Parishes, 
             atvkEntries
         );
@@ -62,7 +65,7 @@ public class ParishAnalyzer : Analyzer
             (i1, i2) => i1.Name == i2.Name && i1.MunicipalityName == i2.Parent?.Name // there are repeat parish names, specifically "Pilskalnes pagasts" and "Salas pagasts"
         );
         
-        Dictionary<Parish, AtkvEntry> dataItemMatches = equivalator.AsDictionary();
+        Dictionary<Parish, AtvkEntry> dataItemMatches = equivalator.AsDictionary();
         if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
         
         // Assign WikiData
@@ -93,6 +96,19 @@ public class ParishAnalyzer : Analyzer
             
             return ownerName;
         }
+
+        // Assign VDB data
+
+        vdbData.AssignToDataItems(
+            addressData.Parishes,
+            (i, vdb) =>
+                i.Name == vdb.Name &&
+                vdb.ObjectType == VdbEntryObjectType.Parish &&
+                vdb.IsActive &&
+                i.MunicipalityName == vdb.Location2,
+            50000,
+            out List<VdbMatchIssue> vdbMatchIssues
+        );
 
         // Prepare data comparer/correlator
 
@@ -221,7 +237,7 @@ public class ParishAnalyzer : Analyzer
             new ValidateElementHasValue("place", "civil_parish"), // not "parish"
             new ValidateElementHasValue("border_type", "parish"), // not "civil_parish"
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtkvEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtvkEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID)
         );
 
@@ -266,11 +282,11 @@ public class ParishAnalyzer : Analyzer
             "No issues found."
         );
         
-        List<AtkvEntry> extraAtvkEntries = atvkEntries
+        List<AtvkEntry> extraAtvkEntries = atvkEntries
                                            .Where(e => !dataItemMatches.Values.Contains(e))
                                            .ToList();
         
-        foreach (AtkvEntry atvkEntry in extraAtvkEntries)
+        foreach (AtvkEntry atvkEntry in extraAtvkEntries)
         {
             report.AddEntry(
                 ExtraReportGroup.ExternalDataMatchingIssues,
@@ -323,6 +339,36 @@ public class ParishAnalyzer : Analyzer
                 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(matchIssue));
+            }
+        }
+
+        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
+        {
+            switch (vdbMatchIssue)
+            {
+                case MultipleVdbMatchesVdbMatchIssue<Parish> multipleVdbMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
+                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
+                        )
+                    );
+                    break;
+                
+                case CoordinateMismatchVdbMatchIssue<Parish> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.VdbEntry.ReportString()
+                        )
+                    );
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
             }
         }
     }

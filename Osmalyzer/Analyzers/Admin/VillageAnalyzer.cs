@@ -83,7 +83,17 @@ public class VillageAnalyzer : Analyzer
 
         stopwatch.Restart();
         
-        vdbData.AssignToVillages(addressData.Villages);
+        vdbData.AssignToDataItems(
+            addressData.Villages,
+            (i, vdb) => 
+                i.Name == vdb.Name &&
+                vdb.ObjectType == VdbEntryObjectType.Village &&
+                vdb.IsActive &&
+                i.ParishName == vdb.Location1 &&
+                i.MunicipalityName == vdb.Location2,
+            10000,
+            out List<VdbMatchIssue> vdbMatchIssues
+        );
         
         Console.WriteLine("VDB data assigned (" + stopwatch.ElapsedMilliseconds + " ms)");
         
@@ -398,6 +408,36 @@ public class VillageAnalyzer : Analyzer
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(matchIssue));
+            }
+        }
+
+        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
+        {
+            switch (vdbMatchIssue)
+            {
+                case MultipleVdbMatchesVdbMatchIssue<Village> multipleVdbMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
+                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
+                        )
+                    );
+                    break;
+                
+                case CoordinateMismatchVdbMatchIssue<Village> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.VdbEntry.ReportString()
+                        )
+                    );
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
             }
         }
     }

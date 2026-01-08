@@ -17,7 +17,8 @@ public class HamletAnalyzer : Analyzer
         typeof(LatviaOsmAnalysisData), 
         typeof(AddressGeodataAnalysisData),
         typeof(VillagesWikidataData),
-        typeof(ParishesWikidataData)
+        typeof(ParishesWikidataData),
+        typeof(VdbAnalysisData)
     ];
         
 
@@ -42,6 +43,22 @@ public class HamletAnalyzer : Analyzer
         VillagesWikidataData villagesWikidataData = datas.OfType<VillagesWikidataData>().First();
         
         ParishesWikidataData parishesWikidataData = datas.OfType<ParishesWikidataData>().First();
+        
+        VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
+        // Assign VDB data
+
+        vdbData.AssignToDataItems(
+            addressData.Hamlets,
+            (i, vdb) => 
+                i.Name == vdb.Name &&
+                vdb.ObjectType == VdbEntryObjectType.Hamlet &&
+                vdb.IsActive &&
+                i.ParishName == vdb.Location1 &&
+                i.MunicipalityName == vdb.Location2,
+            10000,
+            out List<VdbMatchIssue> vdbMatchIssues
+        );
         
         // Assign WikiData
 
@@ -318,6 +335,36 @@ public class HamletAnalyzer : Analyzer
                     throw new ArgumentOutOfRangeException(nameof(matchIssue));
             }
         }
+
+        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
+        {
+            switch (vdbMatchIssue)
+            {
+                case MultipleVdbMatchesVdbMatchIssue<Hamlet> multipleVdbMatches:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
+                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
+                        )
+                    );
+                    break;
+                
+                case CoordinateMismatchVdbMatchIssue<Hamlet> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.VdbEntry.ReportString()
+                        )
+                    );
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
+            }
+        }
     }
 
 
@@ -329,4 +376,3 @@ public class HamletAnalyzer : Analyzer
         ProposedChanges
     }
 }
-

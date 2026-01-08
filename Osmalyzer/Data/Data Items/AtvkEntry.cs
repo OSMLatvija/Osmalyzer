@@ -1,15 +1,15 @@
 ﻿namespace Osmalyzer;
 
-public class AtkvEntry : IDataItem
+public class AtvkEntry : IDataItem
 {
     /// <summary> NUTS or LAU code </summary>
     public string Code { get; }
     
     public string Name { get; }
     
-    public AtkvLevel Level { get; }
+    public AtvkLevel Level { get; }
 
-    public AtkvDesignation Designation { get; }
+    public AtvkDesignation Designation { get; }
 
     public string? CodeParent { get; }
     
@@ -17,9 +17,9 @@ public class AtkvEntry : IDataItem
     
     public DateTime? ValidityEnd { get; }
 
-    public AtkvEntry? Parent { get; internal set; }
+    public AtvkEntry? Parent { get; internal set; }
     
-    public List<AtkvEntry>? Children { get; internal set; }
+    public List<AtvkEntry>? Children { get; internal set; }
 
     
     public bool IsExpired => ValidityEnd != null;
@@ -27,7 +27,7 @@ public class AtkvEntry : IDataItem
     public OsmCoord Coord => throw new NotSupportedException("ATVK entries do not have coordinates.");
     
 
-    public AtkvEntry(string code, string name, AtkvLevel level, AtkvDesignation designation, string? codeParent, DateTime validityBegin, DateTime? validityEnd)
+    public AtvkEntry(string code, string name, AtvkLevel level, AtvkDesignation designation, string? codeParent, DateTime validityBegin, DateTime? validityEnd)
     {
         Code = code;
         Name = name;
@@ -51,12 +51,12 @@ public class AtkvEntry : IDataItem
         [Pure]
         string LevelName() => Designation switch
         {
-            AtkvDesignation.Country            => "Country",
-            AtkvDesignation.Region             => "Region",
-            AtkvDesignation.CityInRegion       => "City (in region)",
-            AtkvDesignation.Municipality       => "Municipality",
-            AtkvDesignation.CityInMunicipality => "City (in municipality)",
-            AtkvDesignation.Parish             => "Parish",
+            AtvkDesignation.Country            => "Country",
+            AtvkDesignation.Region             => "Region",
+            AtvkDesignation.CityInRegion       => "City (in region)",
+            AtvkDesignation.Municipality       => "Municipality",
+            AtvkDesignation.CityInMunicipality => "City (in municipality)",
+            AtvkDesignation.Parish             => "Parish",
             _                                  => throw new Exception()
         };
     }
@@ -64,7 +64,7 @@ public class AtkvEntry : IDataItem
     public override string ToString() => ReportString();
 }
 
-public enum AtkvLevel
+public enum AtvkLevel
 {
     Country,
     Region,
@@ -73,7 +73,7 @@ public enum AtkvLevel
     Expired
 }
 
-public enum AtkvDesignation
+public enum AtvkDesignation
 {
     Country,
     Region,

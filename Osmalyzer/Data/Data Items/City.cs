@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class City : IDataItem, IHasWikidataItem
+public class City : IDataItem, IHasWikidataItem, IHasVdbEntry
 {
     public bool Valid { get; }
     
@@ -19,6 +19,8 @@ public class City : IDataItem, IHasWikidataItem
     public OsmMultiPolygon? Boundary { get; }
 
     public WikidataItem? WikidataItem { get; set; }
+    
+    public VdbEntry? VdbEntry { get; set; }
     
     public CityStatus? Status { get; set; }
     

@@ -243,6 +243,7 @@ public class HamletAnalyzer : Analyzer
             new ValidateElementHasValue("place", "hamlet"),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID),
+            //new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:VDB", h => h.VdbEntry?.ID.ToString()),
             new ValidateElementHasValue("designation", "mazciems")
         );
 

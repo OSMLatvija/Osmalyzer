@@ -90,7 +90,7 @@ public class MunicipalityAnalyzer : Analyzer
 
         Correlator<Municipality> municipalityCorrelator = new Correlator<Municipality>(
             osmMunicipalities,
-            addressData.Municipalities.Where(m => m.Valid).ToList(),
+            addressData.Municipalities,
             new MatchDistanceParamater(25000),
             new MatchFarDistanceParamater(75000),
             new MatchCallbackParameter<Municipality>(GetMunicipalityMatchStrength),
@@ -234,9 +234,7 @@ public class MunicipalityAnalyzer : Analyzer
             "There are no invalid municipalities in the geodata."
         );
 
-        List<Municipality> invalidMunicipalities = addressData.Municipalities.Where(m => !m.Valid).ToList();
-
-        foreach (Municipality municipality in invalidMunicipalities)
+        foreach (Municipality municipality in addressData.InvalidMunicipalities)
         {
             report.AddEntry(
                 ExtraReportGroup.InvalidMunicipalities,
@@ -257,7 +255,7 @@ public class MunicipalityAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.ExternalDataMatchingIssues,
             "Extra data item matching issues",
-            "This section lists any issues with data item matching ti additional external data sources.",
+            "This section lists any issues with data item matching to additional external data sources.",
             "No issues found."
         );
         
@@ -348,6 +346,29 @@ public class MunicipalityAnalyzer : Analyzer
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
+            }
+        }
+
+        foreach (Municipality municipality in addressData.Municipalities)
+        {
+            if (municipality.WikidataItem == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        municipality.ReportString() + " does not have a matched Wikidata item."
+                    )
+                );
+            }
+            
+            if (municipality.VdbEntry == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        municipality.ReportString() + " does not have a matched VDB entry."
+                    )
+                );
             }
         }
     }

@@ -96,7 +96,7 @@ public class HamletAnalyzer : Analyzer
 
         Correlator<Hamlet> hamletCorrelator = new Correlator<Hamlet>(
             osmHamlets,
-            addressData.Hamlets.Where(h => h.Valid).ToList(),
+            addressData.Hamlets,
             new MatchDistanceParamater(100), // nodes should have good distance matches since data isnt polygons
             new MatchFarDistanceParamater(2000),
             new MatchCallbackParameter<Hamlet>(GetHamletMatchStrength),
@@ -262,9 +262,7 @@ public class HamletAnalyzer : Analyzer
             "There are no invalid hamlets in the geodata."
         );
 
-        List<Hamlet> invalidHamlets = addressData.Hamlets.Where(h => !h.Valid).ToList();
-
-        foreach (Hamlet hamlet in invalidHamlets)
+        foreach (Hamlet hamlet in addressData.InvalidHamlets)
         {
             report.AddEntry(
                 ExtraReportGroup.InvalidHamlets,
@@ -285,7 +283,7 @@ public class HamletAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.ExternalDataMatchingIssues,
             "Extra data item matching issues",
-            "This section lists any issues with data item matching ti additional external data sources.",
+            "This section lists any issues with data item matching to additional external data sources.",
             "No issues found."
         );
 
@@ -363,6 +361,29 @@ public class HamletAnalyzer : Analyzer
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
+            }
+        }
+
+        foreach (Hamlet hamlet in addressData.Hamlets)
+        {
+            if (hamlet.WikidataItem == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        hamlet.ReportString() + " does not have a matched Wikidata item."
+                    )
+                );
+            }
+            
+            if (hamlet.VdbEntry == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        hamlet.ReportString() + " does not have a matched VDB entry."
+                    )
+                );
             }
         }
     }

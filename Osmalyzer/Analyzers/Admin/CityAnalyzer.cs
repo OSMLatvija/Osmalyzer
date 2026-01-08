@@ -132,7 +132,7 @@ public class CityAnalyzer : Analyzer
 
         Correlator<City> cityCorrelator = new Correlator<City>(
             osmCities,
-            addressData.Cities.Where(c => c.Valid).ToList(),
+            addressData.Cities,
             new MatchDistanceParamater(10000),
             new MatchFarDistanceParamater(30000),
             new MatchCallbackParameter<City>(GetCityMatchStrength),
@@ -299,9 +299,7 @@ public class CityAnalyzer : Analyzer
             "There are no invalid cities in the geodata."
         );
 
-        List<City> invalidCities = addressData.Cities.Where(c => !c.Valid).ToList();
-
-        foreach (City city in invalidCities)
+        foreach (City city in addressData.InvalidCities)
         {
             report.AddEntry(
                 ExtraReportGroup.InvalidCities,
@@ -322,7 +320,7 @@ public class CityAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.ExternalDataMatchingIssues,
             "Extra data item matching issues",
-            "This section lists any issues with data item matching ti additional external data sources.",
+            "This section lists any issues with data item matching to additional external data sources.",
             "No issues found."
         );
         
@@ -413,6 +411,29 @@ public class CityAnalyzer : Analyzer
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
+            }
+        }
+
+        foreach (City city in addressData.Cities)
+        {
+            if (city.WikidataItem == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        city.ReportString() + " does not have a matched Wikidata item."
+                    )
+                );
+            }
+            
+            if (city.VdbEntry == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        city.ReportString() + " does not have a matched VDB entry."
+                    )
+                );
             }
         }
     }

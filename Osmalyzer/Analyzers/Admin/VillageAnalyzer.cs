@@ -138,7 +138,7 @@ public class VillageAnalyzer : Analyzer
         
         Correlator<Village> villageCorrelator = new Correlator<Village>(
             osmVillages,
-            addressData.Villages.Where(v => v.Valid).ToList(),
+            addressData.Villages,
             new MatchDistanceParamater(500), // todo: lower distance, but allow match inside relation
             new MatchFarDistanceParamater(2000),
             new MatchCallbackParameter<Village>(GetVillageMatchStrength),
@@ -337,9 +337,7 @@ public class VillageAnalyzer : Analyzer
             "There are no invalid villages in the geodata."
         );
 
-        List<Village> invalidVillages = addressData.Villages.Where(v => !v.Valid).ToList();
-
-        foreach (Village village in invalidVillages)
+        foreach (Village village in addressData.InvalidVillages)
         {
             report.AddEntry(
                 ExtraReportGroup.InvalidVillages,
@@ -360,7 +358,7 @@ public class VillageAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.ExternalDataMatchingIssues,
             "Extra data item matching issues",
-            "This section lists any issues with data item matching ti additional external data sources.",
+            "This section lists any issues with data item matching to additional external data sources.",
             "No issues found."
         );
 
@@ -438,6 +436,29 @@ public class VillageAnalyzer : Analyzer
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
+            }
+        }
+
+        foreach (Village village in addressData.Villages)
+        {
+            if (village.WikidataItem == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        village.ReportString() + " does not have a matched Wikidata item."
+                    )
+                );
+            }
+            
+            if (village.VdbEntry == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        village.ReportString() + " does not have a matched VDB entry."
+                    )
+                );
             }
         }
     }

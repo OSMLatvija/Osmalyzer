@@ -105,7 +105,7 @@ public class ParishAnalyzer : Analyzer
                 i.Name == vdb.Name &&
                 vdb.ObjectType == VdbEntryObjectType.Parish &&
                 vdb.IsActive &&
-                i.MunicipalityName == vdb.Location2,
+                i.MunicipalityName == vdb.Location1,
             50000,
             out List<VdbMatchIssue> vdbMatchIssues
         );
@@ -114,7 +114,7 @@ public class ParishAnalyzer : Analyzer
 
         Correlator<Parish> parishCorrelator = new Correlator<Parish>(
             osmParishes,
-            addressData.Parishes.Where(p => p.Valid).ToList(),
+            addressData.Parishes,
             new MatchDistanceParamater(10000),
             new MatchFarDistanceParamater(50000),
             new MatchCallbackParameter<Parish>(GetParishMatchStrength),
@@ -255,9 +255,7 @@ public class ParishAnalyzer : Analyzer
             "There are no invalid parishes in the geodata."
         );
 
-        List<Parish> invalidParishes = addressData.Parishes.Where(p => !p.Valid).ToList();
-
-        foreach (Parish parish in invalidParishes)
+        foreach (Parish parish in addressData.InvalidParishes)
         {
             report.AddEntry(
                 ExtraReportGroup.InvalidParishes,
@@ -278,7 +276,7 @@ public class ParishAnalyzer : Analyzer
         report.AddGroup(
             ExtraReportGroup.ExternalDataMatchingIssues,
             "Extra data item matching issues",
-            "This section lists any issues with data item matching ti additional external data sources.",
+            "This section lists any issues with data item matching to additional external data sources.",
             "No issues found."
         );
         
@@ -369,6 +367,29 @@ public class ParishAnalyzer : Analyzer
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
+            }
+        }
+
+        foreach (Parish parish in addressData.Parishes)
+        {
+            if (parish.WikidataItem == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        parish.ReportString() + " does not have a matched Wikidata item."
+                    )
+                );
+            }
+            
+            if (parish.VdbEntry == null)
+            {
+                report.AddEntry(
+                    ExtraReportGroup.ExternalDataMatchingIssues,
+                    new IssueReportEntry(
+                        parish.ReportString() + " does not have a matched VDB entry."
+                    )
+                );
             }
         }
     }

@@ -18,14 +18,19 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
 
     public List<Village> Villages { get; private set; } = null!; // only null before prepared
+    public List<Village> InvalidVillages { get; private set; } = null!; // only null before prepared
     
     public List<Hamlet> Hamlets { get; private set; } = null!; // only null before prepared
+    public List<Hamlet> InvalidHamlets { get; private set; } = null!; // only null before prepared
     
     public List<Parish> Parishes { get; private set; } = null!; // only null before prepared
+    public List<Parish> InvalidParishes { get; private set; } = null!; // only null before prepared
     
     public List<Municipality> Municipalities { get; private set; } = null!; // only null before prepared
+    public List<Municipality> InvalidMunicipalities { get; private set; } = null!; // only null before prepared
     
     public List<City> Cities { get; private set; } = null!; // only null before prepared
+    public List<City> InvalidCities { get; private set; } = null!; // only null before prepared
 
 
     protected override string DataFileIdentifier => "addresses-geo";
@@ -94,6 +99,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         // Read shapes
 
         Villages = [ ];
+        InvalidVillages = [ ];
             
         while (shapefileReader.Read())
         {
@@ -136,19 +142,22 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             );
             
             // Entry
-           
-            Villages.Add(
-                new Village(
-                    isValid,
-                    id,
-                    coord,
-                    name,
-                    address,
-                    parishName,
-                    municipalityName,
-                    boundary
-                )
+
+            Village village = new Village(
+                isValid,
+                id,
+                coord,
+                name,
+                address,
+                parishName,
+                municipalityName,
+                boundary
             );
+
+            if (isValid)
+                Villages.Add(village);
+            else
+                InvalidVillages.Add(village);
         }
     }
 
@@ -179,6 +188,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 #endif
 
         Hamlets = [ ];
+        InvalidHamlets = [ ];
 
         while (shapefileReader.Read())
         {
@@ -214,18 +224,21 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             string municipalityName = addressParts[2].Replace(" nov.", " novads");
 
             // Entry
-            
-            Hamlets.Add(
-                new Hamlet(
-                    isValid,
-                    id,
-                    coord,
-                    name,
-                    address,
-                    parishName,
-                    municipalityName
-                )
+
+            Hamlet hamlet = new Hamlet(
+                isValid,
+                id,
+                coord,
+                name,
+                address,
+                parishName,
+                municipalityName
             );
+            
+            if (isValid)
+                Hamlets.Add(hamlet);
+            else
+                InvalidHamlets.Add(hamlet);
         }
     }
 
@@ -246,6 +259,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
 
         Parishes = [ ];
+        InvalidParishes = [ ];
             
         while (shapefileReader.Read())
         {
@@ -288,18 +302,21 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             );
             
             // Entry
-           
-            Parishes.Add(
-                new Parish(
-                    isValid,
-                    id,
-                    coord,
-                    name,
-                    address,
-                    municipalityName,
-                    boundary
-                )
+
+            Parish parish = new Parish(
+                isValid,
+                id,
+                coord,
+                name,
+                address,
+                municipalityName,
+                boundary
             );
+            
+            if (isValid)
+                Parishes.Add(parish);
+            else
+                InvalidParishes.Add(parish);
         }
     }
 
@@ -320,6 +337,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
 
         Municipalities = [ ];
+        InvalidMunicipalities = [ ];
             
         while (shapefileReader.Read())
         {
@@ -354,17 +372,20 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             );
             
             // Entry
-           
-            Municipalities.Add(
-                new Municipality(
-                    isValid,
-                    id,
-                    coord,
-                    name,
-                    address,
-                    boundary
-                )
+
+            Municipality municipality = new Municipality(
+                isValid,
+                id,
+                coord,
+                name,
+                address,
+                boundary
             );
+            
+            if (isValid)
+                Municipalities.Add(municipality);
+            else
+                InvalidMunicipalities.Add(municipality);
         }
     }
 
@@ -385,29 +406,30 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         using ShapefileDataReader shapefileReader = new ShapefileDataReader(shapefilePath, GeometryFactory.Default);
 
         Cities = [ ];
-            
+        InvalidCities = [ ];
+
         while (shapefileReader.Read())
         {
             Geometry geometry = shapefileReader.Geometry;
-            
+
             // Process shape
-                
+
             Point centroid = geometry.Centroid;
 
             (double lon, double lat) = coordTransformation.MathTransform.Transform(centroid.X, centroid.Y);
 
             OsmCoord coord = new OsmCoord(lat, lon);
-            
+
             // Process columns
-            
+
             string status = shapefileReader["STATUSS"].ToString() ?? throw new Exception("City in data without a status");
             string approved = shapefileReader["APSTIPR"].ToString() ?? throw new Exception("City in data without an approval status");
             string name = shapefileReader["NOSAUKUMS"].ToString() ?? throw new Exception("City in data without a name");
             string address = shapefileReader["STD"].ToString() ?? throw new Exception("City in data without a full address");
             string id = shapefileReader["KODS"].ToString() ?? throw new Exception("City in data without a code");
-            
+
             // Clean up and normalize values
-            
+
             bool isValid = status == "EKS" && approved == "Y";
 
             // Parse address to extract parent names
@@ -415,7 +437,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
             // Format: "Jūrmala" (valstpilsēta - city by itself)
             string[] addressParts = address.Split(", ");
             string? municipalityName;
-            
+
             if (addressParts.Length == 1)
             {
                 // Valstpilsēta - city by itself, no municipality
@@ -437,20 +459,23 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
                 geometry,
                 (x, y) => coordTransformation.MathTransform.Transform(x, y)
             );
-            
+
             // Entry
-           
-            Cities.Add(
-                new City(
-                    isValid,
-                    id,
-                    coord,
-                    name,
-                    address,
-                    municipalityName,
-                    boundary
-                )
+
+            City city = new City(
+                isValid,
+                id,
+                coord,
+                name,
+                address,
+                municipalityName,
+                boundary
             );
+
+            if (isValid)
+                Cities.Add(city);
+            else
+                InvalidCities.Add(city);
         }
     }
     

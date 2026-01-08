@@ -2,6 +2,9 @@
 
 namespace Osmalyzer;
 
+/// <summary>
+/// A small ham. To be or not to be? 
+/// </summary>
 public class Hamlet : IDataItem, IHasWikidataItem, IHasVdbEntry
 {
     public bool Valid { get; }

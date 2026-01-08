@@ -78,10 +78,10 @@ public class CitiesWikidataData : WikidataData
 
 
 
-    public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<WikidataMatchIssue> multiMatches)
-        where T : class, IHasWikidataItem
+    public void Assign<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, double coordMismatchDistance, out List<WikidataMatchIssue> multiMatches)
+        where T : class, IDataItem, IHasWikidataItem
     {
-        AssignWikidataItems(dataItems, AllCities, matcher, out multiMatches);
+        AssignWikidataItems(dataItems, AllCities, matcher, coordMismatchDistance, out multiMatches);
     }
 }
 

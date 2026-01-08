@@ -96,9 +96,10 @@ public class VillageAnalyzer : Analyzer
             (i, wd) =>
                 i.Name == wd.GetBestName("lv") &&
                 //(addressData.IsUniqueVillageName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
-                 i.ParishName == GetWikidataAdminItemOwnerName(wd),//)
+                i.ParishName == GetWikidataAdminItemOwnerName(wd),//)
                 // todo: there is also Pilskalne in both same-named Pilskalne pagasts, so we need to check the owner of parish...
                 // we cannot assume wikidata is correct to rely on unique names and it has lots of hamlet mistagging, so their list includes hamlets too
+            10000,
             out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
         );
         
@@ -384,6 +385,17 @@ public class VillageAnalyzer : Analyzer
                     );
                     break;
                 
+                case WikidataData.CoordinateMismatchWikidataMatchIssue<Village> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a Wikidata item, but the Wikidata coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.WikidataItem.WikidataUrl
+                        )
+                    );
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(matchIssue));
             }

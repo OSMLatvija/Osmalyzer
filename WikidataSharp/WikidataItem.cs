@@ -118,6 +118,14 @@ public class WikidataItem
     [Pure]
     public DateTime? GetBestStatementValueAsDateTime(long propertyID) => GetBestStatement(propertyID)?.AsDateTime;
 
+    [PublicAPI]
+    [Pure]
+    public WikidataCoord? GetBestStatementValueAsCoordinate(WikiDataProperty property) => GetBestStatementValueAsCoordinate((long)property);
+
+    [PublicAPI]
+    [Pure]
+    public WikidataCoord? GetBestStatementValueAsCoordinate(long propertyID) => GetBestStatement(propertyID)?.AsCoordinate;
+
 
     [PublicAPI]
     [Pure]

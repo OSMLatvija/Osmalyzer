@@ -67,6 +67,7 @@ public class MunicipalityAnalyzer : Analyzer
         wikidataData.Assign(
             addressData.Municipalities,
             (i, wd) => i.Name == wd.GetBestName("lv"), // we have no name conflicts in municipalities, so this is sufficient
+            75000,
             out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
         );
 
@@ -279,12 +280,23 @@ public class MunicipalityAnalyzer : Analyzer
         {
             switch (matchIssue)
             {
-                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Village> multipleWikidataMatches:
+                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Municipality> multipleWikidataMatches:
                     report.AddEntry(
                         ExtraReportGroup.ExternalDataMatchingIssues,
                         new IssueReportEntry(
                             multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
                             string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
+                        )
+                    );
+                    break;
+                
+                case WikidataData.CoordinateMismatchWikidataMatchIssue<Municipality> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a Wikidata item, but the Wikidata coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.WikidataItem.WikidataUrl
                         )
                     );
                     break;

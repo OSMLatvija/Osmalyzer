@@ -6,6 +6,7 @@ namespace WikidataSharp;
 public enum WikiDataProperty : long
 {
     InstanceOf = 31, // https://www.wikidata.org/wiki/Property:P31
+    CoordinateLocation = 625, // https://www.wikidata.org/wiki/Property:P625
     DissolvedAbolishedOrDemolishedDate = 576, // https://www.wikidata.org/wiki/Property:P576
     OfficialName = 1448, // https://www.wikidata.org/wiki/Property:P1448
     Name = 2561, // https://www.wikidata.org/wiki/Property:P2561

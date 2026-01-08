@@ -47,6 +47,9 @@ public class WikidataStatement
 
     [PublicAPI]
     public DateTime? AsDateTime => DataType == WikidataDataType.DateTime ? DateTime.Parse(RawValue, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal) : null;
+
+    [PublicAPI]
+    public WikidataCoord? AsCoordinate => Type == WikidataValueType.Literal ? WikidataCoord.TryParse(RawValue) : null;
     
 
     private readonly Dictionary<long, string> _qualifiers;
@@ -68,6 +71,7 @@ public class WikidataStatement
                 DataType = WikidataDataType.Decimal;
             else if (dataTypeRaw == "http://www.w3.org/2001/XMLSchema#dateTime")
                 DataType = WikidataDataType.DateTime;
+            
         }
         
         // Determine UriType from the URI value

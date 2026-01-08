@@ -11,8 +11,9 @@ public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
         List<T> dataItems, 
         List<WikidataItem> wikidataItems,
         Func<T, WikidataItem, bool> matcher,
+        double coordMismatchDistance,
         out List<WikidataMatchIssue> issues)
-        where T : class, IHasWikidataItem
+        where T : class, IDataItem, IHasWikidataItem
     {
         issues = [ ];
         
@@ -30,6 +31,21 @@ public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
                 issues.Add(new MultipleWikidataMatchesWikidataMatchIssue<T>(dataItem, matches));
                 
                 continue;
+            }
+
+            WikidataCoord? coord = matches[0].GetBestStatementValueAsCoordinate(WikiDataProperty.CoordinateLocation);
+
+            if (coord != null)
+            {
+                OsmCoord osmCoord = new OsmCoord(coord.Value.Latitude, coord.Value.Longitude);
+
+                double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, osmCoord);
+                
+                if (distance > coordMismatchDistance)
+                {
+                    issues.Add(new CoordinateMismatchWikidataMatchIssue<T>(dataItem, matches[0], distance));
+                    continue;
+                }
             }
 
             dataItem.WikidataItem = matches[0];
@@ -52,4 +68,6 @@ public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
     public abstract record WikidataMatchIssue;
 
     public record MultipleWikidataMatchesWikidataMatchIssue<T>(T DataItem, List<WikidataItem> WikidataItems) : WikidataMatchIssue;
+    
+    public record CoordinateMismatchWikidataMatchIssue<T>(T DataItem, WikidataItem WikidataItem, double DistanceMeters) : WikidataMatchIssue;
 }

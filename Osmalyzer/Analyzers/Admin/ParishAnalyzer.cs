@@ -73,6 +73,7 @@ public class ParishAnalyzer : Analyzer
                 i.Name == wd.GetBestName("lv") &&
                 (addressData.IsUniqueParishName(i.Name) || // if the name is unique, it cannot conflict, so we don't need to check hierarchy
                  i.MunicipalityName == GetWikidataAdminItemOwnerName(wd)),
+            50000,
             out List<WikidataData.WikidataMatchIssue> wikidataMatchIssues
         );
         
@@ -299,12 +300,23 @@ public class ParishAnalyzer : Analyzer
         {
             switch (matchIssue)
             {
-                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Village> multipleWikidataMatches:
+                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Parish> multipleWikidataMatches:
                     report.AddEntry(
                         ExtraReportGroup.ExternalDataMatchingIssues,
                         new IssueReportEntry(
                             multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
                             string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
+                        )
+                    );
+                    break;
+                
+                case WikidataData.CoordinateMismatchWikidataMatchIssue<Parish> coordinateMismatch:
+                    report.AddEntry(
+                        ExtraReportGroup.ExternalDataMatchingIssues,
+                        new IssueReportEntry(
+                            coordinateMismatch.DataItem.ReportString() + " matched a Wikidata item, but the Wikidata coordinate is too far at " +
+                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
+                            " -- " + coordinateMismatch.WikidataItem.WikidataUrl
                         )
                     );
                     break;

@@ -72,10 +72,10 @@ public class VillagesWikidataData : WikidataData
     }
 
 
-    public void AssignVillageOrHamlet<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<WikidataMatchIssue> issues) 
-        where T : class, IHasWikidataItem
+    public void AssignVillageOrHamlet<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, double coordMismatchDistance, out List<WikidataMatchIssue> issues) 
+        where T : class, IDataItem, IHasWikidataItem
     {
-        AssignWikidataItems(dataItems, AllVillages, matcher, out issues);
+        AssignWikidataItems(dataItems, AllVillages, matcher, coordMismatchDistance, out issues);
     }
 
     // public void AssignHamlets<T>(List<T> dataItems, Func<T, WikidataItem, bool> matcher, out List<WikidataMatchIssue> issues) 

@@ -44,7 +44,7 @@ public abstract class WikidataData : AnalysisData, IUndatedAnalysisData
     protected static List<WikidataItem> FilterOutDissolved(List<WikidataItem> items)
     {
         return items
-            .Where(item => !item.HasStatement(WikiDataProperty.DissolvedAbolishedOrDemolishedDate))
+            .Where(item => !item.HasActiveStatement(WikiDataProperty.DissolvedAbolishedOrDemolishedDate))
             .ToList();
     }
 }

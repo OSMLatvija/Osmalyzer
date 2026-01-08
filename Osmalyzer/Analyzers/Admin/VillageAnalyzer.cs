@@ -104,7 +104,7 @@ public class VillageAnalyzer : Analyzer
         
         string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
         {
-            long? ownerValue = wikidataItem.GetStatementBestQIDValue(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
+            long? ownerValue = wikidataItem.GetBestStatementValueAsQID(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
             if (ownerValue == null)
                 return null;
             
@@ -119,7 +119,7 @@ public class VillageAnalyzer : Analyzer
             return ownerName;
         }
         
-        Console.WriteLine("Wikidata assigned (" + stopwatch.ElapsedMilliseconds + " ms)"); // 2245 ms -> 93 ms
+        Console.WriteLine("Wikidata assigned (" + stopwatch.ElapsedMilliseconds + " ms)"); // 2245 ms -> 93 ms -> 89 ms
 
         // Parse villages
         

@@ -78,7 +78,7 @@ public class ParishAnalyzer : Analyzer
         
         string? GetWikidataAdminItemOwnerName(WikidataItem wikidataItem)
         {
-            long? ownerValue = wikidataItem.GetStatementBestQIDValue(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
+            long? ownerValue = wikidataItem.GetBestStatementValueAsQID(WikiDataProperty.LocatedInAdministrativeTerritorialEntity);
             if (ownerValue == null)
                 return null;
             

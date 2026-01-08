@@ -58,7 +58,7 @@ public class VillagesWikidataData : WikidataData
         AllVillages = FilterOutDissolved(AllVillages);
         
         Hamlets = AllVillages
-            .Where(item => item.HasStatementValueAsQID(WikiDataProperty.InstanceOf, smallVillageInLatviaQID))
+            .Where(item => item.HasActiveStatementValueAsQID(WikiDataProperty.InstanceOf, smallVillageInLatviaQID))
             .ToList();
         if (Hamlets.Count == 0) throw new Exception("No hamlets were identified among the villages from Wikidata, which is not expected and probably means Wikidata has changed something");
         

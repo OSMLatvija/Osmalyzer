@@ -65,7 +65,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         "KOMENTARI", // some unparsable internal comments
         "KARTESNOS", // whether it should appear on maps, 87% is "1", rest "0"
         "OFIC_NOS_UN_AVOTS", // seems like combination of official name and source like "Kalniņi [AR]" for official name "Kalniņi" and source "AR", presumably for website
-        "VISI_NOS", // some kind of combined names field, presumably for website
+        "VISI_NOS", // all alternate names combined, comma-separated, but with comments, flags and misc.
         "OFICIALS", // two values "Oficiāls" fo 60% and "Neoficiāls" for 40%, but there seem to be errors
         "GEO_GAR", // presumably parsed from GEOGARUMS to readable "26° 22' 21""
         "GEO_PLAT", // presumably parsed from GEOPLATUMS to readable "56° 33' 56""
@@ -300,10 +300,10 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             
             // All entries have main name specified and some have alt name
             string name = rawEntry.MainName?.Trim() ?? throw new Exception("Missing PAMATNOSAUKUMS in VDB CSV data (record " + csv.CurrentIndex + ")");
-            string? altName = rawEntry.SecondaryMainName?.Trim();
+            string? secondName = rawEntry.SecondaryMainName?.Trim();
             string? officialName = rawEntry.OfficialName?.Trim();
             
-            if (altName == "") altName = null;
+            if (secondName == "") secondName = null;
             if (officialName == "") officialName = null;
             
             // All entries have one of the pre-defined states specified
@@ -322,6 +322,26 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             // All entries have parish and municipality specified
             string location1 = rawEntry.Parish?.Trim() ?? throw new Exception("Missing PAGASTS in VDB CSV data (record " + csv.CurrentIndex + ")");
             string location2 = rawEntry.Municipality?.Trim() ?? throw new Exception("Missing NOVADS in VDB CSV data (record " + csv.CurrentIndex + ")");
+
+            List<VdbAltName> altNames = [ ];
+            if (rawEntry.AllNames != null)
+            {
+                // Orlas ezers [o]
+                // Rokolu ezers [o, o]
+                // Borovoje [o, o, o]
+                // Ozoliņi [uo, uo]
+                // Adamovas azars (latgaliski)
+                // Vylku azars (latgaliski arī)
+                // Rokuļu ezers (kļūdaini)
+                // Bielaje voziera (Baltkrievijā, Translit. civ. 2007 BY)
+                // Byelaye voz.
+                // Dzelzāmurs [?]
+                // Vērgali [?'] (agrāk arī)
+                // Vējiņi (agrāk)
+                // Ozoliņi 1 (īslaicīgi)
+
+                altNames = ParseAltNamesWithQualifiers(rawEntry.AllNames);
+            }
             
             // There are a lot of types, so process the ones of immediate interest 
 
@@ -351,15 +371,16 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
             };
             
             // Make entry
-
+            
             VdbEntry entry = new VdbEntry(
                 id,
                 coord,
                 objectType,
                 official,
                 name,
-                altName,
+                secondName,
                 officialName,
+                altNames,
                 state,
                 location1,
                 location2
@@ -541,6 +562,111 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         
         if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");
     }
+
+
+    /// <summary>
+    /// Parses alternative names with qualifiers in round () or square [] brackets
+    /// </summary>
+    /// <remarks>
+    /// Names are comma-separated, but commas inside brackets are part of qualifiers.
+    /// Examples: "Name1 [q1], Name2 (q2, q3) [q4], Name3"
+    /// </remarks>
+    private static List<VdbAltName> ParseAltNamesWithQualifiers(string allNames)
+    {
+        List<VdbAltName> altNames = [ ];
+        
+        int index = 0;
+        while (index < allNames.Length)
+        {
+            // Find the name and its qualifiers
+            (string name, List<string> qualifiers, int nextIndex) = ParseSingleAltName(allNames, index);
+            
+            altNames.Add(new VdbAltName(name, qualifiers));
+            
+            index = nextIndex;
+            
+            // Skip comma and whitespace separator
+            while (index < allNames.Length && (allNames[index] == ',' || char.IsWhiteSpace(allNames[index])))
+                index++;
+        }
+        
+        return altNames;
+    }
+
+#if DEBUG
+    // Public wrapper for testing
+    public static List<VdbAltName> ParseAltNamesWithQualifiersPublic(string allNames) => ParseAltNamesWithQualifiers(allNames);
+#endif
+
+
+    /// <summary>
+    /// Parses a single alternative name with its qualifiers starting at the given index
+    /// </summary>
+    /// <returns>The name, list of qualifiers (with brackets), and the index after this name entry</returns>
+    private static (string Name, List<string> Qualifiers, int NextIndex) ParseSingleAltName(string text, int startIndex)
+    {
+        int index = startIndex;
+        int nameStart = index;
+        List<string> qualifiers = [ ];
+        
+        // Read until we hit a qualifier bracket or a comma at depth 0
+        while (index < text.Length)
+        {
+            char currentChar = text[index];
+            
+            if (currentChar == '[' || currentChar == '(')
+            {
+                // Found a qualifier - extract the name up to here
+                string nameBeforeQualifier = text.Substring(nameStart, index - nameStart).Trim();
+                
+                // Parse all consecutive qualifiers
+                while (index < text.Length && (text[index] == '[' || text[index] == '('))
+                {
+                    char openBracket = text[index];
+                    char closeBracket = openBracket == '[' ? ']' : ')';
+                    
+                    int qualifierStart = index;
+                    int depth = 1;
+                    index++;
+                    
+                    // Find matching closing bracket
+                    while (index < text.Length && depth > 0)
+                    {
+                        if (text[index] == openBracket)
+                            depth++;
+                        else if (text[index] == closeBracket)
+                            depth--;
+                        index++;
+                    }
+                    
+                    if (depth != 0)
+                        throw new FormatException($"Unmatched bracket in alternative names at position {qualifierStart}: {text}");
+                    
+                    // Extract qualifier with brackets
+                    string qualifier = text.Substring(qualifierStart, index - qualifierStart);
+                    qualifiers.Add(qualifier);
+                    
+                    // Skip whitespace between qualifiers
+                    while (index < text.Length && char.IsWhiteSpace(text[index]) && text[index] != ',')
+                        index++;
+                }
+                
+                return (nameBeforeQualifier, qualifiers, index);
+            }
+            else if (currentChar == ',' && qualifiers.Count == 0)
+            {
+                // Found comma at depth 0 without any qualifiers - this is the end of the name
+                string name = text.Substring(nameStart, index - nameStart).Trim();
+                return (name, qualifiers, index);
+            }
+            
+            index++;
+        }
+        
+        // Reached end of string
+        string finalName = text.Substring(nameStart, index - nameStart).Trim();
+        return (finalName, qualifiers, index);
+    }
 }
 
 
@@ -565,9 +691,11 @@ public class VdbEntry : IDataItem
 
     public string Name { get; }
     
-    public string? AltName { get; }
+    public string? SecondName { get; }
     
     public string? OfficialName { get; }
+    
+    public List<VdbAltName> AltNames { get; }
 
     /// <summary> Strongly-typed known feature type, if implemented </summary>
     public VdbEntryState State { get; }
@@ -582,10 +710,10 @@ public class VdbEntry : IDataItem
     public bool IsActive => State == VdbEntryState.Exists; // not including PartiallyGone to be more strict
 
 
-    public VdbEntry(long id, OsmCoord coord, VdbEntryObjectType objectType, bool official, string name, string? altName, string? officialName, VdbEntryState state, string location1, string location2)
+    public VdbEntry(long id, OsmCoord coord, VdbEntryObjectType objectType, bool official, string name, string? secondName, string? officialName, List<VdbAltName> altNames, VdbEntryState state, string location1, string location2)
     {
         if (name == "") throw new ArgumentException("VDB entry name cannot be empty string.");
-        if (altName == "") throw new ArgumentException("VDB entry alt name cannot be empty string.");
+        if (secondName == "") throw new ArgumentException("VDB entry alt name cannot be empty string.");
         if (officialName == "") throw new ArgumentException("VDB entry official name cannot be empty string.");
         if (location1 == "") throw new ArgumentException("VDB entry location1 cannot be empty string.");
         if (location2 == "") throw new ArgumentException("VDB entry location2 cannot be empty string.");
@@ -595,7 +723,8 @@ public class VdbEntry : IDataItem
         ObjectType = objectType;
         Official = official;
         Name = name;
-        AltName = altName;
+        SecondName = secondName;
+        AltNames = altNames;
         OfficialName = officialName;
         State = state;
         Location1 = location1;
@@ -609,13 +738,16 @@ public class VdbEntry : IDataItem
             (!Official ? " (Unofficial)" : "") +
             (State != VdbEntryState.Exists ? " [" + State + "]" : "") +
             " `" + Name + "`" +
-            (AltName != null ? " / `" + AltName + "` (A)" : "") +
+            (SecondName != null ? " / `" + SecondName + "` (A)" : "") +
             (OfficialName != null && Name != OfficialName ? " / `" + OfficialName + "` (O)" : "") +
+            (AltNames.Count > 0 ? " + " + AltNames.Count : "") +
             " #" + ID +
             " in `" + Location1 + "`, `" + Location2 + "`" +
             " at " + Coord.OsmUrl;
     }
 }
+
+public record VdbAltName(string Name, List<string> Qualifiers);
 
 public enum VdbEntryState
 {

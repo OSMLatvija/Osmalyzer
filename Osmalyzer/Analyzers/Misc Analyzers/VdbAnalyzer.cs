@@ -24,7 +24,8 @@ public class VdbAnalyzer : Analyzer
         report.AddGroup(
             ReportGroup.Stats,
             "Overall statistics",
-            "This gives an overview of the parsed well-known VDB data."
+            "This gives an overview of the parsed well-known VDB data. " +
+            "Also some statistics for fields that need to be parsed to make structured sense."
         );
         
         report.AddEntry(
@@ -44,6 +45,30 @@ public class VdbAnalyzer : Analyzer
                 $", parishes x {vdbData.Parishes.Count(e => e.IsActive)}" +
                 $", villages x {vdbData.Villages.Count(e => e.IsActive)}" +
                 $", hamlets x {vdbData.Hamlets.Count(e => e.IsActive)}"
+            )
+        );
+
+        Dictionary<string, int> altNameQualifierCounts = new Dictionary<string, int>();
+        
+        foreach (VdbEntry entry in vdbData.Entries)
+        {
+            foreach (VdbAltName altName in entry.AltNames)
+            {
+                foreach (string qualifier in altName.Qualifiers)
+                {
+                    altNameQualifierCounts.TryAdd(qualifier, 0);
+                    altNameQualifierCounts[qualifier]++;
+                }
+            }
+        }
+        
+        report.AddEntry(
+            ReportGroup.Stats,
+            new GenericReportEntry(
+                "Alternate names qualifier by count: " +
+                string.Join(", ", altNameQualifierCounts
+                    .OrderByDescending(kvp => kvp.Value)
+                    .Select(kvp => $"`{kvp.Key.Replace("`","'")}` × {kvp.Value}"))
             )
         );
         

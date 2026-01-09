@@ -106,6 +106,11 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         [Pure]
         MatchStrength GetHamletMatchStrength(Hamlet hamlet, OsmElement osmElement)
         {
+            string? refAddr = osmElement.GetValue("ref:LV:addr");
+            
+            if (refAddr == hamlet.AddressID)
+                return MatchStrength.Strong; // exact match on address id (presumably previously-imported and assumed correct)
+
             string? name = osmElement.GetValue("name");
 
             if (name == hamlet.Name)

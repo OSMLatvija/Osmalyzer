@@ -141,6 +141,11 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         [Pure]
         MatchStrength GetCityMatchStrength(City city, OsmElement osmElement)
         {
+            string? refAddr = osmElement.GetValue("ref:LV:addr");
+            
+            if (refAddr == city.AddressID)
+                return MatchStrength.Strong; // exact match on address id (presumably previously-imported and assumed correct)
+            
             string? name = osmElement.GetValue("name");
 
             if (name == city.Name)

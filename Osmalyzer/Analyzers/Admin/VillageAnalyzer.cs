@@ -148,6 +148,11 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
         [Pure]
         MatchStrength GetVillageMatchStrength(Village village, OsmElement osmElement)
         {
+            string? refAddr = osmElement.GetValue("ref:LV:addr");
+            
+            if (refAddr == village.AddressID)
+                return MatchStrength.Strong; // exact match on address id (presumably previously-imported and assumed correct)
+
             string? name = osmElement.GetValue("name");
 
             if (name == village.Name)

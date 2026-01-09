@@ -100,6 +100,11 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         [Pure]
         MatchStrength GetMunicipalityMatchStrength(Municipality municipality, OsmElement osmElement)
         {
+            string? refAddr = osmElement.GetValue("ref:LV:addr");
+            
+            if (refAddr == municipality.AddressID)
+                return MatchStrength.Strong; // exact match on address id (presumably previously-imported and assumed correct)
+
             string? name = osmElement.GetValue("name");
 
             if (name == municipality.Name)

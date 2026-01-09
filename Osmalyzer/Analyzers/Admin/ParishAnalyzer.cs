@@ -125,6 +125,11 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         [Pure]
         MatchStrength GetParishMatchStrength(Parish parish, OsmElement osmElement)
         {
+            string? refAddr = osmElement.GetValue("ref:LV:addr");
+            
+            if (refAddr == parish.AddressID)
+                return MatchStrength.Strong; // exact match on address id (presumably previously-imported and assumed correct)
+
             string? name = osmElement.GetValue("name");
 
             if (name == parish.Name)

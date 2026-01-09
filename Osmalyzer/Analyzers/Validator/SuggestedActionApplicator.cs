@@ -11,7 +11,7 @@ public static class SuggestedActionApplicator
             // Make a deep data copy
             Stopwatch stopwatch = Stopwatch.StartNew();
             data = data.Copy();
-            Console.WriteLine("-> -> Closed OsmData in " + stopwatch.ElapsedMilliseconds + " ms.");
+            Console.WriteLine("-> -> Cloned OsmData in " + stopwatch.ElapsedMilliseconds + " ms.");
             
             // "Remap" elements in suggested actions from originals to the copies
             stopwatch.Restart();

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Osmalyzer;
@@ -350,27 +351,34 @@ public abstract class OsmData
         Dictionary<long, OsmRelation> newRelationsById = new Dictionary<long, OsmRelation>(_relations.Count);
 
         // Create copies of all nodes (without backlinks yet)
+        Stopwatch stopwatch = Stopwatch.StartNew();
         foreach (OsmNode node in _nodes)
         {
             OsmNode newNode = CopyNode(node);
             newNodesById.Add(node.Id, newNode);
         }
+        Console.WriteLine($"--> Copied {_nodes.Count} nodes in {stopwatch.ElapsedMilliseconds} ms");
 
         // Create copies of all ways (with links to new nodes, without backlinks yet)
+        stopwatch.Restart();
         foreach (OsmWay way in _ways)
         {
             OsmWay newWay = CopyWay(way, newNodesById);
             newWaysById.Add(way.Id, newWay);
         }
+        Console.WriteLine($"--> Copied {_ways.Count} ways in {stopwatch.ElapsedMilliseconds} ms");
 
         // Create copies of all relations (with links to new elements, without backlinks yet)
+        stopwatch.Restart();
         foreach (OsmRelation relation in _relations)
         {
             OsmRelation newRelation = CopyRelation(relation, newNodesById, newWaysById, newRelationsById);
             newRelationsById.Add(relation.Id, newRelation);
         }
+        Console.WriteLine($"--> Copied {_relations.Count} relations in {stopwatch.ElapsedMilliseconds} ms");
 
         // Establish backlinks for ways in nodes
+        stopwatch.Restart();
         foreach (OsmWay way in _ways)
         {
             OsmWay newWay = newWaysById[way.Id];
@@ -385,8 +393,10 @@ public abstract class OsmData
                 newNode.ways.Add(newWay);
             }
         }
+        Console.WriteLine($"--> Established way backlinks in nodes in {stopwatch.ElapsedMilliseconds} ms");
 
         // Establish backlinks for relations
+        stopwatch.Restart();
         foreach (OsmRelation relation in _relations)
         {
             OsmRelation newRelation = newRelationsById[relation.Id];
@@ -432,18 +442,24 @@ public abstract class OsmData
                 }
             }
         }
+        Console.WriteLine($"--> Established relation backlinks in elements in {stopwatch.ElapsedMilliseconds} ms");
 
-        // Step 6: Create the result data structure
+        // Create the result data structure
         List<OsmElement> newElements = [ ];
         newElements.AddRange(newNodesById.Values);
         newElements.AddRange(newWaysById.Values);
         newElements.AddRange(newRelationsById.Values);
 
+        stopwatch.Restart();
+        OsmDataExtract copy;
         if (this is OsmDataExtract extract)
-            return new OsmDataExtract(extract.FullData, newElements);
+            copy = new OsmDataExtract(extract.FullData, newElements);
         else
-            return new OsmDataExtract((OsmMasterData)this, newElements);
-        
+            copy = new OsmDataExtract((OsmMasterData)this, newElements);
+        Console.WriteLine($"--> Created OsmDataExtract copy instance in {stopwatch.ElapsedMilliseconds} ms");
+
+        return copy;
+
 
         [Pure]
         static OsmNode CopyNode(OsmNode original)

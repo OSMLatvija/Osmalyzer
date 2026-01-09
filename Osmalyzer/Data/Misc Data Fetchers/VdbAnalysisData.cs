@@ -459,6 +459,27 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     }
                 }
                 
+                // Try matching with location set in wrong value, i.e. expecting in 1 but it's in 2 and 1 is something even more specific like city instead of municipality for a parish
+
+                if (location1 != null && location2 == null) // we are checking just one location
+                {
+                    List<VdbEntry> swappedLocationMatches = nameMatches.Where(vdb => vdb.Location2 == location1).ToList();
+                    
+                    if (swappedLocationMatches.Count == 1)
+                    {
+                        double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, swappedLocationMatches[0].Coord);
+
+                        if (distance < coordMismatchDistance)
+                        {
+                            issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0]));
+
+                            dataItem.VdbEntry = swappedLocationMatches[0];
+                            count++;
+                            continue;
+                        }
+                    }
+                }
+
                 // Try matching by coordinates without location (assume entry location is wrong)
                 
                 List<VdbEntry> coordMatches = nameMatches.Where(vdb => 

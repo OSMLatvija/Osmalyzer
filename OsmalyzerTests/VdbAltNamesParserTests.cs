@@ -18,7 +18,8 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
     }
 
     [Test]
@@ -34,7 +35,8 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("(q1)"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
     }
 
     [Test]
@@ -50,7 +52,8 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1, q2]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1, q2"));
     }
 
     [Test]
@@ -66,7 +69,8 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("(q1, q2, q3)"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1, q2, q3"));
     }
 
     [Test]
@@ -82,8 +86,10 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(2));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
-        Assert.That(result[0].Qualifiers[1], Is.EqualTo("(q2)"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
+        Assert.That(result[0].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[1].Content, Is.EqualTo("q2"));
     }
 
     [Test]
@@ -99,8 +105,10 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(2));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("(q1)"));
-        Assert.That(result[0].Qualifiers[1], Is.EqualTo("[q2]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
+        Assert.That(result[0].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[1].Content, Is.EqualTo("q2"));
     }
 
     [Test]
@@ -116,9 +124,12 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(3));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
-        Assert.That(result[0].Qualifiers[1], Is.EqualTo("[q2]"));
-        Assert.That(result[0].Qualifiers[2], Is.EqualTo("[q3]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
+        Assert.That(result[0].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[1].Content, Is.EqualTo("q2"));
+        Assert.That(result[0].Qualifiers[2].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[2].Content, Is.EqualTo("q3"));
     }
 
     [Test]
@@ -134,9 +145,12 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(3));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("(q1)"));
-        Assert.That(result[0].Qualifiers[1], Is.EqualTo("(q2)"));
-        Assert.That(result[0].Qualifiers[2], Is.EqualTo("(q3)"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
+        Assert.That(result[0].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[1].Content, Is.EqualTo("q2"));
+        Assert.That(result[0].Qualifiers[2].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[2].Content, Is.EqualTo("q3"));
     }
 
     [Test]
@@ -152,10 +166,14 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(4));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
-        Assert.That(result[0].Qualifiers[1], Is.EqualTo("(q2)"));
-        Assert.That(result[0].Qualifiers[2], Is.EqualTo("[q3]"));
-        Assert.That(result[0].Qualifiers[3], Is.EqualTo("(q4)"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
+        Assert.That(result[0].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[1].Content, Is.EqualTo("q2"));
+        Assert.That(result[0].Qualifiers[2].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[2].Content, Is.EqualTo("q3"));
+        Assert.That(result[0].Qualifiers[3].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[3].Content, Is.EqualTo("q4"));
     }
 
     [Test]
@@ -206,11 +224,13 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("[q2]"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q2"));
     }
 
     [Test]
@@ -227,11 +247,13 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("(q1)"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("(q2)"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q2"));
     }
 
     [Test]
@@ -248,16 +270,20 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("(q2)"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q2"));
         
         Assert.That(result[2].Name, Is.EqualTo("Name3"));
         Assert.That(result[2].Qualifiers, Has.Count.EqualTo(2));
-        Assert.That(result[2].Qualifiers[0], Is.EqualTo("[q3]"));
-        Assert.That(result[2].Qualifiers[1], Is.EqualTo("(q4)"));
+        Assert.That(result[2].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[2].Qualifiers[0].Content, Is.EqualTo("q3"));
+        Assert.That(result[2].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[2].Qualifiers[1].Content, Is.EqualTo("q4"));
     }
 
     [Test]
@@ -277,14 +303,16 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("(q1)"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q1"));
         
         Assert.That(result[2].Name, Is.EqualTo("Name3"));
         Assert.That(result[2].Qualifiers, Has.Count.EqualTo(0));
         
         Assert.That(result[3].Name, Is.EqualTo("Name4"));
         Assert.That(result[3].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[3].Qualifiers[0], Is.EqualTo("[q2]"));
+        Assert.That(result[3].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[3].Qualifiers[0].Content, Is.EqualTo("q2"));
     }
 
     [Test]
@@ -301,11 +329,13 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("(q2)"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q2"));
         
         Assert.That(result[2].Name, Is.EqualTo("Name3"));
         Assert.That(result[2].Qualifiers, Has.Count.EqualTo(0));
@@ -324,7 +354,8 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("(qualifier with spaces, punctuation! and 123)"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("qualifier with spaces, punctuation! and 123"));
     }
 
     [Test]
@@ -344,22 +375,29 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("[q1]"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q1"));
         
         Assert.That(result[2].Name, Is.EqualTo("Name3"));
         Assert.That(result[2].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[2].Qualifiers[0], Is.EqualTo("(q2)"));
+        Assert.That(result[2].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[2].Qualifiers[0].Content, Is.EqualTo("q2"));
         
         Assert.That(result[3].Name, Is.EqualTo("Name4"));
         Assert.That(result[3].Qualifiers, Has.Count.EqualTo(2));
-        Assert.That(result[3].Qualifiers[0], Is.EqualTo("[q3]"));
-        Assert.That(result[3].Qualifiers[1], Is.EqualTo("(q4)"));
+        Assert.That(result[3].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[3].Qualifiers[0].Content, Is.EqualTo("q3"));
+        Assert.That(result[3].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[3].Qualifiers[1].Content, Is.EqualTo("q4"));
         
         Assert.That(result[4].Name, Is.EqualTo("Name5"));
         Assert.That(result[4].Qualifiers, Has.Count.EqualTo(3));
-        Assert.That(result[4].Qualifiers[0], Is.EqualTo("[q5]"));
-        Assert.That(result[4].Qualifiers[1], Is.EqualTo("[q6]"));
-        Assert.That(result[4].Qualifiers[2], Is.EqualTo("(q7)"));
+        Assert.That(result[4].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[4].Qualifiers[0].Content, Is.EqualTo("q5"));
+        Assert.That(result[4].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[4].Qualifiers[1].Content, Is.EqualTo("q6"));
+        Assert.That(result[4].Qualifiers[2].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[4].Qualifiers[2].Content, Is.EqualTo("q7"));
     }
 
     [Test]
@@ -375,8 +413,10 @@ public class VdbAltNamesParserTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(2));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[]"));
-        Assert.That(result[0].Qualifiers[1], Is.EqualTo("()"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo(""));
+        Assert.That(result[0].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[1].Content, Is.EqualTo(""));
     }
 
     [Test]
@@ -393,15 +433,21 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(3));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[q1]"));
-        Assert.That(result[0].Qualifiers[1], Is.EqualTo("(q2)"));
-        Assert.That(result[0].Qualifiers[2], Is.EqualTo("[q3]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("q1"));
+        Assert.That(result[0].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[0].Qualifiers[1].Content, Is.EqualTo("q2"));
+        Assert.That(result[0].Qualifiers[2].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[2].Content, Is.EqualTo("q3"));
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(3));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("(q4)"));
-        Assert.That(result[1].Qualifiers[1], Is.EqualTo("[q5]"));
-        Assert.That(result[1].Qualifiers[2], Is.EqualTo("(q6)"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q4"));
+        Assert.That(result[1].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[1].Qualifiers[1].Content, Is.EqualTo("q5"));
+        Assert.That(result[1].Qualifiers[2].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[1].Qualifiers[2].Content, Is.EqualTo("q6"));
     }
 
     [Test]
@@ -418,11 +464,13 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[0].Name, Is.EqualTo("Name1"));
         Assert.That(result[0].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[0].Qualifiers[0], Is.EqualTo("[a, b, c]"));
+        Assert.That(result[0].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[0].Qualifiers[0].Content, Is.EqualTo("a, b, c"));
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("(x, y, z)"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("x, y, z"));
     }
 
     [Test]
@@ -442,26 +490,35 @@ public class VdbAltNamesParserTests
         
         Assert.That(result[1].Name, Is.EqualTo("Name2"));
         Assert.That(result[1].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[1].Qualifiers[0], Is.EqualTo("[q1]"));
+        Assert.That(result[1].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[1].Qualifiers[0].Content, Is.EqualTo("q1"));
         
         Assert.That(result[2].Name, Is.EqualTo("Name3"));
         Assert.That(result[2].Qualifiers, Has.Count.EqualTo(1));
-        Assert.That(result[2].Qualifiers[0], Is.EqualTo("(q2, q3)"));
+        Assert.That(result[2].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[2].Qualifiers[0].Content, Is.EqualTo("q2, q3"));
         
         Assert.That(result[3].Name, Is.EqualTo("Name4"));
         Assert.That(result[3].Qualifiers, Has.Count.EqualTo(2));
-        Assert.That(result[3].Qualifiers[0], Is.EqualTo("[q4]"));
-        Assert.That(result[3].Qualifiers[1], Is.EqualTo("(q5)"));
+        Assert.That(result[3].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[3].Qualifiers[0].Content, Is.EqualTo("q4"));
+        Assert.That(result[3].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[3].Qualifiers[1].Content, Is.EqualTo("q5"));
         
         Assert.That(result[4].Name, Is.EqualTo("Name5"));
         Assert.That(result[4].Qualifiers, Has.Count.EqualTo(2));
-        Assert.That(result[4].Qualifiers[0], Is.EqualTo("[q6, q7]"));
-        Assert.That(result[4].Qualifiers[1], Is.EqualTo("[q8]"));
+        Assert.That(result[4].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[4].Qualifiers[0].Content, Is.EqualTo("q6, q7"));
+        Assert.That(result[4].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[4].Qualifiers[1].Content, Is.EqualTo("q8"));
         
         Assert.That(result[5].Name, Is.EqualTo("Name6"));
         Assert.That(result[5].Qualifiers, Has.Count.EqualTo(3));
-        Assert.That(result[5].Qualifiers[0], Is.EqualTo("(q9)"));
-        Assert.That(result[5].Qualifiers[1], Is.EqualTo("(q10)"));
-        Assert.That(result[5].Qualifiers[2], Is.EqualTo("[q11]"));
+        Assert.That(result[5].Qualifiers[0].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[5].Qualifiers[0].Content, Is.EqualTo("q9"));
+        Assert.That(result[5].Qualifiers[1].Type, Is.EqualTo(VdbAltNameQualifierType.Comment));
+        Assert.That(result[5].Qualifiers[1].Content, Is.EqualTo("q10"));
+        Assert.That(result[5].Qualifiers[2].Type, Is.EqualTo(VdbAltNameQualifierType.Pronunciation));
+        Assert.That(result[5].Qualifiers[2].Content, Is.EqualTo("q11"));
     }
 }

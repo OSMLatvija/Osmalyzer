@@ -579,7 +579,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         while (index < allNames.Length)
         {
             // Find the name and its qualifiers
-            (string name, List<string> qualifiers, int nextIndex) = ParseSingleAltName(allNames, index);
+            (string name, List<VdbAltNameQualifier> qualifiers, int nextIndex) = ParseSingleAltName(allNames, index);
             
             altNames.Add(new VdbAltName(name, qualifiers));
             
@@ -602,12 +602,12 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
     /// <summary>
     /// Parses a single alternative name with its qualifiers starting at the given index
     /// </summary>
-    /// <returns>The name, list of qualifiers (with brackets), and the index after this name entry</returns>
-    private static (string Name, List<string> Qualifiers, int NextIndex) ParseSingleAltName(string text, int startIndex)
+    /// <returns>The name, list of qualifiers (with type and content), and the index after this name entry</returns>
+    private static (string Name, List<VdbAltNameQualifier> Qualifiers, int NextIndex) ParseSingleAltName(string text, int startIndex)
     {
         int index = startIndex;
         int nameStart = index;
-        List<string> qualifiers = [ ];
+        List<VdbAltNameQualifier> qualifiers = [ ];
         
         // Read until we hit a qualifier bracket or a comma at depth 0
         while (index < text.Length)
@@ -624,6 +624,10 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 {
                     char openBracket = text[index];
                     char closeBracket = openBracket == '[' ? ']' : ')';
+                    
+                    VdbAltNameQualifierType type = openBracket == '[' 
+                        ? VdbAltNameQualifierType.Pronunciation 
+                        : VdbAltNameQualifierType.Comment;
                     
                     int qualifierStart = index;
                     int depth = 1;
@@ -642,9 +646,9 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     if (depth != 0)
                         throw new FormatException($"Unmatched bracket in alternative names at position {qualifierStart}: {text}");
                     
-                    // Extract qualifier with brackets
-                    string qualifier = text.Substring(qualifierStart, index - qualifierStart);
-                    qualifiers.Add(qualifier);
+                    // Extract qualifier content without brackets
+                    string content = text.Substring(qualifierStart + 1, index - qualifierStart - 2);
+                    qualifiers.Add(new VdbAltNameQualifier(type, content));
                     
                     // Skip whitespace between qualifiers
                     while (index < text.Length && char.IsWhiteSpace(text[index]) && text[index] != ',')
@@ -703,7 +707,7 @@ public class VdbEntry : IDataItem
     /// <summary> Usually parish, but can also be city, country or municipality </summary>
     public string Location1 { get; }
     
-    /// <summary> Usually municipality, but can also be "Latvija" and "Eiropas Savienība" </summary>
+    /// <summary> Usually municipality, but can also be "Latvija" and "Eiropas Savieniba" </summary>
     public string Location2 { get; }
 
 
@@ -747,7 +751,22 @@ public class VdbEntry : IDataItem
     }
 }
 
-public record VdbAltName(string Name, List<string> Qualifiers);
+public record VdbAltName(string Name, List<VdbAltNameQualifier> Qualifiers);
+
+public record VdbAltNameQualifier(VdbAltNameQualifierType Type, string Content);
+
+public enum VdbAltNameQualifierType
+{
+    /// <summary>
+    /// Pronunciation variant, marked with square brackets []
+    /// </summary>
+    Pronunciation,
+    
+    /// <summary>
+    /// Comment/note, marked with round brackets ()
+    /// </summary>
+    Comment
+}
 
 public enum VdbEntryState
 {

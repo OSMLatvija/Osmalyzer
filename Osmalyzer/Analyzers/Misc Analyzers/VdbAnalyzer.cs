@@ -48,16 +48,25 @@ public class VdbAnalyzer : Analyzer
             )
         );
 
-        Dictionary<string, int> altNameQualifierCounts = new Dictionary<string, int>();
+        Dictionary<string, int> pronunciationQualifierCounts = new Dictionary<string, int>();
+        Dictionary<string, int> commentQualifierCounts = new Dictionary<string, int>();
         
         foreach (VdbEntry entry in vdbData.Entries)
         {
             foreach (VdbAltName altName in entry.AltNames)
             {
-                foreach (string qualifier in altName.Qualifiers)
+                foreach (VdbAltNameQualifier qualifier in altName.Qualifiers)
                 {
-                    altNameQualifierCounts.TryAdd(qualifier, 0);
-                    altNameQualifierCounts[qualifier]++;
+                    if (qualifier.Type == VdbAltNameQualifierType.Pronunciation)
+                    {
+                        pronunciationQualifierCounts.TryAdd(qualifier.Content, 0);
+                        pronunciationQualifierCounts[qualifier.Content]++;
+                    }
+                    else // Comment
+                    {
+                        commentQualifierCounts.TryAdd(qualifier.Content, 0);
+                        commentQualifierCounts[qualifier.Content]++;
+                    }
                 }
             }
         }
@@ -65,8 +74,18 @@ public class VdbAnalyzer : Analyzer
         report.AddEntry(
             ReportGroup.Stats,
             new GenericReportEntry(
-                "Alternate names qualifier by count: " +
-                string.Join(", ", altNameQualifierCounts
+                "Alternate names pronunciation qualifiers by count: " +
+                string.Join(", ", pronunciationQualifierCounts
+                    .OrderByDescending(kvp => kvp.Value)
+                    .Select(kvp => $"`{kvp.Key.Replace("`","'")}` × {kvp.Value}"))
+            )
+        );
+        
+        report.AddEntry(
+            ReportGroup.Stats,
+            new GenericReportEntry(
+                "Alternate names comment qualifiers by count: " +
+                string.Join(", ", commentQualifierCounts
                     .OrderByDescending(kvp => kvp.Value)
                     .Select(kvp => $"`{kvp.Key.Replace("`","'")}` × {kvp.Value}"))
             )

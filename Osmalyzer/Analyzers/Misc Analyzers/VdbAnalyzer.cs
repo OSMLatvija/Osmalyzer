@@ -22,20 +22,20 @@ public class VdbAnalyzer : Analyzer
         // Report overall statistics
         
         report.AddGroup(
-            ReportGroup.RawValues,
+            ReportGroup.Stats,
             "Overall statistics",
             "This gives an overview of the parsed well-known VDB data."
         );
         
         report.AddEntry(
-            ReportGroup.RawValues,
+            ReportGroup.Stats,
             new GenericReportEntry(
                 $"Total entries: {vdbData.Entries.Count}"
             )
         );        
         
         report.AddEntry(
-            ReportGroup.RawValues,
+            ReportGroup.Stats,
             new GenericReportEntry(
                 $"Admin (hamlet, village, parish, city, municipality) division entries: " +
                 $"{vdbData.Municipalities.Count + vdbData.Cities.Count + vdbData.Parishes.Count + vdbData.Villages.Count + vdbData.Hamlets.Count}, of which active: " +
@@ -308,7 +308,9 @@ public class VdbAnalyzer : Analyzer
 
     private enum ReportGroup
     {
-        ProblematicData,
-        RawValues
+        // Values to avoid conflict with field index group IDs
+        Stats = -100,
+        ProblematicData = -99,
+        RawValues = -98
     }
 }

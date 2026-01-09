@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using System.Diagnostics;
+
+namespace Osmalyzer;
 
 public static class SuggestedActionApplicator
 {
@@ -7,9 +9,12 @@ public static class SuggestedActionApplicator
         if (temporary)
         {
             // Make a deep data copy
+            Stopwatch stopwatch = Stopwatch.StartNew();
             data = data.Copy();
+            Console.WriteLine("-> -> Closed OsmData in " + stopwatch.ElapsedMilliseconds + " ms.");
             
             // "Remap" elements in suggested actions from originals to the copies
+            stopwatch.Restart();
             for (int i = 0; i < changes.Count; i++)
             {
                 SuggestedAction change = changes[i];
@@ -48,8 +53,10 @@ public static class SuggestedActionApplicator
                         throw new ArgumentOutOfRangeException(nameof(change));
                 }
             }
+            Console.WriteLine("-> -> Remapped suggested actions in " + stopwatch.ElapsedMilliseconds + " ms.");
         }
 
+        Stopwatch mainStopwatch = Stopwatch.StartNew();
         foreach (SuggestedAction change in changes)
         {
             switch (change)
@@ -74,6 +81,7 @@ public static class SuggestedActionApplicator
                     throw new ArgumentOutOfRangeException(nameof(change));
             }
         }
+        Console.WriteLine("-> -> Applied suggested actions in " + mainStopwatch.ElapsedMilliseconds + " ms.");
 
         return data;
     }
@@ -83,9 +91,15 @@ public static class SuggestedActionApplicator
         if (suggestedChanges.Count == 0)
             return null;
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
         OsmData osmData = Apply(osmMasterData, suggestedChanges, true);
+        Console.WriteLine("-> Applied " + suggestedChanges.Count + " suggested changes in " + stopwatch.ElapsedMilliseconds + " ms.");
 
+        stopwatch.Restart();
         OsmChange change = osmData.GetChanges();
+        Console.WriteLine("-> Generated OsmChange in " + stopwatch.ElapsedMilliseconds + " ms.");
+        
+        stopwatch.Restart();
         
         string xml = change.ToXml();
         
@@ -99,6 +113,8 @@ public static class SuggestedActionApplicator
         
         File.WriteAllText(fileName, xml);
 
+        Console.WriteLine("-> Wrote suggested changes as XML in " + stopwatch.ElapsedMilliseconds + " ms.");
+        
         //Console.WriteLine(change.Actions.Count + " suggested changes for " + analyzer.Name + " written to " + fileName);
         
         return change;

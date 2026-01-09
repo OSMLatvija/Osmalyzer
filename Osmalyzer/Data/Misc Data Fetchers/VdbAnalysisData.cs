@@ -400,14 +400,27 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         issues = [ ];
         
         int count = 0;
+
+        Dictionary<string, List<VdbEntry>> vdbEntriesByName = [ ];
+        foreach (VdbEntry vdbEntry in vdbEntries)
+        {
+            if (vdbEntriesByName.TryGetValue(vdbEntry.Name, out List<VdbEntry>? list))
+                list.Add(vdbEntry);
+            else
+                vdbEntriesByName.Add(vdbEntry.Name, [ vdbEntry ]);
+        }
         
         foreach (T dataItem in dataItems)
         {
             string name = nameGetter(dataItem);
             string? location1 = location1Getter?.Invoke(dataItem);
             string? location2 = location2Getter?.Invoke(dataItem);
-            
-            List<VdbEntry> nameMatches = vdbEntries.Where(vdb => vdb.Name == name).ToList();
+
+            if (!vdbEntriesByName.TryGetValue(name, out List<VdbEntry>? nameMatches))
+            {
+                // todo: report unmatched?
+                continue;
+            }
 
             // Try matching fully - what we ideally expect
             
@@ -496,8 +509,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 }
             }
             
-            // Didn't match
-            // todo: should return this as issue otherwise each admin analuzer is doing its own another loop
+            // Didn't match to any fallback
+            // todo: report unmatched?
         }
         
         if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");

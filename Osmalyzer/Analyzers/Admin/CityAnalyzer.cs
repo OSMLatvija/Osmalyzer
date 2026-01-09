@@ -260,12 +260,15 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         List<SuggestedAction> suggestedChanges = cityValidator.Validate(
             report,
             false, false,
-            // On relation itself
+            // Always on relation itself
+            new ValidateElementValueMatchesDataItemValue<City>("name", c => c.Name),
             new ValidateElementValueMatchesDataItemValue<City>("border_type", GetPlaceType),
             new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? c.IndependentStateCity ? independentStateCityAdminLevel : dependentStateCityAdminLevel : regionalCityAdminLevel),
             new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtvkEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtvkEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
+            // Always on admin center node if given
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "name", c => c.Name),
             // If no admin center given, check tags directly on relation
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "place", GetPlaceType),
             new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"),

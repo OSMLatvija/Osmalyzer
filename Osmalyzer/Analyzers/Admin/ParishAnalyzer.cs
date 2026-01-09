@@ -230,6 +230,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         List<SuggestedAction> suggestedChanges = parishValidator.Validate(
             report,
             false, false,
+            new ValidateElementValueMatchesDataItemValue<Parish>("name", p => p.Name),
             new ValidateElementHasValue("place", "civil_parish"), // not "parish"
             new ValidateElementHasValue("border_type", "parish"), // not "civil_parish"
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.AddressID, [ "ref" ]),

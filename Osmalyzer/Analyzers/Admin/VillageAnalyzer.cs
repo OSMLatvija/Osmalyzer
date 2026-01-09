@@ -300,9 +300,12 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
         List<SuggestedAction> suggestedChanges = villageValidator.Validate(
             report,
             false, false,
-            // On relation itself
+            // Always on relation itself
+            new ValidateElementValueMatchesDataItemValue<Village>("name", v => v.Name),
             new ValidateElementHasValue("border_type", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
+            // Always on admin center node if given
+            new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData != null, e => (OsmElement)e.UserData!, "name", v => v.Name),
             // If no admin center given, check tags directly on relation
             new ValidateElementHasValue(e => e.UserData == null, "place", "village"),
             //todo:? new ValidateElementHasValue(e => e.UserData == null, "designation", "ciems"),

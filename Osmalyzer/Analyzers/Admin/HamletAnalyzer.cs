@@ -237,6 +237,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         List<SuggestedAction> suggestedChanges = hamletValidator.Validate(
             report,
             false, false,
+            new ValidateElementValueMatchesDataItemValue<Hamlet>("name", h => h.Name),
             new ValidateElementHasValue("place", "hamlet"),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID),

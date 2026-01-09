@@ -4,6 +4,8 @@ public class RestaurantData : IDataItem
 {
     public string RestaurantName { get; }
 
+    public string Name => RestaurantName;
+
     public string? Address { get; }
 
     public OsmCoord Coord { get; }

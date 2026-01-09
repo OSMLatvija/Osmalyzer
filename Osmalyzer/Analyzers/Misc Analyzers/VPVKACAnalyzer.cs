@@ -335,6 +335,8 @@ public class VPVKACAnalyzer : Analyzer
 
     private record LocatedVPVKACOffice(VPVKACOffice Office, OsmCoord Coord) : IDataItem
     {
+        public string Name => Office.Name;
+        
         public string ReportString() => Office.ReportString(false);
     }
     

@@ -4,6 +4,8 @@ public class LVMPicnicSiteData : IDataItem
 {
     public string PicnicSiteName { get; }
 
+    public string Name => PicnicSiteName;
+
     public OsmCoord Coord { get; }
 
 

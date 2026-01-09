@@ -7,6 +7,8 @@ public interface IDataItem
 {
     public OsmCoord Coord { get; }
 
+    public string? Name { get; }
+
 
     /// <summary>
     /// User-readable unique description of this item, such as its key values.

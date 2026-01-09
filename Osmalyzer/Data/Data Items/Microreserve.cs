@@ -4,6 +4,8 @@ public class Microreserve : IDataItem
 {
     public OsmCoord Coord { get; }
 
+    public string Name => throw new NotSupportedException();
+
     public double Area { get; }
 
 

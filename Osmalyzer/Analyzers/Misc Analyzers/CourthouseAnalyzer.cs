@@ -251,6 +251,8 @@ public class CourthouseAnalyzer : Analyzer
 
     private record LocatedCourthouse(CourthouseData Courthouse, OsmCoord Coord) : IDataItem
     {
+        public string Name => Courthouse.Name;
+        
         public string ReportString() => Courthouse.ReportString();
     }
     

@@ -4,6 +4,8 @@ public class TicketVendingMachine : IDataItem
 {
     public OsmCoord Coord { get; }
     
+    public string Name => throw new NotSupportedException();
+    
     public string? Location { get; }
     
     public string? Address { get; }

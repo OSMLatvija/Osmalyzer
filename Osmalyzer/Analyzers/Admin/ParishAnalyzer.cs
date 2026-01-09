@@ -3,7 +3,7 @@
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class ParishAnalyzer : Analyzer
+public class ParishAnalyzer : AdminAnalyzerBase<Parish>
 {
     public override string Name => "Parishes";
 
@@ -264,160 +264,15 @@ public class ParishAnalyzer : Analyzer
         
         // List extra data items from non-OSM that were not matched
         
-        report.AddGroup(
-            ExtraReportGroup.ExternalDataMatchingIssues,
-            "Extra data item matching issues",
-            "This section lists any issues with data item matching to additional external data sources.",
-            "No issues found."
-        );
+        AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
-        List<AtvkEntry> extraAtvkEntries = atvkEntries
-                                           .Where(e => !dataItemMatches.Values.Contains(e))
-                                           .ToList();
-        
-        foreach (AtvkEntry atvkEntry in extraAtvkEntries)
-        {
-            report.AddEntry(
-                ExtraReportGroup.ExternalDataMatchingIssues,
-                new IssueReportEntry(
-                    "ATVK entry for parish `" + atvkEntry.Name + "` (#`" + atvkEntry.Code + "`) was not matched to any OSM element."
-                )
-            );
-        }
-        
-        List<WikidataItem> extraWikidataItems = wikidataData.Parishes
-                                                            .Where(wd => addressData.Parishes.All(c => c.WikidataItem != wd))
-                                                            .ToList();
-
-        foreach (WikidataItem wikidataItem in extraWikidataItems)
-        {
-            string? name = wikidataItem.GetBestName("lv") ?? null;
-
-            report.AddEntry(
-                ExtraReportGroup.ExternalDataMatchingIssues,
-                new IssueReportEntry(
-                    "Wikidata parish item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
-                )
-            );
-        }
-        
-        foreach (WikidataData.WikidataMatchIssue matchIssue in wikidataMatchIssues)
-        {
-            switch (matchIssue)
-            {
-                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Parish> multipleWikidataMatches:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
-                            string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
-                        )
-                    );
-                    break;
-                
-                case WikidataData.CoordinateMismatchWikidataMatchIssue<Parish> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a Wikidata item, but the Wikidata coordinate is too far at " +
-                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
-                            " -- " + coordinateMismatch.WikidataItem.WikidataUrl
-                        )
-                    );
-                    break;
-                
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(matchIssue));
-            }
-        }
-
-        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
-        {
-            switch (vdbMatchIssue)
-            {
-                case MultipleVdbMatchesVdbMatchIssue<Parish> multipleVdbMatches:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
-                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
-                        )
-                    );
-                    break;
-                
-                case CoordinateMismatchVdbMatchIssue<Parish> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
-                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
-                            " -- " + coordinateMismatch.VdbEntry.ReportString()
-                        )
-                    );
-                    break;
-                
-                case PoorMatchVdbMatchIssue<Parish> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new GenericReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but poorly as a fallback (and might be wrong)" +
-                            " -- " + coordinateMismatch.VdbEntry.ReportString()
-                        )
-                    );
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
-            }
-        }
-
-        foreach (Parish parish in addressData.Parishes)
-        {
-            if (parish.WikidataItem == null)
-            {
-                report.AddEntry(
-                    ExtraReportGroup.ExternalDataMatchingIssues,
-                    new IssueReportEntry(
-                        parish.ReportString() + " does not have a matched Wikidata item."
-                    )
-                );
-            }
-            
-            if (parish.VdbEntry == null)
-            {
-                List<VdbEntry> potentials = vdbData.Parishes.Where(e => e.Name == parish.Name).ToList();
-
-                report.AddEntry(
-                    ExtraReportGroup.ExternalDataMatchingIssues,
-                    new IssueReportEntry(
-                        parish.ReportString() + " does not have a matched VDB entry." +
-                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
-                    )
-                );
-            }
-        }
-
-        foreach (MatchedCorrelation<Parish> match in parishCorrelation.Correlations.OfType<MatchedCorrelation<Parish>>())
-        {
-            if (match.DataItem.WikidataItem == null)
-            {
-                string? wikidata = match.OsmElement.GetValue("wikidata");
-
-                if (wikidata != null && Regex.IsMatch(wikidata, @"^Q\d+$"))
-                {
-                    List<Parish> others = addressData.Parishes.Where(v => v.WikidataItem != null && v.WikidataItem!.QID == wikidata).ToList();
-
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            match.DataItem.ReportString() + " has a `wikidata=" + wikidata + "` http://www.wikidata.org/entity/Q" + wikidata + " on OSM element " + match.OsmElement.OsmViewUrl +
-                            " but the matched data item did not match to a Wikidata element." +
-                            (others.Count > 0 ? " This Wikidata item was matched to other entries: " + string.Join(", ", others.Select(v => v.ReportString())) : "")
-                        )
-                    );
-                }
-            }
-        }
+        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, dataItemMatches, "parish");
+        ReportExtraWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataData.Parishes, addressData.Parishes, "parish");
+        ReportWikidataMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataMatchIssues);
+        ReportVdbMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, vdbMatchIssues);
+        ReportMissingWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Parishes);
+        ReportMissingVdbEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Parishes, vdbData.Parishes);
+        ReportUnmatchedOsmWikidataValues(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Parishes, parishCorrelation);
     }
 
 

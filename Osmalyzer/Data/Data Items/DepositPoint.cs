@@ -5,6 +5,8 @@ public abstract class DepositPoint : IDataItem
     public abstract string TypeString { get; }
 
     public OsmCoord Coord { get; }
+
+    public string Name => throw new NotSupportedException();
     
     public string Address { get; }
 

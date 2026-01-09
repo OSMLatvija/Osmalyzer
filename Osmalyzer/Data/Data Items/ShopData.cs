@@ -4,6 +4,8 @@ public class ShopData : IDataItem
 {
     public string ShopName { get; }
 
+    public string Name => ShopName;
+
     public string? Address { get; }
     
     public OsmCoord Coord { get; }

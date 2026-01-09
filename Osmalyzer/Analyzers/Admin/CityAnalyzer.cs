@@ -1,10 +1,7 @@
-﻿using System.Diagnostics;
-using WikidataSharp;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [UsedImplicitly]
-public class CityAnalyzer : Analyzer
+public class CityAnalyzer : AdminAnalyzerBase<City>
 {
     public override string Name => "Cities";
 
@@ -310,160 +307,15 @@ public class CityAnalyzer : Analyzer
         
         // List extra data items from non-OSM that were not matched
         
-        report.AddGroup(
-            ExtraReportGroup.ExternalDataMatchingIssues,
-            "Extra data item matching issues",
-            "This section lists any issues with data item matching to additional external data sources.",
-            "No issues found."
-        );
+        AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
-        List<AtvkEntry> extraAtvkEntries = atvkEntries
-            .Where(e => !dataItemMatches.Values.Contains(e))
-            .ToList();
-        
-        foreach (AtvkEntry atvkEntry in extraAtvkEntries)
-        {
-            report.AddEntry(
-                ExtraReportGroup.ExternalDataMatchingIssues,
-                new IssueReportEntry(
-                    "ATVK entry for city `" + atvkEntry.Name + "` (#`" + atvkEntry.Code + "`) was not matched to any OSM element."
-                )
-            );
-        }
-        
-        List<WikidataItem> extraWikidataItems = wikidataData.AllCities
-            .Where(wd => addressData.Cities.All(c => c.WikidataItem != wd))
-            .ToList();
-
-        foreach (WikidataItem wikidataItem in extraWikidataItems)
-        {
-            string? name = wikidataItem.GetBestName("lv") ?? null;
-
-            report.AddEntry(
-                ExtraReportGroup.ExternalDataMatchingIssues,
-                new IssueReportEntry(
-                    "Wikidata city item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
-                )
-            );
-        }
-        
-        foreach (WikidataData.WikidataMatchIssue matchIssue in wikidataMatchIssues)
-        {
-            switch (matchIssue)
-            {
-                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<City> multipleWikidataMatches:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
-                            string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
-                        )
-                    );
-                    break;
-                
-                case WikidataData.CoordinateMismatchWikidataMatchIssue<City> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a Wikidata item, but the Wikidata coordinate is too far at " +
-                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
-                            " -- " + coordinateMismatch.WikidataItem.WikidataUrl
-                        )
-                    );
-                    break;
-                
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(matchIssue));
-            }
-        }
-
-        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
-        {
-            switch (vdbMatchIssue)
-            {
-                case MultipleVdbMatchesVdbMatchIssue<City> multipleVdbMatches:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
-                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
-                        )
-                    );
-                    break;
-                
-                case CoordinateMismatchVdbMatchIssue<City> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
-                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
-                            " -- " + coordinateMismatch.VdbEntry.ReportString()
-                        )
-                    );
-                    break;
-                
-                case PoorMatchVdbMatchIssue<City> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new GenericReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but poorly as a fallback (and might be wrong)" +
-                            " -- " + coordinateMismatch.VdbEntry.ReportString()
-                        )
-                    );
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
-            }
-        }
-
-        foreach (City city in addressData.Cities)
-        {
-            if (city.WikidataItem == null)
-            {
-                report.AddEntry(
-                    ExtraReportGroup.ExternalDataMatchingIssues,
-                    new IssueReportEntry(
-                        city.ReportString() + " does not have a matched Wikidata item."
-                    )
-                );
-            }
-            
-            if (city.VdbEntry == null)
-            {
-                List<VdbEntry> potentials = vdbData.Cities.Where(e => e.Name == city.Name).ToList();
-
-                report.AddEntry(
-                    ExtraReportGroup.ExternalDataMatchingIssues,
-                    new IssueReportEntry(
-                        city.ReportString() + " does not have a matched VDB entry." +
-                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
-                    )
-                );
-            }
-        }
-
-        foreach (MatchedCorrelation<City> match in cityCorrelation.Correlations.OfType<MatchedCorrelation<City>>())
-        {
-            if (match.DataItem.WikidataItem == null)
-            {
-                string? wikidata = match.OsmElement.GetValue("wikidata");
-
-                if (wikidata != null && Regex.IsMatch(wikidata, @"^Q\d+$"))
-                {
-                    List<City> others = addressData.Cities.Where(v => v.WikidataItem != null && v.WikidataItem!.QID == wikidata).ToList();
-
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            match.DataItem.ReportString() + " has a `wikidata=" + wikidata + "` http://www.wikidata.org/entity/Q" + wikidata + " on OSM element " + match.OsmElement.OsmViewUrl +
-                            " but the matched data item did not match to a Wikidata element." +
-                            (others.Count > 0 ? " This Wikidata item was matched to other entries: " + string.Join(", ", others.Select(v => v.ReportString())) : "")
-                        )
-                    );
-                }
-            }
-        }
+        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, dataItemMatches, "city");
+        ReportExtraWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataData.AllCities, addressData.Cities, "city");
+        ReportWikidataMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataMatchIssues);
+        ReportVdbMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, vdbMatchIssues);
+        ReportMissingWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Cities);
+        ReportMissingVdbEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Cities, vdbData.Cities);
+        ReportUnmatchedOsmWikidataValues(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Cities, cityCorrelation);
     }
 
 

@@ -3,7 +3,7 @@
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class HamletAnalyzer : Analyzer
+public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 {
     public override string Name => "Hamlets";
 
@@ -270,147 +270,14 @@ public class HamletAnalyzer : Analyzer
         
         // List extra data items from non-OSM that were not matched
         
-        report.AddGroup(
-            ExtraReportGroup.ExternalDataMatchingIssues,
-            "Extra data item matching issues",
-            "This section lists any issues with data item matching to additional external data sources.",
-            "No issues found."
-        );
-
-        // todo: restore when wikidata is fixed, otherwise we small all the regular villages too 
-        // List<WikidataItem> extraWikidataItems = villagesWikidataData.Hamlets
-        //                                                             .Where(wd => addressData.Hamlets.All(c => c.WikidataItem != wd))
-        //                                                             .ToList();
-        //
-        // foreach (WikidataItem wikidataItem in extraWikidataItems)
-        // {
-        //     string? name = wikidataItem.GetBestName("lv") ?? null;
-        //
-        //     report.AddEntry(
-        //         ExtraReportGroup.ExternalDataMatchingIssues,
-        //         new IssueReportEntry(
-        //             "Wikidata village item " + wikidataItem.WikidataUrl + (name != null ? " `" + name + "` " : "") + " was not matched to any OSM element."
-        //         )
-        //     );
-        // }
-
-        foreach (WikidataData.WikidataMatchIssue matchIssue in wikidataMatchIssues)
-        {
-            switch (matchIssue)
-            {
-                case WikidataData.MultipleWikidataMatchesWikidataMatchIssue<Hamlet> multipleWikidataMatches:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            multipleWikidataMatches.DataItem.ReportString() + " matched multiple Wikidata items: " +
-                            string.Join(", ", multipleWikidataMatches.WikidataItems.Select(wd => wd.WikidataUrl))
-                        )
-                    );
-                    break;
-                
-                case WikidataData.CoordinateMismatchWikidataMatchIssue<Hamlet> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a Wikidata item, but the Wikidata coordinate is too far at " +
-                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
-                            " -- " + coordinateMismatch.WikidataItem.WikidataUrl
-                        )
-                    );
-                    break;
-                
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(matchIssue));
-            }
-        }
-
-        foreach (VdbMatchIssue vdbMatchIssue in vdbMatchIssues)
-        {
-            switch (vdbMatchIssue)
-            {
-                case MultipleVdbMatchesVdbMatchIssue<Hamlet> multipleVdbMatches:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            multipleVdbMatches.DataItem.ReportString() + " matched multiple VDB entries: " +
-                            string.Join(", ", multipleVdbMatches.VdbEntries.Select(vdb => vdb.ReportString()))
-                        )
-                    );
-                    break;
-                
-                case CoordinateMismatchVdbMatchIssue<Hamlet> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
-                            coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
-                            " -- " + coordinateMismatch.VdbEntry.ReportString()
-                        )
-                    );
-                    break;
-                
-                case PoorMatchVdbMatchIssue<Hamlet> coordinateMismatch:
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new GenericReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but poorly as a fallback (and might be wrong)" +
-                            " -- " + coordinateMismatch.VdbEntry.ReportString()
-                        )
-                    );
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));
-            }
-        }
-
-        foreach (Hamlet hamlet in addressData.Hamlets)
-        {
-            if (hamlet.WikidataItem == null)
-            {
-                report.AddEntry(
-                    ExtraReportGroup.ExternalDataMatchingIssues,
-                    new IssueReportEntry(
-                        hamlet.ReportString() + " does not have a matched Wikidata item."
-                    )
-                );
-            }
-            
-            if (hamlet.VdbEntry == null)
-            {
-                List<VdbEntry> potentials = vdbData.Hamlets.Where(e => e.Name == hamlet.Name).ToList();
-
-                report.AddEntry(
-                    ExtraReportGroup.ExternalDataMatchingIssues,
-                    new IssueReportEntry(
-                        hamlet.ReportString() + " does not have a matched VDB entry." +
-                        (potentials.Count > 0 ? " Potential matches: " + string.Join(", ", potentials.Select(p => p.ReportString())) : "")
-                    )
-                );
-            }
-        }
-
-        foreach (MatchedCorrelation<Hamlet> match in hamletCorrelation.Correlations.OfType<MatchedCorrelation<Hamlet>>())
-        {
-            if (match.DataItem.WikidataItem == null)
-            {
-                string? wikidata = match.OsmElement.GetValue("wikidata");
-
-                if (wikidata != null && Regex.IsMatch(wikidata, @"^Q\d+$"))
-                {
-                    List<Hamlet> others = addressData.Hamlets.Where(v => v.WikidataItem != null && v.WikidataItem!.QID == wikidata).ToList();
-
-                    report.AddEntry(
-                        ExtraReportGroup.ExternalDataMatchingIssues,
-                        new IssueReportEntry(
-                            match.DataItem.ReportString() + " has a `wikidata=" + wikidata + "` http://www.wikidata.org/entity/" + wikidata + " on OSM element " + match.OsmElement.OsmViewUrl +
-                            " but the matched data item did not match to a Wikidata element." +
-                            (others.Count > 0 ? " This Wikidata item was matched to other entries: " + string.Join(", ", others.Select(v => v.ReportString())) : "")
-                        )
-                    );
-                }
-            }
-        }
+        AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
+        
+        // ReportExtraWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, villagesWikidataData.Hamlets, addressData.Hamlets, "hamlet");
+        ReportWikidataMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataMatchIssues);
+        ReportVdbMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, vdbMatchIssues);
+        ReportMissingWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Hamlets);
+        ReportMissingVdbEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Hamlets, vdbData.Hamlets);
+        ReportUnmatchedOsmWikidataValues(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Hamlets, hamletCorrelation);
     }
 
 

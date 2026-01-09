@@ -1,4 +1,5 @@
-﻿using WikidataSharp;
+﻿using System.Diagnostics;
+using WikidataSharp;
 
 namespace Osmalyzer;
 
@@ -24,17 +25,23 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
+        Console.WriteLine(); 
+        
         // Load OSM data
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
         OsmMasterData osmMasterData = osmData.MasterData;
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        
         OsmDataExtract osmHamlets = osmMasterData.Filter(
             new IsNode(),
             new HasAnyValue("place", "hamlet"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
+        
+        Console.WriteLine("OSM data filtered (" + stopwatch.ElapsedMilliseconds + " ms)");
 
         // Get hamlet data
 
@@ -48,6 +55,8 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         
         // Assign VDB data
 
+        stopwatch.Restart();
+        
         vdbData.AssignToDataItems(
             addressData.Hamlets,
             vdbData.Hamlets,
@@ -58,8 +67,12 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             out List<VdbMatchIssue> vdbMatchIssues
         );
         
+        Console.WriteLine("VDB data assigned (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
         // Assign WikiData
 
+        stopwatch.Restart();
+        
         villagesWikidataData.AssignVillageOrHamlet( // todo: specific once wikidata is fixed
             addressData.Hamlets,
             (i, wd) =>
@@ -87,6 +100,8 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             
             return ownerName;
         }
+        
+        Console.WriteLine("Wikidata assigned (" + stopwatch.ElapsedMilliseconds + " ms)");
 
         // Parse hamlets
         
@@ -135,6 +150,8 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
         // Parse and report primary matching and location correlation
 
+        stopwatch.Restart();
+        
         CorrelatorReport hamletCorrelation = hamletCorrelator.Parse(
             report, 
             new MatchedPairBatch(),
@@ -143,12 +160,18 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             new MatchedFarPairBatch()
         );
         
+        Console.WriteLine("Hamlets correlated (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
         // Offer syntax for quick OSM addition for unmatched hamlets
+        
+        stopwatch.Restart();
         
         List<Hamlet> unmatchedHamlets = hamletCorrelation.Correlations
             .OfType<UnmatchedItemCorrelation<Hamlet>>()
             .Select(c => c.DataItem)
             .ToList();
+        
+        Console.WriteLine("Unmatched hamlets identified (" + stopwatch.ElapsedMilliseconds + " ms)");
 
         if (unmatchedHamlets.Count > 0)
         {
@@ -162,6 +185,8 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             OsmData additionsData = osmMasterData.Copy();
             List<SuggestedAction> suggestedAdditions = [ ];
 #endif
+
+            stopwatch.Restart();
             
             OsmDataExtract namedNodes = osmMasterData.Filter(
                 new HasKey("name"),
@@ -177,7 +202,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
                 new DoesntHaveValue("place", "suburb"),
                 new DoesntHaveValue("place", "neighbourhood"),
                 new DoesntHaveValue("railway", "station"),
-                new DoesntHaveValue("\nhistoric:railway", "station"),
+                new DoesntHaveValue("historic:railway", "station"),
                 new DoesntHaveValue("abandoned:railway", "station"),
                 new DoesntHaveValue("landuse", "military"),
                 new DoesntHaveKey("traffic_sign"),
@@ -226,8 +251,12 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
                 );
             }
             
+            Console.WriteLine("Suggested hamlet additions processed (" + stopwatch.ElapsedMilliseconds + " ms)");
+            
 #if DEBUG
+            stopwatch.Restart();
             SuggestedActionApplicator.ApplyAndProposeXml(additionsData, suggestedAdditions, this, "additions");
+            Console.WriteLine("Suggested additions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
             SuggestedActionApplicator.ExplainForReport(suggestedAdditions, report, ExtraReportGroup.SuggestedHamletAdditions);
 #endif
         }
@@ -239,6 +268,8 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             "Hamlet syntax issues"
         );
 
+        stopwatch.Restart();
+        
         List<SuggestedAction> suggestedChanges = hamletValidator.Validate(
             report,
             false, false,
@@ -249,9 +280,13 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             //new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:VDB", h => h.VdbEntry?.ID.ToString()),
             new ValidateElementHasValue("designation", "mazciems")
         );
+        
+        Console.WriteLine("Hamlet syntax validated (" + stopwatch.ElapsedMilliseconds + " ms)");
 
 #if DEBUG
+        stopwatch.Restart();
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this, "changes");
+        Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         
@@ -278,12 +313,36 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
+        stopwatch.Restart();
+        
         // ReportExtraWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, villagesWikidataData.Hamlets, addressData.Hamlets, "hamlet");
         ReportWikidataMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataMatchIssues);
+        
+        Console.WriteLine("Wikidata match issues reported (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
+        stopwatch.Restart();
+        
         ReportVdbMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, vdbMatchIssues);
+        
+        Console.WriteLine("VDB match issues reported (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
+        stopwatch.Restart();
+        
         ReportMissingWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Hamlets);
+        
+        Console.WriteLine("Missing Wikidata items reported (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
+        stopwatch.Restart();
+        
         ReportMissingVdbEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Hamlets, vdbData.Hamlets);
+        
+        Console.WriteLine("Missing VDB entries reported (" + stopwatch.ElapsedMilliseconds + " ms)");
+        
+        stopwatch.Restart();
+        
         ReportUnmatchedOsmWikidataValues(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Hamlets, hamletCorrelation);
+        
+        Console.WriteLine("Unmatched OSM Wikidata values reported (" + stopwatch.ElapsedMilliseconds + " ms)");
     }
 
 

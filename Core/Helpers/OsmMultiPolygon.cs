@@ -1,7 +1,5 @@
 using System;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Index.Strtree;
-using NetTopologySuite.LinearReferencing;
 
 namespace Osmalyzer;
 
@@ -20,23 +18,7 @@ public class OsmMultiPolygon
         OuterRings = outerRings;
         InnerRings = innerRings;
     }
-
-    /// <summary>
-    /// Creates a simple multipolygon from a single outer ring with no inner rings
-    /// </summary>
-    public OsmMultiPolygon(OsmPolygon outerRing)
-    {
-        OuterRings = [ outerRing ];
-        InnerRings = [ ];
-    }
-
-    /// <summary>
-    /// Creates a multipolygon from NTS Geometry, handling Polygon and MultiPolygon types
-    /// </summary>
-    public static OsmMultiPolygon FromNTSGeometry(Geometry geometry)
-    {
-        return FromNTSGeometry(geometry, null);
-    }
+    
 
     /// <summary>
     /// Creates a multipolygon from NTS Geometry with coordinate transformation, handling Polygon and MultiPolygon types
@@ -116,90 +98,71 @@ public class OsmMultiPolygon
     /// <summary>
     /// Returns the estimated overlap coverage percent between this and another multipolygon's boundaries.
     /// The closer the two together, the higher the coverage percent.
-    /// Uses gradual scoring: distance 0 = 100% match, distance epsilon = 0% match, with linear interpolation between.
     /// </summary>
-    /// <param name="epsilon">positional uncertainty in meters, i.e. distance at which boundaries are considered the same</param>
-    /// <param name="maxSamples">maximum number of sample points to check per ring to avoid over-processing</param>
-    public double GetOverlapCoveragePercent(OsmMultiPolygon other, double epsilon = 10, int maxSamples = 300)
-    {
-        double coverageToOther = DirectedCoverage(this, other, epsilon, maxSamples);
-        double coverageFromOther = DirectedCoverage(other, this, epsilon, maxSamples);
-
-        return Math.Min(coverageToOther, coverageFromOther);
-    }
-
-    private static double DirectedCoverage(
-        OsmMultiPolygon source,
-        OsmMultiPolygon target,
-        double epsilon,
-        int maxSamples)
+    /// <param name="epsilon">positional uncertainty in meters, i.e. buffer distance for boundary comparison</param>
+    public double GetOverlapCoveragePercent(OsmMultiPolygon other, double epsilon = 10)
     {
         GeometryFactory geometryFactory = new GeometryFactory();
-
-        // Build index of all target rings (both outer and inner)
-        STRtree<Geometry> indexedTarget = new STRtree<Geometry>();
-        
-        foreach (OsmPolygon ring in target.OuterRings)
-        {
-            LinearRing targetRing = OsmPolygon_ToLinearRing(ring, geometryFactory);
-            indexedTarget.Insert(targetRing.EnvelopeInternal, targetRing);
-        }
-        
-        foreach (OsmPolygon ring in target.InnerRings)
-        {
-            LinearRing targetRing = OsmPolygon_ToLinearRing(ring, geometryFactory);
-            indexedTarget.Insert(targetRing.EnvelopeInternal, targetRing);
-        }
-        
-        indexedTarget.Build();
 
         // Convert epsilon from meters to degrees (approximate)
         double epsilonInDegrees = epsilon / 111139.0; // 111139 meters per degree
 
-        double totalScore = 0.0;
-        int sampleCount = 0;
+        // Convert both multipolygons to NTS geometries
+        Geometry thisGeometry = ToNTSGeometry(this, geometryFactory);
+        Geometry otherGeometry = ToNTSGeometry(other, geometryFactory);
 
-        // Sample all source rings (both outer and inner)
-        List<OsmPolygon> allSourceRings = new List<OsmPolygon>();
-        allSourceRings.AddRange(source.OuterRings);
-        allSourceRings.AddRange(source.InnerRings);
+        // Get boundaries (perimeters) of both geometries
+        Geometry thisBoundary = thisGeometry.Boundary;
+        Geometry otherBoundary = otherGeometry.Boundary;
 
-        foreach (OsmPolygon sourceRing in allSourceRings)
+        // Create buffers around the boundaries
+        Geometry thisBuffer = thisBoundary.Buffer(epsilonInDegrees);
+        Geometry otherBuffer = otherBoundary.Buffer(epsilonInDegrees);
+
+        // Calculate the union of both buffers (total area we're comparing)
+        Geometry unionBuffer = thisBuffer.Union(otherBuffer);
+        double unionArea = unionBuffer.Area;
+
+        if (unionArea == 0)
+            return 0.0;
+
+        // Calculate the symmetric difference (XOR - non-overlapping parts)
+        Geometry xorBuffer = thisBuffer.SymmetricDifference(otherBuffer);
+        double xorArea = xorBuffer.Area;
+
+        // Overlap percentage = 1 - (non-overlapping area / total area)
+        double overlapPercent = 1.0 - (xorArea / unionArea);
+
+        return Math.Max(0.0, overlapPercent); // ensure non-negative
+    }
+
+    private static Geometry ToNTSGeometry(OsmMultiPolygon multiPolygon, GeometryFactory factory)
+    {
+        List<Polygon> polygons = new List<Polygon>();
+
+        // Process each outer ring with its associated inner rings
+        // For simplicity, we'll treat all outer rings as separate polygons without holes
+        // and add inner rings as separate polygons (inverted logic)
+        foreach (OsmPolygon outerRing in multiPolygon.OuterRings)
         {
-            LinearRing ring = OsmPolygon_ToLinearRing(sourceRing, geometryFactory);
-            LengthIndexedLine lil = new LengthIndexedLine(ring);
-            double length = ring.Length;
-
-            // Calculate step size to limit number of samples
-            double stepInDegrees = length / Math.Min(maxSamples, Math.Max(10, (int)(length / (epsilon / 111139.0))));
-
-            for (double d = 0; d <= length; d += stepInDegrees)
-            {
-                Coordinate c = lil.ExtractPoint(d);
-                Point p = geometryFactory.CreatePoint(c);
-
-                sampleCount++;
-
-                double minDistance = double.MaxValue;
-                
-                foreach (Geometry? g in indexedTarget.Query(p.EnvelopeInternal))
-                {
-                    double distance = g.Distance(p);
-                    minDistance = Math.Min(minDistance, distance);
-                }
-
-                // Score from 1.0 (perfect match at 0 distance) to 0.0 (no match at epsilon distance)
-                // Linear interpolation: score = 1 - (distance / epsilon)
-                if (minDistance <= epsilonInDegrees)
-                {
-                    double score = 1.0 - (minDistance / epsilonInDegrees);
-                    totalScore += score;
-                }
-                // else: beyond epsilon, score is 0, so don't add anything
-            }
+            LinearRing shell = OsmPolygon_ToLinearRing(outerRing, factory);
+            Polygon polygon = factory.CreatePolygon(shell);
+            polygons.Add(polygon);
         }
 
-        return sampleCount == 0 ? 0.0 : totalScore / sampleCount;
+        // Note: Inner rings represent holes, but for boundary comparison we just need their perimeters
+        // So we can treat them as additional rings to compare
+        foreach (OsmPolygon innerRing in multiPolygon.InnerRings)
+        {
+            LinearRing ring = OsmPolygon_ToLinearRing(innerRing, factory);
+            Polygon polygon = factory.CreatePolygon(ring);
+            polygons.Add(polygon);
+        }
+
+        if (polygons.Count == 1)
+            return polygons[0];
+        
+        return factory.CreateMultiPolygon(polygons.ToArray());
     }
 
     private static LinearRing OsmPolygon_ToLinearRing(OsmPolygon polygon, GeometryFactory factory)

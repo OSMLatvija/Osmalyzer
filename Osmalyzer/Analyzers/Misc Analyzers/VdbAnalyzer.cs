@@ -18,7 +18,7 @@ public class VdbAnalyzer : Analyzer
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {
         VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
-
+        
         // Report overall statistics
         
         report.AddGroup(
@@ -56,6 +56,47 @@ public class VdbAnalyzer : Analyzer
         foreach (VdbEntry entry in vdbData.Villages.Where(e => e.IsActive)) writer.WriteLine(entry.ReportString());
         foreach (VdbEntry entry in vdbData.Hamlets.Where(e => e.IsActive)) writer.WriteLine(entry.ReportString());
 #endif
+
+        // Report problematic data (duplicates)
+        
+        report.AddGroup(
+            ReportGroup.ProblematicData,
+            "Problematic Data",
+            "This section reports problematic data issues found in the VDB data. " +
+            "This find duplicate or near-identical entries, which are most likely an export error in the source data.",
+            "No issues were found."
+        );
+        
+        foreach (VdbEntryIssue issue in vdbData.Issues)
+        {
+            switch (issue)
+            {
+                case VdbResolvedDuplicate resolvedDuplicate:
+                    report.AddEntry(
+                        ReportGroup.ProblematicData,
+                        new GenericReportEntry(
+                            "Resolved a known near-identical entries by keeping entry " +
+                            resolvedDuplicate.MainEntry.ReportString() +
+                            $" and removing {resolvedDuplicate.RemovedEntries.Count} duplicate(s): " +
+                            string.Join(", ", resolvedDuplicate.RemovedEntries.Select(e => e.ReportString()))
+                        )
+                    );
+                    break;
+                
+                case VdbUnresolvedDuplicate unresolvedDuplicate:
+                    report.AddEntry(
+                        ReportGroup.ProblematicData,
+                        new GenericReportEntry(
+                            "Unresolved near-identical entries found: " +
+                            string.Join(", ", unresolvedDuplicate.AllEntries.Select(e => e.ReportString()))
+                        )
+                    );
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(issue));
+            }
+        }
         
         // Report statistics for each raw field
 
@@ -267,6 +308,7 @@ public class VdbAnalyzer : Analyzer
 
     private enum ReportGroup
     {
+        ProblematicData,
         RawValues
     }
 }

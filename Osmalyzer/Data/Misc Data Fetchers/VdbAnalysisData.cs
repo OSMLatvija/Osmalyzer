@@ -31,6 +31,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
     
     public List<VdbEntry> Cities { get; private set; } = null!; // only null before prepared
     
+    public List<VdbEntryIssue> Issues { get; private set; } = null!; // only null before prepared
+    
     public List<RawVdbEntry> RawEntries { get; private set; } = null!; // only null before prepared
 
 
@@ -155,6 +157,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         Parishes = [ ];
         Municipalities = [ ];
         Cities = [ ];
+        Issues = [ ];
 
         HashSet<string> objectIds = [ ];
 
@@ -237,15 +240,38 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         {
             if (dupes.Value.Count == 2)
             {
+                RawVdbEntry? mainEntry = null;
+                RawVdbEntry? removedEntry = null;
+                
                 if (Known(dupes.Value[0]))
+                {
+                    mainEntry = dupes.Value[0];
+                    removedEntry = dupes.Value[1];
                     RawEntries.Remove(dupes.Value[1]);
+                }
                 else if (Known(dupes.Value[1]))
+                {
+                    mainEntry = dupes.Value[1];
+                    removedEntry = dupes.Value[0];
                     RawEntries.Remove(dupes.Value[0]);
+                }
                 else
                 {
                     // We cannot deal with this manually, so let's not pollute the data
                     RawEntries.Remove(dupes.Value[0]);
                     RawEntries.Remove(dupes.Value[1]);
+                    
+                    Issues.Add(new VdbUnresolvedDuplicate(dupes.Value));
+                    continue;
+                }
+                
+                // Track the resolved duplicate
+                if (mainEntry != null && removedEntry != null)
+                {
+                    Issues.Add(new VdbResolvedDuplicate(
+                        mainEntry,
+                        [ removedEntry ]
+                    ));
                 }
 
                 bool Known(RawVdbEntry e)
@@ -672,6 +698,17 @@ public class RawVdbEntry
         
         return (string?)_fieldGetters[fieldIndex].Invoke(this, null);
     }
+    
+    
+    public string ReportString()
+    {
+        return
+            "#" + ObjectId +
+            " `" + MainName + "` " +
+            " type `" + Type + "` " +
+            " at `" + Parish + "`" + 
+            (Municipality != null ? ", `" + Municipality + "`" : "");
+    }
 }
 
 
@@ -679,3 +716,10 @@ public interface IHasVdbEntry
 {
     VdbEntry? VdbEntry { get; set; }
 }
+
+
+public abstract record VdbEntryIssue;
+
+public record VdbResolvedDuplicate(RawVdbEntry MainEntry, List<RawVdbEntry> RemovedEntries) : VdbEntryIssue;
+
+public record VdbUnresolvedDuplicate(List<RawVdbEntry> AllEntries) : VdbEntryIssue;

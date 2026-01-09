@@ -135,7 +135,7 @@ public abstract class AdminAnalyzerBase<T> : Analyzer
                     report.AddEntry(
                         externalDataMatchingIssuesGroup,
                         new IssueReportEntry(
-                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry, but the VDB coordinate is too far at " +
+                            coordinateMismatch.DataItem.ReportString() + " matched a VDB entry " + coordinateMismatch.VdbEntry.ReportString() + ", but the VDB coordinate is too far at " +
                             coordinateMismatch.DistanceMeters.ToString("F0") + " m" +
                             " -- " + coordinateMismatch.VdbEntry.ReportString()
                         )
@@ -146,7 +146,7 @@ public abstract class AdminAnalyzerBase<T> : Analyzer
                     report.AddEntry(
                         externalDataMatchingIssuesGroup,
                         new GenericReportEntry(
-                            poorMatch.DataItem.ReportString() + " matched a VDB entry, but poorly as a fallback (and might be wrong)" +
+                            poorMatch.DataItem.ReportString() + " matched a VDB entry " + poorMatch.VdbEntry.ReportString() + ", but poorly as a fallback (and might be wrong)" +
                             " -- " + poorMatch.VdbEntry.ReportString()
                         )
                     );

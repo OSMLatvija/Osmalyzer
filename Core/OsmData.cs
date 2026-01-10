@@ -248,7 +248,7 @@ public class OsmData
             if (OsmElementMatchesFilters(element, filters))
                 filteredElements.Add(element);
 
-        return new OsmData(FullData, filteredElements);
+        return new OsmData(FullData!, filteredElements);
     }
 
     [Pure]
@@ -266,7 +266,7 @@ public class OsmData
                 if (OsmElementMatchesFilters(element, filters[i]))
                     filteredElements.Add(element);
                 
-            extracts.Add(new OsmData(FullData, filteredElements));
+            extracts.Add(new OsmData(FullData!, filteredElements));
         }
 
         return extracts;
@@ -319,7 +319,7 @@ public class OsmData
                 uniqueElements.Add(elements[i]);
         }
 
-        return new OsmData(FullData, uniqueElements);
+        return new OsmData(FullData!, uniqueElements);
     }
 
     public OsmElement? Find(params OsmFilter[] filters)
@@ -346,7 +346,7 @@ public class OsmData
             if (!other._elements.Contains(element))
                 remainingElements.Add(element);
 
-        return new OsmData(FullData, remainingElements);
+        return new OsmData(FullData!, remainingElements);
     }
 
 
@@ -671,11 +671,7 @@ public class OsmData
         newElements.AddRange(newRelationsById.Values);
 
         stopwatch.Restart();
-        OsmData copy;
-        if (this is OsmData extract)
-            copy = new OsmData(extract.FullData, newElements);
-        else
-            copy = new OsmData((OsmData)this, newElements);
+        OsmData copy = new OsmData(FullData!, newElements);
         Console.WriteLine($"--> Created OsmData copy instance in {stopwatch.ElapsedMilliseconds} ms");
 
         return copy;

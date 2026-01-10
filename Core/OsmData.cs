@@ -55,7 +55,12 @@ public class OsmData
     protected Dictionary<long, OsmRelation> relationsById = null!;
     
     private Chunker<OsmElement>? _chunker;
-    
+
+
+    public OsmData()
+    {
+        CreateElements(null, null, null, null);
+    }
     
     public OsmData(string dataFileName)
     {

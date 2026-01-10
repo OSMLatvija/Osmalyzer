@@ -14,6 +14,8 @@ public static class TestOsmElementBuilder
         Node raw = new Node
         {
             Id = id,
+            Version = 42,
+            ChangeSetId = 1337,
             Latitude = id * 1e-6 + 56.0, // deterministic but irrelevant
             Longitude = id * 1e-6 + 24.0,
             Tags = null
@@ -29,6 +31,8 @@ public static class TestOsmElementBuilder
         Way raw = new Way
         {
             Id = id,
+            Version = 42,
+            ChangeSetId = 1337,
             Nodes = nodes.Select(n => n.Id).ToArray(),
             Tags = null
         };
@@ -67,6 +71,8 @@ public static class TestOsmElementBuilder
         Relation raw = new Relation
         {
             Id = id,
+            Version = 42,
+            ChangeSetId = 1337,
             Members = rawMembers,
             Tags = null
         };

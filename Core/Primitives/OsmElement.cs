@@ -31,6 +31,9 @@ public abstract class OsmElement : IChunkerItem
     [PublicAPI]
     public OsmElementState State { get; set; } = OsmElementState.Live;
     
+    [PublicAPI]
+    public OsmData Owner { get; private set; }
+    
         
     [PublicAPI]
     public int KeyCount => _tags?.Count ?? 0;
@@ -60,26 +63,29 @@ public abstract class OsmElement : IChunkerItem
    
     public (double x, double y) ChunkCoord => AverageCoord.ToCartesian();
 
-
+    
     internal List<OsmRelationMember>? relations;
 
 
     private Dictionary<string, string>? _tags;
 
 
-    protected OsmElement(long id)
+    protected OsmElement(long id, OsmData owner)
     {
         Id = id;
+        Owner = owner;
         
         State = OsmElementState.Created;
     }
 
-    protected OsmElement(OsmGeo rawElement)
+    protected OsmElement(OsmGeo rawElement, OsmData owner)
     {
         Id = rawElement.Id!.Value;
         Version = rawElement.Version ?? throw new Exception();
         Changeset = rawElement.ChangeSetId ?? throw new Exception();
         // todo: value from OsmSharp is 0, I am not sure what it is supposed to be if I want to upload this afterwards
+        
+        Owner = owner;
 
         if (rawElement.Tags != null)
         {
@@ -98,6 +104,7 @@ public abstract class OsmElement : IChunkerItem
     /// </summary>
     protected OsmElement(OsmElement original)
     {
+        Owner = original.Owner;
         Id = original.Id;
         Version = original.Version;
         Changeset = original.Changeset;
@@ -117,20 +124,6 @@ public abstract class OsmElement : IChunkerItem
         }
 
         // Note: relations and backlinks are NOT copied here - they are handled separately in OsmData.Copy()
-    }
-
-
-    internal static OsmElement Create(OsmGeo element)
-    {
-        switch (element.Type)
-        {
-            case OsmGeoType.Node:     return new OsmNode(element);
-            case OsmGeoType.Way:      return new OsmWay(element);
-            case OsmGeoType.Relation: return new OsmRelation(element);
-                
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
     }
         
         
@@ -165,7 +158,7 @@ public abstract class OsmElement : IChunkerItem
         if (_tags == null)
             return null;
             
-        List<(string, string)> values = new List<(string, string)>();
+        List<(string, string)> values = [ ];
 
         foreach ((string? key, string? value) in _tags)
             if (key.StartsWith(keyPrefix))
@@ -285,31 +278,49 @@ public abstract class OsmElement : IChunkerItem
     
     public void SetValue(string key, string value)
     {
-        if (_tags == null)
-            _tags = new Dictionary<string, string>();
-
-        if (_tags.TryGetValue(key, out string? existingValue))
-            if (existingValue == value)
-                return;
-
-        State = OsmElementState.Modified;
-        
-        _tags[key] = value;
+        // todo: call owner and make command
+        throw new NotImplementedException();
     }
-    
+
     public void RemoveKey(string key)
     {
-        if (_tags == null || !_tags.ContainsKey(key))
-            return;
-
-        State = OsmElementState.Modified;
-        
-        _tags.Remove(key);
-
-        if (_tags.Count == 0)
-            _tags = null;
+        // todo: call owner and make command
+        throw new NotImplementedException();
     }
-    
+
+    public bool SetValueInternal(string key, string? value, OsmElementState newState)
+    {
+        if (value != null)
+        {
+            // Modify or add
+            
+            if (_tags == null)
+                _tags = new Dictionary<string, string>();
+
+            if (!_tags.TryGetValue(key, out string? existingValue))
+                return false;
+
+            if (existingValue == value)
+                return false;
+
+            _tags[key] = value;
+        }
+        else
+        {
+            // Remove
+            
+            if (_tags == null)
+                return false;
+
+            if (!_tags.Remove(key))
+                return false;
+        }
+
+        State = newState;
+        
+        return true;
+    }
+
 
     public abstract OsmCoord AverageCoord { [Pure] get; }
 

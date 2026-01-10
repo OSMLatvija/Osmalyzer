@@ -1,6 +1,4 @@
-﻿using NUnit.Framework;
-
-namespace Osmalyzer;
+﻿namespace Osmalyzer;
 
 [TestFixture]
 public class OsmPolygonTests

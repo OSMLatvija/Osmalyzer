@@ -95,7 +95,7 @@ public class OsmMasterData : OsmData
 
         foreach (OsmGeo element in rawElements)
         {
-            OsmElement osmElement = OsmElement.Create(element);
+            OsmElement osmElement = Create(element);
 
             AddElement(osmElement);
         }

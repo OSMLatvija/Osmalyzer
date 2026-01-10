@@ -1,6 +1,4 @@
-﻿using NUnit.Framework;
-
-namespace Osmalyzer.Tests;
+﻿namespace Osmalyzer.Tests;
 
 [TestFixture]
 public class OsmAlgorithmsTests

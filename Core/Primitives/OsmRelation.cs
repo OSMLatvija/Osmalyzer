@@ -26,8 +26,8 @@ public class OsmRelation : OsmElement
     private OsmCoord? _cachedAverageCoord;
 
 
-    internal OsmRelation(OsmGeo rawElement)
-        : base(rawElement)
+    internal OsmRelation(OsmGeo rawElement, OsmData owner)
+        : base(rawElement, owner)
     {
         members = ((Relation)rawElement).Members.Select(m => new OsmRelationMember(this, m.Type, m.Id, m.Role)).ToList();
     }

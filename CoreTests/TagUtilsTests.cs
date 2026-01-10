@@ -1,5 +1,4 @@
-﻿using NUnit.Framework;
-using Osmalyzer;
+﻿using Osmalyzer;
 
 namespace CoreTests;
 

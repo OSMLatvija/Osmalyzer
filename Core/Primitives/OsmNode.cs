@@ -21,16 +21,16 @@ public class OsmNode : OsmElement
     private static long _currentTempId = -1;
 
 
-    internal OsmNode(OsmCoord coord)
-        : base(_currentTempId)
+    internal OsmNode(OsmCoord coord, OsmData owner)
+        : base(_currentTempId, owner)
     {
         _currentTempId--;
         
         this.coord = coord;
     }
         
-    internal OsmNode(OsmGeo rawElement)
-        : base(rawElement)
+    internal OsmNode(OsmGeo rawElement, OsmData owner)
+        : base(rawElement, owner)
     {
         Node rawNode = (Node)rawElement;
 

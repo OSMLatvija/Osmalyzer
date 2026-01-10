@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using OsmSharp;
 
 namespace Osmalyzer;
@@ -21,7 +22,9 @@ public static class TestOsmElementBuilder
             Tags = null
         };
 
-        return (OsmNode)OsmElement.Create(raw);
+        throw new NotImplementedException();
+
+        return null;//(OsmNode)OsmElement.Create(raw);
     }
 
     public static OsmWay CreateWay(params OsmNode[] nodes)
@@ -37,7 +40,9 @@ public static class TestOsmElementBuilder
             Tags = null
         };
 
-        OsmWay way = (OsmWay)OsmElement.Create(raw);
+        throw new NotImplementedException();
+
+        OsmWay way = null;//(OsmWay)OsmElement.Create(raw);
 
         // Link objects
         way.nodes.AddRange(nodes);
@@ -77,7 +82,9 @@ public static class TestOsmElementBuilder
             Tags = null
         };
 
-        OsmRelation rel = (OsmRelation)OsmElement.Create(raw);
+        throw new NotImplementedException();
+
+        OsmRelation rel = null;//(OsmRelation)OsmElement.Create(raw);
 
         // Link the created members to actual elements (so tests can use Element references)
         for (int i = 0; i < rel.Members.Count; i++)

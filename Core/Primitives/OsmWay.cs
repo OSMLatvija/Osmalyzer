@@ -34,8 +34,8 @@ public class OsmWay : OsmElement
     private OsmCoord? _cachedAverageCoord;
 
 
-    internal OsmWay(OsmGeo rawElement)
-        : base(rawElement)
+    internal OsmWay(OsmGeo rawElement, OsmData owner)
+        : base(rawElement, owner)
     {
         nodeIds = ((Way)rawElement).Nodes;
     }

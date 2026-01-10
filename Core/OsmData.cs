@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using OsmSharp;
 
 namespace Osmalyzer;
 
@@ -333,7 +334,7 @@ public abstract class OsmData
 
     public OsmNode CreateNewNode(OsmCoord coord)
     {
-        OsmNode newNode = new OsmNode(coord);
+        OsmNode newNode = new OsmNode(coord, this);
         AddElement(newNode);
         return newNode;
     }
@@ -530,6 +531,20 @@ public abstract class OsmData
             OsmElement.OsmElementType.Relation => GetRelationById(id),
             _                                  => throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported OSM element type: {type}"),
         };
+    }
+
+
+    internal OsmElement Create(OsmGeo element)
+    {
+        switch (element.Type)
+        {
+            case OsmGeoType.Node:     return new OsmNode(element, this);
+            case OsmGeoType.Way:      return new OsmWay(element, this);
+            case OsmGeoType.Relation: return new OsmRelation(element, this);
+                
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 
 

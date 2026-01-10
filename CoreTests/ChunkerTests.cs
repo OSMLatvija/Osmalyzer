@@ -1,5 +1,3 @@
-using NUnit.Framework;
-
 namespace Osmalyzer.Tests;
 
 public class ChunkerTests

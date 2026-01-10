@@ -42,9 +42,9 @@ public class ImproperTranslationAnalyzer : Analyzer
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
         FeatureNameQualifiersAnalysisData nameQualifiersData = datas.OfType<FeatureNameQualifiersAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmHighwayElements = osmMasterData.Filter(
+        OsmData osmHighwayElements = OsmData.Filter(
             new IsWay(),
             new OrMatch(
                 new HasKey("highway"),
@@ -57,7 +57,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         // place=*, boundary = administrative, railway = station
 
         // Too much of (probably) false positives
-        // OsmDataExtract osmPlaceElements = osmMasterData.Filter(
+        // OsmData osmPlaceElements = OsmData.Filter(
         //     new HasKey("place"),
         //     new DoesntHaveAnyValue("place", "city"),
         //     new HasKey("name"),
@@ -66,7 +66,7 @@ public class ImproperTranslationAnalyzer : Analyzer
         //     //new CustomMatch(_ => !BoundaryHelper.GetDaugavpilsPolygon(osmData.MasterData).ContainsElement(_, OsmPolygon.RelationInclusionCheck.Fuzzy)),
         //     new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy)
         // );
-        OsmDataExtract osmAdminBoundariesElements = osmMasterData.Filter(
+        OsmData osmAdminBoundariesElements = OsmData.Filter(
             new IsWay(),
             new HasValue("boundary", "administrative"),
             new HasKey("name"),
@@ -75,7 +75,7 @@ public class ImproperTranslationAnalyzer : Analyzer
             new HasKeyPrefixed("name:"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
-        OsmDataExtract osmRwStationsElements = osmMasterData.Filter(
+        OsmData osmRwStationsElements = OsmData.Filter(
             new HasValue("railway", "station"),
             new HasKey("name"),
             new HasKeyPrefixed("name:"),

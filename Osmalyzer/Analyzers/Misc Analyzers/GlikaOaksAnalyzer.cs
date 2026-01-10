@@ -18,9 +18,9 @@ public class GlikaOaksAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmTrees = osmMasterData.Filter(
+        OsmData osmTrees = OsmData.Filter(
             new IsNode(),
             new HasValue("natural", "tree")
         );

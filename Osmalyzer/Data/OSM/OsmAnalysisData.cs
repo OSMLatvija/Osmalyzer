@@ -13,7 +13,7 @@ public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData
     public bool DataDateHasDayGranularity => true;
 
 
-    public OsmMasterData MasterData { get; private set; } = null!; // only null during initialization
+    public OsmData MasterData { get; private set; } = null!; // only null during initialization
 
 
     protected abstract string CountryName { get; }
@@ -43,6 +43,6 @@ public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData
 
     protected override void DoPrepare()
     {
-        MasterData = new OsmMasterData(Path.Combine(CacheBasePath, DataFileIdentifier + @".osm.pbf"));
+        MasterData = new OsmData(Path.Combine(CacheBasePath, DataFileIdentifier + @".osm.pbf"));
     }
 }

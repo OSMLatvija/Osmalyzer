@@ -20,9 +20,9 @@ public class LoneCrossingAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
         
-        OsmDataExtract osmCrossingNodes = osmMasterData.Filter(
+        OsmData osmCrossingNodes = OsmData.Filter(
             new IsNode(),
             new HasAnyValue("highway", "crossing"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)

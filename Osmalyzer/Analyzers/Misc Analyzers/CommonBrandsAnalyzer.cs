@@ -24,9 +24,9 @@ public class CommonBrandsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
                 
-        OsmDataExtract titledElements = osmMasterData.Filter(
+        OsmData titledElements = OsmData.Filter(
             new HasAnyKey(titleTags)
         );
             
@@ -88,7 +88,7 @@ public class CommonBrandsAnalyzer : Analyzer
 
         foreach ((string nsiTag, string[] nsiValues) in nsiTags)
         {
-            OsmDataExtract matchingElements = titledElements.Filter(
+            OsmData matchingElements = titledElements.Filter(
                 new HasAnyValue(nsiTag, nsiValues)
             );
 

@@ -27,9 +27,9 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmMunicipalities = osmMasterData.Filter(
+        OsmData osmMunicipalities = OsmData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
             new HasAnyValue("admin_level", "5"),
@@ -223,7 +223,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
 

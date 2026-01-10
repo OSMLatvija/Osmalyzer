@@ -25,21 +25,21 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmKioskDepositLocations = osmMasterData.Filter(
+        OsmData osmKioskDepositLocations = OsmData.Filter(
             new HasAnyValue("amenity", "recycling"),
             new CustomMatch(IsRelatedToDepositPoint)
         );
 
-        OsmDataExtract osmManualDepositLocations = osmMasterData.Filter(
+        OsmData osmManualDepositLocations = OsmData.Filter(
             new HasKey("shop"),
             new HasValue("recycling:cans","yes"),
             new HasValue("recycling:plastic_bottles","yes"),
             new HasValue("recycling:glass_bottles","yes")
         );
 
-        OsmDataExtract osmVendingMachines = osmMasterData.Filter(
+        OsmData osmVendingMachines = OsmData.Filter(
             new HasValue("amenity", "vending_machine"),
             new HasValue("vending", "bottle_return")
         );
@@ -71,7 +71,7 @@ public class BottleDepositPointsAnalyzer : Analyzer
         CorrelatorReport vendingMachineReport = Correlate(osmVendingMachines, listedDepositVendingMachines, "vending machine", "vending machines");
         CorrelatorReport manualLocationReport = Correlate(osmManualDepositLocations, listedManualDepositLocations, "manual location", "manual locations");
 
-        CorrelatorReport Correlate<TItem>(OsmDataExtract osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : DepositPoint
+        CorrelatorReport Correlate<TItem>(OsmData osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : DepositPoint
         {
             // Prepare data comparer/correlator
 

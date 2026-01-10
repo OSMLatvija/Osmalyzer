@@ -24,16 +24,16 @@ public class PostCodeAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract postcodedElements = osmMasterData.Filter(
+        OsmData postcodedElements = OsmData.Filter(
             new HasKey("addr:postcode")
         );
         // Will filter by boundary only when checking invalid ones, otherwise it's way too slow for every address
         
         _latviaPolygon = BoundaryHelper.GetLatviaPolygon(osmData.MasterData);
 
-        OsmDataExtract postOffices = osmMasterData.Filter(
+        OsmData postOffices = OsmData.Filter(
             new HasValue("amenity", "post_office"),
             new InsidePolygon(_latviaPolygon, OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );

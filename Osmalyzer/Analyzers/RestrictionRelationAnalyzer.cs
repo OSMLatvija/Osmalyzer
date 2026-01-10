@@ -19,7 +19,7 @@ public class RestrictionRelationAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmDataExtract restrictionRelations = osmData.MasterData.Filter(
+        OsmData restrictionRelations = osmData.MasterData.Filter(
             new IsRelation(),
             new RelationMustHaveAllMembersDownloaded(),
             new HasAnyValue("type", "restriction"),

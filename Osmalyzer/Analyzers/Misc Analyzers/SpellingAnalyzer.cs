@@ -24,9 +24,9 @@ public class SpellingAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
         
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmElements = osmMasterData.Filter(
+        OsmData osmElements = OsmData.Filter(
             new IsWay(),
             new HasKey("name"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)

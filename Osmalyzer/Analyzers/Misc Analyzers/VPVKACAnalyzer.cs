@@ -24,9 +24,9 @@ public class VPVKACAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmOffices = osmMasterData.Filter(
+        OsmData osmOffices = OsmData.Filter(
             new IsNode(),
             new HasValue("office", "government")
         );
@@ -291,7 +291,7 @@ public class VPVKACAnalyzer : Analyzer
     }
 
 
-    private static LocatedVPVKACOffice? TryLocateOffice(VPVKACOffice office, OsmMasterData osmData)
+    private static LocatedVPVKACOffice? TryLocateOffice(VPVKACOffice office, OsmData osmData)
     {
         OsmCoord? coord = FuzzyAddressFinder.Find(
             osmData,

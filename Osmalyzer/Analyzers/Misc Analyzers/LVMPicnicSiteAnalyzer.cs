@@ -22,9 +22,9 @@ public class LVMPicnicSiteAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmPicnicSites = osmMasterData.Filter(
+        OsmData osmPicnicSites = OsmData.Filter(
             new HasAnyValue("tourism", "picnic_site")
         );
 

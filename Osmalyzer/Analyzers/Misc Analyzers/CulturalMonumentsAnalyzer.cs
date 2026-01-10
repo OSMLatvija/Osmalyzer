@@ -25,9 +25,9 @@ public class CulturalMonumentsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmHeritages = osmMasterData.Filter(
+        OsmData osmHeritages = OsmData.Filter(
             new OrMatch(
                 new HasAnyKey( // any of the heritage keys automatically "pass" the element, even if it's a weird type
                     "heritage",

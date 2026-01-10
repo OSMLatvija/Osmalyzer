@@ -11,7 +11,7 @@ public static class FuzzyAddressFinder
     /// 
     /// </summary>
     /// <param name="data">It is presumed that full OSM (address) data is given once per session</param>
-    public static OsmCoord? Find(OsmMasterData data, string address, params FuzzyAddressHint[] hints)
+    public static OsmCoord? Find(OsmData data, string address, params FuzzyAddressHint[] hints)
     {
         FuzzyAddress? parsed = FuzzyAddressParser.TryParseAddress(address, hints);
 
@@ -224,9 +224,9 @@ public static class FuzzyAddressFinder
         return candidates;
     }
 
-    private static void GatherAddressables(OsmMasterData data)
+    private static void GatherAddressables(OsmData data)
     {
-        OsmDataExtract extract = data.Filter(new HasKey("ref:LV:addr"));
+        OsmData extract = data.Filter(new HasKey("ref:LV:addr"));
         _addressables = new Addressables(extract.Elements);
     }
 

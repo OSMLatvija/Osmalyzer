@@ -19,9 +19,9 @@ public class MaxspeedTypeAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
         
-        OsmDataExtract elementsWithMaxspeedType = osmMasterData.Filter(
+        OsmData elementsWithMaxspeedType = OsmData.Filter(
             new HasKeyPrefixed("maxspeed:"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
@@ -359,7 +359,7 @@ public class MaxspeedTypeAnalyzer : Analyzer
     }
 
     [Pure]
-    private static List<TaggedElement> GatherTaggedElements(OsmDataExtract data, MaxspeedTypeLayout[] recognizedLayouts)
+    private static List<TaggedElement> GatherTaggedElements(OsmData data, MaxspeedTypeLayout[] recognizedLayouts)
     {
         List<TaggedElement> taggedElements = [ ];
         

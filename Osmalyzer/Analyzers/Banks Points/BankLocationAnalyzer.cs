@@ -22,9 +22,9 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract allOsmPoints = osmMasterData.Filter(
+        OsmData allOsmPoints = OsmData.Filter(
             new HasAnyValue("amenity", "atm", "bank"),
             new CustomMatch(IsRelatedToBank)
         );
@@ -41,11 +41,11 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
             return osmName != null && osmName.ToLower().Contains(BankName.ToLower());
         }
 
-        OsmDataExtract osmAtms = allOsmPoints.Filter(
+        OsmData osmAtms = allOsmPoints.Filter(
             new HasValue("amenity", "atm")
         );
 
-        OsmDataExtract osmBranches = allOsmPoints.Filter(
+        OsmData osmBranches = allOsmPoints.Filter(
             new HasValue("amenity", "bank")
         );
 
@@ -64,7 +64,7 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
         Correlate(osmBranches, branchPoints, "branch", "branches");
         
 
-        void Correlate<TItem>(OsmDataExtract osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : BankPoint
+        void Correlate<TItem>(OsmData osmPoints, List<TItem> dataPoints, string labelSingular, string labelPlural) where TItem : BankPoint
         {
             // Prepare data comparer/correlator
 

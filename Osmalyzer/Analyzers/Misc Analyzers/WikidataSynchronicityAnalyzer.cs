@@ -34,9 +34,9 @@
 //
 //         OsmAnalysisData osmData = datas.OfType<OsmAnalysisData>().First();
 //
-//         OsmMasterData osmMasterData = osmData.MasterData;
+//         OsmData OsmData = osmData.MasterData;
 //
-//         OsmDataExtract osmWithWikidata = osmMasterData.Filter(
+//         OsmData osmWithWikidata = OsmData.Filter(
 //             new HasAnyKey(
 //                 wikidataFieldNames
 //             )
@@ -64,7 +64,7 @@
 //
 //             // OSM relevant
 //             
-//             OsmDataExtract osmElements = osmWithWikidata.Filter(new HasKey(wikidataFieldName));
+//             OsmData osmElements = osmWithWikidata.Filter(new HasKey(wikidataFieldName));
 //             
 //             // Wikidata relevant
 //             

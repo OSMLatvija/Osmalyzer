@@ -19,9 +19,9 @@ public class CrossingConsistencyAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract ways = osmMasterData.Filter(
+        OsmData ways = OsmData.Filter(
             new IsWay(),
             new OrMatch(
                 new HasValue("highway", "path"),
@@ -30,7 +30,7 @@ public class CrossingConsistencyAnalyzer : Analyzer
             new HasValue("footway", "crossing")
         );
         
-        OsmDataExtract points = osmMasterData.Filter(
+        OsmData points = OsmData.Filter(
             new IsNode(),
             new HasValue("highway", "crossing")
         );
@@ -165,7 +165,7 @@ public class CrossingConsistencyAnalyzer : Analyzer
     }
 
 
-    private static List<Crossing> GatherCrossings(OsmDataExtract ways, OsmDataExtract points)
+    private static List<Crossing> GatherCrossings(OsmData ways, OsmData points)
     {
         List<Crossing> crossings = new List<Crossing>();
         

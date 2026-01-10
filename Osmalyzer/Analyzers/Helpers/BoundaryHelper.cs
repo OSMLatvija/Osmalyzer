@@ -10,7 +10,7 @@ public static class BoundaryHelper
 
 
     [Pure]
-    public static OsmPolygon GetLatviaPolygon(OsmMasterData osmData)
+    public static OsmPolygon GetLatviaPolygon(OsmData osmData)
     {
         if (_latviaPolygon == null)
             _latviaPolygon = GetAdminRelationPolygon(osmData, "2", "Latvija");
@@ -19,7 +19,7 @@ public static class BoundaryHelper
     }
 
     [Pure]
-    public static OsmPolygon GetRigaPolygon(OsmMasterData osmData)
+    public static OsmPolygon GetRigaPolygon(OsmData osmData)
     {
         if (_rigaPolygon == null)
             _rigaPolygon = GetAdminRelationPolygon(osmData, "5", "Rīga");
@@ -28,7 +28,7 @@ public static class BoundaryHelper
     }
 
     [Pure]
-    public static OsmPolygon GetDaugavpilsPolygon(OsmMasterData osmData)
+    public static OsmPolygon GetDaugavpilsPolygon(OsmData osmData)
     {
         if (_daugavpilsPolygon == null)
             _daugavpilsPolygon = GetAdminRelationPolygon(osmData, "5", "Daugavpils");
@@ -37,7 +37,7 @@ public static class BoundaryHelper
     }
 
     [Pure]
-    private static OsmPolygon GetAdminRelationPolygon(OsmMasterData osmData, string level, string name)
+    private static OsmPolygon GetAdminRelationPolygon(OsmData osmData, string level, string name)
     {
         OsmRelation relation = (OsmRelation)osmData.Find(
             new IsRelation(),

@@ -18,9 +18,9 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmRoads = osmMasterData.Filter(
+        OsmData osmRoads = OsmData.Filter(
             new IsWay(),
             new HasAnyValue("maxspeed", "80", "90"),
             new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "trunk_link", "primary_link", "secondary_link"),
@@ -42,7 +42,7 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
 
         // Unpaved 90
             
-        OsmDataExtract unpavedRoads90 = osmRoads.Filter(
+        OsmData unpavedRoads90 = osmRoads.Filter(
             new HasValue("maxspeed", "90"),
             new HasAnyValue("surface", "unpaved", "ground", "gravel", "dirt", "grass", "compacted", "sand", "fine_gravel", "earth", "pebblestone"),
             new DoesntHaveAnyValue("maxspeed:type", "sign", "LV:zone90")
@@ -74,7 +74,7 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
             
         // Paved 80
             
-        OsmDataExtract pavedRoads80 = osmRoads.Filter(
+        OsmData pavedRoads80 = osmRoads.Filter(
             new HasValue("maxspeed", "80"),
             new HasAnyValue("surface", "asphalt", "paved", "concrete", "chipseal"),
             new DoesntHaveAnyValue("maxspeed:type", "sign", "LV:zone80")

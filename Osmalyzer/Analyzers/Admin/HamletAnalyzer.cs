@@ -31,11 +31,11 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
         Stopwatch stopwatch = Stopwatch.StartNew();
         
-        OsmDataExtract osmHamlets = osmMasterData.Filter(
+        OsmData osmHamlets = OsmData.Filter(
             new IsNode(),
             new HasAnyValue("place", "hamlet"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
@@ -182,13 +182,13 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             );
             
 #if DEBUG
-            OsmData additionsData = osmMasterData.Copy();
+            OsmData additionsData = OsmData.Copy();
             List<SuggestedAction> suggestedAdditions = [ ];
 #endif
 
             stopwatch.Restart();
             
-            OsmDataExtract namedNodes = osmMasterData.Filter(
+            OsmData namedNodes = OsmData.Filter(
                 new HasKey("name"),
                 // Manually filter out known non-hamlet things that have the same names
                 new DoesntHaveKey("ref:LV:addr"), // we know this is a real separate feature, even if the name matches 
@@ -285,7 +285,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
 #if DEBUG
         stopwatch.Restart();
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this, "changes");
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this, "changes");
         Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif

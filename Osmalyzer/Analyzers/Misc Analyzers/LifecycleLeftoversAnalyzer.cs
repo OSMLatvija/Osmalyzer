@@ -19,9 +19,9 @@ public class LifecycleLeftoversAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract waysWithHighway = osmMasterData.Filter(
+        OsmData waysWithHighway = OsmData.Filter(
             new IsWay(),
             new HasAnyKey("highway", "railway")
         );

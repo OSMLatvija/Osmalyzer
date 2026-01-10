@@ -57,9 +57,9 @@ public class BarrierAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
         
-        OsmDataExtract osmCrossingNodes = osmMasterData.Filter(
+        OsmData osmCrossingNodes = OsmData.Filter(
             new IsNode(),
             new HasAnyValue("barrier", barriers.Select(b => b.OsmValue)),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)

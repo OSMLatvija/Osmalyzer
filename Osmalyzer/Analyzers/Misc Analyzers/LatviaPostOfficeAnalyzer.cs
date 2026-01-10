@@ -26,9 +26,9 @@ public class LatviaPostOfficeAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
                 
-        OsmDataExtract osmPostBoxes = osmMasterData.Filter(
+        OsmData osmPostBoxes = OsmData.Filter(
             new HasAnyValue("amenity", "post_office"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose) // a couple OOB hits
         );
@@ -107,7 +107,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ReportGroup.ProposedChanges);
 #endif
 

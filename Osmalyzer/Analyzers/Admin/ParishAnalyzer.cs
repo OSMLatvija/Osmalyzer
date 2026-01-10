@@ -29,9 +29,9 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmParishes = osmMasterData.Filter(
+        OsmData osmParishes = OsmData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
             new HasAnyValue("admin_level", "8"),
@@ -245,7 +245,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         

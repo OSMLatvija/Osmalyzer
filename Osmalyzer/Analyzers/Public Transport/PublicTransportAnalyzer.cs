@@ -33,9 +33,9 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        List<OsmDataExtract> osmDataExtracts = osmMasterData.Filter(
+        List<OsmData> OsmDatas = OsmData.Filter(
             [
                 [
                     new IsNode(),
@@ -56,8 +56,8 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             ]
         );
             
-        OsmDataExtract osmStops = osmDataExtracts[0];
-        OsmDataExtract osmRoutes = osmDataExtracts[1];
+        OsmData osmStops = OsmDatas[0];
+        OsmData osmRoutes = OsmDatas[1];
 
         // Parse routes into variants
 
@@ -529,7 +529,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     }
 
     [Pure]
-    private static List<RoutePair> MatchOsmRoutesToRouteVariants(OsmDataExtract osmRoutes, List<RouteVariant> routeVariants)
+    private static List<RoutePair> MatchOsmRoutesToRouteVariants(OsmData osmRoutes, List<RouteVariant> routeVariants)
     {
         List<RouteVariant> remainingVariants = routeVariants.ToList();
 

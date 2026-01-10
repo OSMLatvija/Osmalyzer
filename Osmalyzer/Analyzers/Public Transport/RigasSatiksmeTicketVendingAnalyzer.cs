@@ -25,9 +25,9 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
         
-        OsmDataExtract osmTicketVendingMachines = osmMasterData.Filter(
+        OsmData osmTicketVendingMachines = OsmData.Filter(
             new HasValue("amenity", "vending_machine"),
             new HasValue("vending", "public_transport_tickets")
         );
@@ -82,7 +82,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ReportGroup.ProposedChanges);
 #endif
     }

@@ -27,9 +27,9 @@ public class CourthouseAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
                 
-        OsmDataExtract osmCourthouses = osmMasterData.Filter(
+        OsmData osmCourthouses = OsmData.Filter(
             new HasValue("amenity", "courthouse")
         );
 
@@ -46,7 +46,7 @@ public class CourthouseAnalyzer : Analyzer
 
         foreach (CourthouseData ch in listedCourthouses)
         {
-            LocatedCourthouse? located = TryLocateCourthouse(ch, osmMasterData);
+            LocatedCourthouse? located = TryLocateCourthouse(ch, OsmData);
             if (located != null)
                 locatedCourthouses.Add(located);
             else
@@ -232,7 +232,7 @@ public class CourthouseAnalyzer : Analyzer
 
 
     [Pure]
-    private static LocatedCourthouse? TryLocateCourthouse(CourthouseData ch, OsmMasterData osmData)
+    private static LocatedCourthouse? TryLocateCourthouse(CourthouseData ch, OsmData osmData)
     {
         OsmCoord? coord = FuzzyAddressFinder.Find(
             osmData, 

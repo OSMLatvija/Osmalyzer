@@ -19,13 +19,13 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmTaps = osmMasterData.Filter(
+        OsmData osmTaps = OsmData.Filter(
             new IsNode(),
             new HasValue("amenity", "drinking_water"),
             new DoesntHaveValue("indoor", "yes"), // none of Riga taps are indoors, so ignore these as they can be in malls, hospitals, etc.
-            new InsidePolygon(BoundaryHelper.GetRigaPolygon(osmMasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
+            new InsidePolygon(BoundaryHelper.GetRigaPolygon(OsmData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
 
         // Get Riga taps
@@ -88,7 +88,7 @@ public class RigaDrinkingWaterAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ReportGroup.ProposedChanges);
 #endif
     }

@@ -34,13 +34,13 @@ public abstract class ShopAnalyzer<TShop, TOsm> : Analyzer
 
         TOsm osmData = datas.OfType<TOsm>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
                 
-        OsmDataExtract osmShops = osmMasterData.Filter(
+        OsmData osmShops = OsmData.Filter(
             new HasAnyValue("shop", "yes", "supermarket", "grocery", "convenience")
         );
         
-        OsmDataExtract brandShops = osmShops.Filter(
+        OsmData brandShops = osmShops.Filter(
             new CustomMatch(ShopNameMatches)
         );
 

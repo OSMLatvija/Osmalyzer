@@ -25,9 +25,9 @@ public class LatviaPostMailBoxAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
                 
-        OsmDataExtract osmPostBoxes = osmMasterData.Filter(
+        OsmData osmPostBoxes = OsmData.Filter(
             new HasAnyValue("amenity", "post_box")
         );
 

@@ -27,9 +27,9 @@ public class UnknownParcelLockerAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract lockers = osmMasterData.Filter(
+        OsmData lockers = OsmData.Filter(
             new HasAnyValue("amenity", "parcel_locker")
         );
             

@@ -32,10 +32,10 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
 
-        OsmDataExtract osmCities = osmMasterData.Filter(
+        OsmData osmCities = OsmData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
             new HasAnyValue("admin_level", independentStateCityAdminLevel, dependentStateCityAdminLevel, regionalCityAdminLevel), // 5 - valstspilsētas, 7 - pilsētas
@@ -290,7 +290,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         string GetPlaceType(City c) => c.Status == CityStatus.StateCity ? "city" : "town"; // apparently, regional cities are place=town in Latvia atm
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
         

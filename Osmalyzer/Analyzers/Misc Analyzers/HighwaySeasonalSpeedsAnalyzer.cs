@@ -19,9 +19,9 @@ public class HighwaySeasonalSpeedsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
             
-        OsmDataExtract speedLimitedRoads = osmMasterData.Filter(
+        OsmData speedLimitedRoads = OsmData.Filter(
             new IsWay(),
             new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service"),
             new HasKey("maxspeed"),

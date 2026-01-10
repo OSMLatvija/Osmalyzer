@@ -86,13 +86,13 @@ public static class SuggestedActionApplicator
         return data;
     }
 
-    public static OsmChange? ApplyAndProposeXml(OsmData osmMasterData, List<SuggestedAction> suggestedChanges, Analyzer analyzer, string? caption = null)
+    public static OsmChange? ApplyAndProposeXml(OsmData OsmData, List<SuggestedAction> suggestedChanges, Analyzer analyzer, string? caption = null)
     {
         if (suggestedChanges.Count == 0)
             return null;
 
         Stopwatch stopwatch = Stopwatch.StartNew();
-        OsmData osmData = Apply(osmMasterData, suggestedChanges, true);
+        OsmData osmData = Apply(OsmData, suggestedChanges, true);
         Console.WriteLine("-> Applied " + suggestedChanges.Count + " suggested changes in " + stopwatch.ElapsedMilliseconds + " ms.");
 
         stopwatch.Restart();

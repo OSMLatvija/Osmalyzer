@@ -25,7 +25,7 @@ public class LVCRoadAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        List<OsmDataExtract> osmDataExtracts = osmData.MasterData.Filter(
+        List<OsmData> OsmDatas = osmData.MasterData.Filter(
             [
                 [
                     new IsWay(),
@@ -47,10 +47,10 @@ public class LVCRoadAnalyzer : Analyzer
             ]
         );
 
-        OsmDataExtract reffedRoads = osmDataExtracts[0];
-        OsmDataExtract routeRelations = osmDataExtracts[1];
+        OsmData reffedRoads = OsmDatas[0];
+        OsmData routeRelations = OsmDatas[1];
 
-        OsmDataExtract recognizedReffedRoads = reffedRoads.Filter(
+        OsmData recognizedReffedRoads = reffedRoads.Filter(
             new SplitValuesCheck("ref", IsValidRef)
         );
 
@@ -348,7 +348,7 @@ public class LVCRoadAnalyzer : Analyzer
 
         // Uncrecognized ref
 
-        OsmDataExtract unrecognizedReffedRoads = reffedRoads.Filter(
+        OsmData unrecognizedReffedRoads = reffedRoads.Filter(
             new SplitValuesCheck("ref", s => !IsValidRef(s))
         );
 

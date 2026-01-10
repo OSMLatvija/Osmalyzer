@@ -19,14 +19,14 @@ public class LivingZoneSpeedAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract livingStreets = osmMasterData.Filter(
+        OsmData livingStreets = OsmData.Filter(
             new IsWay(), 
             new HasValue("highway", "living_street")
         );
             
-        OsmDataExtract limitedLivingStreets = livingStreets.Filter(
+        OsmData limitedLivingStreets = livingStreets.Filter(
             new HasKey("maxspeed")
         );
             
@@ -93,7 +93,7 @@ public class LivingZoneSpeedAnalyzer : Analyzer
         {
             float unlimitedPortion = (float)limitedLivingStreets.Count / livingStreets.Count;
 
-            OsmDataExtract maxspeedTypedLivingStreets = livingStreets.Filter(new HasValue("maxspeed:type", "LV:living_street"));
+            OsmData maxspeedTypedLivingStreets = livingStreets.Filter(new HasValue("maxspeed:type", "LV:living_street"));
             float maxspeedTypedPortion = (float)maxspeedTypedLivingStreets.Count / livingStreets.Count;
 
             report.AddEntry(

@@ -19,9 +19,9 @@ public class TerminatingWaysAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract areas = osmMasterData.Filter(
+        OsmData areas = OsmData.Filter(
             new IsClosedWay(),
             new OrMatch(
                 new HasValue("amenity", "parking"),

@@ -1,14 +1,25 @@
+//#if !REMOTE_EXECUTION
+#define BENCHMARK
+//#define BENCHMARK_COMPLETE // we are not using this output, so it's only for benchmarking, see results below 
+//#endif
+
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using OsmSharp;
+using OsmSharp.Streams;
+
+#if BENCHMARK_COMPLETE
+using OsmSharp.Streams.Complete;
+#endif
 
 namespace Osmalyzer;
 
 /// <summary>
 /// 
 /// </summary>
-public abstract class OsmData
+public class OsmData
 {
     [PublicAPI]
     public IReadOnlyList<OsmElement> Elements => _elements.AsReadOnly();
@@ -24,7 +35,10 @@ public abstract class OsmData
 
     [PublicAPI]
     public int Count => _elements.Count;
-
+    
+    [PublicAPI]
+    public OsmData? FullData { get; }
+    
         
     private List<OsmElement> _elements = null!; // will be set by whichever child constructor
         
@@ -41,11 +55,185 @@ public abstract class OsmData
     protected Dictionary<long, OsmRelation> relationsById = null!;
     
     private Chunker<OsmElement>? _chunker;
+    
+    
+    public OsmData(string dataFileName)
+    {
+#if BENCHMARK
+        // As of last benchmark:
+        // OSMSharp data loading took 15822 ms
+        // OSM data conversion took 3540 ms
+        // OSM data linking took 4402 ms
+
+        // OSMSharp has built-in `source.ToComplete()` that create complete geometry, i.e. what I want,
+        // but unfortunately it's much slower for whatever reason:
+        // OSMSharp complete data loading took 58849 ms
+        // I guess it's not at all optimized for larger data (and LV data isn't even that large).
+        // And it's not even creating backlinks, just references for immediate elements, so I'd need to post-process anyway with custom classes.
+
+        // At this point, I cannot think of any (non micro-) optimization to do here.
+        // The bulk of the work is 15 sec for the PBF file reading and processing,
+        // so the remaining 6.5 sec are largely irrelevant then.
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+#endif
+            
+        // Read the "raw" elements from the file
+
+        using FileStream fileStream = new FileInfo(dataFileName).OpenRead();
+
+        using PBFOsmStreamSource source = new PBFOsmStreamSource(fileStream);
+
+        List<OsmGeo> rawElements = [ ];
+
+        int nodeCount = 0;
+        int wayCount = 0;
+        int relationCount = 0;
+            
+        foreach (OsmGeo geo in source)
+        {
+            rawElements.Add(geo);
+
+            switch (geo.Type)
+            {
+                case OsmGeoType.Node:     nodeCount++; break;
+                case OsmGeoType.Way:      wayCount++; break;
+                case OsmGeoType.Relation: relationCount++; break;
+            }
+        }
+
+#if BENCHMARK
+        stopwatch.Stop();
+        Console.WriteLine("OSMSharp data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+
+#if BENCHMARK_COMPLETE
+        stopwatch.Restart();
+        
+        using FileStream fileStreamAgain = new FileInfo(dataFileName).OpenRead();
+        using PBFOsmStreamSource sourceAgain = new PBFOsmStreamSource(fileStreamAgain);
+        using OsmCompleteStreamSource completeSource = sourceAgain.ToComplete();
+        
+        List<ICompleteOsmGeo> rawElementsAgain = [ ];
+        foreach (ICompleteOsmGeo? geo in completeSource)
+            rawElementsAgain.Add(geo);
+        Console.WriteLine("Loaded " + rawElementsAgain.Count + " complete elements.");
+        
+        stopwatch.Stop();
+        Console.WriteLine("OSMSharp complete data loading took " + stopwatch.ElapsedMilliseconds + " ms");
+#endif
+        
+        stopwatch.Restart();
+#endif
+            
+        // Convert the "raw" elements to our own structure
+            
+        CreateElements(rawElements.Count, nodeCount, wayCount, relationCount);
+
+        foreach (OsmGeo element in rawElements)
+        {
+            OsmElement osmElement = Create(element);
+
+            AddElement(osmElement);
+        }
+            
+#if BENCHMARK
+        stopwatch.Stop();
+        Console.WriteLine("OSM data conversion took " + stopwatch.ElapsedMilliseconds + " ms");
+        stopwatch.Restart();
+#endif
+
+        // Link and backlink all the elements together
+
+        foreach (OsmWay osmWay in waysById.Values)
+        {
+            foreach (long rawWayId in osmWay.nodeIds)
+            {
+                OsmNode node = nodesById[rawWayId];
+
+                // Link
+                osmWay.nodes.Add(node);
+
+                // Backlink
+                if (node.ways == null)
+                    node.ways = new List<OsmWay>();
+
+                node.ways.Add(osmWay);
+            }
+        }
+
+        foreach (OsmRelation osmRelation in relationsById.Values)
+        {
+            foreach (OsmRelationMember member in osmRelation.members)
+            {
+                switch (member.ElementType)
+                {
+                    case OsmRelationMember.MemberElementType.Node:
+                        if (nodesById.TryGetValue(member.Id, out OsmNode? node))
+                        {
+                            // Link
+                            member.Element = node;
+                            // Backlink
+                            if (node.relations == null)
+                                node.relations = new List<OsmRelationMember>();
+                            node.relations.Add(member);
+                        }
+
+                        break;
+
+                    case OsmRelationMember.MemberElementType.Way:
+                        if (waysById.TryGetValue(member.Id, out OsmWay? way))
+                        {
+                            // Link
+                            member.Element = way;
+                            // Backlink
+                            if (way.relations == null)
+                                way.relations = new List<OsmRelationMember>();
+                            way.relations.Add(member);
+                        }
+
+                        break;
+
+                    case OsmRelationMember.MemberElementType.Relation:
+                        if (relationsById.TryGetValue(member.Id, out OsmRelation? relation))
+                        {
+                            // Link
+                            member.Element = relation;
+                            // Backlink
+                            if (relation.relations == null)
+                                relation.relations = new List<OsmRelationMember>();
+                            relation.relations.Add(member);
+                        }
+
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+#if BENCHMARK
+        stopwatch.Stop();
+        Console.WriteLine("OSM data linking took " + stopwatch.ElapsedMilliseconds + " ms");
+#endif
+    }
+    
+    public OsmData(OsmData data, List<OsmElement> elements)
+    {
+        FullData = data;
+
+        CreateElements(null, null, null, null);
+
+        foreach (OsmElement element in elements)
+            AddElement(element);
+    }
 
 
     [Pure]
-    public OsmDataExtract Filter(params OsmFilter[] filters)
+    public OsmData Filter(params OsmFilter[] filters)
     {
+        // todo: smarter - same instance, but with a filtered list or something
+        
         List<OsmElement> filteredElements = [ ];
 
         IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters);
@@ -54,13 +242,13 @@ public abstract class OsmData
             if (OsmElementMatchesFilters(element, filters))
                 filteredElements.Add(element);
 
-        return new OsmDataExtract(GetFullData(), filteredElements);
+        return new OsmData(FullData, filteredElements);
     }
 
     [Pure]
-    public List<OsmDataExtract> Filter(List<OsmFilter[]> filters)
+    public List<OsmData> Filter(List<OsmFilter[]> filters)
     {
-        List<OsmDataExtract> extracts = new List<OsmDataExtract>(filters.Count);
+        List<OsmData> extracts = new List<OsmData>(filters.Count);
 
         for (int i = 0; i < filters.Count; i++)
         {
@@ -72,7 +260,7 @@ public abstract class OsmData
                 if (OsmElementMatchesFilters(element, filters[i]))
                     filteredElements.Add(element);
                 
-            extracts.Add(new OsmDataExtract(GetFullData(), filteredElements));
+            extracts.Add(new OsmData(FullData, filteredElements));
         }
 
         return extracts;
@@ -82,7 +270,7 @@ public abstract class OsmData
     /// Remove duplicate elements based on the given similarity comparer.
     /// </summary>
     [Pure]
-    public OsmDataExtract Deduplicate(Func<OsmElement, OsmElement, OsmElement?> similarityComparer)
+    public OsmData Deduplicate(Func<OsmElement, OsmElement, OsmElement?> similarityComparer)
     {
         List<OsmElement> elements = _elements.ToList();
 
@@ -125,7 +313,7 @@ public abstract class OsmData
                 uniqueElements.Add(elements[i]);
         }
 
-        return new OsmDataExtract(GetFullData(), uniqueElements);
+        return new OsmData(FullData, uniqueElements);
     }
 
     public OsmElement? Find(params OsmFilter[] filters)
@@ -144,7 +332,7 @@ public abstract class OsmData
     /// 1 2 3 4 - 2 3 5 = 1 4
     /// </summary>
     [Pure]
-    public OsmDataExtract Subtract(OsmData other)
+    public OsmData Subtract(OsmData other)
     {
         List<OsmElement> remainingElements = [ ];
 
@@ -152,7 +340,7 @@ public abstract class OsmData
             if (!other._elements.Contains(element))
                 remainingElements.Add(element);
 
-        return new OsmDataExtract(GetFullData(), remainingElements);
+        return new OsmData(FullData, remainingElements);
     }
 
 
@@ -452,12 +640,12 @@ public abstract class OsmData
         newElements.AddRange(newRelationsById.Values);
 
         stopwatch.Restart();
-        OsmDataExtract copy;
-        if (this is OsmDataExtract extract)
-            copy = new OsmDataExtract(extract.FullData, newElements);
+        OsmData copy;
+        if (this is OsmData extract)
+            copy = new OsmData(extract.FullData, newElements);
         else
-            copy = new OsmDataExtract((OsmMasterData)this, newElements);
-        Console.WriteLine($"--> Created OsmDataExtract copy instance in {stopwatch.ElapsedMilliseconds} ms");
+            copy = new OsmData((OsmData)this, newElements);
+        Console.WriteLine($"--> Created OsmData copy instance in {stopwatch.ElapsedMilliseconds} ms");
 
         return copy;
 
@@ -564,13 +752,7 @@ public abstract class OsmData
 
         return matched;
     }
-        
 
-    [Pure]
-    private OsmMasterData GetFullData()
-    {
-        return this is OsmDataExtract ed ? ed.FullData : (OsmMasterData)this;
-    }
 
     protected void CreateElements(int? capacity, int? nodeCapacity, int? wayCapacity, int? relationCapacity)
     {

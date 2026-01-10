@@ -22,9 +22,9 @@ public class MicroReservesAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmMasterData osmMasterData = osmData.MasterData;
+        OsmData OsmData = osmData.MasterData;
 
-        OsmDataExtract osmReserves = osmMasterData.Filter(
+        OsmData osmReserves = OsmData.Filter(
             new OrMatch(
                 new AndMatch(
                     new IsWay(),

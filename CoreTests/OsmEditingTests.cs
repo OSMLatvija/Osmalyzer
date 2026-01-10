@@ -7,6 +7,8 @@ public class OsmEditingTests
 
     // todo: specifically also
     // todo: temp ids
+    // todo: fail to modify deleted
+    // todo: mix owner data
 
     [Test]
     public void TestCreateNode()
@@ -64,5 +66,48 @@ public class OsmEditingTests
 
         Assert.That(node.State, Is.EqualTo(OsmElementState.Created));
         Assert.That(osmData.Nodes, Is.EquivalentTo([ node ]));
+    }
+    
+    [Test]
+    public void TestSetNodeTag()
+    {
+        // Arrange
+
+        OsmData osmData = new OsmData();
+        OsmNode node = osmData.CreateNewNode(new OsmCoord(1, 2));
+
+        const string tag = "amenity";
+        const string value = "cafe";
+
+        // Act
+
+        node.SetValue(tag, value);
+
+        // Assert
+
+        Assert.That(node.GetValue(tag), Is.EqualTo(value));
+        Assert.That(node.State, Is.EqualTo(OsmElementState.Modified));
+    }
+    
+    [Test]
+    public void TestSetNodeTag_Unset()
+    {
+        // Arrange
+
+        OsmData osmData = new OsmData();
+        OsmNode node = osmData.CreateNewNode(new OsmCoord(1, 2));
+
+        const string tag = "amenity";
+        const string value = "cafe";
+        node.SetValue(tag, value);
+
+        // Act
+
+        node.RemoveTag(tag);
+
+        // Assert
+
+        Assert.That(node.GetValue(tag), Is.Null);
+        Assert.That(node.State, Is.EqualTo(OsmElementState.Modified));
     }
 }

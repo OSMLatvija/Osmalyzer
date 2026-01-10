@@ -13,6 +13,7 @@ internal abstract class Command
     }
 
     
+    [MustUseReturnValue]
     internal abstract Command? Apply();
 }
 
@@ -27,6 +28,8 @@ internal class SetTagCommand : Command
     internal SetTagCommand(OsmData data, OsmElement element, string key, string? value, OsmElementState state)
         : base(data)
     {
+        if (element.Owner != Data) throw new InvalidOperationException();
+    
         Element = element;
         Key = key;
         Value = value;
@@ -84,6 +87,8 @@ internal class DeleteNodeCommand : Command
     internal DeleteNodeCommand(OsmData data, OsmNode node)
         : base(data)
     {
+        if (node.Owner != Data) throw new InvalidOperationException();
+     
         Node = node;
     }
     
@@ -116,6 +121,8 @@ internal class RestoreNodeCommand : Command
     internal RestoreNodeCommand(OsmData data, OsmNode node, OsmElementState state)
         : base(data)
     {
+        if (node.Owner != Data) throw new InvalidOperationException();
+       
         Node = node;
         State = state;
     }

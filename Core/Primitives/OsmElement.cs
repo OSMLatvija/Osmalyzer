@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Osmalyzer.Commands;
 using OsmSharp;
 using OsmSharp.Tags;
 
@@ -276,16 +277,26 @@ public abstract class OsmElement : IChunkerItem
         return s;
     }
     
-    public void SetValue(string key, string value)
+    public void SetValue(string key, string? value)
     {
-        // todo: call owner and make command
-        throw new NotImplementedException();
+        if (value == null)
+        {
+            RemoveTag(key);
+            return;
+        }
+        
+        if (State == OsmElementState.Deleted) throw new InvalidOperationException("Cannot modify tags of a deleted element.");
+        
+        SetTagCommand command = new SetTagCommand(Owner, this, key, value, OsmElementState.Modified);
+        Owner.Execute(command);
     }
 
-    public void RemoveKey(string key)
+    public void RemoveTag(string key)
     {
-        // todo: call owner and make command
-        throw new NotImplementedException();
+        if (State == OsmElementState.Deleted) throw new InvalidOperationException("Cannot modify tags of a deleted element.");
+
+        SetTagCommand command = new SetTagCommand(Owner, this, key, null, OsmElementState.Modified);
+        Owner.Execute(command);
     }
 
     public bool SetValueInternal(string key, string? value, OsmElementState newState)
@@ -297,11 +308,9 @@ public abstract class OsmElement : IChunkerItem
             if (_tags == null)
                 _tags = new Dictionary<string, string>();
 
-            if (!_tags.TryGetValue(key, out string? existingValue))
-                return false;
-
-            if (existingValue == value)
-                return false;
+            if (_tags.TryGetValue(key, out string? existingValue))
+                if (existingValue == value)
+                    return false;
 
             _tags[key] = value;
         }

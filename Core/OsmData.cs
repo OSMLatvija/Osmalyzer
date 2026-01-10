@@ -550,8 +550,8 @@ public class OsmData
         RestoreNodeCommand command = new RestoreNodeCommand(this, node, OsmElementState.Created); // todo: how do I know the state?
         Execute(command);
     }
-    
-    private void Execute(Command command)
+
+    internal void Execute(Command command)
     {
         command.Apply();
         

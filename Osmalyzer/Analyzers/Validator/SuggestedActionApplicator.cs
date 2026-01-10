@@ -66,11 +66,11 @@ public static class SuggestedActionApplicator
                     break;
                 
                 case OsmRemoveKeySuggestedAction removeKey:
-                    removeKey.Element.RemoveKey(removeKey.Key);
+                    removeKey.Element.RemoveTag(removeKey.Key);
                     break;
                 
                 case OsmChangeKeySuggestedAction changeKey:
-                    changeKey.Element.RemoveKey(changeKey.OldKey);
+                    changeKey.Element.RemoveTag(changeKey.OldKey);
                     changeKey.Element.SetValue(changeKey.NewKey, changeKey.Value);
                     break;
                 

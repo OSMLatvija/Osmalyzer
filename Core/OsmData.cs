@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Osmalyzer.Commands;
 using OsmSharp;
 using OsmSharp.Streams;
 
@@ -138,7 +139,7 @@ public class OsmData
         {
             OsmElement osmElement = Create(element);
 
-            AddElement(osmElement);
+            RegisterElement(osmElement);
         }
             
 #if BENCHMARK
@@ -230,7 +231,7 @@ public class OsmData
         CreateElements(null, null, null, null);
 
         foreach (OsmElement element in elements)
-            AddElement(element);
+            RegisterElement(element);
     }
 
 
@@ -527,9 +528,34 @@ public class OsmData
 
     public OsmNode CreateNewNode(OsmCoord coord)
     {
-        OsmNode newNode = new OsmNode(coord, this);
-        AddElement(newNode);
-        return newNode;
+        CreateNodeCommand command = new CreateNodeCommand(this, coord);
+        Execute(command);
+        return command.CreatedNode!;
+    }
+
+    public void DeleteNode(OsmNode node)
+    {
+        if (node.Owner != this) throw new InvalidOperationException("Cannot delete a node that does not belong to this data set.");
+        if (node.State == OsmElementState.Deleted) throw new InvalidOperationException("Cannot delete a node that is already deleted.");
+
+        DeleteNodeCommand command = new DeleteNodeCommand(this, node);
+        Execute(command);
+    }
+
+    public void RestoreNode(OsmNode node)
+    {
+        if (node.Owner != this) throw new InvalidOperationException("Cannot restore a node that does not belong to this data set.");
+        if (node.State != OsmElementState.Deleted) throw new InvalidOperationException("Cannot restore a node that is not deleted.");
+
+        RestoreNodeCommand command = new RestoreNodeCommand(this, node, OsmElementState.Created); // todo: how do I know the state?
+        Execute(command);
+    }
+    
+    private void Execute(Command command)
+    {
+        command.Apply();
+        
+        // todo: undo stuff
     }
 
     /// <summary>
@@ -802,7 +828,7 @@ public class OsmData
         _elementsWithTags = [ ];
     }
 
-    protected void AddElement(OsmElement newElement)
+    internal void RegisterElement(OsmElement newElement)
     {
         _elements.Add(newElement);
 
@@ -839,6 +865,46 @@ public class OsmData
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(newElement));
+        }
+    }
+
+    internal void UnregisterElement(OsmElement oldElement)
+    {
+        _elements.Remove(oldElement);
+
+        bool hasAnyTags = oldElement.HasAnyTags;
+        
+        if (hasAnyTags)
+            _elementsWithTags.Remove(oldElement);
+
+        switch (oldElement)
+        {
+            case OsmNode node:
+                _nodes.Remove(node);
+                nodesById.Remove(node.Id);
+                    
+                if (hasAnyTags)
+                    _nodesWithTags.Remove(node);
+                break;
+
+            case OsmWay way:
+                _ways.Remove(way);
+                waysById.Remove(way.Id);
+                    
+                if (hasAnyTags)
+                    _waysWithTags.Remove(way);
+                break;
+                
+            case OsmRelation relation:
+                _relations.Remove(relation);
+                relationsById.Remove(relation.Id);
+                    
+                if (hasAnyTags)
+                    _relationsWithTags.Remove(relation);
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(oldElement));
         }
     }
 

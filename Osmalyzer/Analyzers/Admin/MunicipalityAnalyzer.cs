@@ -218,8 +218,8 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtvkEntry? match) ? match.Code : null),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => dataItemMatches.TryGetValue(m, out AtvkEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID)
-            //new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:VDB", m => m.VdbEntry?.ID.ToString())
+            new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:VDB", m => m.VdbEntry?.ID.ToString())
         );
 
 #if DEBUG

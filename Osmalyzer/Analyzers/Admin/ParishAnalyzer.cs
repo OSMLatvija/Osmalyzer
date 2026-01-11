@@ -240,8 +240,8 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             new ValidateElementHasValue("border_type", "parish"), // not "civil_parish"
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtvkEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID)
-            //new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:VDB", p => p.VdbEntry?.ID.ToString())
+            new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:VDB", p => p.VdbEntry?.ID.ToString())
         );
 
 #if DEBUG

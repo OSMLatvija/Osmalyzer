@@ -278,13 +278,13 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "place", GetPlaceType),
             new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null),
-            //new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString()),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : "novada pilsēta"),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString()),
             // If admin center given, check tags on the admin center node
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", GetPlaceType),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : null)
-            //new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString())
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : "novada pilsēta"),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString())
         );
 
         string GetPlaceType(City c) => c.Status == CityStatus.StateCity ? "city" : "town"; // apparently, regional cities are place=town in Latvia atm

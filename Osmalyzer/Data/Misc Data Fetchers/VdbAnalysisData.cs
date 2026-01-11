@@ -450,7 +450,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         int count = 0;
 
         Dictionary<string, List<VdbEntry>> vdbEntriesByName = [ ];
-        foreach (VdbEntry vdbEntry in vdbEntries)
+        foreach (VdbEntry vdbEntry in vdbEntries.Where(e => e.State == VdbEntryState.Exists))
         {
             if (vdbEntriesByName.TryGetValue(vdbEntry.Name, out List<VdbEntry>? list))
                 list.Add(vdbEntry);
@@ -514,6 +514,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 if (nameMatches.Count > 0)
                 {
                     // Try matching everything except official status
+                    // (There are too many errors in VDB data where something current is marked "unofficial" whatever that even means)
 
                     List<VdbEntry> unofficialMatches = nameMatches.Where(vdb => (location1 == null || vdb.Location1 == location1) &&
                                                                                 (location2 == null || vdb.Location2 == location2)

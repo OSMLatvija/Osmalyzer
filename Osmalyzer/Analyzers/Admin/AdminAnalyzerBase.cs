@@ -145,7 +145,7 @@ public abstract class AdminAnalyzerBase<T> : Analyzer
                     report.AddEntry(
                         externalDataMatchingIssuesGroup,
                         new GenericReportEntry(
-                            poorMatch.DataItem.ReportString() + " matched a VDB entry " + poorMatch.VdbEntry.ReportString() + ", but poorly as a fallback (and might be wrong)"
+                            poorMatch.DataItem.ReportString() + " matched a VDB entry " + poorMatch.VdbEntry.ReportString() + ", but poorly as a fallback (and might be wrong) because: " + poorMatch.Reason
                         )
                     );
                     break;

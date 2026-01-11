@@ -535,7 +535,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                             if (CheckRepeatMatch(unofficialMatches[0], issues))
                                 continue;
                             
-                            issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0]));
+                            issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0], "VDB entry is marked not official"));
 
                             dataItem.VdbEntry = unofficialMatches[0];
                             count++;
@@ -560,7 +560,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                                 if (CheckRepeatMatch(swappedLocationMatches[0], issues))
                                     continue;
 
-                                issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0]));
+                                issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0], "VDB entry location values appear out of order"));
 
                                 dataItem.VdbEntry = swappedLocationMatches[0];
                                 count++;
@@ -582,7 +582,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                         if (CheckRepeatMatch(coordMatches[0], issues))
                             continue;
 
-                        issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0]));
+                        issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0], "VDB entry location is incorrect, but coordinates still match"));
 
                         dataItem.VdbEntry = coordMatches[0];
                         count++;
@@ -746,7 +746,7 @@ public record MultipleVdbMatchesVdbMatchIssue<T>(T DataItem, List<VdbEntry> VdbE
 
 public record CoordinateMismatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry, double DistanceMeters) : VdbMatchIssue;
 
-public record PoorMatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry) : VdbMatchIssue;
+public record PoorMatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry, string Reason) : VdbMatchIssue;
 
 public record AmbiguousLooseMatchVdbMatchIssue<T>(T DataItem, List<VdbEntry> VdbEntries) : VdbMatchIssue;
 

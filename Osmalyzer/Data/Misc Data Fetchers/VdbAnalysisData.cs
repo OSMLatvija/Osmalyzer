@@ -240,8 +240,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         {
             if (dupes.Value.Count == 2)
             {
-                RawVdbEntry? mainEntry = null;
-                RawVdbEntry? removedEntry = null;
+                RawVdbEntry? mainEntry;
+                RawVdbEntry? removedEntry;
                 
                 if (Known(dupes.Value[0]))
                 {
@@ -458,7 +458,12 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 vdbEntriesByName.Add(vdbEntry.Name, [ vdbEntry ]);
         }
         
-        HashSet<long> assignedVdbIds = [ ]; // to catch data issues or logic issues assigning more than once
+        // Track used IDs to catch data issues assigning more than once - strict matching should never match multiple
+        HashSet<long> strictMatchesAssigned = [ ];
+        
+        // Similarly track loose matches to avoid multi-matching, but these are permitted but reported without assigning matches
+        HashSet<long> looseAssignedVdbIds = [ ];
+        
 
         foreach (MatchStrictness matchStrictness in Enum.GetValuesAsUnderlyingType<MatchStrictness>())
         {
@@ -500,7 +505,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                         continue;
                     }
 
-                    if (!assignedVdbIds.Add(fullMatches[0].ID)) throw new Exception("VDB entry " + fullMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == fullMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                    if (!strictMatchesAssigned.Add(fullMatches[0].ID)) throw new Exception("VDB entry " + fullMatches[0].ReportString() + " was assigned strictly (well-matched) twice; assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == fullMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                     dataItem.VdbEntry = fullMatches[0];
                     count++;
                     continue;
@@ -517,7 +522,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     // (There are too many errors in VDB data where something current is marked "unofficial" whatever that even means)
 
                     List<VdbEntry> unofficialMatches = nameMatches.Where(vdb => (location1 == null || vdb.Location1 == location1) &&
-                                                                                (location2 == null || vdb.Location2 == location2)
+                                                                                (location2 == null || vdb.Location2 == location2) &&
+                                                                                !strictMatchesAssigned.Contains(vdb.ID) // not already well-matched
                     ).ToList();
 
                     if (unofficialMatches.Count == 1)
@@ -526,9 +532,11 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
                         if (distance < coordMismatchDistance)
                         {
+                            if (CheckRepeatMatch(unofficialMatches[0], issues))
+                                continue;
+                            
                             issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0]));
 
-                            if (!assignedVdbIds.Add(unofficialMatches[0].ID)) throw new Exception("VDB entry " + unofficialMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == unofficialMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                             dataItem.VdbEntry = unofficialMatches[0];
                             count++;
                             continue;
@@ -539,7 +547,9 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
                     if (location1 != null && location2 == null) // we are checking just one location
                     {
-                        List<VdbEntry> swappedLocationMatches = nameMatches.Where(vdb => vdb.Location2 == location1).ToList();
+                        List<VdbEntry> swappedLocationMatches = nameMatches.Where(vdb => vdb.Location2 == location1 &&
+                                                                                         !strictMatchesAssigned.Contains(vdb.ID) // not already well-matched
+                        ).ToList();
 
                         if (swappedLocationMatches.Count == 1)
                         {
@@ -547,9 +557,11 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
                             if (distance < coordMatchDistance) // strict distance since at least partly ignored location
                             {
+                                if (CheckRepeatMatch(swappedLocationMatches[0], issues))
+                                    continue;
+
                                 issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0]));
 
-                                if (!assignedVdbIds.Add(swappedLocationMatches[0].ID)) throw new Exception("VDB entry " + swappedLocationMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == swappedLocationMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                                 dataItem.VdbEntry = swappedLocationMatches[0];
                                 count++;
                                 continue;
@@ -561,14 +573,17 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
                     List<VdbEntry> coordMatches = nameMatches.Where(vdb =>
                                                                         vdb.Official &&
+                                                                        !strictMatchesAssigned.Contains(vdb.ID) && // not already well-matched
                                                                         OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, vdb.Coord) < coordMatchDistance // strict distance since we ignored location
                     ).ToList();
 
                     if (coordMatches.Count == 1)
                     {
+                        if (CheckRepeatMatch(coordMatches[0], issues))
+                            continue;
+
                         issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0]));
 
-                        if (!assignedVdbIds.Add(coordMatches[0].ID)) throw new Exception("VDB entry " + coordMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == coordMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                         dataItem.VdbEntry = coordMatches[0];
                         count++;
                         continue;
@@ -577,12 +592,37 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
 
                 // Didn't match to any fallback
                 // todo: report unmatched?
+                continue;
+                
+                
+                bool CheckRepeatMatch(VdbEntry currentMatch, List<VdbMatchIssue> issues)
+                {
+                    if (!looseAssignedVdbIds.Add(currentMatch.ID))
+                    {
+                        T existingItem = dataItems.FirstOrDefault(di => di.VdbEntry != null && di.VdbEntry.ID == currentMatch.ID)!;
+                        AmbiguousLooseMatchVdbMatchIssue<T> existingIssue = issues.OfType<AmbiguousLooseMatchVdbMatchIssue<T>>().FirstOrDefault(i => i.DataItem == existingItem)!;
+                        if (existingIssue != null) // already reported as ambiguous, add this entry to it too
+                        {
+                            existingIssue.VdbEntries.Add(currentMatch);
+                            dataItem.VdbEntry = null; // clear previous match
+                            count--;
+                        }
+                        else // first time reporting as ambiguous
+                        {
+                            issues.Add(new AmbiguousLooseMatchVdbMatchIssue<T>(dataItem, [ currentMatch ]));
+                        }
+                        return true;
+                    }
+
+                    return false;
+                }
             }
         }
 
         if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");
     }
 
+    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
     private enum MatchStrictness
     {
         Strict,
@@ -707,6 +747,8 @@ public record MultipleVdbMatchesVdbMatchIssue<T>(T DataItem, List<VdbEntry> VdbE
 public record CoordinateMismatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry, double DistanceMeters) : VdbMatchIssue;
 
 public record PoorMatchVdbMatchIssue<T>(T DataItem, VdbEntry VdbEntry) : VdbMatchIssue;
+
+public record AmbiguousLooseMatchVdbMatchIssue<T>(T DataItem, List<VdbEntry> VdbEntries) : VdbMatchIssue;
 
 
 public class VdbEntry : IDataItem

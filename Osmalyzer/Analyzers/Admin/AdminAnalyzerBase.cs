@@ -149,6 +149,15 @@ public abstract class AdminAnalyzerBase<T> : Analyzer
                         )
                     );
                     break;
+                
+                case AmbiguousLooseMatchVdbMatchIssue<T> ambiguousLooseMatch:
+                    report.AddEntry(
+                        externalDataMatchingIssuesGroup,
+                        new GenericReportEntry(
+                            ambiguousLooseMatch.DataItem.ReportString() + " loosely-matched multiple VDB entries, so cannot pick best among " + string.Join("; ", ambiguousLooseMatch.VdbEntries.Select(vdb => vdb.ReportString()))
+                        )
+                    );
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(vdbMatchIssue));

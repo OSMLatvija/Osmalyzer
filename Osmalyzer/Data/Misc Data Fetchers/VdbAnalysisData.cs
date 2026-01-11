@@ -457,6 +457,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 vdbEntriesByName.Add(vdbEntry.Name, [ vdbEntry ]);
         }
         
+        HashSet<long> assignedVdbIds = [ ]; // to catch data issues or logic issues assigning more than once
+        
         foreach (T dataItem in dataItems)
         {
             string name = nameGetter(dataItem);
@@ -492,6 +494,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     continue;
                 }
 
+                if (!assignedVdbIds.Add(fullMatches[0].ID)) throw new Exception("VDB entry ID " + fullMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == fullMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                 dataItem.VdbEntry = fullMatches[0];
                 count++;
                 continue;
@@ -513,7 +516,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     {
                         issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0]));
 
-                        dataItem.VdbEntry = unofficialMatches[0];
+                        if (!assignedVdbIds.Add(unofficialMatches[0].ID)) throw new Exception("VDB entry ID " + unofficialMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == unofficialMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                            dataItem.VdbEntry = unofficialMatches[0];
                         count++;
                         continue;
                     }
@@ -533,7 +537,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                         {
                             issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0]));
 
-                            dataItem.VdbEntry = swappedLocationMatches[0];
+                            if (!assignedVdbIds.Add(swappedLocationMatches[0].ID)) throw new Exception("VDB entry ID " + swappedLocationMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == swappedLocationMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                                dataItem.VdbEntry = swappedLocationMatches[0];
                             count++;
                             continue;
                         }
@@ -550,6 +555,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 if (coordMatches.Count == 1)
                 {
                     issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0]));
+                    
+                    if (!assignedVdbIds.Add(coordMatches[0].ID)) throw new Exception("VDB entry ID " + coordMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == coordMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                     dataItem.VdbEntry = coordMatches[0];
                     count++;
                     continue;

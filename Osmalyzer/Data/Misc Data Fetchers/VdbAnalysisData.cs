@@ -459,118 +459,135 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         }
         
         HashSet<long> assignedVdbIds = [ ]; // to catch data issues or logic issues assigning more than once
-        
-        foreach (T dataItem in dataItems)
+
+        foreach (MatchStrictness matchStrictness in Enum.GetValuesAsUnderlyingType<MatchStrictness>())
         {
-            string name = nameGetter(dataItem);
-            string? location1 = location1Getter?.Invoke(dataItem);
-            string? location2 = location2Getter?.Invoke(dataItem);
-
-            if (!vdbEntriesByName.TryGetValue(name, out List<VdbEntry>? nameMatches))
+            foreach (T dataItem in dataItems)
             {
-                // todo: report unmatched?
-                continue;
-            }
+                if (dataItem.VdbEntry != null) 
+                    continue; // already matched
+                
+                string name = nameGetter(dataItem);
+                string? location1 = location1Getter?.Invoke(dataItem);
+                string? location2 = location2Getter?.Invoke(dataItem);
 
-            // Try matching fully - what we ideally expect
-            
-            List<VdbEntry> fullMatches = nameMatches.Where(vdb => vdb.Official &&
-                                                              (location1 == null || vdb.Location1 == location1) &&
-                                                              (location2 == null || vdb.Location2 == location2)
-                                                ).ToList();
-            
-            if (fullMatches.Count > 1)
-            {
-                issues.Add(new MultipleVdbMatchesVdbMatchIssue<T>(dataItem, fullMatches));
-                continue;
-            }
-
-            if (fullMatches.Count == 1)
-            {
-                double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, fullMatches[0].Coord);
-
-                if (distance > coordMismatchDistance)
+                if (!vdbEntriesByName.TryGetValue(name, out List<VdbEntry>? nameMatches))
                 {
-                    issues.Add(new CoordinateMismatchVdbMatchIssue<T>(dataItem, fullMatches[0], distance));
+                    // todo: report unmatched?
                     continue;
                 }
 
-                if (!assignedVdbIds.Add(fullMatches[0].ID)) throw new Exception("VDB entry " + fullMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == fullMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
-                dataItem.VdbEntry = fullMatches[0];
-                count++;
-                continue;
-            }
+                // Try matching fully - what we ideally expect
 
-            if (nameMatches.Count > 0)
-            {
-                // Try matching everything except official status
-                
-                List<VdbEntry> unofficialMatches = nameMatches.Where(vdb => (location1 == null || vdb.Location1 == location1) &&
-                                                                            (location2 == null || vdb.Location2 == location2)
+                List<VdbEntry> fullMatches = nameMatches.Where(vdb => vdb.Official &&
+                                                                      (location1 == null || vdb.Location1 == location1) &&
+                                                                      (location2 == null || vdb.Location2 == location2)
                 ).ToList();
 
-                if (unofficialMatches.Count == 1)
+                if (fullMatches.Count > 1)
                 {
-                    double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, unofficialMatches[0].Coord);
+                    issues.Add(new MultipleVdbMatchesVdbMatchIssue<T>(dataItem, fullMatches));
+                    continue;
+                }
 
-                    if (distance < coordMismatchDistance)
+                if (fullMatches.Count == 1)
+                {
+                    double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, fullMatches[0].Coord);
+
+                    if (distance > coordMismatchDistance)
                     {
-                        issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0]));
-
-                        if (!assignedVdbIds.Add(unofficialMatches[0].ID)) throw new Exception("VDB entry " + unofficialMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == unofficialMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
-                            dataItem.VdbEntry = unofficialMatches[0];
-                        count++;
+                        issues.Add(new CoordinateMismatchVdbMatchIssue<T>(dataItem, fullMatches[0], distance));
                         continue;
                     }
+
+                    if (!assignedVdbIds.Add(fullMatches[0].ID)) throw new Exception("VDB entry " + fullMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == fullMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                    dataItem.VdbEntry = fullMatches[0];
+                    count++;
+                    continue;
                 }
+
+                if (matchStrictness == MatchStrictness.Strict)
+                    continue; // only trying strict matching in this pass
                 
-                // Try matching with location set in wrong value, i.e. expecting in 1 but it's in 2 and 1 is something even more specific like city instead of municipality for a parish
-
-                if (location1 != null && location2 == null) // we are checking just one location
+                // Try looser fallback matching
+                
+                if (nameMatches.Count > 0)
                 {
-                    List<VdbEntry> swappedLocationMatches = nameMatches.Where(vdb => vdb.Location2 == location1).ToList();
-                    
-                    if (swappedLocationMatches.Count == 1)
+                    // Try matching everything except official status
+
+                    List<VdbEntry> unofficialMatches = nameMatches.Where(vdb => (location1 == null || vdb.Location1 == location1) &&
+                                                                                (location2 == null || vdb.Location2 == location2)
+                    ).ToList();
+
+                    if (unofficialMatches.Count == 1)
                     {
-                        double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, swappedLocationMatches[0].Coord);
+                        double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, unofficialMatches[0].Coord);
 
-                        if (distance < coordMatchDistance) // strict distance since at least partly ignored location
+                        if (distance < coordMismatchDistance)
                         {
-                            issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0]));
+                            issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0]));
 
-                            if (!assignedVdbIds.Add(swappedLocationMatches[0].ID)) throw new Exception("VDB entry " + swappedLocationMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == swappedLocationMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
-                                dataItem.VdbEntry = swappedLocationMatches[0];
+                            if (!assignedVdbIds.Add(unofficialMatches[0].ID)) throw new Exception("VDB entry " + unofficialMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == unofficialMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                            dataItem.VdbEntry = unofficialMatches[0];
                             count++;
                             continue;
                         }
                     }
+
+                    // Try matching with location set in wrong value, i.e. expecting in 1 but it's in 2 and 1 is something even more specific like city instead of municipality for a parish
+
+                    if (location1 != null && location2 == null) // we are checking just one location
+                    {
+                        List<VdbEntry> swappedLocationMatches = nameMatches.Where(vdb => vdb.Location2 == location1).ToList();
+
+                        if (swappedLocationMatches.Count == 1)
+                        {
+                            double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, swappedLocationMatches[0].Coord);
+
+                            if (distance < coordMatchDistance) // strict distance since at least partly ignored location
+                            {
+                                issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0]));
+
+                                if (!assignedVdbIds.Add(swappedLocationMatches[0].ID)) throw new Exception("VDB entry " + swappedLocationMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == swappedLocationMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                                dataItem.VdbEntry = swappedLocationMatches[0];
+                                count++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    // Try matching by coordinates without location (assume entry location is wrong)
+
+                    List<VdbEntry> coordMatches = nameMatches.Where(vdb =>
+                                                                        vdb.Official &&
+                                                                        OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, vdb.Coord) < coordMatchDistance // strict distance since we ignored location
+                    ).ToList();
+
+                    if (coordMatches.Count == 1)
+                    {
+                        issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0]));
+
+                        if (!assignedVdbIds.Add(coordMatches[0].ID)) throw new Exception("VDB entry " + coordMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == coordMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                        dataItem.VdbEntry = coordMatches[0];
+                        count++;
+                        continue;
+                    }
                 }
 
-                // Try matching by coordinates without location (assume entry location is wrong)
-                
-                List<VdbEntry> coordMatches = nameMatches.Where(vdb => 
-                                                                    vdb.Official &&
-                                                                    OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, vdb.Coord) < coordMatchDistance // strict distance since we ignored location
-                                                                    ).ToList();
-
-                if (coordMatches.Count == 1)
-                {
-                    issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0]));
-                    
-                    if (!assignedVdbIds.Add(coordMatches[0].ID)) throw new Exception("VDB entry " + coordMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == coordMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
-                    dataItem.VdbEntry = coordMatches[0];
-                    count++;
-                    continue;
-                }
+                // Didn't match to any fallback
+                // todo: report unmatched?
             }
-            
-            // Didn't match to any fallback
-            // todo: report unmatched?
         }
-        
+
         if (count == 0) throw new Exception("No VDB entries were matched, which is unexpected and likely means data or logic is broken.");
     }
 
+    private enum MatchStrictness
+    {
+        Strict,
+        Loose
+    }
+    
 
     /// <summary>
     /// Parses alternative names with qualifiers in round () or square [] brackets

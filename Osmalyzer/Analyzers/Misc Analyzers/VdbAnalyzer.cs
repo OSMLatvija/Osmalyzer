@@ -5,6 +5,8 @@ namespace Osmalyzer;
 [UsedImplicitly]
 public class VdbAnalyzer : Analyzer
 {
+    // todo: similar names with similar coords, like Rejeņi
+    
     public override string Name => "VDB Place Names Statistics";
 
     public override string Description => "This report shows statistics for the VDB (Vietvārdu datubāze) place names data.";

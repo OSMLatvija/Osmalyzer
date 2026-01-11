@@ -122,6 +122,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             null,
             null,
             30000,
+            2000,
             out List<VdbMatchIssue> vdbMatchIssues
         );
         

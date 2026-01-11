@@ -106,6 +106,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             i => i.MunicipalityName,
             null,
             50000,
+            5000,
             out List<VdbMatchIssue> vdbMatchIssues
         );
 

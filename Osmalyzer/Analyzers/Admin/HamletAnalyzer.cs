@@ -64,6 +64,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             i => i.ParishName,
             i => i.MunicipalityName,
             10000,
+            1000,
             out List<VdbMatchIssue> vdbMatchIssues
         );
         

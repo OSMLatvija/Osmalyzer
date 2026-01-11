@@ -81,6 +81,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             null,
             null,
             75000,
+            5000,
             out List<VdbMatchIssue> vdbMatchIssues
         );
 

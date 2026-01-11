@@ -441,6 +441,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         Func<T, string?>? location1Getter,
         Func<T, string?>? location2Getter,
         double coordMismatchDistance,
+        double coordMatchDistance,
         out List<VdbMatchIssue> issues)
         where T : class, IDataItem, IHasVdbEntry
     {
@@ -494,7 +495,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     continue;
                 }
 
-                if (!assignedVdbIds.Add(fullMatches[0].ID)) throw new Exception("VDB entry ID " + fullMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == fullMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                if (!assignedVdbIds.Add(fullMatches[0].ID)) throw new Exception("VDB entry " + fullMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == fullMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                 dataItem.VdbEntry = fullMatches[0];
                 count++;
                 continue;
@@ -516,7 +517,7 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     {
                         issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, unofficialMatches[0]));
 
-                        if (!assignedVdbIds.Add(unofficialMatches[0].ID)) throw new Exception("VDB entry ID " + unofficialMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == unofficialMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                        if (!assignedVdbIds.Add(unofficialMatches[0].ID)) throw new Exception("VDB entry " + unofficialMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == unofficialMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                             dataItem.VdbEntry = unofficialMatches[0];
                         count++;
                         continue;
@@ -533,11 +534,11 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                     {
                         double distance = OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, swappedLocationMatches[0].Coord);
 
-                        if (distance < coordMismatchDistance)
+                        if (distance < coordMatchDistance) // strict distance since at least partly ignored location
                         {
                             issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, swappedLocationMatches[0]));
 
-                            if (!assignedVdbIds.Add(swappedLocationMatches[0].ID)) throw new Exception("VDB entry ID " + swappedLocationMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == swappedLocationMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                            if (!assignedVdbIds.Add(swappedLocationMatches[0].ID)) throw new Exception("VDB entry " + swappedLocationMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == swappedLocationMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                                 dataItem.VdbEntry = swappedLocationMatches[0];
                             count++;
                             continue;
@@ -549,14 +550,14 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
                 
                 List<VdbEntry> coordMatches = nameMatches.Where(vdb => 
                                                                     vdb.Official &&
-                                                                    OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, vdb.Coord) < coordMismatchDistance
+                                                                    OsmGeoTools.DistanceBetweenCheap(dataItem.Coord, vdb.Coord) < coordMatchDistance // strict distance since we ignored location
                                                                     ).ToList();
 
                 if (coordMatches.Count == 1)
                 {
                     issues.Add(new PoorMatchVdbMatchIssue<T>(dataItem, coordMatches[0]));
                     
-                    if (!assignedVdbIds.Add(coordMatches[0].ID)) throw new Exception("VDB entry ID " + coordMatches[0].ID + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == coordMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
+                    if (!assignedVdbIds.Add(coordMatches[0].ID)) throw new Exception("VDB entry " + coordMatches[0].ReportString() + " was assigned multiple times, which is unexpected. Assigned already to " + dataItems.First(di => di.VdbEntry != null && di.VdbEntry.ID == coordMatches[0].ID).ReportString() + ", but proposed for " + dataItem.ReportString());
                     dataItem.VdbEntry = coordMatches[0];
                     count++;
                     continue;

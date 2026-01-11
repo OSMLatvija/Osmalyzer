@@ -90,6 +90,7 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
             i => i.ParishName,
             i => i.MunicipalityName,
             10000,
+            1000,
             out List<VdbMatchIssue> vdbMatchIssues
         );
         

@@ -69,7 +69,7 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
 
         Console.WriteLine("OSM admin centers identified (" + stopwatch.ElapsedMilliseconds + " ms)");
         
-        // Get extra related data
+        // Get all data sources
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 

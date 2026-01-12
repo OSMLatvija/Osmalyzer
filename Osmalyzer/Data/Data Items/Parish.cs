@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Parish : IDataItem, IHasWikidataItem, IHasVdbEntry
+public class Parish : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulationEntry
 {
     public bool Valid { get; }
     
@@ -21,6 +21,8 @@ public class Parish : IDataItem, IHasWikidataItem, IHasVdbEntry
     public WikidataItem? WikidataItem { get; set; }
 
     public VdbEntry? VdbEntry { get; set; }
+
+    public CspPopulationEntry? CspPopulationEntry { get; set; }
 
 
     public Parish(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string municipalityName, OsmMultiPolygon? boundary)

@@ -185,6 +185,39 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
         }
     }
 
+    
+    public void AssignToDataItems<T>(
+        List<T> items, 
+        CspAreaType type,
+        Func<T, string> nameLookup,
+        Func<T, string?> disambiguatorLookup)
+        where T : class, IDataItem, IHasCspPopulationEntry
+    {
+        int assigned = 0;
+        
+        foreach (T item in items)
+        {
+            string itemName = nameLookup(item);
+            string? itemDisambiguator = disambiguatorLookup(item);
+
+            List<CspPopulationEntry> matchedEntries = Entries.Where(entry => entry.Type == type &&
+                                                                             entry.Name == itemName &&
+                                                                             (entry.Municipality == itemDisambiguator || entry.Municipality == null)
+            ).ToList();
+
+            if (matchedEntries.Count == 0)
+                continue;
+            
+            if (matchedEntries.Count > 1) throw new Exception("Multiple CSP population entries found for item: " + item.ReportString());
+            
+            item.CspPopulationEntry = matchedEntries[0];
+            assigned++;
+        }
+        
+        if (assigned == 0)
+            throw new Exception("No CSP population entries were assigned for type " + type);
+    }
+
 
     /// <summary>
     /// PxWeb API metadata response structure
@@ -290,4 +323,10 @@ public enum CspAreaType
     Parish,
     City,
     Unlocated
+}
+
+
+public interface IHasCspPopulationEntry
+{
+    CspPopulationEntry? CspPopulationEntry { get; set; }
 }

@@ -43,7 +43,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         
         Console.WriteLine("OSM data filtered (" + stopwatch.ElapsedMilliseconds + " ms)");
 
-        // Get hamlet data
+        // Get all data sources
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 

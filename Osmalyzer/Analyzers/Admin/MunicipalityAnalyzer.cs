@@ -17,7 +17,8 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         typeof(AtvkAnalysisData),
         typeof(MunicipalitiesWikidataData),
         typeof(StateCitiesAnalysisData),
-        typeof(VdbAnalysisData)
+        typeof(VdbAnalysisData),
+        typeof(CspPopulationAnalysisData)
     ];
         
 
@@ -36,7 +37,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
         );
 
-        // Get municipality data
+        // Get all data sources
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
@@ -48,6 +49,8 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         StateCitiesAnalysisData stateCitiesData = datas.OfType<StateCitiesAnalysisData>().First();
         
         VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
+        CspPopulationAnalysisData cspData = datas.OfType<CspPopulationAnalysisData>().First();
         
         // Match VZD and ATVK data items
 
@@ -83,6 +86,15 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             75000,
             5000,
             out List<VdbMatchIssue> vdbMatchIssues
+        );
+        
+        // Assign CSP population data
+        
+        cspData.AssignToDataItems(
+            addressData.Municipalities,
+            CspAreaType.Municipality,
+            i => i.Name,
+            _ => null // none should need it
         );
 
         // Prepare data comparer/correlator

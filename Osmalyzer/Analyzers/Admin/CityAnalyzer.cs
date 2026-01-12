@@ -17,7 +17,8 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         typeof(AtvkAnalysisData),
         typeof(CitiesWikidataData),
         typeof(StateCitiesAnalysisData),
-        typeof(VdbAnalysisData)
+        typeof(VdbAnalysisData),
+        typeof(CspPopulationAnalysisData)
     ];
 
     
@@ -64,7 +65,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             }
         }
 
-        // Get city data
+        // Get all data sources
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
@@ -76,6 +77,8 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         StateCitiesAnalysisData stateCitiesData = datas.OfType<StateCitiesAnalysisData>().First();
         
         VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
+        CspPopulationAnalysisData cspData = datas.OfType<CspPopulationAnalysisData>().First();
         
         // Match VZD and ATVK data items
 
@@ -124,6 +127,15 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             30000,
             2000,
             out List<VdbMatchIssue> vdbMatchIssues
+        );
+        
+        // Assign CSP population data
+        
+        cspData.AssignToDataItems(
+            addressData.Cities,
+            CspAreaType.City,
+            i => i.Name,
+            _ => null // none should need it
         );
         
         // Prepare data comparer/correlator

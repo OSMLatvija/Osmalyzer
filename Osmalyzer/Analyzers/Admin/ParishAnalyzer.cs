@@ -19,7 +19,8 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         typeof(AtvkAnalysisData),
         typeof(ParishesWikidataData),
         typeof(MunicipalitiesWikidataData),
-        typeof(VdbAnalysisData)
+        typeof(VdbAnalysisData),
+        typeof(CspPopulationAnalysisData)
     ];
         
 
@@ -41,7 +42,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             )
         );
 
-        // Get parish data
+        // Get all data sources
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
@@ -53,6 +54,8 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         MunicipalitiesWikidataData municipalitiesWikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
         
         VdbAnalysisData vdbData = datas.OfType<VdbAnalysisData>().First();
+        
+        CspPopulationAnalysisData cspData = datas.OfType<CspPopulationAnalysisData>().First();
         
         // Match VZD and ATVK data items
 
@@ -108,6 +111,15 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             50000,
             5000,
             out List<VdbMatchIssue> vdbMatchIssues
+        );
+        
+        // Assign CSP population data
+        
+        cspData.AssignToDataItems(
+            addressData.Cities,
+            CspAreaType.Parish,
+            i => i.Name,
+            i => i.MunicipalityName // a couple of ambiguous ones need it
         );
 
         // Prepare data comparer/correlator

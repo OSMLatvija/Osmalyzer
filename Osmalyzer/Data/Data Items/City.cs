@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class City : IDataItem, IHasWikidataItem, IHasVdbEntry
+public class City : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulationEntry
 {
     public bool Valid { get; }
     
@@ -28,6 +28,8 @@ public class City : IDataItem, IHasWikidataItem, IHasVdbEntry
     
     public bool? IsLAUDivision { get; set; }
 
+    public CspPopulationEntry? CspPopulationEntry { get; set; }
+    
 
     public City(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string? municipalityName, OsmMultiPolygon? boundary)
     {

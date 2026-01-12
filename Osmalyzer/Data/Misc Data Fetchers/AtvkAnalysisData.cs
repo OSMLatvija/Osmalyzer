@@ -25,7 +25,7 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
             true
         );
 
-        Match urlMatch = Regex.Match(result, @"href=""(https://data\.gov\.lv/dati/lv/dataset/[^/]*/resource/[^/]*/download/atu_nuts_codes\.csv)""");
+        Match urlMatch = Regex.Match(result, @"href=""(https://data\.gov\.lv/dati/dataset/[^/]*/resource/[^/]*/download/atu_nuts_codes\.csv)""");
 
         if (!urlMatch.Success) throw new Exception("Could not find the download URL for ATVK (ATU NUTS) codes CSV file.");
 

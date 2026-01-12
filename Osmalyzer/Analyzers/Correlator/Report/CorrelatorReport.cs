@@ -10,8 +10,8 @@ public class CorrelatorReport
         Correlations = correlations;
     }
 
-    public CorrelatorReport(params CorrelatorReport[] kioskReport)
+    public CorrelatorReport(params CorrelatorReport[] report)
     {
-        Correlations = kioskReport.SelectMany(report => report.Correlations).ToList();
+        Correlations = report.SelectMany(r => r.Correlations).ToList();
     }
 }

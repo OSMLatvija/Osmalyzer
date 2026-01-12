@@ -90,6 +90,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             addressData.Municipalities,
             CspAreaType.Municipality,
             i => i.Name,
+            _ => null, // not doing lookups by code
             _ => null // none should need it
         );
 
@@ -229,7 +230,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => m.AtvkEntry?.Code),
             new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:VDB", m => m.VdbEntry?.ID.ToString()),
-            new ValidateElementValueMatchesDataItemValue<Municipality>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<Municipality>(e => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
             new ValidateElementValueMatchesDataItemValue<Municipality>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source)
         );
 

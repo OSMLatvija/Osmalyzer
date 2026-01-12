@@ -99,11 +99,11 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
 
             AtvkDesignation designation = validityEnd == null ? atvkLevel switch
             {
-                AtvkLevel.Country                 => AtvkDesignation.Country,
-                AtvkLevel.Region                  => AtvkDesignation.Region,
+                AtvkLevel.Country            => AtvkDesignation.Country,
+                AtvkLevel.Region             => AtvkDesignation.Region,
                 AtvkLevel.CityOrMunicipality => name.EndsWith(" novads") ? AtvkDesignation.Municipality : AtvkDesignation.CityInRegion,
-                AtvkLevel.CityOrParish            => name.EndsWith(" pagasts") ? AtvkDesignation.Parish : AtvkDesignation.CityInMunicipality,
-                _                                 => throw new Exception()
+                AtvkLevel.CityOrParish       => name.EndsWith(" pagasts") ? AtvkDesignation.Parish : AtvkDesignation.CityInMunicipality,
+                _                            => throw new Exception()
             } : AtvkDesignation.Expired;
 
             AtvkEntry entry = new AtvkEntry(

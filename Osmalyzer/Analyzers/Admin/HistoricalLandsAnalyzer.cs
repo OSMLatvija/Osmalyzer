@@ -36,7 +36,7 @@ public class HistoricalLandsAnalyzer : Analyzer
 
         // Prepare data comparer/correlator
 
-        Correlator<HistoricalLand> historicalLandCorrelator = new Correlator<HistoricalLand>(
+        Correlator<HistoricalLand> correlator = new Correlator<HistoricalLand>(
             osmHistoricalLands,
             historicalLandsData.HistoricalLands,
             new MatchDistanceParamater(25000),
@@ -78,7 +78,7 @@ public class HistoricalLandsAnalyzer : Analyzer
 
         // Parse and report primary matching and location correlation
 
-        historicalLandCorrelator.Parse(
+        correlator.Parse(
             report, 
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),

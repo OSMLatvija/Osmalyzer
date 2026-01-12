@@ -136,6 +136,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             addressData.Cities,
             CspAreaType.City,
             i => i.Name,
+            _ => null, // not doing lookups by code
             _ => null // none should need it
         );
         
@@ -295,7 +296,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : "novada pilsēta"),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString()),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source),
             // If admin center given, check tags on the admin center node
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", GetPlaceType),

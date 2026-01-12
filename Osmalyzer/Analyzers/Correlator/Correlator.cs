@@ -49,6 +49,7 @@ public class Correlator<T> where T : IDataItem
 
         // Gather (optional) parameters (or set defaults)
             
+        bool matchAnywhere = _paramaters.OfType<MatchAnywhereParamater>().Any();
         double matchDistance = _paramaters.OfType<MatchDistanceParamater>().FirstOrDefault()?.Distance ?? 15;
         double unmatchDistance = _paramaters.OfType<MatchFarDistanceParamater>().FirstOrDefault()?.FarDistance ?? 75;
         if (unmatchDistance < matchDistance) throw new InvalidOperationException();
@@ -120,28 +121,37 @@ public class Correlator<T> where T : IDataItem
             
             // But keep track of items we have to re-match next loop
             itemsToBeMatched.Clear();
-            
+
             foreach (T dataItem in currentlyMatching)
             {
-                List<OsmElement> allClosestOsmElements = _osmElements.GetClosestElementsTo(dataItem.Coord, seekDistance);
+                IReadOnlyList<OsmElement> inRangeElements =
+                    matchAnywhere ?
+                        _osmElements.Elements :
+                        _osmElements.GetClosestElementsTo(dataItem.Coord, seekDistance);
 
-                List<(OsmElement element, MatchStrength strength, double distance)> matchableOsmElements = new List<(OsmElement element, MatchStrength strength, double distance)>();
+                List<(OsmElement element, MatchStrength strength, double distance)> matchableOsmElements = [ ];
 
-                foreach (OsmElement osmElement in allClosestOsmElements)
+                foreach (OsmElement osmElement in inRangeElements)
                 {
-                    MatchStrength strength = 
-                        matchCallback != null ? 
-                            matchCallback(dataItem, osmElement) : 
+                    MatchStrength strength =
+                        matchCallback != null ?
+                            matchCallback(dataItem, osmElement) :
                             MatchStrength.Regular;
 
                     if (strength == MatchStrength.Unmatched)
                         continue;
-                    
+
+                    if (matchAnywhere)
+                    {
+                        matchableOsmElements.Add((osmElement, strength, 0));
+                        continue; // distance doesn't matter
+                    }
+
                     double allowedDistance = strength switch
                     {
-                        MatchStrength.Regular     => unmatchDistance,
-                        MatchStrength.Good => unmatchDistance + mediocreMatchExtraDistance,
-                        MatchStrength.Strong   => unmatchDistance + strongMatchExtraDistance,
+                        MatchStrength.Regular => unmatchDistance,
+                        MatchStrength.Good    => unmatchDistance + mediocreMatchExtraDistance,
+                        MatchStrength.Strong  => unmatchDistance + strongMatchExtraDistance,
 
                         _ => throw new ArgumentOutOfRangeException()
                     };
@@ -151,7 +161,7 @@ public class Correlator<T> where T : IDataItem
                     if (actualDistance <= allowedDistance)
                         matchableOsmElements.Add((osmElement, strength, actualDistance));
                 }
-                
+
                 if (matchableOsmElements.Count == 0)
                 {
                     // Nothing in range, so purely unmatchable
@@ -159,41 +169,57 @@ public class Correlator<T> where T : IDataItem
                 }
                 else
                 {
-                    bool matched = false;
-                    
-                    foreach ((OsmElement closeElement, MatchStrength strength, double distance) in matchableOsmElements) // this is sorted closest first
+                    if (matchAnywhere)
                     {
-                        bool far = distance > matchDistance;
-                        // Even with extra distance, it's still far, so reporting it that way
+                        (OsmElement element, MatchStrength strength, double distance) element = matchableOsmElements[0];
+                        // If there's more than one, we have no way to disambiguate, so just take the first one
+
+                        allMatchedElements.Add(element.element, new Match(dataItem, element.element, element.distance, element.strength, false));
                         
-                        if (allMatchedElements.TryGetValue(closeElement, out Match? previous))
+                        for (int i = 1; i < matchableOsmElements.Count; i++)
                         {
-                            if (strength > previous.MatchStrength || // stronger match always better, if if it's further away
-                                (strength == previous.MatchStrength && distance < previous.Distance)) // same-strength match only better if it's closer
+                            // Requeue other items for matching (they will end up as lone elements most likely)
+                            itemsToBeMatched.Add(dataItem);
+                        }
+                    }
+                    else
+                    {
+                        bool matched = false;
+
+                        foreach ((OsmElement closeElement, MatchStrength strength, double distance) in matchableOsmElements) // this is sorted closest first
+                        {
+                            bool far = distance > matchDistance;
+                            // Even with extra distance, it's still far, so reporting it that way
+
+                            if (allMatchedElements.TryGetValue(closeElement, out Match? previous))
                             {
-                                // We are closer than previous match, so replace us as the best match and requeue the other item
-                                
-                                allMatchedElements.Remove(closeElement);
+                                if (strength > previous.MatchStrength || // stronger match always better, if if it's further away
+                                    (strength == previous.MatchStrength && distance < previous.Distance)) // same-strength match only better if it's closer
+                                {
+                                    // We are closer than previous match, so replace us as the best match and requeue the other item
+
+                                    allMatchedElements.Remove(closeElement);
+                                    allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far));
+                                    itemsToBeMatched.Add(previous.Item); // requeue other
+                                    matched = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                // This element wasn't yet matched, so claim it as our best match 
+
                                 allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far));
-                                itemsToBeMatched.Add(previous.Item); // requeue other
                                 matched = true;
                                 break;
                             }
                         }
-                        else
-                        {
-                            // This element wasn't yet matched, so claim it as our best match 
-                            
-                            allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far));
-                            matched = true;
-                            break;
-                        }
-                    }
 
-                    if (!matched) // all options were worse
-                    {
-                        // Couldn't use any of the elements
-                        unmatchableItems.Add(dataItem);
+                        if (!matched) // all options were worse
+                        {
+                            // Couldn't use any of the elements
+                            unmatchableItems.Add(dataItem);
+                        }
                     }
                 }
             }
@@ -217,48 +243,55 @@ public class Correlator<T> where T : IDataItem
 
             if (allowedByItself)
             {
-                // First, try to upgrade a lone element to a matched pair if it strongly matches any previously-unmatchable item
-                
-                bool upgradedToPair = false;
-                if (loneStrongMatchParamater != null && matchCallback != null && unmatchableItems.Count > 0)
+                if (!matchAnywhere)
                 {
-                    MatchStrength requiredStrength = loneStrongMatchParamater.Strength;
+                    // First, try to upgrade a lone element to a matched pair if it strongly matches any previously-unmatchable item
 
-                    T? bestItem = default;
-                    MatchStrength bestStrength = MatchStrength.Unmatched;
-                    double bestDistance = double.MaxValue;
-
-                    foreach (T candidate in unmatchableItems)
+                    bool upgradedToPair = false;
+                    if (loneStrongMatchParamater != null && matchCallback != null && unmatchableItems.Count > 0)
                     {
-                        MatchStrength strength = matchCallback(candidate, osmElement);
-                        if (strength == MatchStrength.Unmatched)
-                            continue;
+                        MatchStrength requiredStrength = loneStrongMatchParamater.Strength;
 
-                        if (strength < requiredStrength)
-                            continue;
+                        T? bestItem = default;
+                        MatchStrength bestStrength = MatchStrength.Unmatched;
+                        double bestDistance = double.MaxValue;
 
-                        double distance = OsmGeoTools.DistanceBetween(candidate.Coord, osmElement.AverageCoord);
-
-                        if (strength > bestStrength || 
-                            (strength == bestStrength && distance < bestDistance))
+                        foreach (T candidate in unmatchableItems)
                         {
-                            bestItem = candidate;
-                            bestStrength = strength;
-                            bestDistance = distance;
+                            MatchStrength strength = matchCallback(candidate, osmElement);
+                            if (strength == MatchStrength.Unmatched)
+                                continue;
+
+                            if (strength < requiredStrength)
+                                continue;
+
+                            double distance = OsmGeoTools.DistanceBetween(candidate.Coord, osmElement.AverageCoord);
+
+                            if (strength > bestStrength ||
+                                (strength == bestStrength && distance < bestDistance))
+                            {
+                                bestItem = candidate;
+                                bestStrength = strength;
+                                bestDistance = distance;
+                            }
+                        }
+
+                        if (!Equals(bestItem, default(T)))
+                        {
+                            bool far = bestDistance > matchDistance;
+                            allMatchedElements.Add(osmElement, new Match(bestItem!, osmElement, bestDistance, bestStrength, far));
+                            unmatchableItems.Remove(bestItem!);
+                            upgradedToPair = true;
                         }
                     }
 
-                    if (!Equals(bestItem, default(T)))
-                    {
-                        bool far = bestDistance > matchDistance;
-                        allMatchedElements.Add(osmElement, new Match(bestItem!, osmElement, bestDistance, bestStrength, far));
-                        unmatchableItems.Remove(bestItem!);
-                        upgradedToPair = true;
-                    }
+                    if (!upgradedToPair)
+                        matchedLoneElements.Add(osmElement);
                 }
-
-                if (!upgradedToPair)
+                else
+                {
                     matchedLoneElements.Add(osmElement);
+                }
             }
             else
             {
@@ -496,7 +529,7 @@ public class Correlator<T> where T : IDataItem
 
         // Store the well-formatted correlated match list
         
-        List<Correlation> correlations = new List<Correlation>();
+        List<Correlation> correlations = [ ];
 
         foreach (Match match in allMatchedElements.Values)
             correlations.Add(new MatchedCorrelation<T>(match.Element, match.Item, match.Distance, match.Far));

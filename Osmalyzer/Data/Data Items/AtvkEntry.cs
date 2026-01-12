@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class AtvkEntry : IDataItem
+public class AtvkEntry : IDataItem, IHasCspPopulationEntry
 {
     /// <summary> NUTS or LAU code </summary>
     public string Code { get; }
@@ -21,6 +21,8 @@ public class AtvkEntry : IDataItem
     
     public List<AtvkEntry>? Children { get; internal set; }
 
+    public CspPopulationEntry? CspPopulationEntry { get; set; }
+    
     
     public bool IsExpired => ValidityEnd != null;
 

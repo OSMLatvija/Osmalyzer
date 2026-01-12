@@ -181,7 +181,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
                 }
             }
 
-            Entries.Add(new CspPopulationEntry(id, areaName, municipality, population.Value, type));
+            Entries.Add(new CspPopulationEntry(areaCode, id, areaName, municipality, population.Value, type));
         }
     }
 
@@ -189,20 +189,28 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
     public void AssignToDataItems<T>(
         List<T> items, 
         CspAreaType type,
-        Func<T, string> nameLookup,
+        Func<T, string?> nameLookup,
+        Func<T, string?> codeLookup,
         Func<T, string?> disambiguatorLookup)
         where T : class, IDataItem, IHasCspPopulationEntry
     {
+        if (items.Count == 0) throw new Exception("No items provided for CSP population assignment for type " + type);
+
+        List<CspPopulationEntry> typedEntries = Entries.Where(entry => entry.Type == type).ToList();
+
         int assigned = 0;
         
         foreach (T item in items)
         {
-            string itemName = nameLookup(item);
+            string? itemName = nameLookup(item);
+            string? itemCode = codeLookup(item);
+            if (itemName == null && itemCode == null) throw new Exception("Item has neither name nor code for CSP population assignment: " + item.ReportString());
+            
             string? itemDisambiguator = disambiguatorLookup(item);
 
-            List<CspPopulationEntry> matchedEntries = Entries.Where(entry => entry.Type == type &&
-                                                                             entry.Name == itemName &&
-                                                                             (entry.Municipality == itemDisambiguator || entry.Municipality == null)
+            List<CspPopulationEntry> matchedEntries = typedEntries.Where(entry => (itemName == null || entry.Name == itemName) &&
+                                                                                  (itemCode == null || entry.Code == itemCode) && // not clean ID
+                                                                                  (entry.Municipality == itemDisambiguator || entry.Municipality == null)
             ).ToList();
 
             if (matchedEntries.Count == 0)
@@ -281,6 +289,8 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
 
 public class CspPopulationEntry : IDataItem
 {
+    public string Code { get; }
+    
     public string? Id { get; }
     
     public CspAreaType Type { get; }
@@ -297,8 +307,9 @@ public class CspPopulationEntry : IDataItem
     public string Source => "CSP";
     
 
-    public CspPopulationEntry(string? id, string name, string? municipality, int population, CspAreaType type)
+    public CspPopulationEntry(string code, string? id, string name, string? municipality, int population, CspAreaType type)
     {
+        Code = code;
         Id = id;
         Name = name;
         Municipality = municipality;
@@ -316,6 +327,8 @@ public class CspPopulationEntry : IDataItem
             (Id != null ? " #`" + Id + "`" : "") +
              " `" + Population + "`";
     }
+    
+    override public string ToString() => ReportString();
 }
 
 public enum CspAreaType

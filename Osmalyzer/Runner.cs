@@ -83,16 +83,17 @@ public static class Runner
             // new HesburgerRestaurantAnalyzer(),
             // new LVCRoadAnalyzer(),
             // new VPVKACAnalyzer(),
-            new VillageAnalyzer(),
-            new HamletAnalyzer(),
-            new MunicipalityAnalyzer(),
-            new ParishAnalyzer(),
-            new CityAnalyzer(),
+            //new VillageAnalyzer(),
+            //new HamletAnalyzer(),
+            //new MunicipalityAnalyzer(),
+            //new ParishAnalyzer(),
+            //new CityAnalyzer(),
             // new VdbAnalyzer(),
             // new MaxspeedTypeAnalyzer(),
             // new LVMPicnicSiteAnalyzer(),
             // new RestrictionRelationAnalyzer(),
-            // new LifecycleLeftoversAnalyzer()
+            // new LifecycleLeftoversAnalyzer(),
+            new CspAnalyzer()
         ];
 #endif
 

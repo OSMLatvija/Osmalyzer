@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class City : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulationEntry
+public class City : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulationEntry, IHasAtvkEntry
 {
     public bool Valid { get; }
     
@@ -21,6 +21,8 @@ public class City : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulation
     public WikidataItem? WikidataItem { get; set; }
     
     public VdbEntry? VdbEntry { get; set; }
+    
+    public AtvkEntry? AtvkEntry { get; set; }
     
     public CityStatus? Status { get; set; }
     

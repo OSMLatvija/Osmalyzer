@@ -69,7 +69,9 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
-        List<AtvkEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+        AtvkAnalysisData atvkData = datas.OfType<AtvkAnalysisData>().First();
+
+        List<AtvkEntry> atvkEntries = atvkData.Entries
                                            .Where(e => !e.IsExpired && e.Designation is AtvkDesignation.CityInRegion or AtvkDesignation.CityInMunicipality).ToList();
 
         CitiesWikidataData wikidataData = datas.OfType<CitiesWikidataData>().First();
@@ -82,20 +84,19 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         
         // Match VZD and ATVK data items
 
-        Equivalator<City, AtvkEntry> equivalator = new Equivalator<City, AtvkEntry>(
-            addressData.Cities, 
-            atvkEntries
+        atvkData.AssignToDataItems(
+            addressData.Cities,
+            atvkEntries,
+            (city, atvkEntry) => city.Name == atvkEntry.Name // we have no name conflicts in cities, so this is sufficient
         );
-        
-        equivalator.MatchItems(
-            (i1, i2) => i1.Name == i2.Name // we have no name conflicts in cities, so this is sufficient
-        );
-        
-        Dictionary<City, AtvkEntry> dataItemMatches = equivalator.AsDictionary();
-        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
 
-        foreach ((City city, AtvkEntry atvkEntry) in dataItemMatches)
+        foreach (City city in addressData.Cities)
         {
+            if (city.AtvkEntry == null)
+                continue;
+
+            AtvkEntry atvkEntry = city.AtvkEntry;
+
             // Cities that are not part of a municipality (i.e. are under region) are LAU divisions
             city.IsLAUDivision = atvkEntry.Parent?.Designation == AtvkDesignation.Region;
 
@@ -282,8 +283,8 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             new ValidateElementValueMatchesDataItemValue<City>("name", c => c.Name),
             new ValidateElementValueMatchesDataItemValue<City>("border_type", GetPlaceType),
             new ValidateElementValueMatchesDataItemValue<City>("admin_level", c => c.Status == CityStatus.StateCity ? c.IndependentStateCity ? independentStateCityAdminLevel : dependentStateCityAdminLevel : regionalCityAdminLevel),
-            new ValidateElementValueMatchesDataItemValue<City>("ref", c => dataItemMatches.TryGetValue(c, out AtvkEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? dataItemMatches.TryGetValue(c, out AtvkEntry? match) ? match.Code : "" : null, [ "ref:nuts" ]),
+            new ValidateElementValueMatchesDataItemValue<City>("ref", c => c.AtvkEntry?.Code),
+            new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? c.AtvkEntry?.Code ?? "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
             // Always on admin center node if given
             new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "name", c => c.Name),
@@ -330,7 +331,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
-        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, dataItemMatches, "city");
+        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, addressData.Cities, "city");
         ReportExtraWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataData.AllCities, addressData.Cities, "city");
         ReportWikidataMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataMatchIssues);
         ReportVdbMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, vdbMatchIssues);

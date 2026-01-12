@@ -153,5 +153,35 @@ public class AtvkAnalysisData : AnalysisData, IUndatedAnalysisData
         // }
 #endif
     }
+
+
+    /// <summary>
+    /// Assigns matching ATVK entries to data items
+    /// </summary>
+    public void AssignToDataItems<T>(
+        List<T> dataItems,
+        List<AtvkEntry> atvkEntries,
+        Func<T, AtvkEntry, bool> matcher)
+        where T : class, IDataItem, IHasAtvkEntry
+    {
+        int count = 0;
+
+        foreach (T dataItem in dataItems)
+        {
+            foreach (AtvkEntry atvkEntry in atvkEntries)
+            {
+                if (matcher(dataItem, atvkEntry))
+                {
+                    dataItem.AtvkEntry = atvkEntry;
+                    count++;
+                    break;
+                }
+            }
+        }
+
+        if (count == 0)
+            throw new Exception("No ATVK matches found for data items; data is probably broken.");
+    }
 }
+
 

@@ -46,7 +46,9 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
-        List<AtvkEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+        AtvkAnalysisData atvkData = datas.OfType<AtvkAnalysisData>().First();
+
+        List<AtvkEntry> atvkEntries = atvkData.Entries
                                            .Where(e => !e.IsExpired && e.Designation == AtvkDesignation.Parish).ToList();
 
         ParishesWikidataData wikidataData = datas.OfType<ParishesWikidataData>().First();
@@ -59,17 +61,11 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         
         // Match VZD and ATVK data items
 
-        Equivalator<Parish, AtvkEntry> equivalator = new Equivalator<Parish, AtvkEntry>(
-            addressData.Parishes, 
-            atvkEntries
+        atvkData.AssignToDataItems(
+            addressData.Parishes,
+            atvkEntries,
+            (parish, atvkEntry) => parish.Name == atvkEntry.Name && parish.MunicipalityName == atvkEntry.Parent?.Name // there are repeat parish names, specifically "Pilskalnes pagasts" and "Salas pagasts"
         );
-        
-        equivalator.MatchItems(
-            (i1, i2) => i1.Name == i2.Name && i1.MunicipalityName == i2.Parent?.Name // there are repeat parish names, specifically "Pilskalnes pagasts" and "Salas pagasts"
-        );
-        
-        Dictionary<Parish, AtvkEntry> dataItemMatches = equivalator.AsDictionary();
-        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
         
         // Assign WikiData
 
@@ -116,7 +112,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         // Assign CSP population data
         
         cspData.AssignToDataItems(
-            addressData.Cities,
+            addressData.Parishes,
             CspAreaType.Parish,
             i => i.Name,
             i => i.MunicipalityName // a couple of ambiguous ones need it
@@ -252,7 +248,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             new ValidateElementHasValue("place", "civil_parish"), // not "parish"
             new ValidateElementHasValue("border_type", "parish"), // not "civil_parish"
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => dataItemMatches.TryGetValue(p, out AtvkEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => p.AtvkEntry?.Code),
             new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:VDB", p => p.VdbEntry?.ID.ToString())
         );
@@ -285,7 +281,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
-        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, dataItemMatches, "parish");
+        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, addressData.Parishes, "parish");
         ReportExtraWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataData.Parishes, addressData.Parishes, "parish");
         ReportWikidataMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataMatchIssues);
         ReportVdbMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, vdbMatchIssues);

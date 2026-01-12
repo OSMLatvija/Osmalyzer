@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Parish : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulationEntry
+public class Parish : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulationEntry, IHasAtvkEntry
 {
     public bool Valid { get; }
     
@@ -21,6 +21,8 @@ public class Parish : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasCspPopulati
     public WikidataItem? WikidataItem { get; set; }
 
     public VdbEntry? VdbEntry { get; set; }
+    
+    public AtvkEntry? AtvkEntry { get; set; }
 
     public CspPopulationEntry? CspPopulationEntry { get; set; }
 

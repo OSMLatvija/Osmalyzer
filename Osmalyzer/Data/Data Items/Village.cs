@@ -2,7 +2,7 @@
 
 namespace Osmalyzer;
 
-public class Village : IDataItem, IHasWikidataItem, IHasVdbEntry
+public class Village : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasAtvkEntry
 {
     public bool Valid { get; }
     
@@ -23,6 +23,8 @@ public class Village : IDataItem, IHasWikidataItem, IHasVdbEntry
     public WikidataItem? WikidataItem { get; set; }
 
     public VdbEntry? VdbEntry { get; set; }
+    
+    public AtvkEntry? AtvkEntry { get; set; }
 
 
     public Village(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName, OsmMultiPolygon? boundary)

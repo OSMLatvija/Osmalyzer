@@ -41,7 +41,9 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
 
         AddressGeodataAnalysisData addressData = datas.OfType<AddressGeodataAnalysisData>().First();
 
-        List<AtvkEntry> atvkEntries = datas.OfType<AtvkAnalysisData>().First().Entries
+        AtvkAnalysisData atvkData = datas.OfType<AtvkAnalysisData>().First();
+
+        List<AtvkEntry> atvkEntries = atvkData.Entries
                                            .Where(e => !e.IsExpired && e.Designation == AtvkDesignation.Municipality).ToList();
         
         MunicipalitiesWikidataData wikidataData = datas.OfType<MunicipalitiesWikidataData>().First();
@@ -54,17 +56,11 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         
         // Match VZD and ATVK data items
 
-        Equivalator<Municipality, AtvkEntry> equivalator = new Equivalator<Municipality, AtvkEntry>(
-            addressData.Municipalities, 
-            atvkEntries
+        atvkData.AssignToDataItems(
+            addressData.Municipalities,
+            atvkEntries,
+            (municipality, atvkEntry) => municipality.Name == atvkEntry.Name // we have no name conflicts in municipalities, so this is sufficient
         );
-        
-        equivalator.MatchItems(
-            (i1, i2) => i1.Name == i2.Name // we have no name conflicts in municipalities, so this is sufficient
-        );
-        
-        Dictionary<Municipality, AtvkEntry> dataItemMatches = equivalator.AsDictionary();
-        if (dataItemMatches.Count == 0) throw new Exception("No VZD-ATVK matches found for data items; data is probably broken.");
         
         // Assign WikiData
         
@@ -229,8 +225,8 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             new ValidateElementHasValue("place", "municipality"),
             new ValidateElementHasValue("border_type", "municipality"),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:addr", m => m.AddressID, [ "ref" ]),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => dataItemMatches.TryGetValue(m, out AtvkEntry? match) ? match.Code : null),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => dataItemMatches.TryGetValue(m, out AtvkEntry? match) ? match.Code : null),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => m.AtvkEntry?.Code),
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => m.AtvkEntry?.Code),
             new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:VDB", m => m.VdbEntry?.ID.ToString())
         );
@@ -263,7 +259,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
-        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, dataItemMatches, "municipality");
+        ReportExtraAtvkEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkEntries, addressData.Municipalities, "municipality");
         ReportExtraWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataData.Municipalities, addressData.Municipalities, "municipality");
         ReportWikidataMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, wikidataMatchIssues);
         ReportVdbMatchIssues(report, ExtraReportGroup.ExternalDataMatchingIssues, vdbMatchIssues);

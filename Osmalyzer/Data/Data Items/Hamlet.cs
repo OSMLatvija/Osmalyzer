@@ -5,7 +5,7 @@ namespace Osmalyzer;
 /// <summary>
 /// A small ham. To be or not to be? 
 /// </summary>
-public class Hamlet : IDataItem, IHasWikidataItem, IHasVdbEntry
+public class Hamlet : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasAtvkEntry
 {
     public bool Valid { get; }
     
@@ -24,6 +24,8 @@ public class Hamlet : IDataItem, IHasWikidataItem, IHasVdbEntry
     public WikidataItem? WikidataItem { get; set; }
 
     public VdbEntry? VdbEntry { get; set; }
+    
+    public AtvkEntry? AtvkEntry { get; set; }
 
 
     public Hamlet(bool valid, string addressID, OsmCoord coord, string name, string rawAddress, string parishName, string municipalityName)

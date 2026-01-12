@@ -7,7 +7,7 @@ namespace Osmalyzer;
 /// </summary>
 /// <typeparam name="T">The data item type for this analyzer</typeparam>
 public abstract class AdminAnalyzerBase<T> : Analyzer
-    where T : IDataItem, IHasWikidataItem, IHasVdbEntry
+    where T : IDataItem, IHasWikidataItem, IHasVdbEntry, IHasAtvkEntry
 {
     protected void AddExternalDataMatchingIssuesGroup(
         Report report,
@@ -27,12 +27,17 @@ public abstract class AdminAnalyzerBase<T> : Analyzer
         Report report,
         object externalDataMatchingIssuesGroup,
         IReadOnlyList<AtvkEntry> atvkEntries,
-        Dictionary<T, AtvkEntry> dataItemMatches,
+        IReadOnlyList<T> dataItems,
         string itemTypeName
     )
     {
+        HashSet<AtvkEntry> matchedAtvkEntries = dataItems
+            .Select(d => d.AtvkEntry)
+            .Where(e => e != null)
+            .ToHashSet()!;
+        
         List<AtvkEntry> extraAtvkEntries = atvkEntries
-            .Where(e => !dataItemMatches.Values.Contains(e))
+            .Where(e => !matchedAtvkEntries.Contains(e))
             .ToList();
         
         foreach (AtvkEntry atvkEntry in extraAtvkEntries)

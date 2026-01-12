@@ -5,9 +5,9 @@ public class CspAnalyzer : Analyzer
 {
     // todo: similar names with similar coords, like Rejeņi
     
-    public override string Name => "CSP Population Statistics";
+    public override string Name => "CSP Statistics";
 
-    public override string Description => "This report shows overview for the CSP (Centrālā statistikas pārvalde) population statistics data.";
+    public override string Description => "This report shows overview for the CSP (Centrālā statistikas pārvalde) statistics data.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.Miscellaneous;
 
@@ -22,22 +22,34 @@ public class CspAnalyzer : Analyzer
         // Report overall statistics
         
         report.AddGroup(
-            ReportGroup.Stats,
-            "Overall statistics",
-            "This gives an overview of the parsed CSP data."
+            ReportGroup.Population,
+            "Population",
+            "These are the parsed CSP entries."
         );
         
         report.AddEntry(
-            ReportGroup.Stats,
+            ReportGroup.Population,
             new GenericReportEntry(
                 $"Total entries: {cspPopulationData.Entries.Count}"
             )
         );
 
-        foreach (CspPopulationEntry entry in cspPopulationData.Entries)
+        foreach (CspAreaType areaType in Enum.GetValuesAsUnderlyingType<CspAreaType>())
+        {
+            int count = cspPopulationData.Entries.Count(e => e.Type == areaType);
+            
+            report.AddEntry(
+                ReportGroup.Population,
+                new GenericReportEntry(
+                    $"{areaType} entries: {count}"
+                )
+            );
+        }
+
+        foreach (CspPopulationEntry entry in cspPopulationData.Entries.OrderBy(e => e.Type).ThenBy(e => e.Name))
         {
             report.AddEntry(
-                ReportGroup.Stats,
+                ReportGroup.Population,
                 new GenericReportEntry(
                     $"CSP Area {entry.ReportString()}"
                 )
@@ -48,6 +60,6 @@ public class CspAnalyzer : Analyzer
 
     private enum ReportGroup
     {
-        Stats
+        Population
     }
 }

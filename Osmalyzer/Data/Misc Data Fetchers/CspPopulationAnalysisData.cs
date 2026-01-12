@@ -109,24 +109,79 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
         // Process each area
         for (int i = 0; i < areaCodes.Length; i++)
         {
-            string areaCode = areaCodes[i];
+            int? population = content.Value[i];
+            if (population == null)
+                continue; // skip historic regions without data
             
-            string areaName = areaDimension.Category.Label[areaCode];
+            string areaCode = areaCodes[i];
+
+            string areaName = areaDimension.Category.Label[areaCode].Trim();
             areaName = areaName.TrimStart('.'); // Many entries are like "..Rūjiena" or "..Silmalas pagasts"
             
-            // todo: "Zemgales statistiskais reģions"
-            // todo: "Rīgas statistiskais reģions (no 01.01.2024.)"
-            // todo: "Salas pagasts (Jēkabpils novads)" / "Pilskalnes pagasts (Aizkraukles novads)"
-            
-            // todo: type
-            
-            int? population = content.Value[i];
+            // "Latvija"
+            // "Valkas novads"
+            // "Jersikas pagasts"
+            // "Salas pagasts (Jēkabpils novads)"
+            // "Ludza"
+            // "Zemgales statistiskais reģions"
+            // "Rīgas statistiskais reģions (no 01.01.2024.)"
+            // "Nezināma teritoriālā vienība"
 
-            // Skip historic regions without current data
-            if (population == null)
-                continue;
+            string? id;
+            CspAreaType type;
+            string? municipality = null;
 
-            Entries.Add(new CspPopulationEntry(areaCode, areaName, population.Value));
+            if (areaName == "Nezināma teritoriālā vienība") // known name for unknown area
+            {
+                if (areaCode != "UNK") throw new Exception("Unexpected area code for unknown area: " + areaCode);
+               
+                type = CspAreaType.Unlocated;
+                id = null;
+            }
+            else
+            {
+                if (areaName == "Latvija") // known name for country, only one entry, but ambiguous to cities if we don't special-case
+                {
+                    if (areaCode != "LV") throw new Exception("Unexpected area code for country: " + areaCode);
+                   
+                    type = CspAreaType.Country;
+                    id = null;
+                }
+                else
+                {
+                    if (!areaCode.StartsWith("LV")) throw new Exception("Unexpected area code format: " + areaCode);
+                    id = areaCode[2..]; // Remove "LV" prefix
+                    if (id == "") throw new Exception("Unexpected empty area code after removing LV prefix");
+                    
+                    // Qualifier?
+                    Match qualifierRegex = Regex.Match(areaName, @"\((.*?)\)$");
+                    string? qualifier = qualifierRegex.Success ? qualifierRegex.Groups[1].Value : null;
+                    if (qualifier != null)
+                        areaName = areaName[..(areaName.Length - qualifier.Length - 2)].TrimEnd();
+
+                    if (areaName.EndsWith(" novads"))
+                    {
+                        type = CspAreaType.Municipality;
+                        if (qualifier != null) throw new Exception("Unexpected qualifier for municipality: " + areaName);
+                    }
+                    else if (areaName.EndsWith(" pagasts"))
+                    {
+                        type = CspAreaType.Parish;
+                        municipality = qualifier; // possible disambiguation
+                    }
+                    else if (areaName.EndsWith(" statistiskais reģions"))
+                    {
+                        type = CspAreaType.Region;
+                    }
+                    else
+                    {
+                        type = CspAreaType.City; // assume city if nothing else matches
+                        if (qualifier != null) throw new Exception("Unexpected qualifier for city: " + areaName);
+                    }
+                }
+            }
+
+            Entries.Add(new CspPopulationEntry(id, areaName, municipality, population.Value, type));
         }
     }
 
@@ -193,29 +248,46 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
 
 public class CspPopulationEntry : IDataItem
 {
-    public string AreaCode { get; }
+    public string? Id { get; }
     
-    public string AreaName { get; }
+    public CspAreaType Type { get; }
     
+    public string Name { get; }
+    
+    public string? Municipality { get; }
+
     public int Population { get; }
 
     public OsmCoord Coord => throw new NotImplementedException();
     
-    public string Name => AreaName;
-    
    
-    public CspPopulationEntry(string areaCode, string areaName, int population)
+    public CspPopulationEntry(string? id, string name, string? municipality, int population, CspAreaType type)
     {
-        AreaCode = areaCode;
-        AreaName = areaName;
+        Id = id;
+        Name = name;
+        Municipality = municipality;
         Population = population;
+        Type = type;
     }
-    
-    
+
+
     public string ReportString()
     {
         return
-            "`" + AreaName + "` #`" + AreaCode + "` `" + Population + "`";
+            Type +
+            " `" + Name + "`" +
+            (Municipality != null ? " (in `" + Municipality + "`)" : "") +
+            (Id != null ? " #`" + Id + "`" : "") +
+             " `" + Population + "`";
     }
 }
 
+public enum CspAreaType
+{
+    Country,
+    Region,
+    Municipality,
+    Parish,
+    City,
+    Unlocated
+}

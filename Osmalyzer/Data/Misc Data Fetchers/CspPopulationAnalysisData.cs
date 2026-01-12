@@ -17,6 +17,9 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
 
     public List<CspPopulationEntry> Entries { get; private set; } = null!; // only null before prepared
 
+    
+    private int _year;
+
 
     protected override void Download()
     {
@@ -38,6 +41,21 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
                 break;
             }
         }
+        
+        // Extract latest year from TIME dimension
+        string latestYear = "";
+        
+        foreach (PxWebVariable variable in metadata.Variables)
+        {
+            if (variable.Code == "TIME")
+            {
+                if (variable.Values.Count == 0) throw new Exception("TIME dimension has no values");
+                latestYear = variable.Values[^1];
+                break;
+            }
+        }
+        
+        if (latestYear == "") throw new Exception("TIME dimension not found in metadata");
         
         // Step 2: Build area values list for JSON request
         string areaValuesJson = string.Join(",", areaCodes.Select(code => $"\"{code}\""));
@@ -63,7 +81,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
       ""code"": ""TIME"",
       ""selection"": {
         ""filter"": ""item"",
-        ""values"": [""2025""]
+        ""values"": [""" + latestYear + @"""]
       }
     }
   ],
@@ -91,8 +109,32 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
 
         // JSON-stat2 format structure:
         // - dimension.AREA contains area codes and labels
+        // - dimension.TIME contains the year/date information
         // - value[] contains population values (can be null for historic regions)
         // - The values array is indexed by AREA (since INDICATOR and TIME are eliminated/fixed)
+
+        // Extract the date from TIME dimension
+        if (content.Dimension.TryGetValue("TIME", out JsonStatDimension? timeDimension))
+        {
+            // TIME dimension should have exactly one value since we requested a specific year
+            string[] timeValues = new string[timeDimension.Category.Index.Count];
+            
+            foreach (KeyValuePair<string, int> indexEntry in timeDimension.Category.Index)
+                timeValues[indexEntry.Value] = indexEntry.Key;
+
+            if (timeValues.Length != 1) throw new Exception("Expected exactly one TIME value, got " + timeValues.Length);
+
+            string timeValue = timeValues[0];
+            
+            // Time value is just a year like "2025"
+            if (!int.TryParse(timeValue, out int year)) throw new Exception("Unable to parse TIME value as year: " + timeValue);
+
+            _year = year;
+        }
+        else
+        {
+            throw new Exception("TIME dimension not found in JSON response");
+        }
 
         JsonStatDimension areaDimension = content.Dimension["AREA"];
         
@@ -181,7 +223,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
                 }
             }
 
-            Entries.Add(new CspPopulationEntry(areaCode, id, areaName, municipality, population.Value, type));
+            Entries.Add(new CspPopulationEntry(areaCode, id, areaName, municipality, population.Value, type, _year));
         }
     }
 
@@ -260,6 +302,9 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
 
         [JsonProperty("value")]
         public List<int?> Value { get; set; } = null!; // nullable for historic regions
+        
+        [JsonProperty("updated")]
+        public string? Updated { get; set; } // optional field with last update timestamp
     }
 
 
@@ -300,6 +345,8 @@ public class CspPopulationEntry : IDataItem
     public string? Municipality { get; }
 
     public int Population { get; }
+    
+    public int Year { get; }
 
     public OsmCoord Coord => throw new NotImplementedException();
 
@@ -307,7 +354,7 @@ public class CspPopulationEntry : IDataItem
     public string Source => "CSP";
     
 
-    public CspPopulationEntry(string code, string? id, string name, string? municipality, int population, CspAreaType type)
+    public CspPopulationEntry(string code, string? id, string name, string? municipality, int population, CspAreaType type, int year)
     {
         Code = code;
         Id = id;
@@ -315,6 +362,7 @@ public class CspPopulationEntry : IDataItem
         Municipality = municipality;
         Population = population;
         Type = type;
+        Year = year;
     }
 
 
@@ -325,7 +373,7 @@ public class CspPopulationEntry : IDataItem
             " `" + Name + "`" +
             (Municipality != null ? " (in `" + Municipality + "`)" : "") +
             (Id != null ? " #`" + Id + "`" : "") +
-             " `" + Population + "`";
+             " `" + Population + "` for " + Year;
     }
     
     override public string ToString() => ReportString();

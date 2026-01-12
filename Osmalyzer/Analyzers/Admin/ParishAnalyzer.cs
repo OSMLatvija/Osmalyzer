@@ -253,7 +253,8 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:VDB", p => p.VdbEntry?.ID.ToString()),
             new ValidateElementValueMatchesDataItemValue<Parish>(e => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
-            new ValidateElementValueMatchesDataItemValue<Parish>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source)
+            new ValidateElementValueMatchesDataItemValue<Parish>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source),
+            new ValidateElementValueMatchesDataItemValue<Parish>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Year.ToString())
         );
 
 #if DEBUG

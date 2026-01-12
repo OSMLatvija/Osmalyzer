@@ -108,7 +108,8 @@ public class StatisticalRegionAnalyzer : Analyzer
             report,
             false, false,
             new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source)
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source),
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Year.ToString())
         );
 
 #if DEBUG

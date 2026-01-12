@@ -32,9 +32,17 @@ public class CspAnalyzer : Analyzer
             new GenericReportEntry(
                 $"Total entries: {cspPopulationData.Entries.Count}"
             )
-        );        
-        
-        // todo:
+        );
+
+        foreach (CspPopulationEntry entry in cspPopulationData.Entries)
+        {
+            report.AddEntry(
+                ReportGroup.Stats,
+                new GenericReportEntry(
+                    $"CSP Area {entry.ReportString()}"
+                )
+            );
+        }
     }
 
 

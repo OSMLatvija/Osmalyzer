@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+﻿﻿using System.Net.Http;
 
 namespace Osmalyzer;
 
@@ -68,6 +68,26 @@ public static class WebsiteDownloadHelper
 
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException();
+
+        string result = response.Content.ReadAsStringAsync().Result;
+        
+        File.WriteAllText(fileName, result);
+    }
+
+    public static void DownloadPostJson(string url, string jsonBody, string fileName)
+    {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
+        using HttpClient client = new HttpClient();
+        
+        StringContent content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+        Uri uri = new Uri(url, UriKind.Absolute);
+        HttpResponseMessage response = client.PostAsync(uri, content).Result;
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"HTTP request failed with status code {response.StatusCode}");
 
         string result = response.Content.ReadAsStringAsync().Result;
         

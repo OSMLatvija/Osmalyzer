@@ -124,6 +124,9 @@ public class ReportGroup
         
     public ReadOnlyCollection<GenericReportEntry> CollectGenericEntries()
     {
+        for (int i = 0; i < _genericEntries.Count; i++)
+            _genericEntries[i].AdditionIndex = i;
+        
         _genericEntries.Sort(new EntrySortingComparer());
 
         return _genericEntries.AsReadOnly();
@@ -131,6 +134,9 @@ public class ReportGroup
         
     public ReadOnlyCollection<IssueReportEntry> CollectIssueEntries()
     {
+        for (int i = 0; i < _genericEntries.Count; i++)
+            _issuesEntries[i].AdditionIndex = i;
+        
         _issuesEntries.Sort(new EntrySortingComparer());
             
         return _issuesEntries.AsReadOnly();

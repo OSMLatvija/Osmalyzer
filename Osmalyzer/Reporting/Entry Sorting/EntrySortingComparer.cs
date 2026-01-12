@@ -12,7 +12,7 @@ public class EntrySortingComparer : IComparer<SortableReportEntry>
         EntrySortingRule? ruleB = b!.SortingRule;
 
         if (ruleA == null && ruleB == null)
-            return 0;
+            return a.AdditionIndex.CompareTo(b.AdditionIndex); // sort by addition order (this preserves same order as added, especially when caller doesn't care about sorting rules)
 
         if (ruleA != null && ruleB == null)
             return -1;

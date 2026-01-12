@@ -250,7 +250,9 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:addr", p => p.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Parish>("ref", p => p.AtvkEntry?.Code),
             new ValidateElementValueMatchesDataItemValue<Parish>("wikidata", p => p.WikidataItem?.QID),
-            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:VDB", p => p.VdbEntry?.ID.ToString())
+            new ValidateElementValueMatchesDataItemValue<Parish>("ref:LV:VDB", p => p.VdbEntry?.ID.ToString()),
+            new ValidateElementValueMatchesDataItemValue<Parish>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<Parish>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source)
         );
 
 #if DEBUG

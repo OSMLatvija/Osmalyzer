@@ -292,8 +292,11 @@ public class CspPopulationEntry : IDataItem
     public int Population { get; }
 
     public OsmCoord Coord => throw new NotImplementedException();
+
     
-   
+    public string Source => "CSP";
+    
+
     public CspPopulationEntry(string? id, string name, string? municipality, int population, CspAreaType type)
     {
         Id = id;

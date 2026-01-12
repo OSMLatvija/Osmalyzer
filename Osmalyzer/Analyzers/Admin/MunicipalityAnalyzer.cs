@@ -228,7 +228,9 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref", m => m.AtvkEntry?.Code),
             new ValidateElementValueMatchesDataItemValue<Municipality>("ref:lau", m => m.AtvkEntry?.Code),
             new ValidateElementValueMatchesDataItemValue<Municipality>("wikidata", m => m.WikidataItem?.QID),
-            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:VDB", m => m.VdbEntry?.ID.ToString())
+            new ValidateElementValueMatchesDataItemValue<Municipality>("ref:LV:VDB", m => m.VdbEntry?.ID.ToString()),
+            new ValidateElementValueMatchesDataItemValue<Municipality>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<Municipality>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source)
         );
 
 #if DEBUG

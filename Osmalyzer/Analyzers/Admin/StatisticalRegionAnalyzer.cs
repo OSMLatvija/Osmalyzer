@@ -36,6 +36,11 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
             ),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside)
         );
+        
+        // Find preset centers of boundaries (technically, just Latvia)
+
+        SelfAssignAdminCenters(osmAreas.Relations, "place", "country");
+        // note that Latvia has label and admin_center, but center is Riga, so that's not where the values go, it's actually label that duplicates country values 
 
         // Get all data sources
 
@@ -132,9 +137,18 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
         List<SuggestedAction> suggestedChanges = municipalityValidator.Validate(
             report,
             false, false,
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source),
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Year.ToString())
+            // Always on relation
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>("population", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>("source:population", c => c.CspPopulationEntry?.Source),
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>("population:date", c => c.CspPopulationEntry?.Year.ToString()),
+            // Stat region-specific values
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.HasValue("boundary", "statistical"), "name", c => c.Name), // i.e. "Latgale"
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.HasValue("boundary", "statistical"), "alt_name", c => c.CspPopulationEntry?.Name), // i.e. "Latgales statistiskais reģions"
+            new ValidateElementHasValue(e => e.HasValue("boundary", "statistical"), "designation", "statistiskais reģions"),
+            // Also a copy on node, if present (basically, Latvia)
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData != null, e => (OsmElement)e.UserData!, "population", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData != null, e => (OsmElement)e.UserData!, "source:population", c => c.CspPopulationEntry?.Source),
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData != null, e => (OsmElement)e.UserData!, "population:date", c => c.CspPopulationEntry?.Year.ToString())
         );
 
 #if DEBUG

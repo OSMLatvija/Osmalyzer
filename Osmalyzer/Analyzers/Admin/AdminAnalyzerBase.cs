@@ -246,4 +246,54 @@ public abstract class AdminAnalyzerBase<T> : Analyzer
             }
         }
     }
+
+    protected void SelfAssignAdminCenters(IEnumerable<OsmRelation> relations, string? preferredTag = null, string? preferredValue = null)
+    {
+        // todo: bail if any elements are not loaded?
+        
+        foreach (OsmRelation relation in relations)
+        {
+            if (preferredTag != null)
+            {
+                if (preferredValue == null) throw new ArgumentNullException(nameof(preferredValue));
+
+                List<OsmRelationMember> preferredCenters = relation.Members.Where(m =>
+                                                                                      m.Type == OsmElement.OsmElementType.Node &&
+                                                                                      m.Role is "admin_centre" or "label" &&
+                                                                                      m.Element != null &&
+                                                                                      m.Element.HasValue(preferredTag, preferredValue)
+                ).ToList();
+
+                if (preferredCenters.Count > 0)
+                {
+                    if (preferredCenters.Count == 1) // todo: else report?
+                        relation.UserData = preferredCenters[0].Element;
+
+                    continue;
+                }
+            }
+
+            List<OsmRelationMember> knownCenters = relation.Members.Where(m =>
+                                                                              m.Type == OsmElement.OsmElementType.Node &&
+                                                                              m.Role == "admin_centre" &&
+                                                                              m.Element != null
+            ).ToList();
+
+            if (knownCenters.Count == 1) // todo: else report?
+                relation.UserData = knownCenters[0].Element;
+
+            if (knownCenters.Count == 0)
+            {
+                List<OsmRelationMember> labelCenters = relation.Members.Where(m =>
+                                                                                  m.Type == OsmElement.OsmElementType.Node &&
+                                                                                  m.Role == "label" &&
+                                                                                  m.Element != null
+                ).ToList();
+
+                if (labelCenters.Count == 1)
+                    relation.UserData = labelCenters[0].Element; // label is fine too
+                // todo: do we need to check values like place= on it to make sure it's actually representing the center?
+            }
+        }
+    }
 }

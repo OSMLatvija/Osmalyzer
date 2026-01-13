@@ -48,22 +48,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         // Find preset centers of boundaries
         // (we won't need to set some values if there is the "master" node for the relation)
 
-        foreach (OsmRelation relation in osmCities.Relations)
-        {
-            List<OsmRelationMember> knownCenters = relation.Members.Where(m => m.Role == "admin_centre" && m.Element != null).ToList();
-
-            if (knownCenters.Count == 1) // todo: else report
-                relation.UserData = knownCenters[0].Element;
-
-            if (knownCenters.Count == 0)
-            {
-                List<OsmRelationMember> labelCenters = relation.Members.Where(m => m.Role == "label" && m.Element != null).ToList();
-                
-                if (labelCenters.Count == 1)
-                    relation.UserData = labelCenters[0].Element; // label is fine too
-                // todo: do we need to check values like place= on it to make sure it's actually representing the center?
-            }
-        }
+        SelfAssignAdminCenters(osmCities.Relations);
 
         // Get all data sources
 

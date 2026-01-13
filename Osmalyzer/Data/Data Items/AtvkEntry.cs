@@ -1,6 +1,8 @@
-﻿namespace Osmalyzer;
+﻿using WikidataSharp;
 
-public class AtvkEntry : IDataItem, IHasCspPopulationEntry
+namespace Osmalyzer;
+
+public class AtvkEntry : IDataItem, IHasCspPopulationEntry, IHasWikidataItem, IHasVdbEntry, IHasAtvkEntry
 {
     /// <summary> NUTS or LAU code </summary>
     public string Code { get; }
@@ -22,8 +24,26 @@ public class AtvkEntry : IDataItem, IHasCspPopulationEntry
     public List<AtvkEntry>? Children { get; internal set; }
 
     public CspPopulationEntry? CspPopulationEntry { get; set; }
-    
-    
+
+    public WikidataItem WikidataItem
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+
+    public VdbEntry VdbEntry
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+
+    AtvkEntry IHasAtvkEntry.AtvkEntry
+    {
+        get => throw new InvalidOperationException();
+        set => throw new NotImplementedException();
+    }
+
+
     public bool IsExpired => ValidityEnd != null;
 
     public OsmCoord Coord => throw new NotSupportedException("ATVK entries do not have coordinates.");

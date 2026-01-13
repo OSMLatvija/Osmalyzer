@@ -1,7 +1,7 @@
 ﻿namespace Osmalyzer;
 
 [UsedImplicitly]
-public class StatisticalRegionAnalyzer : Analyzer
+public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
 {
     public override string Name => "Statistical Regions";
 

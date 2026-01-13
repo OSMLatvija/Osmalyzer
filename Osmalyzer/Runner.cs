@@ -85,17 +85,17 @@ public static class Runner
             // new VPVKACAnalyzer(),
             //new VillageAnalyzer(),
             //new HamletAnalyzer(),
-            new MunicipalityAnalyzer(),
-            new ParishAnalyzer(),
-            new CityAnalyzer(),
-            new StatisticalRegionAnalyzer(),
+            // new MunicipalityAnalyzer(),
+            // new ParishAnalyzer(),
+            // new CityAnalyzer(),
+            // new StatisticalRegionAnalyzer(),
             //new HistoricalLandsAnalyzer(),
             // new VdbAnalyzer(),
             // new MaxspeedTypeAnalyzer(),
             // new LVMPicnicSiteAnalyzer(),
             // new RestrictionRelationAnalyzer(),
             // new LifecycleLeftoversAnalyzer(),
-            //new CspAnalyzer()
+            new CspAnalyzer()
         ];
 #endif
 

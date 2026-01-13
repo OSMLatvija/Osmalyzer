@@ -168,6 +168,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
             // "Zemgales statistiskais reģions"
             // "Rīgas statistiskais reģions (no 01.01.2024.)"
             // "Nezināma teritoriālā vienība"
+            // "Ādažu pagasts (līdz 01.07.2022.)" -- although we can request these, they won't have latest values, so they won't appear 
 
             string? id;
             CspAreaType type;
@@ -209,6 +210,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
                     else if (areaName.EndsWith(" pagasts"))
                     {
                         type = CspAreaType.Parish;
+                        if (qualifier != null && !qualifier.EndsWith(" novads")) throw new Exception("Unexpected qualifier for parish: " + areaName);
                         municipality = qualifier; // possible disambiguation
                     }
                     else if (areaName.EndsWith(" statistiskais reģions"))

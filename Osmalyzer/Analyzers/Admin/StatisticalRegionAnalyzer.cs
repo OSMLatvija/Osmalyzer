@@ -25,9 +25,15 @@ public class StatisticalRegionAnalyzer : Analyzer
            
         OsmData OsmData = osmData.MasterData;
 
-        OsmData osmHistoricalLands = OsmData.Filter(
+        OsmData osmAreas = OsmData.Filter(
             new IsRelation(),
-            new HasValue("boundary", "statistical"),
+            new OrMatch(
+                new HasValue("boundary", "statistical"), // either stat region
+                new AndMatch( // or country, i.e. latvia
+                    new HasValue("boundary", "administrative"),
+                    new HasValue("admin_level", "2")
+                )
+            ),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside)
         );
 
@@ -37,54 +43,73 @@ public class StatisticalRegionAnalyzer : Analyzer
         
         CspPopulationAnalysisData cspData = datas.OfType<CspPopulationAnalysisData>().First();
 
-        List<AtvkEntry> atvkRegions = atvkData.Entries.Where(e => e.Designation == AtvkDesignation.Region).ToList();
-        if (atvkRegions.Count == 0) throw new Exception("No ATVK statistical region entries found.");
+        List<AtvkEntry> atvkAreas = atvkData.Entries.Where(e => e.Designation is AtvkDesignation.Region or AtvkDesignation.Country).ToList();
+        if (atvkAreas.Count == 0) throw new Exception("No ATVK statistical area entries found.");
         
-        // Assign CSP population data
+        // Assign CSP population data to ATVK regions, which we use as primary data items
         
         cspData.AssignToDataItems(
-            atvkRegions,
+            atvkAreas,
             CspAreaType.Region,
             _ => null, // not doing lookups by name
             i => i.Code,
             _ => null // none should need it
         );
         
+        cspData.AssignToDataItems(
+            atvkAreas,
+            CspAreaType.Country,
+            i => i.Name, // expect "Latvija" basically
+            _ => null, // not doing lookups by code
+            _ => null // none should need it
+        );
+        
         // Prepare data comparer/correlator
 
         Correlator<AtvkEntry> correlator = new Correlator<AtvkEntry>(
-            osmHistoricalLands,
-            atvkRegions,
+            osmAreas,
+            atvkAreas,
             new MatchAnywhereParamater(),
             // TODO: where can I get coords for these? neither csp nor atvk have them
             // new MatchDistanceParamater(25000),
             // new MatchFarDistanceParamater(75000),
             new MatchCallbackParameter<AtvkEntry>(GetRegionMatchStrength),
             new OsmElementPreviewValue("name", false),
-            new DataItemLabelsParamater("statistical region", "statistical regions"),
-            new LoneElementAllowanceParameter(DoesOsmElementLookLikeHistoricalLand)
+            new DataItemLabelsParamater("statistical area", "statistical areas"),
+            new LoneElementAllowanceParameter(DoesOsmElementLookLikeRegion)
         );
 
         [Pure]
         MatchStrength GetRegionMatchStrength(AtvkEntry entry, OsmElement osmElement)
         {
-            string? refNum = osmElement.GetValue("ref");
-            if (refNum == entry.Code)
-                return MatchStrength.Strong; // exact match on code
+            if (entry.Designation == AtvkDesignation.Region)
+            {
+                string? refNum = osmElement.GetValue("ref");
+                if (refNum == entry.Code)
+                    return MatchStrength.Strong; // exact match on code
 
-            string? name = osmElement.GetValue("name");
-            if (name != null && entry.Name.StartsWith(name)) // e.g. "Latgale" vs "Latgales statistiskais reģions"
-                return MatchStrength.Strong; // great match on name
+                string? name = osmElement.GetValue("name");
+                if (name != null && entry.Name.StartsWith(name)) // e.g. "Latgale" vs "Latgales statistiskais reģions"
+                    return MatchStrength.Strong; // great match on name
 
-            // todo: alt name
+                // todo: alt name
 
-            return MatchStrength.Unmatched;
+                return MatchStrength.Unmatched;
+            }
+            else // else country
+            {
+                string? name = osmElement.GetValue("name");
+                return name == "Latvija" ? MatchStrength.Strong : MatchStrength.Unmatched;
+            }
         }
 
         [Pure]
-        bool DoesOsmElementLookLikeHistoricalLand(OsmElement element)
+        bool DoesOsmElementLookLikeRegion(OsmElement element)
         {
-            return true;
+            string? boundary = element.GetValue("boundary");
+            return boundary == "statistical";
+            
+            // we can't have lone country though, it has to match
         }
 
         // Parse and report primary matching and location correlation

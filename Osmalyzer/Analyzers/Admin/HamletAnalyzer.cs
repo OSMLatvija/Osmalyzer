@@ -310,7 +310,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
             );
         }
         
-        // List extra data items from non-OSM that were not matched
+        // List extrenal data items issues
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         

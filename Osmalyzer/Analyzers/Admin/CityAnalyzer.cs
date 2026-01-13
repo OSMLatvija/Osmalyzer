@@ -319,7 +319,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             );
         }
         
-        // List extra data items from non-OSM that were not matched
+        // List extrenal data items issues
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
@@ -330,6 +330,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         ReportMissingWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Cities);
         ReportMissingVdbEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Cities, vdbData.Cities);
         ReportUnmatchedOsmWikidataValues(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Cities, cityCorrelation);
+        ReportMissingCspPopulationEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Cities);
     }
 
 

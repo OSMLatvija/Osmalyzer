@@ -216,6 +216,29 @@ public abstract class AdminAnalyzerBase<T> : Analyzer
         }
     }
 
+    protected void ReportMissingCspPopulationEntries(
+        Report report,
+        object externalDataMatchingIssuesGroup,
+        IReadOnlyList<T> dataItems
+    )
+    {
+        foreach (T dataItem in dataItems)
+        {
+            if (dataItem is IHasCspPopulationEntry cspDataItem)
+            {
+                if (cspDataItem.CspPopulationEntry == null)
+                {
+                    report.AddEntry(
+                        externalDataMatchingIssuesGroup,
+                        new IssueReportEntry(
+                            dataItem.ReportString() + " does not have a matched CSP population entry."
+                        )
+                    );
+                }
+            }
+        }
+    }
+
 
     protected void ReportUnmatchedOsmWikidataValues(
         Report report,

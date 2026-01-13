@@ -259,7 +259,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             );
         }
         
-        // List extra data items from non-OSM that were not matched
+        // List extrenal data items issues
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
@@ -270,6 +270,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         ReportMissingWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Municipalities);
         ReportMissingVdbEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Municipalities, vdbData.Municipalities);
         ReportUnmatchedOsmWikidataValues(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Municipalities, municipalityCorrelation);
+        ReportMissingCspPopulationEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Municipalities);
     }
 
 

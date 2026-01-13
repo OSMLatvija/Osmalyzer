@@ -155,11 +155,18 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
         SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
+        
+        // List extrenal data items issues
+        
+        AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
+        
+        ReportMissingCspPopulationEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, atvkAreas);
     }
 
 
     private enum ExtraReportGroup
     {
-        ProposedChanges
+        ProposedChanges,
+        ExternalDataMatchingIssues
     }
 }

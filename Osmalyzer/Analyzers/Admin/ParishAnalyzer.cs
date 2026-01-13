@@ -281,7 +281,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             );
         }
         
-        // List extra data items from non-OSM that were not matched
+        // List extrenal data items issues
         
         AddExternalDataMatchingIssuesGroup(report, ExtraReportGroup.ExternalDataMatchingIssues);
         
@@ -292,6 +292,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         ReportMissingWikidataItems(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Parishes);
         ReportMissingVdbEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Parishes, vdbData.Parishes);
         ReportUnmatchedOsmWikidataValues(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Parishes, parishCorrelation);
+        ReportMissingCspPopulationEntries(report, ExtraReportGroup.ExternalDataMatchingIssues, addressData.Parishes);
     }
 
 

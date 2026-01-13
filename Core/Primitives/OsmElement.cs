@@ -259,9 +259,23 @@ public abstract class OsmElement : IChunkerItem
         if (_tags == null)
             return null;
 
+        Dictionary<string, string> sortedTags = new Dictionary<string, string>(_tags);
+
+        if (sortedTags.Count > 30)
+        {
+            string sb = "[too many tags to display: " + sortedTags.Count + "]";
+
+            // Return some important tags only that we can hard-code here
+            foreach (string key in new[] { "name", "amenity", "landuse", "shop", "highway", "leisure", "place", "boundary", "admin_level" }) // this can go on forever, so do with this
+                if (sortedTags.TryGetValue(key, out string? name))
+                    sb += Environment.NewLine + key + "=" + name;
+            
+            return sb;
+        }
+
         string s = "";
 
-        foreach (KeyValuePair<string, string> tag in _tags)
+        foreach (KeyValuePair<string, string> tag in sortedTags)
         {
             string value = tag.Value;
 

@@ -28,20 +28,20 @@ jobs:
         dotnet-version: 10.0.x
     
     ## One-step
-    #- run: dotnet run --project Osmalyzer --configuration Release --property:ExtraDefineConstants=REMOTE_EXECUTION
+    #- run: dotnet run --project Osmalyzer --configuration Remote
     
     # Multiple steps
     - run: dotnet restore
-    - run: dotnet build --configuration Release --no-restore --property:ExtraDefineConstants=REMOTE_EXECUTION
-    - run: dotnet run --project Osmalyzer --configuration Release --no-build
+    - run: dotnet build --configuration Remote --no-restore
+    - run: dotnet run --project Osmalyzer --configuration Remote --no-build
     
     ## Profile
     #- run: dotnet restore
     #- run: dotnet tool install --global dotnet-trace
-    #- run: dotnet build --configuration Release --no-restore --property:ExtraDefineConstants=REMOTE_EXECUTION
+    #- run: dotnet build --configuration Remote --no-restore
     #- run: |
     #    export PATH="$PATH:$HOME/.dotnet/tools"
-    #    dotnet run --project Osmalyzer --configuration Release --no-build & sleep 3
+    #    dotnet run --project Osmalyzer --configuration Remote --no-build & sleep 3
     #    dotnet-trace collect --name Osmalyzer --output ./whyareyouslow.nettrace
     #- uses: actions/upload-artifact@v2
     #  with:

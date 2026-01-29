@@ -17,6 +17,8 @@
     <AssemblyOriginatorKeyFile>flatbuffers.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Configurations>Debug;Release;Remote</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(UNSAFE_BYTEBUFFER)' == 'true'">

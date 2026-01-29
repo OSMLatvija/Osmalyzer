@@ -6,6 +6,8 @@
     <DefineConstants>ENABLE_SPAN_T;UNSAFE_BYTEBUFFER;BYTEBUFFER_NO_BOUNDS_CHECK</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Configurations>Debug;Release;Remote</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

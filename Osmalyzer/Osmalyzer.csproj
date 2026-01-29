@@ -6,7 +6,12 @@
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>14</LangVersion>
-        <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
+        <Configurations>Debug;Release;Remote</Configurations>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Remote'">
+        <DefineConstants>$(DefineConstants);REMOTE_EXECUTION</DefineConstants>
+        <Optimize>true</Optimize>
     </PropertyGroup>
 
     <ItemGroup>

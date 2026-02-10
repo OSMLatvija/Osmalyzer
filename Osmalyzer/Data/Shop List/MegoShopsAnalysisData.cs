@@ -11,7 +11,7 @@ public class MegoShopsAnalysisData : ShopListAnalysisData
     protected override string DataFileIdentifier => "shops-mego";
 
 
-    public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".html");
+    public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
     public override IEnumerable<ShopData> Shops => _shops;
 
@@ -21,8 +21,8 @@ public class MegoShopsAnalysisData : ShopListAnalysisData
 
     protected override void Download()
     {
-        WebsiteBrowsingHelper.DownloadPage(
-            "https://mego.lv/kontakti/", 
+        WebsiteDownloadHelper.Download(
+            "https://mego.lv/wp-admin/admin-ajax.php?action=store_locations", 
             DataFileName
         );
     }
@@ -31,12 +31,9 @@ public class MegoShopsAnalysisData : ShopListAnalysisData
     {
         string source = File.ReadAllText(DataFileName);
         
-        MatchCollection matches = Regex.Matches(
-            source, 
-            @"\{""x"":""([^""]+)"",""y"":""([^""]+)"",""city_id"":\d+,""shop_id"":\d+,""address"":""([^""]+)"",""info"":""([^""]+)""\}"
-        );
+        MatchCollection matches = Regex.Matches(source, @"""location"":\{([^{}]+)\}");
         
-        // {"x":"56.9321559","y":"24.2017965","city_id":1,"shop_id":1,"address":"A. Saharova iela 2","info":"\u003cdiv class='map__item'\u003e\n            \u003cspan class='map__item-title'\u003e\n              \u003ci class='fa fa-recycle' title=Taromāts\u003e\u003c/i\u003e\n              \u003cspan\u003eA. Saharova iela 2\u003c/span\u003e\n            \u003c/span\u003e\n            \u003cspan class='map__item-contacts\u003e\u003c/span\u003e\n            \u003cspan class='map__item-content\u003e\u003cp\u003eDarba dienās\u0026nbsp;07:00\u0026ndash;23:00\u003cbr /\u003e\r\nSest. 07:00\u0026ndash;23:00\u003cbr /\u003e\r\nSv. 07:00\u0026ndash;23:00\u003c/p\u003e\r\n\u003c/span\u003e\n          \u003c/div\u003e"}
+        // {"id":555,"title":"A. \u010caka iela 55","location":{"address":"Aleksandra \u010caka iela 55, Centra rajons, R\u012bga, Latvija","lat":56.9547986,"lng":24.1331645,"zoom":14,"place_id":"ChIJ-y8DEjPO7kYRvRN4D7jjBuE","name":"Aleksandra \u010caka iela 55","street_number":"55","street_name":"Aleksandra \u010caka iela","city":"R\u012bga","post_code":"1011","country":"Latvija","country_short":"LV"},"locationIcon":"https:\/\/mego.lv\/wp-content\/themes\/mego_theme\/dist\/img\/map-marker-default.svg"}
 
         if (matches.Count == 0)
             throw new Exception("Did not match any items on webpage");
@@ -45,9 +42,10 @@ public class MegoShopsAnalysisData : ShopListAnalysisData
                 
         foreach (Match match in matches)
         {
-            double lat = double.Parse(match.Groups[1].ToString());
-            double lon = double.Parse(match.Groups[2].ToString());
-            string address = Regex.Unescape(match.Groups[3].ToString());
+            string location = match.Groups[1].Value;
+            double lat = double.Parse(Regex.Match(location, @"""lat"":([\d\.]+)").Groups[1].Value);
+            double lon = double.Parse(Regex.Match(location, @"""lng"":([\d\.]+)").Groups[1].Value);
+            string address = Regex.Unescape(Regex.Match(location, @"""address"":""([^""]+)""").Groups[1].Value);
             //string info = Regex.Unescape(match.Groups[4].ToString()); // todo: has some extra details
 
             _shops.Add(

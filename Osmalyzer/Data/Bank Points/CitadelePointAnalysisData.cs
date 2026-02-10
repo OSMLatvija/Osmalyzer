@@ -18,7 +18,7 @@ public class CitadelePointAnalysisData : BankPointAnalysisData
     protected override void Download()
     {
         WebsiteDownloadHelper.Download(
-            "https://www.citadele.lv/lv/contacts", 
+            "https://www.citadele.lv/lv/map/", 
             Path.Combine(CacheBasePath, DataFileIdentifier + @".html")
         );
     }

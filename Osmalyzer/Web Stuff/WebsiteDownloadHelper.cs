@@ -31,13 +31,23 @@ public static class WebsiteDownloadHelper
         return result;
     }
 
-    public static void Download(string url, string fileName)
+    public static void Download(string url, string fileName, Dictionary<string, string>? headers = null)
     {
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
         using HttpClientHandler handler = new HttpClientHandler { AllowAutoRedirect = false };
         using HttpClient client = new HttpClient(handler);
+
+        // If headers are provided, add them to the client
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                client.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
+        }
+        
         HttpResponseMessage response = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
         // Follow one redirect, i.e. Geobarik https://blog.geofabrik.de/index.php/2025/07/24/download-geofabrik-de-to-use-http-redirects-for-latest-files/
         if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)

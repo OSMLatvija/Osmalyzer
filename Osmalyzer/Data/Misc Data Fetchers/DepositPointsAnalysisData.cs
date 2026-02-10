@@ -87,7 +87,7 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                 shopName = null;
             // There are more values that don't look like shop names, but not hard-coding single instances
 
-            if (mode.Equals("M") || numberOfTaromats.Contains("manuālā"))  // because data is inconsistent: uni_id=51666
+            if (mode.Equals("M") || numberOfTaromats.Contains("manuāl")  || numberOfTaromats.Contains("manual"))  // because data is inconsistent: uni_id=51666
             {
                 ManualDepositPoint location = new ManualDepositPoint(
                     dioId,
@@ -120,11 +120,11 @@ public class DepositPointsAnalysisData : AnalysisData, IUndatedAnalysisData
                     // Try to parse number of taromats https://regex101.com/r/8CEDfv/1
                     MatchCollection matchedTaromats = Regex.Matches(
                         numberOfTaromats,
-                        @"(?:(?<a_num>\d+) )?(?:mazais|vidējais|liel(?:ais|ie)) (?<taromat>taromāt[si])|(?:(?<b_num>\d+) )?(?<beram>beramtaromāt[si])"
+                        @"(?:(?<a_num>\d+) )?(?<taromat>(?:mazais|vidējais|liel(?:ais|ie))(?: taromāt[si])?)|(?:(?<b_num>\d+) )?(?<beram>beramtaromāt[si])"
                     );
 
                     if (matchedTaromats.Count == 0)
-                        throw new Exception("Didn't recognise number of taromats: '" + numberOfTaromats + "'");
+                        Console.WriteLine("Didn't recognise number of taromats in line '" + properties + "'");
 
                     foreach (Match matchedTaromat in matchedTaromats)
                     {                   

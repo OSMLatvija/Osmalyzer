@@ -11,22 +11,27 @@ public class LuminorPointAnalysisData : BankPointAnalysisData
 
 
     protected override string DataFileIdentifier => "luminor-points";
+    public string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 
 
     protected override void Download()
     {
-        WebsiteBrowsingHelper.DownloadPage(
+        WebsiteDownloadHelper.Download(
             "https://www.luminor.lv/lv/musu-tikls", 
-            Path.Combine(CacheBasePath, DataFileIdentifier + @".html"),
-            true,
-            null,
-            new WaitForElementOfClass("contact-map") // loads JS garbage first that loads the rest of the page
+            DataFileName
         );
+        // WebsiteBrowsingHelper.DownloadPage(
+        //     "https://www.luminor.lv/lv/musu-tikls", 
+        //     Path.Combine(CacheBasePath, DataFileIdentifier + @".html"),
+        //     true,
+        //     null,
+        //     new WaitForElementOfClass("contact-map") // loads JS garbage first that loads the rest of the page
+        // );
     }
 
     protected override void DoPrepare()
     {
-        string data = File.ReadAllText(Path.Combine(CacheBasePath, DataFileIdentifier + @".html"));
+        string data = File.ReadAllText(DataFileName);
 
         Points = new List<BankPoint>();
         

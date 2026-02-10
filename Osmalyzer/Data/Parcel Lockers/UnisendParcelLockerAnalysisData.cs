@@ -28,10 +28,15 @@ public class UnisendParcelLockerAnalysisData : ParcelLockerAnalysisData
     {
         // list at https://my.unisend.lv/map
         // query to get json data at https://api-esavitarna.post.lt/terminal/list?size=9999
+        // Doesn't give answer unless Origin is specified
 
         WebsiteDownloadHelper.Download(
             "https://api-esavitarna.post.lt/terminal/list?size=9999",
-            DataFileName
+            DataFileName,
+            new Dictionary<string, string>
+            {
+                { "Origin", "https://my.unisend.lv" }
+            }
         );
     }
 
@@ -82,11 +87,11 @@ public class UnisendParcelLockerAnalysisData : ParcelLockerAnalysisData
             string country = item.countryCode;
             string provider = item.provider;
 
-            if (country == "LV")
+            if (country == "LV" && provider != "lv_pasts")
             {
                 _parcelLockers.Add(
                     new ParcelLocker(
-                        provider == "cleveron" ? "Unisend" : provider,
+                        provider,
                         id,
                         name,
                         address,

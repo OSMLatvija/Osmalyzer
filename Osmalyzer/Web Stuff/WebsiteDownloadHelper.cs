@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace Osmalyzer;
@@ -66,6 +67,28 @@ public static class WebsiteDownloadHelper
 
         Uri uri = new Uri(url, UriKind.Absolute);
         HttpResponseMessage response = client.PostAsync(uri, content).Result;
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException();
+
+        string result = response.Content.ReadAsStringAsync().Result;
+        
+        File.WriteAllText(fileName, result);
+    }
+
+        public static void DownloadPostAsJson(string url, (string, string)[] postFields, string fileName)
+    {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
+        using HttpClient client = new HttpClient();
+        
+        client.DefaultRequestHeaders.Add("Accept", "application/json"); // todo: dehardcode
+
+        FormUrlEncodedContent content = new FormUrlEncodedContent(postFields.Select(f => new KeyValuePair<string, string>(f.Item1, f.Item2)));
+
+        Uri uri = new Uri(url, UriKind.Absolute);
+        HttpResponseMessage response = client.PostAsJsonAsync(uri, content).Result;
 
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException();

@@ -659,10 +659,8 @@ public class VdbAnalysisData : AnalysisData, IUndatedAnalysisData
         return altNames;
     }
 
-#if DEBUG
     // Public wrapper for testing
     public static List<VdbAltName> ParseAltNamesWithQualifiersPublic(string allNames) => ParseAltNamesWithQualifiers(allNames);
-#endif
 
 
     /// <summary>

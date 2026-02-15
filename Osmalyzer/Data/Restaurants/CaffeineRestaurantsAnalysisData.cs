@@ -39,7 +39,7 @@ public class CaffeineRestaurantAnalysisData : RestaurantListAnalysisData
 
         Match dataMatch = Regex.Match(
             source,
-            @"""places"":(\[.+\])\,"
+            @"""places"":(\[.+?\])\,"
         );
 
         /* "places":[{"id":"1","title":"Aud\u0113ju iela 15","address":"Aud\u0113ju iela 15, Central District, Riga, Latvia","source":"manual","location":{"icon":"http:\/\/caffeine.lv\/wp-content\/uploads\/2021\/05\/caffeine-logo-30x30-1.png","lat":"56.9472","lng":"24.1127504","city":"R\u012bga","country":"Latvia","onclick_action":"marker","open_new_tab":"yes","postal_code":"1050","draggable":false,"infowindow_default_open":false,"infowindow_disable":true,"zoom":5,"extra_fields":{"listorder":0}}}, */

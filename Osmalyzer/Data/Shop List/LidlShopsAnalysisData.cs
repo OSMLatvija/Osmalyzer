@@ -18,7 +18,7 @@ public class LidlShopsAnalysisData : ShopListAnalysisData
     private List<ShopData> _shops = null!; // only null until prepared
 
     
-    private const string mainEntryMatchPattern = @"<a target=""_blank"" href=""(https://(?:goo\.gl/maps|maps\.app\.goo\.gl)/[^""]+)""[^>]*>(.+?)</a>";
+    private const string mainEntryMatchPattern = @"href=""(https://(?:goo\.gl/maps|maps\.app\.goo\.gl)/[^""]+)";
 
 
     protected override void Download()

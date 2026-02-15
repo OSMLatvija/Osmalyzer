@@ -82,21 +82,21 @@ public static class Runner
             // new CaffeineRestaurantAnalyzer(),
             // new HesburgerRestaurantAnalyzer(),
             // new LVCRoadAnalyzer(),
-            // new VPVKACAnalyzer(),
-            new VillageAnalyzer(),
-            new HamletAnalyzer(),
-            new MunicipalityAnalyzer(),
-            new ParishAnalyzer(),
-            new CityAnalyzer(),
-            new StatisticalRegionAnalyzer(),
-            new HistoricalLandsAnalyzer(),
-            new VdbAnalyzer(),
-            new CspAnalyzer(),
+            new VPVKACAnalyzer(),
+            // new VillageAnalyzer(),
+            // new HamletAnalyzer(),
+            // new MunicipalityAnalyzer(),
+            // new ParishAnalyzer(),
+            // new CityAnalyzer(),
+            // new StatisticalRegionAnalyzer(),
+            // new HistoricalLandsAnalyzer(),
+            // new VdbAnalyzer(),
+            // new CspAnalyzer(),
             // new MaxspeedTypeAnalyzer(),
             // new LVMPicnicSiteAnalyzer(),
             // new RestrictionRelationAnalyzer(),
             // new LifecycleLeftoversAnalyzer(),
-            //new EducationalInstitutionAnalyzer()
+            // new EducationalInstitutionAnalyzer()
         ];
 #endif
 

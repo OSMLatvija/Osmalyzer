@@ -134,7 +134,7 @@ public class ReportGroup
         
     public ReadOnlyCollection<IssueReportEntry> CollectIssueEntries()
     {
-        for (int i = 0; i < _genericEntries.Count; i++)
+        for (int i = 0; i < _issuesEntries.Count; i++)
             _issuesEntries[i].AdditionIndex = i;
         
         _issuesEntries.Sort(new EntrySortingComparer());

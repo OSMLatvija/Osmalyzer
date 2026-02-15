@@ -18,6 +18,10 @@
     <DefineConstants />
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Remote' ">
+    <DefineConstants />
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
     <PackageReference Include="NetTopologySuite.Features" Version="2.2.0" />

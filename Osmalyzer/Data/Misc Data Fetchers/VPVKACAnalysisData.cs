@@ -212,57 +212,59 @@ Piektdiena: 8:30 - 14:00</td>
 
         if (rawParts[0].Contains("Ziemas"))
         {
-            // Ziemas darba laiks<br />
-            // (1.oktobris - 31.maijs)<br />
-            // Pirmdiena: Slēgts<br />
-            // ...
-            // Sestdiena: 9:00 - 15:00<br />
-            // <br />
-            // Vasaras darba laiks <br />
-            // (1.jūnijs - 30.septembris) <br />
-            // Pirmdiena: 8:00 - 12:00; 12:30 - 17:00<br />
-            // ...
-            // Piektdiena: 9:00 - 15:00<br />
-            // Sestdiena: Slēgts
-            
-            // Ziemas darba laiks<br />
-            // (1.oktobris - 30.aprīlis)<br />
-            // Pirmdiena: Slēgts<br />
-            // Otrdiena: 8:00 - 12:00; 12:30 - 17:00<br />
-            // ...
-            // Sestdiena: 9:00 - 15:00<br />
-            // <br />
-            // Vasaras darba laiks<br />
-            // (1.maija - 30.septembris)<br />
-            // Pirmdiena: 8:00 - 12:00; 12:30 - 17:00<br />
-            // ...
-            // Sestdiena: Slēgts            
+            if (rawParts[1].Contains("31.maijs")) {
+                // Ziemas darba laiks<br />
+                // (1.oktobris - 31.maijs)<br />
+                // Pirmdiena: Slēgts<br />
+                // ...
+                // Sestdiena: 9:00 - 15:00<br />
+                // <br />
+                // Vasaras darba laiks <br />
+                // (1.jūnijs - 30.septembris) <br />
+                // Pirmdiena: 8:00 - 12:00; 12:30 - 17:00<br />
+                // ...
+                // Piektdiena: 9:00 - 15:00<br />
+                // Sestdiena: Slēgts
 
-            string winterRange =
-                rawParts[1] switch
-                {
-                    "(1.oktobris - 31.maijs)"   => "Oct 1-May 31",
-                    "(1.oktobris - 30.aprīlis)" => "Oct 1-Apr 30",
-                    _                           => throw new Exception()
-                };
-            // fragile, but not parsing all the possibilities
-            
-            int summerIndex = rawParts.ToList().FindIndex(part => part.Contains("Vasaras"));
+                if (rawParts[1] != "(1.oktobris - 31.maijs)") throw new Exception();
+                
+                int summerIndex = rawParts.ToList().FindIndex(part => part.Contains("Vasaras"));
 
-            string summerRange =
-                rawParts[summerIndex + 1] switch
-                {
-                    "(1.jūnijs - 30.septembris)" => "Jun 1-Sep 30",
-                    "(1.maija - 30.septembris)"  => "May 1-Sep 30",
-                    "(1.maijs - 30.septembris)"  => "May 1-Sep 30",
-                    _                            => throw new Exception()
-                };
-            // fragile, but not parsing all the possibilities
+                if (rawParts[summerIndex + 1] != "(1.jūnijs - 30.septembris)") throw new Exception();
 
-            string[] winterParts = rawParts[2..summerIndex].ToArray();
-            string[] summerParts = rawParts[(summerIndex + 2)..].ToArray();
+                string[] winterParts = rawParts[2..summerIndex].ToArray();
+                string[] summerParts = rawParts[(summerIndex + 2)..].ToArray();
 
-            return summerRange + " " + Clean(summerParts) + "; " + winterRange + " " + Clean(winterParts);
+                return "Jun 1-Sep 30 " + Clean(summerParts) + "; Oct 1-May 31 " + Clean(winterParts);
+            }
+            else if (rawParts[1].Contains("30.aprīlis")) {
+                // Ziemas darba laiks<br />
+                // (1.oktobris - 30.aprīlis)<br />
+                // Pirmdiena: Slēgts<br />
+                // ...
+                // Sestdiena: 9:00 - 15:00<br />
+                // <br />
+                // Vasaras darba laiks <br />
+                // (1.maijs - 30.septembris) <br />
+                // Pirmdiena: 8:00 - 12:00; 12:30 - 17:00<br />
+                // ...
+                // Piektdiena: 9:00 - 15:00<br />
+                // Sestdiena: Slēgts
+
+                if (rawParts[1] != "(1.oktobris - 30.aprīlis)") throw new Exception();
+                
+                int summerIndex = rawParts.ToList().FindIndex(part => part.Contains("Vasaras"));
+
+                // Both 1.maijs and 1.maija are present
+                if (!Regex.IsMatch(rawParts[summerIndex + 1], @"(1\.maij. - 30\.septembris)")) 
+                    throw new Exception();
+
+                string[] winterParts = rawParts[2..summerIndex].ToArray();
+                string[] summerParts = rawParts[(summerIndex + 2)..].ToArray();
+
+                return "May 1-Sep 30 " + Clean(summerParts) + "; Oct 1-Apr 30 " + Clean(winterParts);
+            }
+            else throw new Exception();
         }
         else
         {
@@ -303,10 +305,6 @@ Piektdiena: 8:30 - 14:00</td>
                     continue;
                 // todo: we can theoretically parse as "by appointment"
 
-                // Remove empty trailing delimiters
-                // e.g. "Pirmdiena: 8:00 - 12:30;"
-                part = Regex.Replace(part, @"[;,]\s*$", "");
-                
                 // Monthly off day "metodiskā diena"
                 // Free text stuff like "Katra mēneša pēdējā piektdiena" or "Katra mēneša otrā trešdiena - metodiskā diena"
                 
@@ -382,6 +380,9 @@ Piektdiena: 8:30 - 14:00</td>
                 // Enforce no space before time separator and one after; semicolon to comma
                 part = Regex.Replace(part, @"\s*;\s*", ", ");
 
+                // Drop redundant time separator in the end
+                part = Regex.Replace(part, @", $", "");
+
                 // Replace LV words (and colon suffix) with OSM weekday names
                 part = part
                         .Replace("pirmdiena:", "Mo").Replace("pirmdiena", "Mo")
@@ -399,7 +400,7 @@ Piektdiena: 8:30 - 14:00</td>
                 part = Regex.Replace(part, @" (\d):", @" 0$1:");
                 
                 // Empty times probably imply closed
-                if (Regex.IsMatch(part, @"^(Mo|Tu|We|Th|Fr|Sa|Su)-$"))
+                if (Regex.IsMatch(part, @"^(Mo|Tu|We|Th|Fr|Sa|Su)(-|\s)$"))
                     continue;
                 
                 // At this point, we should have a valid OSM opening hours syntax, so check it

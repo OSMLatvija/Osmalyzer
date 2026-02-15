@@ -1,4 +1,6 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 
 namespace Osmalyzer;
 
@@ -29,13 +31,23 @@ public static class WebsiteDownloadHelper
         return result;
     }
 
-    public static void Download(string url, string fileName)
+    public static void Download(string url, string fileName, Dictionary<string, string>? headers = null)
     {
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
         using HttpClientHandler handler = new HttpClientHandler { AllowAutoRedirect = false };
         using HttpClient client = new HttpClient(handler);
+
+        // If headers are provided, add them to the client
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                client.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
+        }
+        
         HttpResponseMessage response = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
         // Follow one redirect, i.e. Geobarik https://blog.geofabrik.de/index.php/2025/07/24/download-geofabrik-de-to-use-http-redirects-for-latest-files/
         if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)
@@ -74,7 +86,10 @@ public static class WebsiteDownloadHelper
         File.WriteAllText(fileName, result);
     }
 
-    public static void DownloadPostJson(string url, string jsonBody, string fileName)
+    /// <summary>
+    /// Download JSON response of a POST request for the given raw JSON body
+    /// </summary>
+    public static void DownloadJsonPostJson(string url, string jsonBody, string fileName)
     {
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
@@ -88,6 +103,31 @@ public static class WebsiteDownloadHelper
 
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException($"HTTP request failed with status code {response.StatusCode}");
+
+        string result = response.Content.ReadAsStringAsync().Result;
+        
+        File.WriteAllText(fileName, result);
+    }
+
+    /// <summary>
+    /// Download JSON response of a POST request for the given post fields
+    /// </summary>
+    public static void DownloadPostAsJson(string url, (string, string)[] postFields, string fileName)
+    {
+        if (!BrowsingEnabled)
+            throw new Exception("Web browsing should only be performed in Download()");
+
+        using HttpClient client = new HttpClient();
+        
+        client.DefaultRequestHeaders.Add("Accept", "application/json"); // todo: dehardcode
+
+        FormUrlEncodedContent content = new FormUrlEncodedContent(postFields.Select(f => new KeyValuePair<string, string>(f.Item1, f.Item2)));
+
+        Uri uri = new Uri(url, UriKind.Absolute);
+        HttpResponseMessage response = client.PostAsJsonAsync(uri, content).Result;
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException();
 
         string result = response.Content.ReadAsStringAsync().Result;
         

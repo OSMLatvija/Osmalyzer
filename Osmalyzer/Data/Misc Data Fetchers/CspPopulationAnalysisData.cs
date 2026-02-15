@@ -90,7 +90,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
   }
 }";
 
-        WebsiteDownloadHelper.DownloadPostJson(
+        WebsiteDownloadHelper.DownloadJsonPostJson(
             metadataUrl,
             requestBody,
             Path.Combine(CacheBasePath, DataFileIdentifier + @".json")

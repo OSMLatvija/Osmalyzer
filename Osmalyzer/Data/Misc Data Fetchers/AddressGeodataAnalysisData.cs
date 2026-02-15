@@ -45,7 +45,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void Download()
     {
-        string result = WebsiteDownloadHelper.Read(
+        string result = WebsiteBrowsingHelper.Read( // data.gov.lv seems to not like direct reading/scraping
             ReportWebLink, 
             true
         );
@@ -56,7 +56,7 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
         
         string url = urlMatch.Groups[1].ToString();
 
-        WebsiteDownloadHelper.Download( // downloading using browser causes corruption of the file
+        WebsiteBrowsingHelper.DownloadPage( // data.gov.lv seems to not like direct download/scraping
             url,
             Path.Combine(CacheBasePath, DataFileIdentifier + @".zip")
         );
@@ -64,9 +64,8 @@ public class AddressGeodataAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void DoPrepare()
     {
-        Villages = [ ];
-
-        // Data comes in a zip file, so unzip    
+        // Data comes in a zip file, so unzip
+            
         ZipHelper.ExtractZipFile(
             Path.Combine(CacheBasePath, DataFileIdentifier + @".zip"),
             Path.GetFullPath(ExtractionFolder)

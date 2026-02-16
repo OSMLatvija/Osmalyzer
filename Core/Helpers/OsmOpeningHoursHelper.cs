@@ -1,4 +1,7 @@
-﻿namespace Osmalyzer;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace Osmalyzer;
 
 /// <summary>
 /// Utilities for working with OSM opening hours strings.
@@ -38,7 +41,7 @@ public static class OsmOpeningHoursHelper
                 continue;
             }
 
-            if (TimeMatches(previous, current))
+            if (TimeMatches(previous, current) && DaysSequential(previous, current))
             {
                 // Replace previous with the merged version
                 merged[merged.Count - 1] = MergeDays(previous, current);
@@ -67,6 +70,15 @@ public static class OsmOpeningHoursHelper
             string bTime = b[3..];
 
             return aTime == bTime;
+        }
+
+        bool DaysSequential(string a, string b)
+        {
+            string daysRegex = @"\b(?:Mo|Tu|We|Th|Fr|Sa|Su)\b";
+            List<string> daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+            string lastDayA = Regex.Matches(a, daysRegex).Last().Value;
+            string firstDayB = Regex.Match(b, daysRegex).Value;
+            return daysOfWeek.IndexOf(firstDayB) == daysOfWeek.IndexOf(lastDayA) + 1;
         }
 
         string MergeDays(string a, string b)

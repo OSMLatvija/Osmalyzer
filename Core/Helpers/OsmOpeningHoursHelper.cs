@@ -30,7 +30,7 @@ public static class OsmOpeningHoursHelper
                 continue;
             }
 
-            string previous = merged[merged.Count - 1];
+            string previous = merged[^1];
             string current = line;
 
             // Skip special case month prefixes - they are their own line
@@ -41,10 +41,10 @@ public static class OsmOpeningHoursHelper
                 continue;
             }
 
-            if (TimeMatches(previous, current) && DaysSequential(previous, current))
+            if (DoesTimeMatch(previous, current) && AreDaysSequential(previous, current))
             {
                 // Replace previous with the merged version
-                merged[merged.Count - 1] = MergeDays(previous, current);
+                merged[^1] = MergeDays(previous, current);
                 continue;
             }
 
@@ -53,7 +53,7 @@ public static class OsmOpeningHoursHelper
 
         return merged;
 
-        bool TimeMatches(string a, string b)
+        bool DoesTimeMatch(string a, string b)
         {
             int spaceIndex = a.IndexOf(' ');
             if (spaceIndex < 0)
@@ -72,7 +72,7 @@ public static class OsmOpeningHoursHelper
             return aTime == bTime;
         }
 
-        bool DaysSequential(string a, string b)
+        bool AreDaysSequential(string a, string b)
         {
             string daysRegex = @"\b(?:Mo|Tu|We|Th|Fr|Sa|Su)\b";
             List<string> daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];

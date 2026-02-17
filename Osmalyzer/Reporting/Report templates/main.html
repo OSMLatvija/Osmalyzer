@@ -58,7 +58,30 @@
             font-size: .9em;
             white-space: pre;
             background-color: #e1e1e1;
-            padding: 0 2px;
+            position: relative;   /* Makes it a positioning context for copy button*/
+
+        }
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .copy-btn::before {
+            content: "";
+            display: block;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            background-color: #666;
+
+            -webkit-mask: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjRweCcgaGVpZ2h0PScyNHB4JyB2aWV3Qm94PScwIDAgMjQgMjQnIGZpbGw9J25vbmUnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZD0nTTggNFYxNkM4IDE3LjEwNDYgOC44OTU0MyAxOCAxMCAxOEwxOCAxOEMxOS4xMDQ2IDE4IDIwIDE3LjEwNDYgMjAgMTZWNy4yNDE2MkMyMCA2LjcwMzQgMTkuNzgzMSA2LjE4Nzg5IDE5LjM5ODIgNS44MTE2MUwxNi4wODI5IDIuNTY5OTlDMTUuNzA5MiAyLjIwNDYgMTUuMjA3NCAyIDE0LjY4NDcgMkgxMEM4Ljg5NTQzIDIgOCAyLjg5NTQzIDggNFonIHN0cm9rZT0nIzAwMDAwMCcgc3Ryb2tlLXdpZHRoPScyJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIHN0cm9rZS1saW5lam9pbj0ncm91bmQnLz48cGF0aCBkPSdNMTYgMThWMjBDMTYgMjEuMTA0NiAxNS4xMDQ2IDIyIDE0IDIySDZDNC44OTU0MyAyMiA0IDIxLjEwNDYgNCAyMFY5QzQgNy44OTU0MyA0Ljg5NTQzIDcgNiA3SDgnIHN0cm9rZT0nIzAwMDAwMCcgc3Ryb2tlLXdpZHRoPScyJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIHN0cm9rZS1saW5lam9pbj0ncm91bmQnLz48L3N2Zz4=") no-repeat center;
+            mask: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjRweCcgaGVpZ2h0PScyNHB4JyB2aWV3Qm94PScwIDAgMjQgMjQnIGZpbGw9J25vbmUnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZD0nTTggNFYxNkM4IDE3LjEwNDYgOC44OTU0MyAxOCAxMCAxOEwxOCAxOEMxOS4xMDQ2IDE4IDIwIDE3LjEwNDYgMjAgMTZWNy4yNDE2MkMyMCA2LjcwMzQgMTkuNzgzMSA2LjE4Nzg5IDE5LjM5ODIgNS44MTE2MUwxNi4wODI5IDIuNTY5OTlDMTUuNzA5MiAyLjIwNDYgMTUuMjA3NCAyIDE0LjY4NDcgMkgxMEM4Ljg5NTQzIDIgOCAyLjg5NTQzIDggNFonIHN0cm9rZT0nIzAwMDAwMCcgc3Ryb2tlLXdpZHRoPScyJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIHN0cm9rZS1saW5lam9pbj0ncm91bmQnLz48cGF0aCBkPSdNMTYgMThWMjBDMTYgMjEuMTA0NiAxNS4xMDQ2IDIyIDE0IDIySDZDNC44OTU0MyAyMiA0IDIxLjEwNDYgNCAyMFY5QzQgNy44OTU0MyA0Ljg5NTQzIDcgNiA3SDgnIHN0cm9rZT0nIzAwMDAwMCcgc3Ryb2tlLXdpZHRoPScyJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIHN0cm9rZS1saW5lam9pbj0ncm91bmQnLz48L3N2Zz4=") no-repeat center;
+            -webkit-mask-size: contain;
+            mask-size: contain;
         }
         .map {
             border: 1px solid #ccc;
@@ -70,6 +93,15 @@
         }
 
     </style>
+
+    <script>
+        document.addEventListener("click", function(e) {
+            if (e.target.classList.contains("copy-btn")) {
+                const code = e.target.parentElement.querySelector("code");
+                navigator.clipboard.writeText(code.innerHTML.replace(/<br\s*\/?>/gi, "\n"));
+            }
+        });
+    </script>
 
     <!--MAP-->
 

@@ -71,6 +71,7 @@ public class Report
 
         List<ReportGroup> unparentedGroups =
             _groups
+                .Except(parentGroups)
                 .Where(g => g.ParentGroupId == null || parentGroups.All(pg => pg.ID != g.ParentGroupId))
                 .ToList();
 

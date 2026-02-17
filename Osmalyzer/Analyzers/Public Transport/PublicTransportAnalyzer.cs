@@ -220,7 +220,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                             variant,
                             new MapPointReportEntry(
                                 osmOnlyStopMatch.OsmStop.AverageCoord,
-                                "OSM stop not in route: " +
+                                "This stop is not supposed to be in OSM route: " +
                                 OsmStopMapPointLabel(osmOnlyStopMatch.OsmStop) + " - " + osmOnlyStopMatch.OsmStop.OsmViewUrl,
                                 osmOnlyStopMatch.OsmStop,
                                 MapPointStyle.BusStopOsmUnmatched
@@ -233,7 +233,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                             variant,
                             new MapPointReportEntry(
                                 routeOnlyStopMatch.RouteStop.Coord,
-                                (routePair != null ? "Route stop not in OSM: " : "Route stop: ") +
+                                (routePair != null ? "This stop is missing from OSM route: " : "Route stop: ") +
                                 RouteStopMapPointLabel(routeOnlyStopMatch.RouteStop),
                                 MapPointStyle.BusStopOriginalUnmatched
                             )

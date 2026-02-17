@@ -9,7 +9,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         "Note that this might result in poor and incorrect matches if OSM doesn't have a matching route mapped " +
         "or some other route matches it instead (because of similar stops). " +
         "Each route is shown in its own section so it can be compared with the matched OSM route, if any. " +
-        "Note that GTFS stores routes differently than OSM and not neccessarilly all should be mapped. " +
+        "Note that GTFS stores routes differently than OSM and not necessarily all should be mapped. " +
         "Technically, GTFS doesn't have route \"variants\" - the ones below are collected from repeating unique stop sequences.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.PublicTransport;
@@ -33,9 +33,9 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData masterData = osmData.MasterData;
 
-        List<OsmData> OsmDatas = OsmData.Filter(
+        List<OsmData> routeData = masterData.Filter(
             [
                 [
                     new IsNode(),
@@ -56,8 +56,8 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             ]
         );
             
-        OsmData osmStops = OsmDatas[0];
-        OsmData osmRoutes = OsmDatas[1];
+        OsmData osmStops = routeData[0];
+        OsmData osmRoutes = routeData[1];
 
         // Parse routes into variants
 
@@ -260,7 +260,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             
             // todo: names
             // todo: to / via / from
-            // todo: stop tranport mode match
+            // todo: stop transport mode match
                 
 
             [Pure]

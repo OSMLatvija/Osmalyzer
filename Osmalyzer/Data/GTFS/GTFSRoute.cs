@@ -60,4 +60,10 @@ public class GTFSRoute
             _                               => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
+
+
+    public override string ToString()
+    {
+        return $"{TypeLabel} #{Number} \"{Name}\" ({Id})";
+    }
 }

@@ -25,3 +25,6 @@ https://commons.wikimedia.org/wiki/File:OOjs_UI_icon_edit-ltr-gray.svg
 
 buses
 https://commons.wikimedia.org/wiki/File:Icon-mode-bus-default.svg
+
+copy.svg
+https://www.svgrepo.com/svg/378581/copy

@@ -266,7 +266,7 @@ public class HtmlFileReportWriter : ReportWriter
         line = Regex.Replace(line, @"(https://mantojums.lv/(\d+))", @"<a href=""$1"" target=""_blank"">#$2</a>");
 
         // Other syntax
-        line = Regex.Replace(line, @"```([^`]+)```", @"<pre class=""osm-tag""><code>$1</code></pre>");
+        line = Regex.Replace(line, @"```([^`]+)```", @"<pre class=""osm-tag""><code>$1</code><button class=""copy-btn"" aria-label=""Copy""></button></pre>");
 
         line = Regex.Replace(line, @"`([^`]+)`", @"<code class=""osm-tag"">$1</code>");
 

@@ -176,6 +176,9 @@ public class VPVKACAnalyzer : Analyzer
             {
 #if DEBUG
                 OsmNode newOfficeNode = additionsData.CreateNewNode(locatedOffice.Coord);
+#else
+                OsmNode newOfficeNode = OsmData.CreateNewNode(locatedOffice.Coord); // not using for actual data/changes, but need for actions to print out the tags
+#endif
                 
                 List<SuggestedAction> actionsForThisNode = [ ];
                 
@@ -191,6 +194,7 @@ public class VPVKACAnalyzer : Analyzer
                 if (!string.IsNullOrWhiteSpace(locatedOffice.Office.OpeningHours))
                     actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "opening_hours", locatedOffice.Office.OpeningHours));
                 
+#if DEBUG
                 suggestedAdditions.AddRange(actionsForThisNode);
 #endif
 

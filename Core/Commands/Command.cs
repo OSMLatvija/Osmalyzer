@@ -68,7 +68,7 @@ internal class CreateNodeCommand : Command
     internal override Command Apply()
     {
         // Actuate
-        OsmNode newNode = new OsmNode(Coord, Data); // Owner will be set in OsmData.ApplyCommand
+        OsmNode newNode = new OsmNode(Coord, Data);
         Data.RegisterElement(newNode);
         
         // Store created node for reference

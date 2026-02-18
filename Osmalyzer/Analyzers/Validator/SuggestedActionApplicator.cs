@@ -320,5 +320,31 @@ public static class SuggestedActionApplicator
                 )
             );
         }
+    }   
+
+    [Pure]
+    public static string GetTagsForSuggestedActionsAsCodeString(List<SuggestedAction> actions)
+    {
+        string s = "";
+                    
+        foreach (SuggestedAction action in actions)
+        {
+            switch (action)
+            {
+                case OsmCreateElementAction:
+                    break;
+                
+                case OsmSetValueSuggestedAction osmSetValueSuggestedAction:
+                    if (s != "")
+                        s += Environment.NewLine;
+                    s += osmSetValueSuggestedAction.Key + " = " + osmSetValueSuggestedAction.Value;
+                    break;
+                            
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        return "```" + s + "```";
     }
 }

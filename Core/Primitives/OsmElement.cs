@@ -251,7 +251,26 @@ public abstract class OsmElement : IChunkerItem
         return actualValue.Split(';')
                           .Select(v => v.Trim())
                           .Any(v => v == value);
-    }  
+    }
+
+    [Pure]
+    public string? GetAllTagsAsCodeString()
+    {
+        if (_tags == null)
+            return null;
+        
+        string s = "";
+
+        foreach (KeyValuePair<string, string> tag in _tags)
+        {
+            if (s != "")
+                s += Environment.NewLine;
+            
+            s += tag.Key + "=" + tag.Value;
+        }
+
+        return "```" + s + "```";
+    }
 
     [Pure]
     public string? GetAllTagsAsString()

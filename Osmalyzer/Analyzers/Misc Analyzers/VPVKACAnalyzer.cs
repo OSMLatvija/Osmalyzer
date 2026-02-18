@@ -167,9 +167,32 @@ public class VPVKACAnalyzer : Analyzer
                 "(Address fields are not offered because the local bot will update these automatically on OSM.)"
             );
 
+#if DEBUG
+            OsmData additionsData = OsmData.Copy();
+            List<SuggestedAction> suggestedAdditions = [ ];
+#endif
+
             foreach (LocatedVPVKACOffice locatedOffice in unmatchedLocatedOffices)
             {
-                string tagsBlock = BuildSuggestedTags(locatedOffice.Office);
+#if DEBUG
+                OsmNode newOfficeNode = additionsData.CreateNewNode(locatedOffice.Coord);
+                
+                List<SuggestedAction> actionsForThisNode = [ ];
+                
+                actionsForThisNode.Add(new OsmCreateElementAction(newOfficeNode));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "name", string.IsNullOrWhiteSpace(locatedOffice.Office.DisplayName) ? locatedOffice.Office.Name : locatedOffice.Office.DisplayName));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "official_name", FullName(locatedOffice.Office.Name)));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "office", "government"));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "government", "public_service"));
+                if (!string.IsNullOrWhiteSpace(locatedOffice.Office.Email))
+                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "email", locatedOffice.Office.Email));
+                if (!string.IsNullOrWhiteSpace(locatedOffice.Office.Phone))
+                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "phone", locatedOffice.Office.Phone));
+                if (!string.IsNullOrWhiteSpace(locatedOffice.Office.OpeningHours))
+                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "opening_hours", locatedOffice.Office.OpeningHours));
+                
+                suggestedAdditions.AddRange(actionsForThisNode);
+#endif
 
                 report.AddEntry(
                     ExtraReportGroup.SuggestedAdditions,
@@ -178,64 +201,58 @@ public class VPVKACAnalyzer : Analyzer
                         locatedOffice.Office.Address +
                         "` can be added at " +
                         locatedOffice.Coord.OsmUrl +
-                        " as" + Environment.NewLine + tagsBlock,
+                        " as" + Environment.NewLine + SuggestedActionApplicator.GetTagsForSuggestedActionsAsCodeString(actionsForThisNode),
                         locatedOffice.Coord,
                         MapPointStyle.Suggestion
                     )
                 );
             }
+            
+#if DEBUG
+            SuggestedActionApplicator.ApplyAndProposeXml(additionsData, suggestedAdditions, this, "additions");
+            SuggestedActionApplicator.ExplainForReport(suggestedAdditions, report, ExtraReportGroup.SuggestedAdditions);
+#endif
         }
         
-        // Offer updates to matched office values
+        // Validate matched office values
         
-        List<MatchedCorrelation<LocatedVPVKACOffice>> matchedPairs = correlation.Correlations
-            .OfType<MatchedCorrelation<LocatedVPVKACOffice>>()
-            .ToList();
+        Validator<LocatedVPVKACOffice> validator = new Validator<LocatedVPVKACOffice>(
+            correlation,
+            "Office tagging issues"
+        );
 
-        if (matchedPairs.Count > 0)
-        {
-            List<TagComparison<LocatedVPVKACOffice>> comparisons = [
-                new TagComparison<LocatedVPVKACOffice>(
-                    "name",
-                    d => string.IsNullOrWhiteSpace(d.Office.DisplayName) ? d.Office.Name : d.Office.DisplayName
-                ),
-                new TagComparison<LocatedVPVKACOffice>(
-                    "official_name",
-                    d => string.IsNullOrWhiteSpace(d.Office.Name) ? null : FullName(d.Office.Name)
-                ),
-                new TagComparison<LocatedVPVKACOffice>(
-                    "office",
-                    _ => "government"
-                ),
-                new TagComparison<LocatedVPVKACOffice>(
-                    "government",
-                    _ => "public_service"
-                ),
-                new TagComparison<LocatedVPVKACOffice>(
-                    "email",
-                    d => string.IsNullOrWhiteSpace(d.Office.Email) ? null : d.Office.Email
-                ),
-                new TagComparison<LocatedVPVKACOffice>(
-                    "phone",
-                    d => string.IsNullOrWhiteSpace(d.Office.Phone) ? null : d.Office.Phone
-                ),
-                new TagComparison<LocatedVPVKACOffice>(
-                    "opening_hours",
-                    d => string.IsNullOrWhiteSpace(d.Office.OpeningHours) ? null : d.Office.OpeningHours
-                )
-            ];
+        List<SuggestedAction> suggestedChanges = validator.Validate(
+            report,
+            false, false,
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "name",
+                d => string.IsNullOrWhiteSpace(d.Office.DisplayName) ? d.Office.Name : d.Office.DisplayName
+            ),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "official_name",
+                d => string.IsNullOrWhiteSpace(d.Office.Name) ? null : FullName(d.Office.Name)
+            ),
+            new ValidateElementHasValue("office", "government"),
+            new ValidateElementHasValue("government", "public_service"),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "email",
+                d => string.IsNullOrWhiteSpace(d.Office.Email) ? null : d.Office.Email
+            ),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "phone",
+                d => string.IsNullOrWhiteSpace(d.Office.Phone) ? null : d.Office.Phone
+            ),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "opening_hours",
+                d => string.IsNullOrWhiteSpace(d.Office.OpeningHours) ? null : d.Office.OpeningHours
+            ),
+            new ValidateElementFixme()
+        );
 
-            TagSuggester<LocatedVPVKACOffice> suggester = new TagSuggester<LocatedVPVKACOffice>(
-                matchedPairs,
-                d => d.Office.DisplayName,
-                "office"
-            );
-
-            suggester.Suggest(
-                report,
-                comparisons
-            );
-        }
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+#endif
         
         
         // Validate additional issues
@@ -256,38 +273,6 @@ public class VPVKACAnalyzer : Analyzer
                 )
             );
         }
-
-#if !REMOTE_EXECUTION
-        // Export all offices (unmatched) to GeoJSON for local runs
-        
-        List<IFeature> features = [ ];
-        GeometryFactory geometryFactory = new GeometryFactory();
-
-        foreach (LocatedVPVKACOffice node in correlation.Correlations.OfType<UnmatchedItemCorrelation<LocatedVPVKACOffice>>().Select(n => n.DataItem))
-        //foreach (LocatedVPVKACOffice node in locatedOffices)
-        {
-            Point? point = geometryFactory.CreatePoint(new Coordinate(node.Coord.lon, node.Coord.lat));
-            AttributesTable attributes = new AttributesTable()
-            {
-                { "name", node.Office.DisplayName },
-                { "official_name", FullName(node.Office.Name) },
-                { "office", "government" },
-                { "government", "public_service" },
-                { "email", node.Office.Email },
-                { "phone", node.Office.Phone },
-                { "opening_hours", node.Office.OpeningHours },
-                { "__address", node.Office.Address }, // for debug
-            };
-
-            features.Add(new Feature(point, attributes));
-        }
-
-        FeatureCollection featureCollection = new FeatureCollection(features);
-
-        JsonSerializer? serializer = GeoJsonSerializer.Create();
-        using StreamWriter writer = new StreamWriter("VPVKAC offices.geojson");
-        serializer.Serialize(writer, featureCollection);
-#endif
     }
 
 
@@ -307,24 +292,6 @@ public class VPVKACAnalyzer : Analyzer
         );
     }
 
-    [Pure]
-    private static string BuildSuggestedTags(VPVKACOffice office)
-    {
-        List<string> lines = [ ];
-        
-        string displayName = office.DisplayName; // disambiguated name, if applicable
-        string fullName = FullName(office.Name);
-        
-        if (!string.IsNullOrWhiteSpace(displayName)) lines.Add("name=" + displayName);
-        if (!string.IsNullOrWhiteSpace(fullName)) lines.Add("official_name=" + fullName);
-        lines.Add("office=government");
-        lines.Add("government=public_service");
-        if (!string.IsNullOrWhiteSpace(office.Email)) lines.Add("email=" + office.Email);
-        if (!string.IsNullOrWhiteSpace(office.Phone)) lines.Add("phone=" + office.Phone);
-        if (!string.IsNullOrWhiteSpace(office.OpeningHours)) lines.Add("opening_hours=" + office.OpeningHours);
-        
-        return "```" + string.Join(Environment.NewLine, lines) + "```";
-    }
 
     [Pure]
     private static string FullName(string officeName)
@@ -345,6 +312,7 @@ public class VPVKACAnalyzer : Analyzer
     {
         UnlocatedOffices,
         SuggestedAdditions,
+        ProposedChanges,
         AllOffices
     }
 }

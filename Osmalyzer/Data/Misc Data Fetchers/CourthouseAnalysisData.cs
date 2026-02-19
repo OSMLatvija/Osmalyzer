@@ -127,8 +127,8 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
 
             int contactMatchStart = contactTopMatch.Index;
                 
-            // End at next "<a href="..." data-external-link="TRUE" target="_blank">E-adrese</a>" (might be whitespace around "E-adrese")
-            Match contactBottomMatch = Regex.Match(content[contactMatchStart..], @">\s*E-adrese\s*<", RegexOptions.Singleline);
+            // End somewhere at next "`... <a data-external-link="TRUE" href="//latvija.gov.lv/KDV/Mailbox/">Latvija.gov.lv,</a> ...), not sure how else to detect other than to parse full html hierarchy
+            Match contactBottomMatch = Regex.Match(content[contactMatchStart..], @"KDV/Mailbox/", RegexOptions.Singleline);
             
             if (!contactBottomMatch.Success)
                 throw new Exception("Did not find contact section end match");

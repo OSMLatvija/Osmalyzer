@@ -43,10 +43,16 @@ public class OsmRelation : OsmElement
         // Note: member elements and relations backlink are NOT copied here - handled in OsmData.Copy()
     }
         
+    /// <summary>
+    /// Note: this isn't a proper <see cref="GetMultipolygon"/>
+    /// </summary>
     [Pure]
     public OsmPolygon? GetOuterWayPolygon()
     {
         List<OsmWay> outerWays = GetOuterWays();
+        
+        if (outerWays.Count == 0)
+            return null; // no outer ways, probably broken (or not even multipolygon)
 
         List<OsmWay>? sortedWays = OsmAlgorithms.SortWays(outerWays);
 

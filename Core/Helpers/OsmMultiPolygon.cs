@@ -21,7 +21,7 @@ public class OsmMultiPolygon
         OuterRings = outerRings;
         InnerRings = innerRings;
     }
-    
+
 
     /// <summary>
     /// Creates a multipolygon from NTS Geometry with coordinate transformation, handling Polygon and MultiPolygon types
@@ -229,5 +229,35 @@ public class OsmMultiPolygon
         coordinates[coords.Count] = coordinates[0]; // close the ring
 
         return factory.CreateLinearRing(coordinates);
+    }
+
+    /// <summary>
+    /// Checks if a coordinate is inside any outer ring and not inside any inner ring (hole)
+    /// </summary>
+    [Pure]
+    public bool ContainsCoord(OsmCoord coord)
+    {
+        // Check if inside any outer ring
+        bool insideOuter = false;
+        foreach (OsmPolygon outerRing in OuterRings)
+        {
+            if (outerRing.ContainsCoord(coord))
+            {
+                insideOuter = true;
+                break;
+            }
+        }
+
+        if (!insideOuter)
+            return false;
+
+        // Check if inside any inner ring (hole)
+        foreach (OsmPolygon innerRing in InnerRings)
+        {
+            if (innerRing.ContainsCoord(coord))
+                return false;
+        }
+
+        return true;
     }
 }

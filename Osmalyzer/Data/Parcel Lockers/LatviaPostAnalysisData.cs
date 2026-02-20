@@ -1,7 +1,10 @@
-﻿namespace Osmalyzer;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SharpKml.Dom;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
-[DisabledData("Website is asking captcha to access map page")]
 public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
 {
     public override string Name => "Latvijas Pasts";
@@ -20,18 +23,16 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
                                                       .Where(i => i.ItemType == LatviaPostItemType.ParcelLocker)
                                                       .Select(i => i.AsParcelLocker());
 
-    public IEnumerable<ParcelPickupPoint> PickupPoints => LatviaPostItems
-                                                          .Where(i => i.ItemType == LatviaPostItemType.CircleK)
-                                                          .Select(i => i.AsPickupPointLocker());
+    IEnumerable<ParcelPickupPoint>? IParcelLockerListProvider.PickupPoints => null;
 
-    public PickupPointAmenity? PickupPointLocation => PickupPointAmenity.GasStation;
-    public string PickupPointLocationName => "Circle K";
+    PickupPointAmenity? IParcelLockerListProvider.PickupPointLocation => null;
 
+    string? IParcelLockerListProvider.PickupPointLocationName => null;
 
     protected override void Download()
     {
-        WebsiteBrowsingHelper.DownloadPage( // page comes with no content and lots of JS to actually load everything
-            ReportWebLink, 
+        WebsiteDownloadHelper.Download(
+            "https://mans.pasts.lv/api/public/addresses/service_location?type[]=1&type[]=2&type[]=6&country[]=LV&search=&itemsPerPage=10000&page=1", 
             DataFileName
         );
     }
@@ -42,17 +43,58 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
 
         string source = File.ReadAllText(DataFileName);
 
-        throw new NotImplementedException();
+        // {
+        //   "@id": "/api/addresses/service_location/3122",
+        //   "@type": "ServiceLocation",
+        //   "id": "3122",
+        //   "type": 2,
+        //   "countryCode": "LV",
+        //   "postCode": "LV-1055",
+        //   "readableAddress": "Cementa iela 12, Rīga, LV-1055",
+        //   "label": "Iļģuciema pasta nodaļa",
+        //   "latitude": 56.969091258159,
+        //   "longitude": 24.061597193063,
+        //   "workingHours": {
+        //     "@type": "WorkingHours",
+        //     "monday": "09:00-18:00",
+        //     "tuesday": "09:00-18:00",
+        //     "wednesday": "09:00-18:00",
+        //     "thursday": "09:00-18:00",
+        //     "friday": "09:00-18:00",
+        //     "saturday": "-",
+        //     "sunday": "-"
+        //   },
+        //   "workingHoursCombined": [],
+        //   "outside": false,
+        //   "status": 1,
+        //   "info": "",
+        //   "locationPostCode": "LV-1055",
+        //   "officeFcd": "LV1055"
+        // }
+        dynamic content;
         
-        // LatviaPostItems.Add(
-        //     new LatviaPostItem(
-        //         itemType,
-        //         name,
-        //         address,
-        //         code,
-        //         TryExtractCodeValue(code, itemType),
-        //         new OsmCoord(lat, lon)
-        //     )
-        // );
+        try
+        {
+            content = JsonConvert.DeserializeObject(source)!;
+        }
+        catch (JsonException)
+        {
+            Console.WriteLine("JSON exception!");
+            Console.WriteLine("We were trying to parse: " + (source.Length <= 200 ? source : source[..200] + " [" + (source.Length - 200) + "]..."));
+            throw;
+        }
+        JArray items = content["hydra:member"];
+        foreach(dynamic item in items)
+        {
+            LatviaPostItems.Add(
+                new LatviaPostItem(
+                    (LatviaPostItemType)item.type,
+                    (string)item.label,
+                    (string)item.readableAddress,
+                    (string)item.locationPostCode,
+                    new OsmCoord((double)item.latitude, (double)item.longitude)
+                )
+            );
+        }
     }
 }

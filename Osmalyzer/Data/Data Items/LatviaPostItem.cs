@@ -6,8 +6,6 @@ public class LatviaPostItem : IDataItem
 
     public string? Code { get; }
 
-    public int? CodeValue { get; }
-
     public string? Name { get; }
 
     public string? Address { get; }
@@ -15,13 +13,12 @@ public class LatviaPostItem : IDataItem
     public OsmCoord Coord { get; }
 
     
-    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, int? codeValue, OsmCoord coord)
+    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, OsmCoord coord)
     {
         ItemType = itemType;
         Name = name;
         Address = address;
         Code = code;
-        CodeValue = codeValue;
         Coord = coord;
     }
 
@@ -40,28 +37,12 @@ public class LatviaPostItem : IDataItem
         );
     }
 
-    [Pure]
-    public ParcelPickupPoint AsPickupPointLocker()
-    {
-        if (ItemType != LatviaPostItemType.CircleK) throw new Exception("This item is not a pickup point.");
-
-        return new ParcelPickupPoint(
-            "Latvijas Pasts",
-            Code,
-            Name,
-            Address,
-            Coord,
-            "Circle K" // the only place in Latvia (at the moment) 
-        );
-    }
-
-
     public string ReportString()
     {
         return
             TypeToLabel(ItemType) +
             (Name != null ? " `" + Name + "`" : "") +
-            (CodeValue != null ? " (#`" + CodeValue + "`)" : Code != null ? " (`" + Code + "`)" : "") +
+            (Code != null ? " (`" + Code + "`)" : "") +
             (Address != null ? " at `" + Address + "`" : "");
 
         
@@ -73,8 +54,8 @@ public class LatviaPostItem : IDataItem
                 LatviaPostItemType.PostBox          => "Post box",
                 LatviaPostItemType.Office           => "Post office",
                 LatviaPostItemType.ParcelLocker     => "Parcel locker",
-                LatviaPostItemType.CircleK          => "Circle K service location",
-                LatviaPostItemType.ServiceOnRequest => "Service-on-request location",
+                LatviaPostItemType.Unisend          => "Unisend parcel locker",
+
 
                 _ => throw new NotImplementedException()
             };
@@ -85,9 +66,8 @@ public class LatviaPostItem : IDataItem
 
 public enum LatviaPostItemType
 {
-    PostBox,
-    Office,
-    ParcelLocker,
-    CircleK,
-    ServiceOnRequest
+    PostBox = 2,
+    Office = 1,
+    ParcelLocker = 6,
+    Unisend = 7
 }

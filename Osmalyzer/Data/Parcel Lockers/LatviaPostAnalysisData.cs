@@ -5,7 +5,7 @@ using SharpKml.Dom;
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
+public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, IUndatedAnalysisData
 {
     public override string Name => "Latvijas Pasts";
 
@@ -88,13 +88,28 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider
         {
             LatviaPostItems.Add(
                 new LatviaPostItem(
-                    (LatviaPostItemType)item.type,
+                    EntryTypeToItemType((int)item.type),
                     (string)item.label,
                     (string)item.readableAddress,
                     (string)item.locationPostCode,
                     new OsmCoord((double)item.latitude, (double)item.longitude)
                 )
             );
+        }
+    }
+
+    
+    [Pure]
+    private static LatviaPostItemType EntryTypeToItemType(int type)
+    {
+        switch (type)
+        {
+            case 2: return LatviaPostItemType.PostBox;
+            case 1: return LatviaPostItemType.Office;
+            case 6: return LatviaPostItemType.ParcelLocker;
+            case 7: return LatviaPostItemType.Unisend;
+
+            default: throw new NotImplementedException();
         }
     }
 }

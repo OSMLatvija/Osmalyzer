@@ -66,8 +66,8 @@ public class LatviaPostItem : IDataItem
 
 public enum LatviaPostItemType
 {
-    PostBox = 2,
-    Office = 1,
-    ParcelLocker = 6,
-    Unisend = 7
+    Office,
+    PostBox,
+    ParcelLocker,
+    Unisend 
 }

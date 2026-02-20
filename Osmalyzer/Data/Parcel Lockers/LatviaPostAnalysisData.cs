@@ -31,8 +31,12 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
     protected override void Download()
     {
         WebsiteDownloadHelper.Download(
-            "https://mans.pasts.lv/api/public/addresses/service_location?type[]=1&type[]=2&type[]=6&country[]=LV&search=&itemsPerPage=10000&page=1", 
-            DataFileName
+            "https://mans.pasts.lv/api/public/addresses/service_location?type[]=1&type[]=2&type[]=6&type[]=9&country[]=LV&search=&itemsPerPage=10000&page=1", 
+            DataFileName,
+            // headers
+            new Dictionary<string, string>() {
+                { "Accept", "application/json" } // this skips the (useless) hydra search API headers
+            }
         );
     }
 
@@ -83,18 +87,19 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
             throw;
         }
         
-        JArray items = content["hydra:member"];
-        
-        foreach(dynamic item in items)
+        foreach (dynamic item in content)
         {
+            if ((string)item.countryCode != "LV")
+                continue; // just in case - since not supplying type[] params actually returns LT and EE for some reason
+
             string label = (string)item.label;
-            
+
             bool unisend = label.Contains("Unisend", StringComparison.InvariantCultureIgnoreCase);
             // e.g. "Rīga Biķernieku iela Rimi" vs "Unisend 8009 Rimi"
-            
+
             bool clientCenter = label.Contains("Klientu centrs", StringComparison.InvariantCultureIgnoreCase);
             // e.g e.g. "Juglas pasta nodaļa" vs Klientu centrs Kauguri"
-            
+
             LatviaPostItems.Add(
                 new LatviaPostItem(
                     EntryTypeToItemType((int)item.type),
@@ -124,8 +129,11 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
             case 6: // e.g. "Rīga Biķernieku iela Rimi" or "Jelgava TC Valdeka" or "Unisend 8009 Rimi"
                 return LatviaPostItemType.ParcelLocker;
             
-            // Not in data (not requested in post):
-            // return LatviaPostItemType.PostBox;
+            // 7 appear to be Unisend LT and EE parcel lockers
+            // e.g. "Visalaukio g. 1, Vilnius, 08428" or "Ehitajate tee 107, Tallinn, 13511"
+            
+            case 9: // e.g. "Jelgava vēstuļu kastīte Nr.3007" or "Rīga vēstuļu kastīte Nr.5"
+                return LatviaPostItemType.PostBox;
 
             default: throw new NotImplementedException();
         }

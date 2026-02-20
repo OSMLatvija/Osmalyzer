@@ -33,7 +33,7 @@ public class MaximaShopsAnalysisData : ShopListAnalysisData
         //     "certificate": ""
         // }
 
-        WebsiteDownloadHelper.DownloadPost(
+        WebsiteDownloadHelper.DownloadPostJson(
             @"https://www.maxima.lv/ajax/shopsnetwork/map/getCities",
             [ ("cityId", "0"), ("shopType", ""), ("mapId", "1"), ("shopId", ""), ("language", "lv_lv"), ("certificate", "") ],
             DataFileName

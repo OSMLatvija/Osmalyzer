@@ -31,7 +31,7 @@ public class ItellaParcelLockerAnalysisData : ParcelLockerAnalysisData
         // list at https://itella.lv/en/private-customer/parcel-locker-locations/
         // query to get json data at https://itella.lv/wp-admin/admin-ajax.php
 
-        WebsiteDownloadHelper.DownloadPost(
+        WebsiteDownloadHelper.DownloadPostJson(
             "https://itella.lv/wp-admin/admin-ajax.php",
             [ ("action","ld_get_baltics_lockers") ],
             DataFileName

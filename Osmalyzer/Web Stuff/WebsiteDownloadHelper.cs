@@ -64,7 +64,7 @@ public static class WebsiteDownloadHelper
         stream.CopyTo(fileStream);
     }
 
-    public static void DownloadPost(string url, (string, string)[] postFields, string fileName)
+    public static void DownloadPostJson(string url, (string, string)[] postFields, string fileName)
     {
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");

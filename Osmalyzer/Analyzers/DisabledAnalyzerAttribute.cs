@@ -14,7 +14,6 @@ public class DisabledAnalyzerAttribute : Attribute
 
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="DisabledAnalyzerAttribute"/>.
     /// </summary>
     /// <param name="reason">Optional reason explaining why the analyzer is disabled.</param>
     public DisabledAnalyzerAttribute(string? reason = null)

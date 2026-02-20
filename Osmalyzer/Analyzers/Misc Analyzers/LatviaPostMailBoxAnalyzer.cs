@@ -1,6 +1,7 @@
 ﻿namespace Osmalyzer;
 
 [UsedImplicitly]
+[DisabledAnalyzer("LP data doesn't provide mail boxes")]
 public class LatviaPostMailBoxAnalyzer : Analyzer
 {
     protected string Operator { get; } = "Latvijas Pasts";

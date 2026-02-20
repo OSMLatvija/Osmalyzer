@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SharpKml.Dom;
 
 namespace Osmalyzer;
 
@@ -83,16 +82,28 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
             Console.WriteLine("We were trying to parse: " + (source.Length <= 200 ? source : source[..200] + " [" + (source.Length - 200) + "]..."));
             throw;
         }
+        
         JArray items = content["hydra:member"];
+        
         foreach(dynamic item in items)
         {
+            string label = (string)item.label;
+            
+            bool unisend = label.Contains("Unisend", StringComparison.InvariantCultureIgnoreCase);
+            // e.g. "Rīga Biķernieku iela Rimi" vs "Unisend 8009 Rimi"
+            
+            bool clientCenter = label.Contains("Klientu centrs", StringComparison.InvariantCultureIgnoreCase);
+            // e.g e.g. "Juglas pasta nodaļa" vs Klientu centrs Kauguri"
+            
             LatviaPostItems.Add(
                 new LatviaPostItem(
                     EntryTypeToItemType((int)item.type),
-                    (string)item.label,
+                    label,
                     (string)item.readableAddress,
                     (string)item.locationPostCode,
-                    new OsmCoord((double)item.latitude, (double)item.longitude)
+                    new OsmCoord((double)item.latitude, (double)item.longitude),
+                    unisend,
+                    clientCenter
                 )
             );
         }
@@ -104,10 +115,17 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
     {
         switch (type)
         {
-            case 2: return LatviaPostItemType.PostBox;
-            case 1: return LatviaPostItemType.Office;
-            case 6: return LatviaPostItemType.ParcelLocker;
-            case 7: return LatviaPostItemType.Unisend;
+            case 1: // e.g. "Juglas pasta nodaļa" or Klientu centrs Kauguri"
+            case 2: // e.g. "Iļģuciema pasta nodaļa" or "Klientu centrs Ziepniekkalns"
+                return LatviaPostItemType.Office;
+            // I have no idea what the difference between 1 and 2 is - both have offices and client centers
+            // and none of the other data fields suggest any clear difference
+            
+            case 6: // e.g. "Rīga Biķernieku iela Rimi" or "Jelgava TC Valdeka" or "Unisend 8009 Rimi"
+                return LatviaPostItemType.ParcelLocker;
+            
+            // Not in data (not requested in post):
+            // return LatviaPostItemType.PostBox;
 
             default: throw new NotImplementedException();
         }

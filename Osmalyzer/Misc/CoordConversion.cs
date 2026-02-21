@@ -19,7 +19,7 @@ public static class CoordConversion
             new ProjectionParameter("central_meridian", 24),
             new ProjectionParameter("scale_factor", 0.9996),
             new ProjectionParameter("false_easting", 500000),
-            new ProjectionParameter("false_northing", 0)
+            new ProjectionParameter("false_northing", -6000000)
         ];
 
         IProjection? tm = csFactory.CreateProjection("Transverse_Mercator", "Transverse_Mercator", projParams);

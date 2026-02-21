@@ -10,6 +10,7 @@ public class AnalyzerGroup
     public static AnalyzerGroup Restaurants { get; } = new AnalyzerGroup("Restaurants");
     public static AnalyzerGroup Validation { get; } = new AnalyzerGroup("Validation");
     public static AnalyzerGroup POIs { get; } = new AnalyzerGroup("POIs");
+    public static AnalyzerGroup StateServices { get; } = new AnalyzerGroup("State Services");
     public static AnalyzerGroup Administrative { get; } = new AnalyzerGroup("Administrative");
     public static AnalyzerGroup Miscellaneous { get; } = new AnalyzerGroup("Miscellaneous");
     

@@ -12,7 +12,7 @@ public class VPVKACAnalyzer : Analyzer
 
     public override string Description => "This report checks that VPVKAC (Valsts un pašvaldību vienotie klientu apkalpošanas centri) offices are mapped.";
 
-    public override AnalyzerGroup Group => AnalyzerGroup.POIs;
+    public override AnalyzerGroup Group => AnalyzerGroup.StateServices;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(VPVKACAnalysisData) ];

@@ -7,7 +7,7 @@ public class CourthouseAnalyzer : Analyzer
 
     public override string Description => "This report checks that all official courthouses listed on government's website are found on the map.";
 
-    public override AnalyzerGroup Group => AnalyzerGroup.POIs;
+    public override AnalyzerGroup Group => AnalyzerGroup.StateServices;
 
 
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(CourthouseAnalysisData) ];

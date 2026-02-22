@@ -5,8 +5,7 @@ public class StatePoliceAnalyzer : Analyzer
 {
     public override string Name => "State police offices";
 
-    public override string Description => "This report checks that all state police offices listed on goverment's website are found on the map."; //+ Environment.NewLine +
-                                          //"Note that Latvijas pasts' website can and does have errors: mainly incorrect positions, but sometimes missing or phantom items too.";
+    public override string Description => "This report checks that all state police offices listed on government's website are found on the map.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.StateServices;
 
@@ -45,7 +44,7 @@ public class StatePoliceAnalyzer : Analyzer
         );
         
         // Parse and report primary matching and location correlation
-        CorrelatorReport correlatorReport = correlator.Parse(
+        CorrelatorReport _ = correlator.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),

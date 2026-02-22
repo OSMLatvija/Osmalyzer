@@ -34,8 +34,8 @@ public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
         Offices = [ ];
 
         string source = File.ReadAllText(DataFileName);
-        dynamic outerContent = JsonConvert.DeserializeObject(source)!;         
-        string innerSource = (string) outerContent.data;
+        dynamic outerContent = JsonConvert.DeserializeObject(source)!;
+        string innerSource = (string)outerContent.data;
         dynamic innerContent = JsonConvert.DeserializeObject(innerSource)!;
         // {
         //     "uuid":"9182bc41-ee7c-42a6-b511-2ac83a7d0c85",
@@ -50,12 +50,15 @@ public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
         {
             double northing = item.coord[0];
             double easting = item.coord[1];
+            
             (double lat, double lon) = CoordConversion.LKS92ToWGS84(northing, easting);
+            
             Offices.Add(
                 new StatePoliceData(
                     (string)item.description,
-                    new OsmCoord(lat, lon)));
+                    new OsmCoord(lat, lon)
+                )
+            );
         }
     }
-
 }

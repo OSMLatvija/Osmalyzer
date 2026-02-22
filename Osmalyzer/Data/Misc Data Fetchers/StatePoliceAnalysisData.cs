@@ -23,7 +23,7 @@ public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
 
     protected override void Download()
     {
-        WebsiteDownloadHelper.Download(
+        WebsiteBrowsingHelper.DownloadPage( // raw download didn't work
             "https://geolatvija.lv/api/v1/user-embeds/71648f8f-22b7-41cc-b06e-86028ec6938b/uuid", 
             DataFileName
         );
@@ -34,6 +34,9 @@ public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
         Offices = [ ];
 
         string source = File.ReadAllText(DataFileName);
+        
+        source = WebsiteBrowsingHelper.TryUnwrapJsonFromBoilerplateHtml(source);
+        
         dynamic outerContent = JsonConvert.DeserializeObject(source)!;
         string innerSource = (string)outerContent.data;
         dynamic innerContent = JsonConvert.DeserializeObject(innerSource)!;

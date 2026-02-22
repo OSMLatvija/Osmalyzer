@@ -195,6 +195,8 @@ public static class WebsiteBrowsingHelper
 
     public static string TryUnwrapJsonFromBoilerplateHtml(string source)
     {
+        // TODO: we should be doing something like string json = driver.FindElement(By.TagName("body")).Text; and not this hard-coding
+        
         // On remote it could be wrapped like this:
         // We were trying to parse: <html><head><meta name="color-scheme" content="light dark"><meta charset="utf-8"></head><body><pre>{JSON HERE...
 

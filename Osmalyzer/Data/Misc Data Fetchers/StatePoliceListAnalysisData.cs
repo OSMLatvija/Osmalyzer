@@ -100,8 +100,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
                 null,
                 hqPageUrl,
                 "institution_contacts__institution-address",
-                "institution_contacts__institution-main-new-phone",
-                "row institution-contacts-row"
+                "institution_contacts__institution-main-new-phone"
             )
         );
 
@@ -143,8 +142,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
                     abbreviatedName,
                     website,
                     "branch_contacts__branch-address",
-                    "branch_contacts__branch__new-phone",
-                    "row branch-contacts-row"
+                    "branch_contacts__branch__new-phone"
                 )
             );
 
@@ -154,14 +152,17 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
 
 
     [Pure]
-    private static StatePoliceData ParseOffice(string content, string name, string? abbreviatedName, string website, string addressDivClass, string phoneDivClass, string contactRowClass)
+    private static StatePoliceData ParseOffice(string content, string name, string? abbreviatedName, string website, string addressDivClass, string phoneDivClass)
     {
-        OsmCoord coord = ParseCoord(content, addressDivClass);
-        string? address = ParseAddress(content, addressDivClass);
+        // Extract only the branch/institution-specific article node, so stray nav/footer content is never matched
+        string branchContent = ExtractBranchContent(content);
+
+        OsmCoord coord = ParseCoord(branchContent, addressDivClass);
+        string? address = ParseAddress(branchContent, addressDivClass);
         address = CleanAddress(address);
-        string? phone = ParsePhone(content, phoneDivClass);
-        string? email = ParseEmail(content, contactRowClass);
-        string? openingHours = ParseOpeningHours(content);
+        string? phone = ParsePhone(branchContent, phoneDivClass);
+        string? email = ParseEmail(branchContent);
+        string? openingHours = ParseOpeningHours(branchContent);
 
         return new StatePoliceData(
             name,
@@ -173,6 +174,25 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             email,
             openingHours
         );
+    }
+
+
+    [Pure]
+    private static string ExtractBranchContent(string content)
+    {
+        // Branch pages: <div role="article" class="node node--branch"> ... </div><!-- /.node -->
+        // HQ page:      <div role="article" class="node node--institution"> ... </div><!-- /.node -->
+        // This excludes the shared site nav/header/footer that appear on every page
+        Match match = Regex.Match(
+            content,
+            @"(<div role=""article"" class=""node node--[^""]+"">.*?</div><!-- /\.node -->)",
+            RegexOptions.Singleline
+        );
+
+        if (!match.Success)
+            throw new Exception("Did not match branch article node on state police page");
+
+        return match.Groups[1].Value;
     }
 
 
@@ -338,21 +358,11 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
     [Pure]
-    private static string? ParseEmail(string content, string contactRowClass)
+    private static string? ParseEmail(string content)
     {
-        // Limit parsing to the contact section, not the institution footer shared by all pages
-        // Branch pages use "row branch-contacts-row"; HQ page uses "row institution-contacts-row"
-        Match contactSectionMatch = Regex.Match(
-            content,
-            @"<div class=""" + Regex.Escape(contactRowClass) + @""">(.*?)</div><!-- /\.node -->",
-            RegexOptions.Singleline
-        );
-
-        string searchBlock = contactSectionMatch.Success ? contactSectionMatch.Groups[1].Value : content;
-
         // Non-obfuscated: <a href="mailto:pasts@vp.gov.lv" ...>pasts@vp.gov.lv</a>
         Match emailMatch = Regex.Match(
-            searchBlock,
+            content,
             @"href=""mailto:([^""]+)""",
             RegexOptions.Singleline
         );
@@ -361,8 +371,8 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             return emailMatch.Groups[1].Value.Trim();
 
         // Obfuscated: <span class="spamspan"><span class="u">USER</span> [at] <span class="d">DOMAIN</span></span>
-        emailMatch = Regex.Match(
-            searchBlock,
+        emailMatch = Regex.Match( 
+            content,
             @"<span class=""u"">([^<]+)</span>\s*\[at\]\s*<span class=""d"">([^<]+)</span>",
             RegexOptions.Singleline
         );

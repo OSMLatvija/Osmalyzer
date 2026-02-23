@@ -2,22 +2,22 @@
 
 public class StatePoliceData : IDataItem
 {
-    public string OfficeName { get; }
-
-    public string Name => OfficeName;
+    public string Name { get; }
     
     public OsmCoord Coord { get; }
+    
+    public string ShortName => Name; // TODO:
 
 
     public StatePoliceData(string officeName, OsmCoord coord)
     {
         Coord = coord;
-        OfficeName = officeName;
+        Name = officeName;
     }
     
     
     public string ReportString()
     {
-        return OfficeName;
+        return Name;
     }
 }

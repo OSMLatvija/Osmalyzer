@@ -5,7 +5,8 @@ public class StatePoliceAnalyzer : Analyzer
 {
     public override string Name => "State police offices";
 
-    public override string Description => "This report checks that all state police offices listed on government's website are found on the map.";
+    public override string Description => "This report checks that all state police offices listed on government's website are found on the map " +
+                                          "and that they have the correct tags.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.StateServices;
 
@@ -44,12 +45,60 @@ public class StatePoliceAnalyzer : Analyzer
         );
         
         // Parse and report primary matching and location correlation
-        CorrelatorReport _ = correlator.Parse(
+        CorrelatorReport correlatorReport = correlator.Parse(
             report,
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
             new MatchedFarPairBatch()
         );
+        
+        // Validate
+        
+        Validator<StatePoliceData> validator = new Validator<StatePoliceData>(
+            correlatorReport,
+            "Tagging issues"
+        );
+
+        List<SuggestedAction> suggestedChanges = validator.Validate(
+            report,
+            false, false,
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("name", h => h.ShortName),
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("official_name", h => h.Name),
+            new ValidateElementHasValue("operator", "Valsts policija"),
+            new ValidateElementHasValue("operator:wikidata", "Q3741089"),
+            new ValidateElementHasValue("operator:type", "government"),
+            new ValidateElementHasValue("operator:website", "https://www.vp.gov.lv")
+            // todo: new ValidateElementHasValue("police:LV", "state") -- as opposed to municipal
+        );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this, "changes");
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+#endif
+        
+        // List all
+        
+        report.AddGroup(
+            ExtraReportGroup.AllStations,
+            "All Stations"
+        );
+
+        foreach (StatePoliceData policeOffice in listedPoliceOffices)
+        {
+            report.AddEntry(
+                ExtraReportGroup.AllStations,
+                new IssueReportEntry(
+                    policeOffice.ReportString()
+                )
+            );
+        }
+    }
+
+    
+    private enum ExtraReportGroup
+    {
+        AllStations,
+        ProposedChanges
     }
 }

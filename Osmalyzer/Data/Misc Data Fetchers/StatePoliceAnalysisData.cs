@@ -40,6 +40,7 @@ public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
         dynamic outerContent = JsonConvert.DeserializeObject(source)!;
         string innerSource = (string)outerContent.data;
         dynamic innerContent = JsonConvert.DeserializeObject(innerSource)!;
+        
         // {
         //     "uuid":"9182bc41-ee7c-42a6-b511-2ac83a7d0c85",
         //     "coord":[
@@ -49,19 +50,29 @@ public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
         //     "color":"#518B33",
         //     "description":"Valsts policijas Zemgales reģiona pārvaldes Rietumzemgales iecirknis Tukumā"
         // }, 
+        
         foreach (dynamic item in innerContent.markers)
         {
             double northing = item.coord[0];
             double easting = item.coord[1];
             
             (double lat, double lon) = CoordConversion.LKS92ToWGS84(northing, easting);
+
+            string fullName = CleanName((string)item.description);
             
             Offices.Add(
                 new StatePoliceData(
-                    (string)item.description,
+                    fullName,
                     new OsmCoord(lat, lon)
                 )
             );
         }
+    }
+
+    private string CleanName(string rawName)
+    {
+        rawName = rawName.Replace('“', '"').Replace('”', '"');
+        
+        return rawName.Trim();
     }
 }

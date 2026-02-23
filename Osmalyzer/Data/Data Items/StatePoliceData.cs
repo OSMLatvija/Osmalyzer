@@ -4,7 +4,7 @@ public class StatePoliceData : IDataItem
 {
     public string Name { get; }
     
-    public string AbbreviatedName { get; }
+    public string? AbbreviatedName { get; }
 
     public OsmCoord Coord { get; }
 
@@ -24,7 +24,7 @@ public class StatePoliceData : IDataItem
     public string? OpeningHours { get; }
 
 
-    public StatePoliceData(string name, string abbreviatedName, OsmCoord coord, string website, string? address, string? phone, string? email, string? openingHours)
+    public StatePoliceData(string name, string? abbreviatedName, OsmCoord coord, string website, string? address, string? phone, string? email, string? openingHours)
     {
         Name = name;
         AbbreviatedName = abbreviatedName;

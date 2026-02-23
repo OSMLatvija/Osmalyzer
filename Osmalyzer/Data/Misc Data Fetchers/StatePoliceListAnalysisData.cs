@@ -16,6 +16,11 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     protected override string DataFileIdentifier => "state-police";
 
 
+    private const string hqPageUrl = @"https://www.vp.gov.lv/lv/iestades-kontakti";
+
+    private const string hqFileId = "state-police-hq";
+
+
     public List<StatePoliceData> Offices { get; private set; } = null!; // only null before prepared
 
 
@@ -62,11 +67,45 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
                 "branch_contacts__branch-address" // ensure the branch content is loaded
             );
         }
+
+        Thread.Sleep(1000);
+
+        Console.WriteLine("-> Downloading HQ page \"" + hqPageUrl + "\"...");
+
+        WebsiteBrowsingHelper.DownloadPage(
+            hqPageUrl,
+            Path.Combine(CacheBasePath, hqFileId + ".html"),
+            true,
+            "institution_contacts__institution-address" // ensure the contact content is loaded
+        );
     }
 
     protected override void DoPrepare()
     {
         Offices = [];
+
+        // Parse the main headquarters page
+
+        string hqPath = Path.Combine(CacheBasePath, hqFileId + ".html");
+
+        if (!File.Exists(hqPath))
+            throw new Exception("HQ page file not found at expected path: " + hqPath);
+        
+        string hqContent = File.ReadAllText(hqPath);
+
+        Offices.Add(
+            ParseOffice(
+                hqContent,
+                "Valsts policija",
+                null,
+                hqPageUrl,
+                "institution_contacts__institution-address",
+                "institution_contacts__institution-main-new-phone",
+                "row institution-contacts-row"
+            )
+        );
+
+        // Parse branch pages
 
         int index = 1;
 
@@ -75,7 +114,12 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             string path = Path.Combine(CacheBasePath, DataFileIdentifier + "-" + index + ".html");
 
             if (!File.Exists(path))
+            {
+                if (index == 1)
+                    throw new Exception("No branch page files at all found at expected path: " + path);
+                
                 break;
+            }
 
             string content = File.ReadAllText(path);
 
@@ -90,29 +134,45 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             string name = ParseName(content);
             name = CleanName(name);
             string abbreviatedName = AbbreviateName(name);
-            OsmCoord coord = ParseCoord(content);
             string website = ParseWebsite(content);
-            string? address = ParseAddress(content);
-            address = CleanAddress(address);
-            string? phone = ParsePhone(content);
-            string? email = ParseEmail(content);
-            string? openingHours = ParseOpeningHours(content);
 
             Offices.Add(
-                new StatePoliceData(
+                ParseOffice(
+                    content,
                     name,
                     abbreviatedName,
-                    coord,
                     website,
-                    address,
-                    phone,
-                    email,
-                    openingHours
+                    "branch_contacts__branch-address",
+                    "branch_contacts__branch__new-phone",
+                    "row branch-contacts-row"
                 )
             );
 
             index++;
         } while (true);
+    }
+
+
+    [Pure]
+    private static StatePoliceData ParseOffice(string content, string name, string? abbreviatedName, string website, string addressDivClass, string phoneDivClass, string contactRowClass)
+    {
+        OsmCoord coord = ParseCoord(content, addressDivClass);
+        string? address = ParseAddress(content, addressDivClass);
+        address = CleanAddress(address);
+        string? phone = ParsePhone(content, phoneDivClass);
+        string? email = ParseEmail(content, contactRowClass);
+        string? openingHours = ParseOpeningHours(content);
+
+        return new StatePoliceData(
+            name,
+            abbreviatedName,
+            coord,
+            website,
+            address,
+            phone,
+            email,
+            openingHours
+        );
     }
 
 
@@ -174,24 +234,24 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
     [Pure]
-    private static OsmCoord ParseCoord(string content)
+    private static OsmCoord ParseCoord(string content, string addressDivClass)
     {
-        // <div class="branch_contacts__branch-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=56.914910632600794,24.120078843113923" data-latitude="507311.1725455095" data-longitude="307920.65337404417" class="geo-location-url has-generated-url" target="_blank" aria-label="Adrese: Mūkusalas iela 101, Rīga, LV-1004">Mūkusalas iela 101, Rīga, LV-1004</a></div>
-        
-        // <div class="branch_contacts__branch-address"><a href="/lv" data-latitude="507838.90132078005" data-longitude="311810.4519753596" class="geo-location-url" target="_blank">E. Birznieka-Upīša ielā 21A; 21C; 21D, Rīga, LV-1011</a></div>
-        
+        // Branch pages:
+        // <div class="branch_contacts__branch-address"><a href="..." data-latitude="507311.1725455095" data-longitude="307920.65337404417" ...>Mūkusalas iela 101, Rīga, LV-1004</a></div>
+
+        // HQ page:
+        // <div class="institution_contacts__institution-address"><a href="/lv" data-latitude="509623" data-longitude="315463" ...>Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026</a></div>
+
+        // Note that branch pages also always have institution_contacts__institution-address in the footer --
+        // so cannot match just "data-latitude", need to target the right div class
         Match coordMatch = Regex.Match(
             content,
-            @"class=""branch_contacts__branch-address"">.*?data-latitude=""([^""]+)""\s+data-longitude=""([^""]+)""",
+            @"class=""" + Regex.Escape(addressDivClass) + @""">.*?data-latitude=""([^""]+)""\s+data-longitude=""([^""]+)""",
             RegexOptions.Singleline
         );
-        
-        // Note that every page also has generic
-        // <div class="institution_contacts__institution-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=56.982625282689824,24.158335130402307" data-latitude="509623" data-longitude="315463" class="geo-location-url has-generated-url" target="_blank" aria-label="Adrese: Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026">Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026</a></div>
-        // So cannot match just "data-latitude" -- need to ensure it's in the branch address section
 
         if (!coordMatch.Success)
-            throw new Exception("Did not match coordinates on state police branch page");
+            throw new Exception("Did not match coordinates on state police page (class=\"" + addressDivClass + "\")");
 
         double northing = double.Parse(coordMatch.Groups[1].Value);
         double easting = double.Parse(coordMatch.Groups[2].Value);
@@ -218,12 +278,16 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
     [Pure]
-    private static string? ParseAddress(string content)
+    private static string? ParseAddress(string content, string addressDivClass)
     {
+        // Branch pages:
         // <div class="branch_contacts__branch-address"><a ... >Zemgales iela 26a, Olaine, LV - 2114</a></div>
+
+        // HQ page:
+        // <div class="institution_contacts__institution-address"><a ... >Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026</a></div>
         Match addressMatch = Regex.Match(
             content,
-            @"class=""branch_contacts__branch-address"">(?:<a[^>]+>)?([^<]+)(?:</a>)?</div>",
+            @"class=""" + Regex.Escape(addressDivClass) + @""">(?:<a[^>]+>)?([^<]+)(?:</a>)?</div>",
             RegexOptions.Singleline
         );
 
@@ -246,17 +310,24 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
     [Pure]
-    private static string? ParsePhone(string content)
+    private static string? ParsePhone(string content, string phoneDivClass)
     {
-        // Phone in branch_contacts__branch__new-phone (not the 112 in branch_contacts__new-short-branch-numbe):
+        // Branch pages:
         // <div class="branch_contacts__branch__new-phone">
         //   <div><div class="field__item field-phone">
         //     <a href="tel:+371 NNNNN" ...>+371 NNNNN</a>
         //   </div></div>
         // </div>
+
+        // HQ page:
+        // <div class="institution_contacts__institution-main-new-phone">
+        //   <div><div class="field__item field-phone">
+        //     <a href="tel:+371 67075333" ...>+371 67075333</a>
+        //   </div></div>
+        // </div>
         Match phoneMatch = Regex.Match(
             content,
-            @"class=""branch_contacts__branch__new-phone"".*?<a href=""tel:([^""]+)""",
+            @"class=""" + Regex.Escape(phoneDivClass) + @""".*?<a href=""tel:([^""]+)""",
             RegexOptions.Singleline
         );
 
@@ -267,12 +338,13 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
     [Pure]
-    private static string? ParseEmail(string content)
+    private static string? ParseEmail(string content, string contactRowClass)
     {
-        // Limit parsing to branch contact section, not institution footer
+        // Limit parsing to the contact section, not the institution footer shared by all pages
+        // Branch pages use "row branch-contacts-row"; HQ page uses "row institution-contacts-row"
         Match contactSectionMatch = Regex.Match(
             content,
-            @"<div class=""row branch-contacts-row"">(.*?)</div><!-- /\.node -->",
+            @"<div class=""" + Regex.Escape(contactRowClass) + @""">(.*?)</div><!-- /\.node -->",
             RegexOptions.Singleline
         );
 

@@ -46,6 +46,7 @@ public class Correlator<T> where T : IDataItem
         bool shouldReportMatchedLoneOsm = matchedLoneOsmBatch != null;
         bool reportMatchedLoneOsmAsProblem = shouldReportMatchedLoneOsm && matchedLoneOsmBatch!.AsProblem;
         bool shouldReportUnmatchedOsm = entries.OfType<UnmatchedOsmBatch>().Any();
+        bool shouldReportIgnoredOsm = entries.OfType<IgnoredOsmBatch>().Any();
 
         // Gather (optional) parameters (or set defaults)
             
@@ -496,6 +497,33 @@ public class Correlator<T> where T : IDataItem
                     group,
                     new GenericReportEntry(
                         "Matched " + matchedLoneElements.Count + " lone OSM element" + (matchedLoneElements.Count > 1 ? "s" : "") + " " + (reportMatchedLoneOsmAsProblem ? " not expected" : "acceptable") + " by themselves."
+                    )
+                );
+            }
+        }
+
+        if (shouldReportIgnoredOsm)
+        {
+            if (unmatchableElements.Count > 0)
+            {
+                foreach (OsmElement osmElement in unmatchableElements)
+                {
+                    report.AddEntry(
+                        group,
+                        new MapPointReportEntry(
+                            osmElement.AverageCoord,
+                            "Ignored OSM element " +
+                            OsmElementReportText(osmElement),
+                            osmElement,
+                            MapPointStyle.CorrelatorOsmIgnored
+                        )
+                    );
+                }
+
+                report.AddEntry(
+                    group,
+                    new GenericReportEntry(
+                        "Ignored " + unmatchableElements.Count + " OSM element" + (unmatchableElements.Count > 1 ? "s" : "") + " not considered relevant."
                     )
                 );
             }

@@ -84,6 +84,8 @@
       <EmbeddedResource Include="Reporting\HTML report resources\purpleBus.png" />
       <None Remove="Reporting\HTML report resources\blueQuestion.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\blueQuestion.png" />
+      <None Remove="Reporting\HTML report resources\grayIgnored.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\grayIgnored.png" />
     </ItemGroup>
 
 

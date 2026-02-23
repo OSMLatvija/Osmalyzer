@@ -55,6 +55,15 @@ public static class EmbeddedIcons
 
 
         new LeafletIcon(
+            "grayIgnored.png",
+            16,
+            LeafletIcon.IconGroup.Main,
+            ColorGroup.Other,
+            MapPointStyle.CorrelatorOsmIgnored
+        ),
+
+
+        new LeafletIcon(
             "blueQuestion.png",
             16,
             LeafletIcon.IconGroup.Main,

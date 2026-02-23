@@ -76,7 +76,8 @@ public class StatePoliceAnalyzer : Analyzer
             new MatchedPairBatch(),
             new MatchedLoneOsmBatch(true),
             new UnmatchedItemBatch(),
-            new MatchedFarPairBatch()
+            new MatchedFarPairBatch(),
+            new IgnoredOsmBatch()
         );
         
         // Validate

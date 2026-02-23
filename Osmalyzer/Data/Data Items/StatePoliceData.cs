@@ -3,48 +3,41 @@
 public class StatePoliceData : IDataItem
 {
     public string Name { get; }
-    
+
     public OsmCoord Coord { get; }
-    
-    /// <summary>Short display name from the contact list, e.g. "Rīgas Pārdaugavas pārvalde"</summary>
-    public string? ListName { get; private set; }
 
-    /// <summary>Phone number from the contact list, excluding 112</summary>
-    public string? Phone { get; private set; }
+    /// <summary>Address text from the branch page</summary>
+    public string? Address { get; }
 
-    /// <summary>Email address from the contact list</summary>
-    public string? Email { get; private set; }
-    
-    
-    private bool _listEntryAttached;
+    /// <summary>Phone number from the branch page, excluding 112</summary>
+    public string? Phone { get; }
+
+    /// <summary>Email address from the branch page</summary>
+    public string? Email { get; }
+
+    /// <summary>Opening hours in OSM format</summary>
+    public string? OpeningHours { get; }
 
 
-    public StatePoliceData(string officeName, OsmCoord coord)
+    public StatePoliceData(string name, OsmCoord coord, string? address, string? phone, string? email, string? openingHours)
     {
+        Name = name;
         Coord = coord;
-        Name = officeName;
+        Address = address;
+        Phone = phone;
+        Email = email;
+        OpeningHours = openingHours;
     }
 
 
-    public void SetListData(StatePoliceListEntry listEntry)
-    {
-        ListName = listEntry.Name;
-        Phone = listEntry.Phone;
-        Email = listEntry.Email;
-        
-        _listEntryAttached = true;
-    }
-
-
+    [Pure]
     public string ReportString()
     {
-        if (_listEntryAttached)
-            return "`" + Name + "` " +
-                   (ListName != null && ListName != Name ? "(listed as `" + ListName + "`) " : "") +
-                   "phone: " + (Phone != null ? "`" + Phone + "`" : "none") + ", " +
-                   "email: " + (Email != null ? "`" + Email + "`" : "none");
-        
-        return "`" + Name + "`";
+        return "State police office `" + Name + "` " +
+               (Address != null ? "at `" + Address + "` " : "") +
+               "phone: " + (Phone != null ? "`" + Phone + "`" : "none") + ", " +
+               "email: " + (Email != null ? "`" + Email + "`" : "none") +
+               (OpeningHours != null ? ", hours: `" + OpeningHours + "`" : "");
     }
 
     public override string ToString() => ReportString();

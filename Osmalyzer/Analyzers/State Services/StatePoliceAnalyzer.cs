@@ -41,10 +41,33 @@ public class StatePoliceAnalyzer : Analyzer
             listedPoliceOffices,
             new MatchDistanceParamater(100),
             new MatchFarDistanceParamater(200),
-            new MatchExtraDistanceParamater(MatchStrength.Strong, 500),
             new DataItemLabelsParamater("State police office", "State police offices"),
-            new OsmElementPreviewValue("name", true)
+            new OsmElementPreviewValue("name", true),
+            new LoneElementAllowanceParameter(element => !DoesOsmElementLookLikeSomeOtherPolice(element))
         );
+        
+        [Pure]
+        bool DoesOsmElementLookLikeSomeOtherPolice(OsmElement element)
+        {
+            string? name = element.GetValue("name");
+            
+            if (name != null)
+            {
+                string nameLower = name.ToLower();
+                
+                if (nameLower.Contains("pašvaldīb", StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+            }
+            
+            string? operatorValue = element.GetValue("operator");
+            
+            if (operatorValue != null &&
+                operatorValue.Contains("pašvaldīb", StringComparison.InvariantCultureIgnoreCase))
+                return true;
+            
+            // Anything we don't recognize as a police office is an element that we want to report
+            return false;
+        }
         
         // Parse and report primary matching and location correlation
 

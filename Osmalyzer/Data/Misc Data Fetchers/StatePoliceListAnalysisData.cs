@@ -93,6 +93,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             OsmCoord coord = ParseCoord(content);
             string website = ParseWebsite(content);
             string? address = ParseAddress(content);
+            address = CleanAddress(address);
             string? phone = ParsePhone(content);
             string? email = ParseEmail(content);
             string? openingHours = ParseOpeningHours(content);
@@ -230,6 +231,18 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             return null;
 
         return WebUtility.HtmlDecode(addressMatch.Groups[1].Value.Trim());
+    }
+
+    [Pure]
+    private static string? CleanAddress(string? address)
+    {
+        if (address == null)
+            return null;
+        
+        // "Zemgales iela 26a, Olaine, LV - 2114" -> "Zemgales iela 26a, Olaine, LV-2114"
+        address = address.Replace("LV - ", "LV-");
+        
+        return address;
     }
 
     [Pure]

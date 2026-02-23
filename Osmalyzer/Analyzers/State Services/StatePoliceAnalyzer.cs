@@ -13,7 +13,7 @@ public class StatePoliceAnalyzer : Analyzer
     public override List<Type> GetRequiredDataTypes() =>
     [
         typeof(LatviaOsmAnalysisData),
-        typeof(StatePoliceAnalysisData)
+        typeof(StatePolicePoiAnalysisData)
     ];
         
 
@@ -31,7 +31,7 @@ public class StatePoliceAnalyzer : Analyzer
         );
 
         // Load post office data
-        List<StatePoliceData> listedPoliceOffices = datas.OfType<StatePoliceAnalysisData>().First().Offices;
+        List<StatePoliceData> listedPoliceOffices = datas.OfType<StatePolicePoiAnalysisData>().First().Offices;
         
         // Prepare data comparer/correlator
         Correlator<StatePoliceData> correlator = new Correlator<StatePoliceData>(

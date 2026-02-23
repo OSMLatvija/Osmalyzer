@@ -1,10 +1,9 @@
-﻿using System.Web;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
+public class StatePolicePoiAnalysisData : AnalysisData, IUndatedAnalysisData
 {
     public override string Name => "StatePolice";
 
@@ -13,7 +12,7 @@ public class StatePoliceAnalysisData : AnalysisData, IUndatedAnalysisData
     public override bool NeedsPreparation => true;
 
 
-    protected override string DataFileIdentifier => "state-police";
+    protected override string DataFileIdentifier => "state-police-poi";
 
     private string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".json");
 

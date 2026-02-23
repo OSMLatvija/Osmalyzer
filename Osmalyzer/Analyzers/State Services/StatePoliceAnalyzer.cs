@@ -66,12 +66,16 @@ public class StatePoliceAnalyzer : Analyzer
         List<SuggestedAction> suggestedChanges = validator.Validate(
             report,
             false, false,
-            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("name", h => h.Name), // todo: can we shorten these meaningfully?
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("name", h => h.Name), // todo: can we shorten these meaningfully as common/primary name?
             new ValidateElementValueMatchesDataItemValue<StatePoliceData>("official_name", h => h.Name),
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("short_name", h => h.AbbreviatedName),
             new ValidateElementHasValue("operator", "Valsts policija"),
             new ValidateElementHasValue("operator:wikidata", "Q3741089"),
             new ValidateElementHasValue("operator:type", "government"),
-            new ValidateElementHasValue("operator:website", "https://www.vp.gov.lv")
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("website", h => h.Website),
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("email", h => h.Email),
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("phone", h => h.Phone),
+            new ValidateElementValueMatchesDataItemValue<StatePoliceData>("opening_hours", h => h.OpeningHours)
             // todo: new ValidateElementHasValue("police:LV", "state") -- as opposed to municipal
         );
 

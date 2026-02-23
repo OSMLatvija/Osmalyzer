@@ -88,7 +88,10 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             }
 
             string name = ParseName(content);
+            name = CleanName(name);
+            string abbreviatedName = AbbreviateName(name);
             OsmCoord coord = ParseCoord(content);
+            string website = ParseWebsite(content);
             string? address = ParseAddress(content);
             string? phone = ParsePhone(content);
             string? email = ParseEmail(content);
@@ -97,7 +100,9 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             Offices.Add(
                 new StatePoliceData(
                     name,
+                    abbreviatedName,
                     coord,
+                    website,
                     address,
                     phone,
                     email,
@@ -121,6 +126,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
 
+    [Pure]
     private static string ParseName(string content)
     {
         // <h1 class="display-4">Valsts policijas ... iecirknis ...</h1>
@@ -136,15 +142,52 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
         return WebUtility.HtmlDecode(nameMatch.Groups[1].Value.Trim());
     }
 
+    [Pure]
+    private string CleanName(string name)
+    {
+        // "Rīgas Pārdaugavas pārvalde" -> "Valsts policijas Rīgas reģiona pārvaldes Rīgas Pārdaugavas pārvalde"
+        // "Rīgas Ziemeļu pārvalde" -> "Valsts policijas Rīgas reģiona pārvaldes Rīgas Pārdaugavas pārvalde"
+        // "Rīgas Austrumu pārvalde" -> "Valsts policijas Rīgas reģiona pārvaldes Rīgas Pārdaugavas pārvalde"
+        
+        if (name.StartsWith("Rīgas "))
+            name = "Valsts policijas Rīgas reģiona pārvaldes " + name;
+
+        return name;
+    }
+
+    [Pure]
+    private string AbbreviateName(string name)
+    {
+        // "Valsts policijas Latgales reģiona pārvaldes Dienvidlatgales iecirknis Daugavpilī"
+        // -> "VP LRP Dienvidlatgales iecirknis Daugavpilī"
+        
+        name = name.Replace("Valsts policijas", "VP");
+        
+        name = name.Replace("Rīgas reģiona pārvaldes", "RRP");
+        name = name.Replace("Vidzemes reģiona pārvaldes", "VRP");
+        name = name.Replace("Latgales reģiona pārvaldes", "LRP");
+        name = name.Replace("Zemgales reģiona pārvaldes", "ZRP");
+        name = name.Replace("Kurzemes reģiona pārvaldes", "KRP");
+        
+        return name;
+    }
+
+    [Pure]
     private static OsmCoord ParseCoord(string content)
     {
         // <div class="branch_contacts__branch-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=56.914910632600794,24.120078843113923" data-latitude="507311.1725455095" data-longitude="307920.65337404417" class="geo-location-url has-generated-url" target="_blank" aria-label="Adrese: Mūkusalas iela 101, Rīga, LV-1004">Mūkusalas iela 101, Rīga, LV-1004</a></div>
         
+        // <div class="branch_contacts__branch-address"><a href="/lv" data-latitude="507838.90132078005" data-longitude="311810.4519753596" class="geo-location-url" target="_blank">E. Birznieka-Upīša ielā 21A; 21C; 21D, Rīga, LV-1011</a></div>
+        
         Match coordMatch = Regex.Match(
             content,
-            @"class=""branch_contacts__branch-address"">.+?data-latitude=""(\d+)""[^>]+data-longitude=""(\d+)""",
+            @"class=""branch_contacts__branch-address"">.*?data-latitude=""([^""]+)""\s+data-longitude=""([^""]+)""",
             RegexOptions.Singleline
         );
+        
+        // Note that every page also has generic
+        // <div class="institution_contacts__institution-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=56.982625282689824,24.158335130402307" data-latitude="509623" data-longitude="315463" class="geo-location-url has-generated-url" target="_blank" aria-label="Adrese: Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026">Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026</a></div>
+        // So cannot match just "data-latitude" -- need to ensure it's in the branch address section
 
         if (!coordMatch.Success)
             throw new Exception("Did not match coordinates on state police branch page");
@@ -157,6 +200,23 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
         return new OsmCoord(lat, lon);
     }
 
+    [Pure]
+    private static string ParseWebsite(string content)
+    {
+        // <link rel="canonical" href="https://www.vp.gov.lv/lv/filiale/valsts-policijas-vidzemes-regiona-parvaldes-ziemelvidzemes-iecirknis" />
+        Match websiteMatch = Regex.Match(
+            content,
+            @"<link rel=""canonical"" href=""([^""]+)""",
+            RegexOptions.Singleline
+        );
+
+        if (!websiteMatch.Success)
+            throw new Exception("Did not match canonical URL on state police branch page");
+
+        return websiteMatch.Groups[1].Value.Trim();
+    }
+
+    [Pure]
     private static string? ParseAddress(string content)
     {
         // <div class="branch_contacts__branch-address"><a ... >Zemgales iela 26a, Olaine, LV - 2114</a></div>
@@ -172,6 +232,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
         return WebUtility.HtmlDecode(addressMatch.Groups[1].Value.Trim());
     }
 
+    [Pure]
     private static string? ParsePhone(string content)
     {
         // Phone in branch_contacts__branch__new-phone (not the 112 in branch_contacts__new-short-branch-numbe):
@@ -192,6 +253,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
         return phoneMatch.Groups[1].Value.Trim();
     }
 
+    [Pure]
     private static string? ParseEmail(string content)
     {
         // Limit parsing to branch contact section, not institution footer
@@ -226,6 +288,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
         return null;
     }
 
+    [Pure]
     private static string? ParseOpeningHours(string content)
     {
         // <ul class="work-time-list">

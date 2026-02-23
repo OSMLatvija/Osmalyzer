@@ -3,8 +3,13 @@
 public class StatePoliceData : IDataItem
 {
     public string Name { get; }
+    
+    public string AbbreviatedName { get; }
 
     public OsmCoord Coord { get; }
+
+    /// <summary>Address text from the branch page</summary>
+    public string? Website { get; }
 
     /// <summary>Address text from the branch page</summary>
     public string? Address { get; }
@@ -19,10 +24,12 @@ public class StatePoliceData : IDataItem
     public string? OpeningHours { get; }
 
 
-    public StatePoliceData(string name, OsmCoord coord, string? address, string? phone, string? email, string? openingHours)
+    public StatePoliceData(string name, string abbreviatedName, OsmCoord coord, string website, string? address, string? phone, string? email, string? openingHours)
     {
         Name = name;
+        AbbreviatedName = abbreviatedName;
         Coord = coord;
+        Website = website;
         Address = address;
         Phone = phone;
         Email = email;

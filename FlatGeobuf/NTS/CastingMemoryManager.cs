@@ -19,7 +19,7 @@ namespace NetTopologySuite.Geometries.Implementation
 
         public override Span<T> GetSpan()
         {
-            return MemoryMarshal.Cast<byte, T>(_data);
+            return MemoryMarshal.Cast<byte, T>(_data.AsSpan());
         }
 
         public override unsafe MemoryHandle Pin(int elementIndex = 0)

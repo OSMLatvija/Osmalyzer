@@ -77,14 +77,16 @@ namespace FlatGeobuf.NTS
         public static async Task SerializeAsync(Stream output, IEnumerable<IFeature> features, GeometryType geometryType, byte dimensions = 2, IList<ColumnMeta> columns = null)
         {
             await output.WriteAsync(Constants.MagicBytes);
-            var headerBuffer = BuildHeader(0, geometryType, dimensions, columns, null);
-            await output.WriteAsync(headerBuffer.ToReadOnlyMemory(headerBuffer.Position, headerBuffer.Length - headerBuffer.Position));
+            ByteBuffer headerBuffer = BuildHeader(0, geometryType, dimensions, columns, null);
+            byte[] headerBytes = headerBuffer.ToSizedArray();
+            await output.WriteAsync(headerBytes);
             headerBuffer.Position += 4;
-            var header = Header.GetRootAsHeader(headerBuffer).UnPack();
-            foreach (var feature in features)
+            HeaderT header = Header.GetRootAsHeader(headerBuffer).UnPack();
+            foreach (IFeature feature in features)
             {
-                var buffer = FeatureConversions.ToByteBuffer(feature, header);
-                await output.WriteAsync(buffer.ToReadOnlyMemory(buffer.Position, buffer.Length - buffer.Position));
+                ByteBuffer buffer = FeatureConversions.ToByteBuffer(feature, header);
+                byte[] bytes = buffer.ToSizedArray();
+                await output.WriteAsync(bytes);
             }
         }
 #endif

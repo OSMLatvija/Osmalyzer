@@ -127,8 +127,10 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
 
             int contactMatchStart = contactTopMatch.Index;
                 
-            // End somewhere at next "`... <a data-external-link="TRUE" href="//latvija.gov.lv/KDV/Mailbox/">Latvija.gov.lv,</a> ...), not sure how else to detect other than to parse full html hierarchy
-            Match contactBottomMatch = Regex.Match(content[contactMatchStart..], @"KDV/Mailbox/", RegexOptions.Singleline);
+            // End at the e-address link that closes out the contacts column
+            // "<a href="https://latvija.gov.lv/KDV/Write/NewMessage?address=..." ...>"
+            // (KDV/Mailbox/ appears in the footer before the Kontakti section on some pages, so it is not a reliable end marker)
+            Match contactBottomMatch = Regex.Match(content[contactMatchStart..], @"KDV/Write/NewMessage", RegexOptions.Singleline);
             
             if (!contactBottomMatch.Success)
                 throw new Exception("Did not find contact section end match");
@@ -163,7 +165,7 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             Match emailMatch = Regex.Match(contactPortion, @"<a href=""mailto:([^@]+)@([^""]+)""", RegexOptions.Singleline);
             
             if (!emailMatch.Success) // try obfuscated
-                emailMatch = Regex.Match(content, @"<span class=""spamspan"">\s*<span[^>]+>([^<]+)</span>\s*\[at\]\s*<span[^>]+>\s*([^<]+)\s*</span>\s*</span>", RegexOptions.Singleline);
+                emailMatch = Regex.Match(contactPortion, @"<span class=""spamspan"">\s*<span[^>]+>([^<]+)</span>\s*\[at\]\s*<span[^>]+>\s*([^<]+)\s*</span>\s*</span>", RegexOptions.Singleline);
             
             if (!emailMatch.Success)
                 throw new Exception("Did not match email address");

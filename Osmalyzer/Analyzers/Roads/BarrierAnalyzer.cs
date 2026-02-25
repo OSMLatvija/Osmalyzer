@@ -75,7 +75,7 @@ public class BarrierAnalyzer : Analyzer
             "These barriers are not on any expected way. " +
             "Barriers as nodes should usually appear on routable ways (highways, railways), otherwise their use is limited. " +
             "It is not always incorrect to map them by themselves, just usually incomplete. " +
-            "Note that barriers can and do appear by themselves, such as blocks and bollards that don't actually block any specific way." +
+            "Note that barriers can and do appear by themselves, such as blocks and bollards that don't actually block any specific way.",
             "All barriers have an expected associated way."
         );
         

@@ -149,46 +149,26 @@ public class CourthouseAnalyzer : Analyzer
             new MatchedLoneOsmBatch(true)
         );
 
-        // Offer updates to matched courthouse values (name, phones, email)
-        
-        List<MatchedCorrelation<LocatedCourthouse>> matchedPairs = correlation.Correlations
-            .OfType<MatchedCorrelation<LocatedCourthouse>>()
-            .ToList();
+        // Validate matched courthouse values
 
-        if (matchedPairs.Count > 0)
-        {
-            List<TagComparison<LocatedCourthouse>> comparisons = [
-                new TagComparison<LocatedCourthouse>(
-                    "name",
-                    lc => lc.Courthouse.Name
-                ),
-                new TagComparison<LocatedCourthouse>(
-                    "email",
-                    lc => lc.Courthouse.Email
-                ),
-                new TagComparison<LocatedCourthouse>(
-                    "phone",
-                    lc => string.Join(";", lc.Courthouse.Phones),
-                    TagUtils.ValuesMatch
-                ),
-                new TagComparison<LocatedCourthouse>(
-                    "opening_hours",
-                    lc => lc.Courthouse.OpeningHours,
-                    TagUtils.ValuesMatchOrderSensitive // prefer "sorted" days
-                )
-            ];
+        Validator<LocatedCourthouse> validator = new Validator<LocatedCourthouse>(
+            correlation,
+            "Tagging issues"
+        );
 
-            TagSuggester<LocatedCourthouse> suggester = new TagSuggester<LocatedCourthouse>(
-                matchedPairs,
-                lc => lc.Courthouse.Name,
-                "courthouse"
-            );
+        List<SuggestedAction> suggestedChanges = validator.Validate(
+            report,
+            false, false,
+            new ValidateElementValueMatchesDataItemValue<LocatedCourthouse>("name", lc => lc.Courthouse.Name),
+            new ValidateElementValueMatchesDataItemValue<LocatedCourthouse>("email", lc => lc.Courthouse.Email),
+            new ValidateElementValueMatchesDataItemValue<LocatedCourthouse>("phone", lc => string.Join(";", lc.Courthouse.Phones)),
+            new ValidateElementValueMatchesDataItemValue<LocatedCourthouse>("opening_hours", lc => lc.Courthouse.OpeningHours)
+        );
 
-            suggester.Suggest(
-                report,
-                comparisons
-            );
-        }
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+#endif
 
         // Report any courthouses we couldn't geolocate by address
         
@@ -259,6 +239,7 @@ public class CourthouseAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         UnlocatedCourthouses,
-        AllCourthouses
+        AllCourthouses,
+        ProposedChanges
     }
 }

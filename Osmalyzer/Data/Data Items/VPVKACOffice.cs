@@ -49,12 +49,16 @@ public class VPVKACOffice
     }
         
         
-    public string ReportString(bool includeOriginal)
+    public string ReportString(bool full)
     {
         return
             "VPVKAC office " +
-            "`" + Name + "` " +
+            "`" + ShortName + "` " +
+            (full && IsAmbiguous ? " disambiguated as `" + DisambiguatedName + "` " : "") +
+            (full ? " (from: `" + Name + "`) " : "") +
             "at `" + Address + "`" +
-            (includeOriginal && OriginalAddress != null ? " (from: `" + OriginalAddress + "`)" : "");
+            (full && OriginalAddress != null ? " (from: `" + OriginalAddress + "`)" : "");
     }
+
+    public override string ToString() => ReportString(true);
 }

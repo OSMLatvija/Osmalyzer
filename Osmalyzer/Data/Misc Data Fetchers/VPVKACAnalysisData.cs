@@ -16,7 +16,7 @@ public class VPVKACAnalysisData : AnalysisData, IUndatedAnalysisData
 
 
     public List<VPVKACOffice> Offices { get; private set; } = null!; // only null before prepared
-
+    
 
     protected override void Download()
     {
@@ -71,17 +71,14 @@ Piektdiena: 8:30 - 14:00</td>
             if (rowText.Contains("Tiks atvērts"))
                 continue; // this is a future office
 
-            string name = nameMatch.Groups[1].ToString().Trim();
+            string originalName = nameMatch.Groups[1].ToString().Trim();
             // e.g. "Dienvidkurzemes novada Grobiņas pilsētas VPVKAC"
 
-            name = HttpUtility.HtmlDecode(name); // e.g. "Aug&scaron;daugavas novada Vi&scaron;ķu pagasta VPVKAC"
+            originalName = HttpUtility.HtmlDecode(originalName).Trim(); // e.g. "Aug&scaron;daugavas novada Vi&scaron;ķu pagasta VPVKAC"
+            originalName = FixName(originalName);
 
-            // Special case for missing "pilsētas" in name - all others have it (or "pagasta")
-            if (name == "Jelgavas novada Jelgavas VPVKAC")
-                name = "Jelgavas novada Jelgavas pilsētas VPVKAC";
-
-            string shortName = GetShortName(name);
-            string disambiguatedName = GetDisambiguatedName(name);
+            string shortName = GetShortName(originalName);
+            string disambiguatedName = GetDisambiguatedName(originalName);
 
             MatchCollection addressMatches = Regex.Matches(rowText, @"<a href=""[^""]+"">(.*?)</a>", RegexOptions.Singleline);
             // This will match both <a> - name and address
@@ -120,7 +117,7 @@ Piektdiena: 8:30 - 14:00</td>
             
             Offices.Add(
                 new VPVKACOffice(
-                    name,
+                    originalName,
                     shortName,
                     disambiguatedName,
                     cleanedAddress,
@@ -141,24 +138,42 @@ Piektdiena: 8:30 - 14:00</td>
                     office.MarkAmbiguous();
     }
 
+    
+    [Pure]
+    private static string FixName(string name)
+    {
+        // Special case for missing obvious "pilsētas" in name
+        if (name.EndsWith("Jelgavas VPVKAC")) name = name.Replace("Jelgavas VPVKAC", "Jelgavas pilsētas VPVKAC");
+        
+        return name;
+    }
 
     [Pure]
     private static string GetShortName(string officeName)
     {
-        // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas VPVKAC"
         // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas VPVKAC"
-        
         string result = Regex.Replace(
             officeName,
             @"^(?:.+?) novada (.+?) (?:pilsētas) VPVKAC",
             @"$1 VPVKAC"
         );
 
+        // "Cēsu novada Vecpiebalgas pagasta VPVKAC" -> "Vecpiebalgas VPVKAC"
         result = Regex.Replace(
             result,
             @"^(?:.+?) novada (.+?) (?:pagasta) VPVKAC",
             @"$1 VPVKAC"
         );
+        
+        // "Bauskas novada Vecumnieku pagasta Misas VPVKAC" -> "Misas VPVKAC" (missing "pilsētas")
+        result = Regex.Replace(
+            result,
+            @"^(?:.+?) novada (?:.+?) pagasta (.+?) VPVKAC",
+            @"$1 VPVKAC"
+        );
+        
+        if (result.Contains("pagasta") || result.Contains("pilsētas"))
+            throw new Exception($"Unexpected VPVKAC name for short name parsing: {officeName} -> {result}");
 
         return result;
     }
@@ -170,11 +185,16 @@ Piektdiena: 8:30 - 14:00</td>
         // "Aizkraukles novada Jaunjelgavas pilsētas VPVKAC" -> "Jaunjelgavas pilsētas VPVKAC"
         
         Match m = Regex.Match(officeName, @"^(?:.+?) novada (.+? (?:pilsētas|pagasta)) VPVKAC$");
-        
-        if (m.Success)
-            return m.Groups[1].Value + " VPVKAC";
-        
-        return officeName;
+
+        if (!m.Success)
+        {
+            m = Regex.Match(officeName, @"^(?:.+?) novada (.+?) VPVKAC$");
+
+            if (!m.Success)
+                throw new NotImplementedException($"Unexpected VPVKAC name for disambiguation: {officeName}");
+        }
+
+        return m.Groups[1].Value + " VPVKAC";
     }
 
 
@@ -451,24 +471,28 @@ Piektdiena: 8:30 - 14:00</td>
         // todo: let parser handle this instead?
         if (normalized.Contains("pilsēta"))
             normalized = normalized
-               .Replace("s pilsēta", "")
-               .Replace("u pilsēta", "i")
-               .Replace("Pļaviņu pilsēta", "Pļaviņas")
-               .Replace("Cēsu pilsēta", "Cēsis");
+                         .Replace("Cēsu pilsēta", "Cēsis")
+                         .Replace("Pļaviņu pilsēta", "Pļaviņas")
+                         .Replace("es pilsēta", "e").Replace("as pilsēta", "a") // "Madonas pilsēta" -> "Madona", "Ikšķiles", etc.
+                         .Replace("a pilsēta", "s") // "Tukuma pilsēta" -> "Tukums", "Ķeguma pilsēta" -> "Ķegums"
+                         .Replace("u pilsēta", "i"); // "Balvu pilsēta" -> "Balvi", "Ainažu", "Limbažu" etc.
 
         string fixedAddress = normalized;
 
         // Hard-coded case - unknown meaning of "10"; use locality name only
-        if (fixedAddress.Contains("\"Tērces-10\"")) fixedAddress = fixedAddress.Replace("\"Tērces-10\"", "\"Tērces\"");
+        fixedAddress = fixedAddress.Replace("\"Tērces-10\"", "\"Tērces\"");
 
         // Hard-coded case - address is "Tautas nams Misā" but common name is "Misas tautas nams"
-        if (fixedAddress.Contains("Tautas nams Misā")) fixedAddress = fixedAddress.Replace("Tautas nams Misā", "Misas tautas nams");
+        fixedAddress = fixedAddress.Replace("Misas tautas nams", "Tautas nams Misā");
+
+        // Hard-coded case - address is ""Stāķi 19" - 19" but actual house name is "Stāķi 19"
+        fixedAddress = fixedAddress.Replace("\"Stāķi 19\" - 19", "\"Stāķi 19\"");
 
         // Unique typos
-        if (fixedAddress.Contains("Somersetas")) fixedAddress = fixedAddress.Replace("Somersetas", "Somersētas");
-        if (fixedAddress.Contains("Skola iela")) fixedAddress = fixedAddress.Replace("Skola iela", "Skolas iela");
-        if (fixedAddress.Contains("Brinģenes")) fixedAddress = fixedAddress.Replace("Brinģenes", "Briģenes");
-        if (fixedAddress.Contains("Liela")) fixedAddress = fixedAddress.Replace("Liela", "Lielā");
+        fixedAddress = fixedAddress.Replace("Somersetas", "Somersētas");
+        fixedAddress = fixedAddress.Replace("Skola iela", "Skolas iela");
+        fixedAddress = fixedAddress.Replace("Brinģenes", "Briģenes");
+        fixedAddress = fixedAddress.Replace("Liela", "Lielā");
 
         // Cleanup spacing again in case replacements introduced duplicates
         fixedAddress = Regex.Replace(fixedAddress, "\\s{2,}", " ");

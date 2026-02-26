@@ -62,6 +62,31 @@ public static class OsmGeoTools
     }
 
     /// <summary>
+    /// Returns the angle in degrees between two segments sharing a common point.
+    /// The angle is measured as the interior angle at <paramref name="shared"/> between the vectors
+    /// <c>shared→a</c> and <c>shared→b</c>. Range is [0, 180].
+    /// </summary>
+    [Pure]
+    public static double AngleBetweenSegments(OsmCoord a, OsmCoord shared, OsmCoord b)
+    {
+        // Use lat/lon deltas, adjusting lon by cos(lat) for approximate equal scaling
+        double cosLat = Math.Cos(shared.lat * Math.PI / 180.0);
+
+        double ax = (a.lon - shared.lon) * cosLat;
+        double ay = a.lat - shared.lat;
+        double bx = (b.lon - shared.lon) * cosLat;
+        double by = b.lat - shared.lat;
+
+        double dot = ax * bx + ay * by;
+        double cross = ax * by - ay * bx;
+
+        double angleRad = Math.Atan2(Math.Abs(cross), dot);
+
+        return angleRad * 180.0 / Math.PI;
+    }
+
+
+    /// <summary>
     /// Returns the real-world area of the OSM element in km^2.
     /// </summary>
     [Pure]

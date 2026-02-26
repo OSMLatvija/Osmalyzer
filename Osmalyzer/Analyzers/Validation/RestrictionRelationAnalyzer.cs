@@ -1195,6 +1195,8 @@ public class RestrictionRelationAnalyzer : Analyzer
     /// <summary>
     /// Counts how many potential `highway` ways branch total from a node.
     /// For each way: if terminal node, count as one; if in the middle, count as two.
+    /// A <c>junction=roundabout</c> way in the middle only counts as one, since it is implicitly oneway --
+    /// traffic only flows through that node in one direction.
     /// </summary>
     [Pure]
     private static int CountBranchingHighways(OsmNode node)
@@ -1212,7 +1214,7 @@ public class RestrictionRelationAnalyzer : Analyzer
             if (way.Nodes[0] == node || way.Nodes[^1] == node)
                 count += 1; // terminal node
             else if (way.Nodes.Contains(node))
-                count += 2; // in the middle
+                count += way.HasValue("junction", "roundabout") ? 1 : 2; // roundabout is implicitly oneway, so only one directional branch through the node
         }
         
         return count;

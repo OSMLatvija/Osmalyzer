@@ -283,14 +283,13 @@ public class SharpAngleRoadAnalyzer : Analyzer
     [Pure]
     private static bool IsOnewayFlowCompatible(OsmWay wayA, OsmWay wayB, OsmNode junctionNode)
     {
-        // flow: +1 = away from junction (can depart, cannot arrive), -1 = into junction (can arrive, cannot depart), 0 = bidirectional
-        int flowA = GetOnewayFlow(wayA, junctionNode);
-        int flowB = GetOnewayFlow(wayB, junctionNode);
+        OnewayFlow flowA = GetOnewayFlow(wayA, junctionNode);
+        OnewayFlow flowB = GetOnewayFlow(wayB, junctionNode);
 
-        bool canArriveOnA = flowA != +1;  // blocked from arriving if it flows away
-        bool canDepartOnA = flowA != -1;  // blocked from departing if it flows into junction
-        bool canArriveOnB = flowB != +1;
-        bool canDepartOnB = flowB != -1;
+        bool canArriveOnA = flowA != OnewayFlow.AwayFromJunction;  // blocked from arriving if it flows away
+        bool canDepartOnA = flowA != OnewayFlow.IntoJunction;      // blocked from departing if it flows into junction
+        bool canArriveOnB = flowB != OnewayFlow.AwayFromJunction;
+        bool canDepartOnB = flowB != OnewayFlow.IntoJunction;
 
         // Check each possible travel direction through the sharp angle
         bool aThenB = canArriveOnA && canDepartOnB;
@@ -303,12 +302,12 @@ public class SharpAngleRoadAnalyzer : Analyzer
 
     /// <summary>
     /// Returns the oneway flow direction relative to the junction node.
-    /// +1 = traffic flows away from junction node (junction is the start of travel).
-    /// -1 = traffic flows into the junction node (junction is the end of travel).
-    /// 0 = not a oneway road.
+    /// <see cref="OnewayFlow.AwayFromJunction"/> = traffic flows away from junction node (junction is the start of travel).
+    /// <see cref="OnewayFlow.IntoJunction"/> = traffic flows into the junction node (junction is the end of travel).
+    /// <see cref="OnewayFlow.Bidirectional"/> = not a oneway road.
     /// </summary>
     [Pure]
-    private static int GetOnewayFlow(OsmWay way, OsmNode junctionNode)
+    private static OnewayFlow GetOnewayFlow(OsmWay way, OsmNode junctionNode)
     {
         string? oneway = way.GetValue("oneway");
 
@@ -317,7 +316,7 @@ public class SharpAngleRoadAnalyzer : Analyzer
         {
             if (!way.HasValue("junction", "roundabout") &&
                 !way.HasValue("highway", "motorway", "motorway_link"))
-                return 0;
+                return OnewayFlow.Bidirectional;
         }
 
         bool isReversed = oneway == "-1";
@@ -327,20 +326,20 @@ public class SharpAngleRoadAnalyzer : Analyzer
         bool junctionIsLast = way.Nodes[^1] == junctionNode;
 
         if (!junctionIsFirst && !junctionIsLast)
-            return 0; // junction is in the middle, not relevant
+            return OnewayFlow.Bidirectional; // junction is in the middle, not relevant
 
         if (isReversed)
         {
             // Traffic flows opposite to node order
             // If junction is first node, traffic flows toward it (into junction)
             // If junction is last node, traffic flows away from it
-            return junctionIsFirst ? -1 : +1;
+            return junctionIsFirst ? OnewayFlow.IntoJunction : OnewayFlow.AwayFromJunction;
         }
 
         // Normal direction: traffic flows in node order
         // If junction is first node, traffic flows away from it
         // If junction is last node, traffic flows into it
-        return junctionIsFirst ? +1 : -1;
+        return junctionIsFirst ? OnewayFlow.AwayFromJunction : OnewayFlow.IntoJunction;
     }
 
 
@@ -526,6 +525,13 @@ public class SharpAngleRoadAnalyzer : Analyzer
         return null;
     }
 
+
+    private enum OnewayFlow
+    {
+        Bidirectional,
+        AwayFromJunction,
+        IntoJunction
+    }
 
     private enum ReportGroup
     {

@@ -89,7 +89,15 @@ public class SharpAngleRoadAnalyzer : Analyzer
         report.AddGroup(
             ReportGroup.Sharp,
             "Very sharp angles",
-            "Road connections at sharp acute angles (≤" + maxSharpAngle + "°) that should be reviewed."
+            "Road connections at sharp acute angles (≤" + maxSharpAngle + "°) that should be reviewed. " +
+            "These are usually either drawing issues (roads that can turn multiple ways drawn at a sharp angle), " +
+            "or missing turn restrictions (sharp turns that are actually illegal or impossible but not marked as such). " +
+            "Commonly these are roads that split or join around medians or link roads that join main highways. " +
+            "There are also valid cases, especially if U-turns are allowed, so each case should be reviewed individually. " +
+            "Smaller roads tend to have weird angles and are sometimes impossible to draw otherwise. " +
+            "Similarly, intersections with many roads may be impossible to represent without some sharp angles. " +
+            "Routers generally avoid suggesting U-turns (and very few are actually mapped), " +
+            "but most routers will take very sharp turns, so these need to be turn restricted."
         );
 
         report.AddGroup(

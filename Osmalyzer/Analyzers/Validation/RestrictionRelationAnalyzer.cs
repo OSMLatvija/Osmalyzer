@@ -582,7 +582,7 @@ public class RestrictionRelationAnalyzer : Analyzer
                             {
                                 string type = restriction.Kind is NoRestriction ? "No-direction" : "Only-direction";
                                 string value = ((KnownRestrictionKind)restriction.Kind).Value;
-                                string result = restriction.Kind is NoRestriction ? "fully block travel" : "pointless";
+                                string result = restriction.Kind is NoRestriction ? "pointless" : "fully block travel";
                                 
                                 report.AddEntry(
                                     ReportGroup.Connectivity,

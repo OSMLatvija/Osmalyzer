@@ -123,6 +123,17 @@ public class Validator<T> where T : IDataItem
                         break;
                     }
 
+                    case ValidateElementTagSuffixesMatchDataItemValues<T> elementTagSuffixesMatchDataItemValues:
+                    {
+                        List<SuggestedAction>? suggestedChangesForRule = CheckElementTagSuffixesMatchDataItemValues(elementTagSuffixesMatchDataItemValues);
+                        if (suggestedChangesForRule != null)
+                        {
+                            suggestedChangesForElement ??= [ ];
+                            suggestedChangesForElement.AddRange(suggestedChangesForRule);
+                        }
+                        break;
+                    }
+
                     default:
                         throw new NotImplementedException();
                 }
@@ -487,6 +498,92 @@ public class Validator<T> where T : IDataItem
                 }
 
                 TrySimplifyToChangeKey(suggestedChangesForRule, targetElement);
+
+                return suggestedChangesForRule;
+            }
+
+            List<SuggestedAction>? CheckElementTagSuffixesMatchDataItemValues(ValidateElementTagSuffixesMatchDataItemValues<T> rule)
+            {
+                // No item, no "problem"
+                if (dataItem == null)
+                    return null;
+
+                List<string>? dataValues = rule.DataItemValuesLookup(dataItem);
+
+                if (dataValues == null)
+                    return null; // we don't know what they are supposed to be
+
+                List<SuggestedAction>? suggestedChangesForRule = null;
+
+                string tagPrefix = rule.TagPrefix + ":";
+
+                // Check all expected suffixes are present with the expected value
+                foreach (string suffix in dataValues)
+                {
+                    string tag = tagPrefix + suffix;
+                    string? elementValue = osmElement.GetValue(tag);
+
+                    if (elementValue == null)
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                ElementLabel(osmElement) + " doesn't have expected `" + tag + "=" + rule.ExpectedValue + "` set" + itemLabel + " - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(osmElement)),
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, tag, rule.ExpectedValue));
+                    }
+                    else if (elementValue != rule.ExpectedValue)
+                    {
+                        report.AddEntry(
+                            ReportGroup.ValidationResults,
+                            new IssueReportEntry(
+                                ElementLabel(osmElement) + " doesn't have expected `" + tag + "=" + rule.ExpectedValue + "` set" + itemLabel + ", instead `" + elementValue + "` - " + osmElement.OsmViewUrl,
+                                new SortEntryAsc(GetSortKey(osmElement)),
+                                osmElement.AverageCoord,
+                                MapPointStyle.Problem,
+                                osmElement
+                            )
+                        );
+
+                        suggestedChangesForRule ??= [ ];
+                        suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(osmElement, tag, rule.ExpectedValue));
+                    }
+                }
+
+                // Check for extra suffixed tags not in the expected list
+                List<(string, string)>? existingPrefixedTags = osmElement.GetPrefixedValues(tagPrefix);
+
+                if (existingPrefixedTags != null)
+                {
+                    foreach ((string existingTag, string existingValue) in existingPrefixedTags)
+                    {
+                        string existingSuffix = existingTag[tagPrefix.Length..];
+
+                        if (!dataValues.Contains(existingSuffix))
+                        {
+                            report.AddEntry(
+                                ReportGroup.ValidationResults,
+                                new IssueReportEntry(
+                                    ElementLabel(osmElement) + " has unexpected `" + existingTag + "=" + existingValue + "` set" + itemLabel + ", not in expected list - " + osmElement.OsmViewUrl,
+                                    new SortEntryAsc(GetSortKey(osmElement)),
+                                    osmElement.AverageCoord,
+                                    MapPointStyle.Problem,
+                                    osmElement
+                                )
+                            );
+
+                            suggestedChangesForRule ??= [ ];
+                            suggestedChangesForRule.Add(new OsmRemoveKeySuggestedAction(osmElement, existingTag));
+                        }
+                    }
+                }
 
                 return suggestedChangesForRule;
             }

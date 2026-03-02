@@ -51,7 +51,7 @@ public static class Runner
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
-           //  new CourthouseAnalyzer(),
+            // new CourthouseAnalyzer(),
             // new NonDefiningTaggingAnalyzer(),
             // new BridgeAndWaterConnectionAnalyzer(),
             // new TerminatingWaysAnalyzer(),
@@ -99,7 +99,8 @@ public static class Runner
             // new EducationalInstitutionAnalyzer(),
             // new PlaygroundAnalyzer(),
             // new StatePoliceAnalyzer(),
-            new SharpAngleRoadAnalyzer()
+            // new SharpAngleRoadAnalyzer(),
+            new NotaryAnalyzer()
         ];
 #endif
 

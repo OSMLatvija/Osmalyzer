@@ -320,7 +320,7 @@ public abstract class OsmElement : IChunkerItem
         
         if (State == OsmElementState.Deleted) throw new InvalidOperationException("Cannot modify tags of a deleted element.");
         
-        SetTagCommand command = new SetTagCommand(Owner, this, key, value, OsmElementState.Modified);
+        SetTagCommand command = new SetTagCommand(Owner, ElementType, Id, key, value, OsmElementState.Modified);
         Owner.Execute(command);
     }
 
@@ -328,7 +328,7 @@ public abstract class OsmElement : IChunkerItem
     {
         if (State == OsmElementState.Deleted) throw new InvalidOperationException("Cannot modify tags of a deleted element.");
 
-        SetTagCommand command = new SetTagCommand(Owner, this, key, null, OsmElementState.Modified);
+        SetTagCommand command = new SetTagCommand(Owner, ElementType, Id, key, null, OsmElementState.Modified);
         Owner.Execute(command);
     }
 

@@ -541,7 +541,7 @@ public class OsmData
     {
         CreateNodeCommand command = new CreateNodeCommand(this, coord);
         Execute(command);
-        return command.CreatedNode!;
+        return nodesById[command.CreatedNodeId!.Value];
     }
 
     public OsmNode CreateNewNode(long id, OsmCoord coord)
@@ -551,7 +551,7 @@ public class OsmData
         
         CreateNodeCommand command = new CreateNodeCommand(this, id, coord);
         Execute(command);
-        return command.CreatedNode!;
+        return nodesById[command.CreatedNodeId!.Value];
     }
 
     public void DeleteNode(OsmNode node)
@@ -559,7 +559,7 @@ public class OsmData
         if (node.Owner != this) throw new InvalidOperationException("Cannot delete a node that does not belong to this data set.");
         if (node.State == OsmElementState.Deleted) throw new InvalidOperationException("Cannot delete a node that is already deleted.");
 
-        DeleteNodeCommand command = new DeleteNodeCommand(this, node);
+        DeleteNodeCommand command = new DeleteNodeCommand(this, node.Id);
         Execute(command);
     }
 

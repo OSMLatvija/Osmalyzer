@@ -4,18 +4,18 @@ namespace Osmalyzer.Commands;
 
 internal class SetTagCommand : Command
 {
-    public OsmElement Element { get; }
+    public OsmElement.OsmElementType ElementType { get; }
+    public long ElementId { get; }
     public string Key { get; }
     public string? Value { get; }
     public OsmElementState State { get; }
 
     
-    internal SetTagCommand(OsmData data, OsmElement element, string key, string? value, OsmElementState state)
+    internal SetTagCommand(OsmData data, OsmElement.OsmElementType elementType, long elementId, string key, string? value, OsmElementState state)
         : base(data)
     {
-        if (element.Owner != Data) throw new InvalidOperationException();
-    
-        Element = element;
+        ElementType = elementType;
+        ElementId = elementId;
         Key = key;
         Value = value;
         State = state;
@@ -24,14 +24,16 @@ internal class SetTagCommand : Command
 
     internal override Command? Apply()
     {
+        OsmElement element = Data.GetElementById(ElementType, ElementId);
+        
         // Store values for undo
-        string? existingValue = Element.GetValue(Key);
-        OsmElementState existingState = Element.State;
+        string? existingValue = element.GetValue(Key);
+        OsmElementState existingState = element.State;
         
         // Actuate
-        bool actuated = Element.SetValueInternal(Key, Value, State);
+        bool actuated = element.SetValueInternal(Key, Value, State);
         
         // Return inverse command, i.e. undo
-        return actuated ? new SetTagCommand(Data, Element, Key, existingValue ?? null, existingState) : null;
+        return actuated ? new SetTagCommand(Data, ElementType, ElementId, Key, existingValue ?? null, existingState) : null;
     }
 }

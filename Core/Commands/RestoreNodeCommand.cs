@@ -26,7 +26,7 @@ internal class RestoreNodeCommand : Command
         Node.State = State;
         Data.RegisterElement(Node);
         
-        // Return inverse command, i.e. delete
-        return new DeleteNodeCommand(Data, Node);
+        // Return inverse command, i.e. delete by ID (node is now back in the registry)
+        return new DeleteNodeCommand(Data, Node.Id);
     }
 }

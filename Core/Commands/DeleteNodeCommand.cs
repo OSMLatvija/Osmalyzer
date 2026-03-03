@@ -4,33 +4,34 @@ namespace Osmalyzer.Commands;
 
 internal class DeleteNodeCommand : Command
 {
-    public OsmNode Node { get; }
+    public long NodeId { get; }
 
     
-    internal DeleteNodeCommand(OsmData data, OsmNode node)
+    internal DeleteNodeCommand(OsmData data, long nodeId)
         : base(data)
     {
-        if (node.Owner != Data) throw new InvalidOperationException();
-     
-        Node = node;
+        NodeId = nodeId;
     }
     
     
     internal override Command Apply()
     {
-        if (Node.State == OsmElementState.Deleted) throw new InvalidOperationException();
-        if (Node.ways?.Count > 0) throw new InvalidOperationException();
-        if (Node.relations?.Count > 0) throw new InvalidOperationException();
+        OsmNode node = Data.GetNodeById(NodeId);
+        
+        if (node.State == OsmElementState.Deleted) throw new InvalidOperationException();
+        if (node.ways?.Count > 0) throw new InvalidOperationException();
+        if (node.relations?.Count > 0) throw new InvalidOperationException();
 
         // Store values for undo
-        OsmElementState existingState = Node.State;
+        OsmElementState existingState = node.State;
         
         // Actuate
-        Node.State = OsmElementState.Deleted;
-        Data.UnregisterElement(Node);
+        node.State = OsmElementState.Deleted;
+        Data.UnregisterElement(node);
         // TODO: LINKS AND STUFF
         
         // Return inverse command, i.e. recreate
-        return new RestoreNodeCommand(Data, Node, existingState);
+        // Note: holds the instance directly as it is no longer in the registry and must be re-inserted as-is
+        return new RestoreNodeCommand(Data, node, existingState);
     }
 }

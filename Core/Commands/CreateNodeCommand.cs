@@ -6,7 +6,8 @@ internal class CreateNodeCommand : Command
     
     public OsmCoord Coord { get; }
     
-    public OsmNode? CreatedNode { get; private set; }
+    /// <summary> The ID of the node that was created by <see cref="Apply"/>, or null if not yet applied </summary>
+    public long? CreatedNodeId { get; private set; }
 
     
     internal CreateNodeCommand(OsmData data, OsmCoord coord)
@@ -37,10 +38,10 @@ internal class CreateNodeCommand : Command
         
         Data.RegisterElement(newNode);
         
-        // Store created node for reference
-        CreatedNode = newNode;
+        // Store created node ID for reference
+        CreatedNodeId = newNode.Id;
         
-        // Return inverse command, i.e. delete
-        return new DeleteNodeCommand(Data, newNode);
+        // Return inverse command, i.e. delete by ID
+        return new DeleteNodeCommand(Data, newNode.Id);
     }
 }

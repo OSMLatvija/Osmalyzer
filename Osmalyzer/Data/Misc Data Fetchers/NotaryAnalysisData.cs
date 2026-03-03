@@ -182,7 +182,8 @@ public class NotaryAnalysisData : AnalysisData, IUndatedAnalysisData
         if (Offices.Count == 0)
             throw new Exception("No offices parsed from notary data");
         
-        Offices.Sort((o1, o2) => string.Compare(o1.Name, o2.Name, StringComparison.Ordinal));
+        CultureInfo latvianCulture = new CultureInfo("lv-LV"); // to sort letters alphabetically
+        Offices.Sort((o1, o2) => string.Compare(o1.Name, o2.Name, latvianCulture, CompareOptions.None));
     }
 
 

@@ -114,6 +114,73 @@ public class NotaryAnalyzer : Analyzer
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this, "changes");
         SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
 #endif
+        
+        // Offer syntax for quick OSM addition for unmatched offices
+
+        List<NotaryOfficeData> unmatchedOffices = correlatorReport.Correlations
+            .OfType<UnmatchedItemCorrelation<NotaryOfficeData>>()
+            .Select(c => c.DataItem)
+            .ToList();
+
+        if (unmatchedOffices.Count > 0)
+        {
+            report.AddGroup(
+                ExtraReportGroup.SuggestedAdditions,
+                "Suggested Additions",
+                "These notary offices are not currently matched to OSM and can be added with these (suggested) tags."
+            );
+
+#if DEBUG
+            OsmData additionsData = osmMasterData.Copy();
+            List<SuggestedAction> suggestedAdditions = [ ];
+#endif
+
+            foreach (NotaryOfficeData office in unmatchedOffices)
+            {
+#if DEBUG
+                OsmNode newOfficeNode = additionsData.CreateNewNode(office.Coord);
+#else
+                OsmNode newOfficeNode = osmMasterData.CreateNewNode(office.Coord); // not using for actual data/changes, but need for actions to print out the tags
+#endif
+
+                List<SuggestedAction> actionsForThisNode = [ ];
+
+                actionsForThisNode.Add(new OsmCreateElementAction(newOfficeNode));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "office", "notary"));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "name", office.Name));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "description", "Zvērināts notārs"));
+                if (office.Phone != null)
+                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "phone", office.Phone));
+                if (office.Email != null)
+                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "email", office.Email));
+                if (office.OpeningHours != null)
+                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "opening_hours", office.OpeningHours));
+                foreach (string language in office.Languages)
+                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "language:" + language, "yes"));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "website", office.Website));
+                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "court", office.Court));
+
+#if DEBUG
+                suggestedAdditions.AddRange(actionsForThisNode);
+#endif
+
+                report.AddEntry(
+                    ExtraReportGroup.SuggestedAdditions,
+                    new IssueReportEntry(
+                        "Notary `" + office.Name + "` at `" + office.FullAddress + "` can be added at " +
+                        office.Coord.OsmUrl +
+                        " as" + Environment.NewLine + SuggestedActionApplicator.GetTagsForSuggestedActionsAsCodeString(actionsForThisNode),
+                        office.Coord,
+                        MapPointStyle.Suggestion
+                    )
+                );
+            }
+
+#if DEBUG
+            SuggestedActionApplicator.ApplyAndProposeXml(additionsData, suggestedAdditions, this, "additions");
+            SuggestedActionApplicator.ExplainForReport(suggestedAdditions, report, ExtraReportGroup.SuggestedAdditions);
+#endif
+        }
 
         // List all
 
@@ -137,6 +204,7 @@ public class NotaryAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         AllOffices,
+        SuggestedAdditions,
         ProposedChanges
     }
 }

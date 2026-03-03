@@ -151,6 +151,48 @@ public class VPVKACAnalyzer : Analyzer
             }
         }
         
+        // Validate matched office values
+        
+        Validator<LocatedVPVKACOffice> validator = new Validator<LocatedVPVKACOffice>(
+            correlation,
+            "Office tagging issues"
+        );
+
+        List<SuggestedAction> suggestedChanges = validator.Validate(
+            report,
+            false, false,
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "name",
+                d => string.IsNullOrWhiteSpace(d.Office.DisplayName) ? d.Office.Name : d.Office.DisplayName
+            ),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "official_name",
+                d => string.IsNullOrWhiteSpace(d.Office.Name) ? null : FullName(d.Office.Name)
+            ),
+            new ValidateElementHasValue("office", "government"),
+            new ValidateElementHasValue("government", "public_service"),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "email",
+                d => string.IsNullOrWhiteSpace(d.Office.Email) ? null : d.Office.Email
+            ),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "phone",
+                d => string.IsNullOrWhiteSpace(d.Office.Phone) ? null : d.Office.Phone
+            ),
+            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
+                "opening_hours",
+                d => string.IsNullOrWhiteSpace(d.Office.OpeningHours) ? null : d.Office.OpeningHours
+            ),
+            new ValidateElementFixme()
+        );
+
+#if DEBUG
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
+        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+#endif
+        
+        
+        
         // Offer syntax for quick OSM addition for unmatched located offices
         
         List<LocatedVPVKACOffice> unmatchedLocatedOffices = correlation.Correlations
@@ -217,50 +259,6 @@ public class VPVKACAnalyzer : Analyzer
             SuggestedActionApplicator.ExplainForReport(suggestedAdditions, report, ExtraReportGroup.SuggestedAdditions);
 #endif
         }
-        
-        // Validate matched office values
-        
-        Validator<LocatedVPVKACOffice> validator = new Validator<LocatedVPVKACOffice>(
-            correlation,
-            "Office tagging issues"
-        );
-
-        List<SuggestedAction> suggestedChanges = validator.Validate(
-            report,
-            false, false,
-            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
-                "name",
-                d => string.IsNullOrWhiteSpace(d.Office.DisplayName) ? d.Office.Name : d.Office.DisplayName
-            ),
-            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
-                "official_name",
-                d => string.IsNullOrWhiteSpace(d.Office.Name) ? null : FullName(d.Office.Name)
-            ),
-            new ValidateElementHasValue("office", "government"),
-            new ValidateElementHasValue("government", "public_service"),
-            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
-                "email",
-                d => string.IsNullOrWhiteSpace(d.Office.Email) ? null : d.Office.Email
-            ),
-            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
-                "phone",
-                d => string.IsNullOrWhiteSpace(d.Office.Phone) ? null : d.Office.Phone
-            ),
-            new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
-                "opening_hours",
-                d => string.IsNullOrWhiteSpace(d.Office.OpeningHours) ? null : d.Office.OpeningHours
-            ),
-            new ValidateElementFixme()
-        );
-
-#if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
-#endif
-        
-        
-        // Validate additional issues
-        // todo: like what?
 
         // List all
         report.AddGroup(

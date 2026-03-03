@@ -93,8 +93,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
         // Validate tagging
 
         Validator<LatviaPostItem> validator = new Validator<LatviaPostItem>(
-            correlatorReport,
-            "Tagging issues"
+            correlatorReport
         );
 
         Validation validation = validator.Validate(

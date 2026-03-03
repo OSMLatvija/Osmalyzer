@@ -152,8 +152,7 @@ public class CourthouseAnalyzer : Analyzer
         // Validate matched courthouse values
 
         Validator<LocatedCourthouse> validator = new Validator<LocatedCourthouse>(
-            correlation,
-            "Tagging issues"
+            correlation
         );
 
         Validation validation = validator.Validate(

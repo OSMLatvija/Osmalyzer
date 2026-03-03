@@ -196,74 +196,22 @@ public class VPVKACAnalyzer : Analyzer
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
+        // Offer adding unmatched offices
         
-        
-        // Offer syntax for quick OSM addition for unmatched located offices
-        
-        List<LocatedVPVKACOffice> unmatchedLocatedOffices = correlation.Correlations
-            .OfType<UnmatchedItemCorrelation<LocatedVPVKACOffice>>()
-            .Select(c => c.DataItem)
-            .ToList();
-
-        if (unmatchedLocatedOffices.Count > 0)
-        {
-            report.AddGroup(
-                ExtraReportGroup.SuggestedAdditions,
-                "Suggested Additions",
-                "These VPVKAC offices are not currently matched to OSM and can be added with these (suggested) tags. " +
-                "(Address fields are not offered because the local bot will update these automatically on OSM.)"
-            );
-
-#if DEBUG
-            OsmData additionsData = OsmData.Copy();
-            List<SuggestedAction> suggestedAdditions = [ ];
-#endif
-
-            foreach (LocatedVPVKACOffice locatedOffice in unmatchedLocatedOffices)
-            {
-#if DEBUG
-                OsmNode newOfficeNode = additionsData.CreateNewNode(locatedOffice.Coord);
-#else
-                OsmNode newOfficeNode = OsmData.CreateNewNode(locatedOffice.Coord); // not using for actual data/changes, but need for actions to print out the tags
-#endif
-                
-                List<SuggestedAction> actionsForThisNode = [ ];
-                
-                actionsForThisNode.Add(new OsmCreateElementAction(newOfficeNode));
-                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "name", string.IsNullOrWhiteSpace(locatedOffice.Office.DisplayName) ? locatedOffice.Office.Name : locatedOffice.Office.DisplayName));
-                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "official_name", FullName(locatedOffice.Office.Name)));
-                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "office", "government"));
-                actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "government", "public_service"));
-                if (!string.IsNullOrWhiteSpace(locatedOffice.Office.Email))
-                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "email", locatedOffice.Office.Email));
-                if (!string.IsNullOrWhiteSpace(locatedOffice.Office.Phone))
-                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "phone", locatedOffice.Office.Phone));
-                if (!string.IsNullOrWhiteSpace(locatedOffice.Office.OpeningHours))
-                    actionsForThisNode.Add(new OsmSetValueSuggestedAction(newOfficeNode, "opening_hours", locatedOffice.Office.OpeningHours));
-                
-#if DEBUG
-                suggestedAdditions.AddRange(actionsForThisNode);
-#endif
-
-                report.AddEntry(
-                    ExtraReportGroup.SuggestedAdditions,
-                    new IssueReportEntry(
-                        '`' + locatedOffice.Office.DisplayName + "` office at `" +
-                        locatedOffice.Office.Address +
-                        "` can be added at " +
-                        locatedOffice.Coord.OsmUrl +
-                        " as" + Environment.NewLine + SuggestedActionApplicator.GetTagsForSuggestedActionsAsCodeString(actionsForThisNode),
-                        locatedOffice.Coord,
-                        MapPointStyle.Suggestion
-                    )
-                );
-            }
+        Spawner<NotaryOfficeData> spawner = new Spawner<NotaryOfficeData>(
+            correlation
+        );
             
+        Spawn spawn = spawner.Spawn(
+            report,
+            rules
+        );
+
 #if DEBUG
-            SuggestedActionApplicator.ApplyAndProposeXml(additionsData, suggestedAdditions, this, "additions");
-            SuggestedActionApplicator.ExplainForReport(suggestedAdditions, report, ExtraReportGroup.SuggestedAdditions);
+        OsmData additionsData = OsmData.Copy();
+        SuggestedActionApplicator.ApplyAndProposeXml(additionsData, spawn.Additions, this, "additions");
+        SuggestedActionApplicator.ExplainForReport(spawn.Additions, report, ExtraReportGroup.ProposedAdditions);
 #endif
-        }
 
         // List all
         report.AddGroup(
@@ -318,8 +266,8 @@ public class VPVKACAnalyzer : Analyzer
     private enum ExtraReportGroup
     {
         UnlocatedOffices,
-        SuggestedAdditions,
         ProposedChanges,
+        ProposedAdditions,
         AllOffices
     }
 }

@@ -20,7 +20,7 @@ public class Validator<T> where T : IDataItem
         
         report.AddGroup(
             ReportGroup.ValidationResults,
-            _customTitle ?? "Other issues",
+            _customTitle ?? "Tagging issues",
             "These " + (!validateUnmatchedElements ? "data-matched " : "") + "OSM elements and/or data items have additional individual (known) issues.",
             "No (known) issues found with matched/found OSM elements and/or data items."
         );
@@ -685,6 +685,6 @@ public class Validator<T> where T : IDataItem
 
     private enum ReportGroup
     {
-        ValidationResults = -5 // after correlator and probably before analyzer extra issues
+        ValidationResults = -5 // after correlator, before spawner and probably before analyzer extra issues
     }
 }

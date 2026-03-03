@@ -83,8 +83,7 @@ public class StatePoliceAnalyzer : Analyzer
         // Validate
         
         Validator<StatePoliceData> validator = new Validator<StatePoliceData>(
-            correlatorReport,
-            "Tagging issues"
+            correlatorReport
         );
 
         Validation validation = validator.Validate(

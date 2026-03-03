@@ -163,105 +163,6 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         
         Console.WriteLine("Hamlets correlated (" + stopwatch.ElapsedMilliseconds + " ms)");
         
-        // Offer syntax for quick OSM addition for unmatched hamlets
-        
-        stopwatch.Restart();
-        
-        List<Hamlet> unmatchedHamlets = hamletCorrelation.Correlations
-            .OfType<UnmatchedItemCorrelation<Hamlet>>()
-            .Select(c => c.DataItem)
-            .ToList();
-        
-        Console.WriteLine("Unmatched hamlets identified (" + stopwatch.ElapsedMilliseconds + " ms)");
-
-        if (unmatchedHamlets.Count > 0)
-        {
-            report.AddGroup(
-                ExtraReportGroup.SuggestedHamletAdditions,
-                "Suggested Hamlet Additions",
-                "These hamlets are not currently matched to OSM and can potentially be added based on the source data items."
-            );
-            
-#if DEBUG
-            OsmData additionsData = OsmData.Copy();
-            List<SuggestedAction> suggestedAdditions = [ ];
-#endif
-
-            stopwatch.Restart();
-            
-            OsmData namedNodes = OsmData.Filter(
-                new HasKey("name"),
-                // Manually filter out known non-hamlet things that have the same names
-                new DoesntHaveKey("ref:LV:addr"), // we know this is a real separate feature, even if the name matches 
-                new DoesntHaveAnyValue("public_transport", "platform", "stop_position", "stop_area"),
-                new DoesntHaveKey("waterway"),
-                new DoesntHaveValue("type", "waterway"),
-                new DoesntHaveValue("highway", "bus_stop"),
-                new DoesntHaveValue("historic", "manor"),
-                new DoesntHaveValue("place", "village"), // we check all villages separately, so it's definitely not that 
-                new DoesntHaveValue("place", "isolated_dwelling"),  // while it may actually be mistagging, it's very unlikely, but at the same time lots of hamlets and stuff are named after local name, which also often matches isolated dwellings
-                new DoesntHaveValue("place", "suburb"),
-                new DoesntHaveValue("place", "neighbourhood"),
-                new DoesntHaveValue("railway", "station"),
-                new DoesntHaveValue("historic:railway", "station"),
-                new DoesntHaveValue("abandoned:railway", "station"),
-                new DoesntHaveValue("landuse", "military"),
-                new DoesntHaveKey("traffic_sign"),
-                new DoesntHaveKey("power"),
-                new DoesntHaveKey("advertising")
-            );
-
-            foreach (Hamlet hamlet in unmatchedHamlets)
-            {
-                const double newElementConflictDistance = 30000; // km
-                List<OsmElement> closestElements = namedNodes.GetClosestElementsTo(hamlet.Coord, newElementConflictDistance);
-                List<OsmElement> matchingNamed = closestElements.Where(e => e.GetValue("name") == hamlet.Name).ToList();
-
-                if (matchingNamed.Count > 0)
-                {
-                    report.AddEntry(
-                        ExtraReportGroup.SuggestedHamletAdditions,
-                        new IssueReportEntry(
-                            hamlet.ReportString() + " could be added at " + hamlet.Coord.OsmUrl + ", but there are nearby OSM element(s) with matching `name`, so it possibly already exists, but is mistagged: " +
-                            string.Join(", ", matchingNamed.Select(e => e.OsmViewUrl)),
-                            hamlet.Coord,
-                            MapPointStyle.Dubious
-                        )
-                    );
-                    
-                    continue;
-                }
-                
-#if DEBUG
-                OsmNode newHamletNode = additionsData.CreateNewNode(hamlet.Coord);
-                // todo: just set values directly instead of this, I only needed this for validator, which doesn't edit data directly
-                suggestedAdditions.Add(new OsmCreateElementAction(newHamletNode));
-                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "name", hamlet.Name));
-                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "place", "hamlet"));
-                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "ref:LV:addr", hamlet.AddressID));
-                suggestedAdditions.Add(new OsmSetValueSuggestedAction(newHamletNode, "designation", "mazciems"));
-#endif
-
-                report.AddEntry(
-                    ExtraReportGroup.SuggestedHamletAdditions,
-                    new IssueReportEntry(
-                        '`' + hamlet.Name + "` hamlet at " + hamlet.ReportString() + " can be added at " + hamlet.Coord.OsmUrl,
-                        hamlet.Coord,
-                        MapPointStyle.Suggestion
-                    )
-                );
-            }
-            
-            Console.WriteLine("Suggested hamlet additions processed (" + stopwatch.ElapsedMilliseconds + " ms)");
-            
-#if DEBUG
-            stopwatch.Restart();
-            SuggestedActionApplicator.ApplyAndProposeXml(additionsData, suggestedAdditions, this, "additions");
-            Console.WriteLine("Suggested additions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
-            SuggestedActionApplicator.ExplainForReport(suggestedAdditions, report, ExtraReportGroup.SuggestedHamletAdditions);
-#endif
-        }
-        
         // Validate hamlet syntax
         
         Validator<Hamlet> hamletValidator = new Validator<Hamlet>(
@@ -270,16 +171,21 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         );
 
         stopwatch.Restart();
-        
-        Validation validation = hamletValidator.Validate(
-            report,
-            false, false,
+
+        List<ValidationRule> rules =
+        [
             new ValidateElementValueMatchesDataItemValue<Hamlet>("name", h => h.Name),
             new ValidateElementHasValue("place", "hamlet"),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:addr", h => h.AddressID, [ "ref" ]),
             new ValidateElementValueMatchesDataItemValue<Hamlet>("wikidata", h => h.WikidataItem?.QID),
             //new ValidateElementValueMatchesDataItemValue<Hamlet>("ref:LV:VDB", h => h.VdbEntry?.ID.ToString()),
             new ValidateElementHasValue("designation", "mazciems")
+        ];
+        
+        Validation validation = hamletValidator.Validate(
+            report,
+            false, false,
+            rules
         );
         
         Console.WriteLine("Hamlet syntax validated (" + stopwatch.ElapsedMilliseconds + " ms)");
@@ -289,6 +195,23 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this, "changes");
         Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
+#endif
+        
+        // Offer adding unmatched hamlets
+        
+        Spawner<NotaryOfficeData> spawner = new Spawner<NotaryOfficeData>(
+            hamletCorrelation
+        );
+            
+        Spawn spawn = spawner.Spawn(
+            report,
+            rules
+        );
+
+#if DEBUG
+        OsmData additionsData = OsmData.Copy();
+        SuggestedActionApplicator.ApplyAndProposeXml(additionsData, spawn.Additions, this, "additions");
+        SuggestedActionApplicator.ExplainForReport(spawn.Additions, report, ExtraReportGroup.ProposedAdditions);
 #endif
         
         // List invalid hamlets that are still in data
@@ -349,9 +272,9 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
     private enum ExtraReportGroup
     {
-        SuggestedHamletAdditions,
         InvalidHamlets,
         ExternalDataMatchingIssues,
-        ProposedChanges
+        ProposedChanges,
+        ProposedAdditions
     }
 }

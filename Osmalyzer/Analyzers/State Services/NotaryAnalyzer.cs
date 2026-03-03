@@ -130,8 +130,7 @@ public class NotaryAnalyzer : Analyzer
         );
 
 #if DEBUG
-        OsmData additionsData = osmMasterData.Copy();
-        SuggestedActionApplicator.ApplyAndProposeXml(additionsData, spawn.Additions, this, "additions");
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, spawn.Additions, this, "additions");
         SuggestedActionApplicator.ExplainForReport(spawn.Additions, report, ExtraReportGroup.ProposedAdditions);
 #endif
 

@@ -2,17 +2,14 @@
 
 namespace Osmalyzer;
 
+/// <summary>
+/// Applies <see cref="SuggestedAction"/>s to an <see cref="OsmData"/>.
+/// </summary>
 public static class SuggestedActionApplicator
 {
     public static OsmData Apply(OsmData data, List<SuggestedAction> changes, bool temporary)
     {
-        if (temporary)
-        {
-            // Make a deep data copy
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            data = data.Copy();
-            Console.WriteLine("-> -> Cloned OsmData in " + stopwatch.ElapsedMilliseconds + " ms.");
-        }
+        if (data.CanUndo) throw new InvalidOperationException();
 
         Stopwatch mainStopwatch = Stopwatch.StartNew();
         foreach (SuggestedAction change in changes)
@@ -52,7 +49,7 @@ public static class SuggestedActionApplicator
             }
         }
         Console.WriteLine("-> -> Applied suggested actions in " + mainStopwatch.ElapsedMilliseconds + " ms.");
-
+        
         return data;
     }
 
@@ -86,6 +83,10 @@ public static class SuggestedActionApplicator
         Console.WriteLine("-> Wrote suggested changes as XML in " + stopwatch.ElapsedMilliseconds + " ms.");
         
         //Console.WriteLine(change.Actions.Count + " suggested changes for " + analyzer.Name + " written to " + fileName);
+        
+        stopwatch.Restart();
+        osmData.Unwind();
+        Console.WriteLine("-> Unwound changes in " + stopwatch.ElapsedMilliseconds + " ms.");
         
         return change;
     }

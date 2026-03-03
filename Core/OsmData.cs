@@ -611,8 +611,11 @@ public class OsmData
     /// <summary>
     /// Makes a deep copy of all the data.
     /// Any changes to the elements of the copied data will not affect the original data.
+    /// This is very slow, only do this if data needs "branching".
+    /// For regular changes, just apply directly and use the undo functionality.
     /// </summary>
     [Pure]
+    [PublicAPI]
     public OsmData Copy()
     {
         // Create dictionaries to map old elements to new elements

@@ -34,10 +34,12 @@ public class Spawner<T> where T : IDataItem
         {
             List<SuggestedAction> actionsForThisNode = [ ];
 
-            actionsForThisNode.Add(new OsmCreateNodeAction(item.Coord));
-            
-            // TODO: BASED ON RULES
-            
+            OsmCreateNodeAction createNodeAction = new OsmCreateNodeAction(item.Coord);
+            long id = createNodeAction.Id;
+            actionsForThisNode.Add(createNodeAction);
+
+            foreach (ValidationRule rule in rules)
+                ApplyRuleAsNewNodeTags(rule, item, id, actionsForThisNode);
 
             suggestedAdditions.AddRange(actionsForThisNode);
 
@@ -54,6 +56,74 @@ public class Spawner<T> where T : IDataItem
         }
         
         return new Spawn(suggestedAdditions);
+
+
+        void ApplyRuleAsNewNodeTags(ValidationRule rule, T dataItem, long newNodeId, List<SuggestedAction> actions)
+        {
+            switch (rule)
+            {
+                case ValidateElementFixme:
+                case ValidateElementHasKey:
+                case ValidateElementHasAcceptableValue:
+                case ValidateElementDoesntHaveTag:
+                    break; // no specific value to suggest for new node
+
+                case ValidateElementHasValue elementHasValue:
+                {
+                    // Skip rules with ElementSelector - the new node has no sub-elements
+                    if (elementHasValue.ElementSelector != null)
+                        break;
+
+                    if (string.IsNullOrEmpty(elementHasValue.Value))
+                        break; // unknown or expected-absent value - nothing to add
+
+                    actions.Add(new OsmSetValueSuggestedAction(OsmElement.OsmElementType.Node, newNodeId, elementHasValue.Tag, elementHasValue.Value));
+                    break;
+                }
+
+                case ValidateElementHasAnyValue elementHasAnyValue:
+                {
+                    if (elementHasAnyValue.Values.Length == 0)
+                        break;
+
+                    actions.Add(new OsmSetValueSuggestedAction(OsmElement.OsmElementType.Node, newNodeId, elementHasAnyValue.Tag, elementHasAnyValue.Values[0]));
+                    break;
+                }
+
+                case ValidateElementValueMatchesDataItemValue<T> elementValueMatchesDataItemValue:
+                {
+                    // Skip rules with ElementSelector - the new node has no sub-elements
+                    if (elementValueMatchesDataItemValue.ElementSelector != null)
+                        break;
+
+                    string? dataValue = elementValueMatchesDataItemValue.DataItemValueLookup(dataItem);
+
+                    if (string.IsNullOrEmpty(dataValue))
+                        break; // unknown or expected-absent value - nothing to add
+
+                    actions.Add(new OsmSetValueSuggestedAction(OsmElement.OsmElementType.Node, newNodeId, elementValueMatchesDataItemValue.Tag, dataValue));
+                    break;
+                }
+
+                case ValidateElementTagSuffixesMatchDataItemValues<T> elementTagSuffixesMatchDataItemValues:
+                {
+                    List<string>? dataValues = elementTagSuffixesMatchDataItemValues.DataItemValuesLookup(dataItem);
+
+                    if (dataValues == null)
+                        break;
+
+                    string tagPrefix = elementTagSuffixesMatchDataItemValues.TagPrefix + ":";
+
+                    foreach (string suffix in dataValues)
+                        actions.Add(new OsmSetValueSuggestedAction(OsmElement.OsmElementType.Node, newNodeId, tagPrefix + suffix, elementTagSuffixesMatchDataItemValues.ExpectedValue));
+
+                    break;
+                }
+
+                default:
+                    throw new NotImplementedException();
+            }
+        }
     }    
     
     

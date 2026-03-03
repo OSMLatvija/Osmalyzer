@@ -40,6 +40,15 @@ public class OsmData
     [PublicAPI]
     public OsmData? FullData { get; }
     
+
+    /// <summary> Whether there is at least one command that can be undone </summary>
+    [PublicAPI]
+    public bool CanUndo => _history.CanUndo;
+
+    /// <summary> Whether there is at least one command that can be redone </summary>
+    [PublicAPI]
+    public bool CanRedo => _history.CanRedo;
+    
         
     private List<OsmElement> _elements = null!; // will be set by whichever child constructor
         
@@ -56,6 +65,8 @@ public class OsmData
     protected Dictionary<long, OsmRelation> relationsById = null!;
     
     private Chunker<OsmElement>? _chunker;
+    
+    private History _history = new History();
 
 
     public OsmData()
@@ -561,11 +572,40 @@ public class OsmData
         Execute(command);
     }
 
+
     internal void Execute(Command command)
     {
-        command.Apply();
-        
-        // todo: undo stuff
+        Command? undo = command.Apply();
+
+        _history.RecordUndo(undo);
+    }
+
+    /// <summary>
+    /// Undoes the last change / executed command.
+    /// </summary>
+    [PublicAPI]
+    public void Undo()
+    {
+        _history.Undo();
+    }
+
+    /// <summary>
+    /// Undoes all changes / executed commands.
+    /// </summary>
+    [PublicAPI]
+    public void Unwind()
+    {
+        while (_history.CanUndo)
+            _history.Undo();
+    }
+
+    /// <summary>
+    /// Redoes the last undone change / command.
+    /// </summary>
+    [PublicAPI]
+    public void Redo()
+    {
+        _history.Redo();
     }
 
     /// <summary>

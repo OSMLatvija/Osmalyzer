@@ -42,10 +42,10 @@ public static class SuggestedActionApplicator
                         break;
                     }
                     
-                    case OsmCreateElementAction createElement:
+                    case OsmCreateNodeAction createElement:
                     {
-                        OsmElement copiedElement = data.GetElementById(createElement.ElementType, createElement.Id);
-                        changes[i] = new OsmCreateElementAction(copiedElement.ElementType, copiedElement.Id);
+                        OsmNode copiedElement = data.GetNodeById(createElement.Id);
+                        changes[i] = new OsmCreateNodeAction(copiedElement.coord);
                         break;
                     }
 
@@ -83,7 +83,7 @@ public static class SuggestedActionApplicator
                     break;
                 }
 
-                case OsmCreateElementAction:
+                case OsmCreateNodeAction:
                     break;
                 
                 default:
@@ -343,7 +343,7 @@ public static class SuggestedActionApplicator
         {
             switch (action)
             {
-                case OsmCreateElementAction:
+                case OsmCreateNodeAction:
                     break;
                 
                 case OsmSetValueSuggestedAction osmSetValueSuggestedAction:

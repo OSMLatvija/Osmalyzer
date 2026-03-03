@@ -32,11 +32,9 @@ public class Spawner<T> where T : IDataItem
         
         foreach (T item in unmatchedItems)
         {
-            // TODO: OsmNode newOsmNode = additionsData.CreateNewNode(item.Coord);
-
             List<SuggestedAction> actionsForThisNode = [ ];
 
-            // TODO: actionsForThisNode.Add(new OsmCreateElementAction(newOsmNode));
+            actionsForThisNode.Add(new OsmCreateNodeAction(item.Coord));
             
             // TODO: BASED ON RULES
             

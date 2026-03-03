@@ -101,6 +101,7 @@ public class NotaryAnalyzer : Analyzer
             false, false,
             new ValidateElementHasValue("office", "notary"),
             new ValidateElementValueMatchesDataItemValue<NotaryOfficeData>("name", o => o.Name),
+            new ValidateElementHasValue("description", "Zvērināts notārs"),
             new ValidateElementValueMatchesDataItemValue<NotaryOfficeData>("email", o => o.Email),
             new ValidateElementValueMatchesDataItemValue<NotaryOfficeData>("phone", o => o.Phone),
             new ValidateElementValueMatchesDataItemValue<NotaryOfficeData>("opening_hours", o => o.OpeningHours),

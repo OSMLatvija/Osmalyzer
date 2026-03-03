@@ -219,7 +219,7 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
             "Municipality syntax issues"
         );
 
-        List<SuggestedAction> suggestedChanges = municipalityValidator.Validate(
+        Validation validation = municipalityValidator.Validate(
             report,
             false, false,
             new ValidateElementValueMatchesDataItemValue<Municipality>("name", m => m.Name),
@@ -236,8 +236,8 @@ public class MunicipalityAnalyzer : AdminAnalyzerBase<Municipality>
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
 
         // List invalid municipalities that are still in data

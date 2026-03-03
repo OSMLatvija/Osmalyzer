@@ -87,7 +87,7 @@ public class StatePoliceAnalyzer : Analyzer
             "Tagging issues"
         );
 
-        List<SuggestedAction> suggestedChanges = validator.Validate(
+        Validation validation = validator.Validate(
             report,
             false, false,
             new ValidateElementValueMatchesDataItemValue<StatePoliceData>("name", h => h.Name), // todo: can we shorten these meaningfully as common/primary name?
@@ -104,8 +104,8 @@ public class StatePoliceAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this, "changes");
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this, "changes");
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List all

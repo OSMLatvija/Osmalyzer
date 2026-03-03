@@ -271,7 +271,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
         stopwatch.Restart();
         
-        List<SuggestedAction> suggestedChanges = hamletValidator.Validate(
+        Validation validation = hamletValidator.Validate(
             report,
             false, false,
             new ValidateElementValueMatchesDataItemValue<Hamlet>("name", h => h.Name),
@@ -286,9 +286,9 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
 #if DEBUG
         stopwatch.Restart();
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this, "changes");
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this, "changes");
         Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid hamlets that are still in data

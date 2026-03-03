@@ -288,7 +288,7 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
 
         stopwatch.Restart();
         
-        List<SuggestedAction> suggestedChanges = villageValidator.Validate(
+        Validation validation = villageValidator.Validate(
             report,
             false, false,
             // Always on relation itself
@@ -314,9 +314,9 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
 
 #if DEBUG
         stopwatch = Stopwatch.StartNew();
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
         Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid villages that are still in data

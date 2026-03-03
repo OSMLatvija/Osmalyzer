@@ -134,7 +134,7 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
             "Region syntax issues"
         );
 
-        List<SuggestedAction> suggestedChanges = municipalityValidator.Validate(
+        Validation validation = municipalityValidator.Validate(
             report,
             false, false,
             // Always on relation
@@ -152,8 +152,8 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List extrenal data items issues

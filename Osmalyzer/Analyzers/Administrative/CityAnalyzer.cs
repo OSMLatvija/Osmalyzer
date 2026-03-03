@@ -262,7 +262,7 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             "City syntax issues"
         );
 
-        List<SuggestedAction> suggestedChanges = cityValidator.Validate(
+        Validation validation = cityValidator.Validate(
             report,
             false, false,
             // Always on relation itself
@@ -296,8 +296,8 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
         string GetPlaceType(City c) => c.Status == CityStatus.StateCity ? "city" : "town"; // apparently, regional cities are place=town in Latvia atm
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid cities that are still in data

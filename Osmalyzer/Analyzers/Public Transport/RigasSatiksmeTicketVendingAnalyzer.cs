@@ -73,7 +73,7 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
             "Other ticket vending issues"
         );
 
-        List<SuggestedAction> suggestedChanges = validator.Validate(
+        Validation validation = validator.Validate(
             report,
             true, true, // all elements we checked against are "real", so should follow the rules
             new ValidateElementHasValue("operator", "Rīgas satiksme"),
@@ -82,8 +82,8 @@ public class RigasSatiksmeTicketVendingAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ReportGroup.ProposedChanges);
 #endif
     }
     

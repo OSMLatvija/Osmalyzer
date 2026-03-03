@@ -158,7 +158,7 @@ public class VPVKACAnalyzer : Analyzer
             "Office tagging issues"
         );
 
-        List<SuggestedAction> suggestedChanges = validator.Validate(
+        Validation validation = validator.Validate(
             report,
             false, false,
             new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
@@ -187,8 +187,8 @@ public class VPVKACAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         

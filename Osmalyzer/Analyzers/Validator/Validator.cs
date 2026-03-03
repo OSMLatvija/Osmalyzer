@@ -14,7 +14,7 @@ public class Validator<T> where T : IDataItem
     }
 
 
-    public List<SuggestedAction> Validate(Report report, bool validateUnmatchedElements, bool validateLoneElements, params ValidationRule[] rules)
+    public Validation Validate(Report report, bool validateUnmatchedElements, bool validateLoneElements, params ValidationRule[] rules)
     {
         // todo: list all the rules that we are applying
         
@@ -589,7 +589,7 @@ public class Validator<T> where T : IDataItem
             }
         }
         
-        return suggestedChanges;
+        return new Validation(suggestedChanges);
         
         
         string ElementLabel(OsmElement osmElement) => "OSM " + OsmKnowledge.GetFeatureLabel(osmElement, false);

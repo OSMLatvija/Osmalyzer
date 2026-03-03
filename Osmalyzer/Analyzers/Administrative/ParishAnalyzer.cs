@@ -242,7 +242,7 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
             "Parish syntax issues"
         );
 
-        List<SuggestedAction> suggestedChanges = parishValidator.Validate(
+        Validation validation = parishValidator.Validate(
             report,
             false, false,
             new ValidateElementValueMatchesDataItemValue<Parish>("name", p => p.Name),
@@ -258,8 +258,8 @@ public class ParishAnalyzer : AdminAnalyzerBase<Parish>
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // List invalid parishes that are still in data

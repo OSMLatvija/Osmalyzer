@@ -96,7 +96,7 @@ public class NotaryAnalyzer : Analyzer
             "Tagging issues"
         );
 
-        List<SuggestedAction> suggestedChanges = validator.Validate(
+        Validation validation = validator.Validate(
             report,
             false, false,
             new ValidateElementHasValue("office", "notary"),
@@ -111,8 +111,8 @@ public class NotaryAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, suggestedChanges, this, "changes");
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, validation.Changes, this, "changes");
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
         // Offer syntax for quick OSM addition for unmatched offices

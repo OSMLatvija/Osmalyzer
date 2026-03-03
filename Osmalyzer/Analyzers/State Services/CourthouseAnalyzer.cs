@@ -156,7 +156,7 @@ public class CourthouseAnalyzer : Analyzer
             "Tagging issues"
         );
 
-        List<SuggestedAction> suggestedChanges = validator.Validate(
+        Validation validation = validator.Validate(
             report,
             false, false,
             new ValidateElementValueMatchesDataItemValue<LocatedCourthouse>("name", lc => lc.Courthouse.Name),
@@ -166,8 +166,8 @@ public class CourthouseAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, suggestedChanges, this);
-        SuggestedActionApplicator.ExplainForReport(suggestedChanges, report, ExtraReportGroup.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
 
         // Report any courthouses we couldn't geolocate by address

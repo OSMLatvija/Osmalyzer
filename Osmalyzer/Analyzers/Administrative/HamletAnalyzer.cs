@@ -31,11 +31,11 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
         Stopwatch stopwatch = Stopwatch.StartNew();
         
-        OsmData osmHamlets = OsmData.Filter(
+        OsmData osmHamlets = osmMasterData.Filter(
             new IsNode(),
             new HasAnyValue("place", "hamlet"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside) // lots around edges
@@ -192,7 +192,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
 
 #if DEBUG
         stopwatch.Restart();
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this, "changes");
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, validation.Changes, this, "changes");
         Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
@@ -209,7 +209,7 @@ public class HamletAnalyzer : AdminAnalyzerBase<Hamlet>
         );
 
 #if DEBUG
-        OsmData additionsData = OsmData.Copy();
+        OsmData additionsData = osmMasterData.Copy();
         SuggestedActionApplicator.ApplyAndProposeXml(additionsData, spawn.Additions, this, "additions");
         SuggestedActionApplicator.ExplainForReport(spawn.Additions, report, ExtraReportGroup.ProposedAdditions);
 #endif

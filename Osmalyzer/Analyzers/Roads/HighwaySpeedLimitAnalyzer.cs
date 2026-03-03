@@ -18,9 +18,9 @@ public class HighwaySpeedLimitAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmRoads = OsmData.Filter(
+        OsmData osmRoads = osmMasterData.Filter(
             new IsWay(),
             new HasAnyValue("maxspeed", "80", "90"),
             new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "trunk_link", "primary_link", "secondary_link"),

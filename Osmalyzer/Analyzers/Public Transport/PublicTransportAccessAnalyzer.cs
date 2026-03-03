@@ -19,9 +19,9 @@ public class PublicTransportAccessAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmRoutes = OsmData.Filter(
+        OsmData osmRoutes = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("type", "route"),
             new OrMatch(

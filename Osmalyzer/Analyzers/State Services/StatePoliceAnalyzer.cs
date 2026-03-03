@@ -23,9 +23,9 @@ public class StatePoliceAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
                 
-        OsmData osmPoliceOffices = OsmData.Filter(
+        OsmData osmPoliceOffices = osmMasterData.Filter(
             new HasAnyValue("amenity", "police"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose) // a couple OOB hits
         );
@@ -103,7 +103,7 @@ public class StatePoliceAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this, "changes");
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, validation.Changes, this, "changes");
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         

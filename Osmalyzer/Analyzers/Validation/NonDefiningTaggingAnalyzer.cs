@@ -19,9 +19,9 @@ public class NonDefiningTaggingAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
         
-        OsmData osmElements = OsmData.Filter(
+        OsmData osmElements = osmMasterData.Filter(
             new HasAnyKey()
             //new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.Fuzzy) -- this is way too slow for so many elements
         );

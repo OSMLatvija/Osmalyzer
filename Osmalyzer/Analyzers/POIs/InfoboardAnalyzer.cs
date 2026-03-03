@@ -19,9 +19,9 @@ public class InfoboardAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
         
-        OsmData osmElements = OsmData.Filter(
+        OsmData osmElements = osmMasterData.Filter(
             new HasValue("tourism", "information"),
             new HasAnyValue("information", "board", "map"),
             new DoesntHaveValue("board_type", "welcome_sign"), // not an actual board (likely)

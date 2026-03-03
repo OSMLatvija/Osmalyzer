@@ -22,9 +22,9 @@ public class HistoricalLandsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmHistoricalLands = OsmData.Filter(
+        OsmData osmHistoricalLands = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("boundary", "traditional"),
             new InsidePolygon(BoundaryHelper.GetLatviaPolygon(osmData.MasterData), OsmPolygon.RelationInclusionCheck.CentroidInside)

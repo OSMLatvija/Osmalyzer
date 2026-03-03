@@ -19,9 +19,9 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData areas = OsmData.Filter(
+        OsmData areas = osmMasterData.Filter(
             new IsClosedWay(),
             new HasAnyKey(),
             new CustomMatch(OsmKnowledge.IsAreaFeature)
@@ -29,7 +29,7 @@ public class DoubleMappedFeaturesAnalyzer : Analyzer
         
         // TODO: MULTIPOLYGONS
 
-        OsmData nodes = OsmData.Filter(
+        OsmData nodes = osmMasterData.Filter(
             new IsNode(),
             new HasAnyKey(),
             new CustomMatch(OsmKnowledge.IsAreaFeature)

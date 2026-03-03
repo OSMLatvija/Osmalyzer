@@ -36,9 +36,9 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
                 
-        OsmData brandLockers = OsmData.Filter(
+        OsmData brandLockers = osmMasterData.Filter(
             new HasAnyValue("amenity", "parcel_locker"),
             new CustomMatch(LockerMatchesBrand)
         );
@@ -144,7 +144,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
             switch (pointData.PickupPointLocation)
             {
                 case PickupPointAmenity.GasStation:
-                    potentialAmenities = OsmData.Filter(
+                    potentialAmenities = osmMasterData.Filter(
                         new OrMatch(
                             new HasValue("shop", "convenience"), // shop in fuel station mapped separately
                             new HasValue("amenity", "fuel")
@@ -154,7 +154,7 @@ public abstract class ParcelLockerAnalyzer<T> : Analyzer where T : IParcelLocker
                     break;
                 
                 case PickupPointAmenity.Kiosk: 
-                    potentialAmenities = OsmData.Filter(
+                    potentialAmenities = osmMasterData.Filter(
                         new HasValue("shop", "kiosk"),
                         new HasValue("name", pointData.PickupPointLocationName!)
                     );

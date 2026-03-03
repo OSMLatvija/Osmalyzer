@@ -22,9 +22,9 @@ public abstract class BankLocationAnalyzer<TData> : Analyzer where TData : BankP
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData allOsmPoints = OsmData.Filter(
+        OsmData allOsmPoints = osmMasterData.Filter(
             new HasAnyValue("amenity", "atm", "bank"),
             new CustomMatch(IsRelatedToBank)
         );

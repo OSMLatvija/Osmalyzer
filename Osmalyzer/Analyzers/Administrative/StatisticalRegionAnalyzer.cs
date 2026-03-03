@@ -23,9 +23,9 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmAreas = OsmData.Filter(
+        OsmData osmAreas = osmMasterData.Filter(
             new IsRelation(),
             new OrMatch(
                 new HasValue("boundary", "statistical"), // either stat region
@@ -152,7 +152,7 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, validation.Changes, this);
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         

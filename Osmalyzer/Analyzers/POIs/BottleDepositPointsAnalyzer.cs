@@ -25,21 +25,21 @@ public class BottleDepositPointsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmKioskDepositLocations = OsmData.Filter(
+        OsmData osmKioskDepositLocations = osmMasterData.Filter(
             new HasAnyValue("amenity", "recycling"),
             new CustomMatch(IsRelatedToDepositPoint)
         );
 
-        OsmData osmManualDepositLocations = OsmData.Filter(
+        OsmData osmManualDepositLocations = osmMasterData.Filter(
             new HasKey("shop"),
             new HasValue("recycling:cans","yes"),
             new HasValue("recycling:plastic_bottles","yes"),
             new HasValue("recycling:glass_bottles","yes")
         );
 
-        OsmData osmVendingMachines = OsmData.Filter(
+        OsmData osmVendingMachines = osmMasterData.Filter(
             new HasValue("amenity", "vending_machine"),
             new HasValue("vending", "bottle_return")
         );

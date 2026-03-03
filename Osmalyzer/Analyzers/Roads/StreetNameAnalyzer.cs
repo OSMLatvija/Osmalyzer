@@ -20,15 +20,15 @@ public class StreetNameAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmNamedWays = OsmData.Filter(
+        OsmData osmNamedWays = osmMasterData.Filter(
             new IsWay(),
             new HasKey("name"),
             new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "service", "track", "trunk_link", "primary_link", "secondary_link")
         );
 
-        OsmData osmNamedRoutes = OsmData.Filter(
+        OsmData osmNamedRoutes = osmMasterData.Filter(
             new IsRelation(),
             new HasKey("name"),
             new HasKey("ref"), // otherwise it'll find all the local roads being grouped into route, we want a "full ref" 

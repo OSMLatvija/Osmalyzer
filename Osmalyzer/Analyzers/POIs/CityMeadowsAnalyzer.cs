@@ -18,14 +18,14 @@ public class CityMeadowsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmTrees = OsmData.Filter(
+        OsmData osmTrees = osmMasterData.Filter(
             new OrMatch(
                 new HasValue("natural", "grassland"),
                 new HasValue("landuse", "grass")
             ),
-            new InsidePolygon(BoundaryHelper.GetRigaPolygon(OsmData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
+            new InsidePolygon(BoundaryHelper.GetRigaPolygon(osmMasterData), OsmPolygon.RelationInclusionCheck.FuzzyLoose)
         );
             
         // Get meadow data

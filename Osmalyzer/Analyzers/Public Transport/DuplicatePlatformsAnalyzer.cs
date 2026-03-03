@@ -19,9 +19,9 @@ public class DuplicatePlatformsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData platforms = OsmData.Filter(
+        OsmData platforms = osmMasterData.Filter(
             new IsNodeOrWay(),
             new HasValue("public_transport", "platform")
         );

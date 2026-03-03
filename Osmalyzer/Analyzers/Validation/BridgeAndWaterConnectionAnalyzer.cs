@@ -19,9 +19,9 @@ public class BridgeAndWaterConnectionAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
         
-        OsmData bridges = OsmData.Filter(
+        OsmData bridges = osmMasterData.Filter(
             new IsWay(),
             new HasKey("bridge")
         );

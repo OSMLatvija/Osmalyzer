@@ -32,11 +32,11 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
         Stopwatch stopwatch = Stopwatch.StartNew();
         
-        OsmData osmVillages = OsmData.Filter(
+        OsmData osmVillages = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("boundary", "administrative"),
             new HasAnyValue("admin_level", "9"),
@@ -314,7 +314,7 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
 
 #if DEBUG
         stopwatch = Stopwatch.StartNew();
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, validation.Changes, this);
         Console.WriteLine("Suggested actions applied (" + stopwatch.ElapsedMilliseconds + " ms)");
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif

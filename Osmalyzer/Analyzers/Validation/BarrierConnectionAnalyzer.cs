@@ -19,9 +19,9 @@ public class BarrierConnectionAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
         
-        OsmData barriers = OsmData.Filter(
+        OsmData barriers = osmMasterData.Filter(
             new IsWay(),
             new HasKey("barrier")
         );

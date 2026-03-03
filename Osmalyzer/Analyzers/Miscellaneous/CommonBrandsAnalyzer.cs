@@ -24,9 +24,9 @@ public class CommonBrandsAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
                 
-        OsmData titledElements = OsmData.Filter(
+        OsmData titledElements = osmMasterData.Filter(
             new HasAnyKey(titleTags)
         );
             

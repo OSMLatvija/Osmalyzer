@@ -27,9 +27,9 @@ public class CourthouseAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
                 
-        OsmData osmCourthouses = OsmData.Filter(
+        OsmData osmCourthouses = osmMasterData.Filter(
             new HasValue("amenity", "courthouse")
         );
 
@@ -46,7 +46,7 @@ public class CourthouseAnalyzer : Analyzer
 
         foreach (CourthouseData ch in listedCourthouses)
         {
-            LocatedCourthouse? located = TryLocateCourthouse(ch, OsmData);
+            LocatedCourthouse? located = TryLocateCourthouse(ch, osmMasterData);
             if (located != null)
                 locatedCourthouses.Add(located);
             else
@@ -165,7 +165,7 @@ public class CourthouseAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, validation.Changes, this);
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
 

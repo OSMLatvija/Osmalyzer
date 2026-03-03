@@ -19,9 +19,9 @@ public class TrolleybusWireAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData routes = OsmData.Filter(
+        OsmData routes = osmMasterData.Filter(
             new IsRelation(), 
             new HasValue("type", "route"), 
             new HasValue("route", "trolleybus")

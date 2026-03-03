@@ -19,9 +19,9 @@ public class LivingZoneSpeedAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData livingStreets = OsmData.Filter(
+        OsmData livingStreets = osmMasterData.Filter(
             new IsWay(), 
             new HasValue("highway", "living_street")
         );

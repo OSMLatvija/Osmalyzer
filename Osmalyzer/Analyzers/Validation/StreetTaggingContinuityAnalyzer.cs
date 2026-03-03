@@ -19,14 +19,14 @@ public class StreetTaggingContinuityAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
 
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData ways = OsmData.Filter(
+        OsmData ways = osmMasterData.Filter(
             new IsWay(),
             new HasAnyValue("highway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "service", "track", "trunk_link", "primary_link", "secondary_link")
         );
 
-        OsmData roadRoutes = OsmData.Filter(
+        OsmData roadRoutes = osmMasterData.Filter(
             new IsRelation(),
             new HasValue("type", "route"),
             new HasValue("route", "road"),

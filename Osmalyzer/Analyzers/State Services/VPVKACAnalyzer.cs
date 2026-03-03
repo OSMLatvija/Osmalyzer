@@ -24,9 +24,9 @@ public class VPVKACAnalyzer : Analyzer
 
         LatviaOsmAnalysisData osmData = datas.OfType<LatviaOsmAnalysisData>().First();
            
-        OsmData OsmData = osmData.MasterData;
+        OsmData osmMasterData = osmData.MasterData;
 
-        OsmData osmOffices = OsmData.Filter(
+        OsmData osmOffices = osmMasterData.Filter(
             new IsNode(),
             new HasValue("office", "government")
         );
@@ -192,7 +192,7 @@ public class VPVKACAnalyzer : Analyzer
         );
 
 #if DEBUG
-        SuggestedActionApplicator.ApplyAndProposeXml(OsmData, validation.Changes, this);
+        SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, validation.Changes, this);
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
         
@@ -208,7 +208,7 @@ public class VPVKACAnalyzer : Analyzer
         );
 
 #if DEBUG
-        OsmData additionsData = OsmData.Copy();
+        OsmData additionsData = osmMasterData.Copy();
         SuggestedActionApplicator.ApplyAndProposeXml(additionsData, spawn.Additions, this, "additions");
         SuggestedActionApplicator.ExplainForReport(spawn.Additions, report, ExtraReportGroup.ProposedAdditions);
 #endif

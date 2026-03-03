@@ -53,6 +53,8 @@ internal class SetTagCommand : Command
 
 internal class CreateNodeCommand : Command
 {
+    public long? Id { get; }
+    
     public OsmCoord Coord { get; }
     
     public OsmNode? CreatedNode { get; private set; }
@@ -62,13 +64,28 @@ internal class CreateNodeCommand : Command
         : base(data)
     {
         Coord = coord;
+        Id = null;
+    }
+    
+    internal CreateNodeCommand(OsmData data, long id, OsmCoord coord)
+        : base(data)
+    {
+        Coord = coord;
+        Id = id;
     }
     
     
     internal override Command Apply()
     {
         // Actuate
-        OsmNode newNode = new OsmNode(Coord, Data);
+
+        OsmNode newNode;
+        
+        if (Id == null)
+            newNode = new OsmNode(Coord, Data);
+        else
+            newNode = new OsmNode(Id.Value, Coord, Data);
+        
         Data.RegisterElement(newNode);
         
         // Store created node for reference

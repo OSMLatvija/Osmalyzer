@@ -533,6 +533,16 @@ public class OsmData
         return command.CreatedNode!;
     }
 
+    public OsmNode CreateNewNode(long id, OsmCoord coord)
+    {
+        if (id >= 0) throw new ArgumentException("ID must be negative for new nodes.", nameof(id));
+        if (nodesById.ContainsKey(id)) throw new ArgumentException("ID already exists in the data set.", nameof(id));
+        
+        CreateNodeCommand command = new CreateNodeCommand(this, id, coord);
+        Execute(command);
+        return command.CreatedNode!;
+    }
+
     public void DeleteNode(OsmNode node)
     {
         if (node.Owner != this) throw new InvalidOperationException("Cannot delete a node that does not belong to this data set.");

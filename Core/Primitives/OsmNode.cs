@@ -1,4 +1,5 @@
-﻿using OsmSharp;
+﻿using System;
+using OsmSharp;
 
 namespace Osmalyzer;
 
@@ -27,6 +28,15 @@ public class OsmNode : OsmElement
         _currentTempId--;
         
         this.coord = coord;
+    }
+        
+    internal OsmNode(long id, OsmCoord coord, OsmData owner)
+        : base(id, owner)
+    {
+        this.coord = coord;
+
+        // Whoever is making nodes has counted down to at least the given id, so next auto-generated id must be at least this far/low
+        _currentTempId = Math.Min(_currentTempId, id - 1);
     }
         
     internal OsmNode(OsmGeo rawElement, OsmData owner)

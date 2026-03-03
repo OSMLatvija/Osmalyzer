@@ -41,9 +41,12 @@ public static class SuggestedActionApplicator
                     break;
                 }
 
-                case OsmCreateNodeAction:
+                case OsmCreateNodeAction createNode:
+                {
+                    data.CreateNewNode(createNode.Id, createNode.Coord);
                     break;
-                
+                }
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(change));
             }

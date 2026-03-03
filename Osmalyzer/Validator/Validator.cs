@@ -599,20 +599,22 @@ public class Validator<T> where T : IDataItem
     {
         // If we removed key and added key with same removed value (i.e. value in wrong key),
         // then replace it with change key action instead
+
+        // todo: this need access to actual element to work
         
-        if (actions?.Count == 2)
-        {
-            if (actions[0] is OsmRemoveKeySuggestedAction removeKey &&
-                actions[1] is OsmSetValueSuggestedAction setValue)
-            {
-                if (removeKey.Key == setValue.Key &&
-                    removeKey.Element.GetValue(removeKey.Key) == setValue.Element.GetValue(setValue.Key))
-                {
-                    actions.Clear();
-                    actions.Add(new OsmChangeKeySuggestedAction(osmElement, removeKey.Key, setValue.Key, setValue.Value));
-                }
-            }
-        }
+        // if (actions?.Count == 2)
+        // {
+        //     if (actions[0] is OsmRemoveKeySuggestedAction removeKey &&
+        //         actions[1] is OsmSetValueSuggestedAction setValue)
+        //     {
+        //         if (removeKey.Key == setValue.Key &&
+        //             removeKey.Element.GetValue(removeKey.Key) == setValue.Element.GetValue(setValue.Key))
+        //         {
+        //             actions.Clear();
+        //             actions.Add(new OsmChangeKeySuggestedAction(osmElement, removeKey.Key, setValue.Key, setValue.Value));
+        //         }
+        //     }
+        // }
     }
 
     private static List<string>? CheckIncorrectTagsForValue(string[]? incorrectTags, OsmElement osmElement, string? dataValue)

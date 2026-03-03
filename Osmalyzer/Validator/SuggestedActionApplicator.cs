@@ -12,48 +12,6 @@ public static class SuggestedActionApplicator
             Stopwatch stopwatch = Stopwatch.StartNew();
             data = data.Copy();
             Console.WriteLine("-> -> Cloned OsmData in " + stopwatch.ElapsedMilliseconds + " ms.");
-            
-            // "Remap" elements in suggested actions from originals to the copies
-            stopwatch.Restart();
-            for (int i = 0; i < changes.Count; i++)
-            {
-                SuggestedAction change = changes[i];
-                
-                switch (change)
-                {
-                    case OsmSetValueSuggestedAction setValue:
-                    {
-                        OsmElement copiedElement = data.GetElementById(setValue.ElementType, setValue.Id);
-                        changes[i] = new OsmSetValueSuggestedAction(copiedElement.ElementType, copiedElement.Id, setValue.Key, setValue.Value);
-                        break;
-                    }
-
-                    case OsmRemoveKeySuggestedAction removeKey:
-                    {
-                        OsmElement copiedElement = data.GetElementById(removeKey.ElementType, removeKey.Id);
-                        changes[i] = new OsmRemoveKeySuggestedAction(copiedElement.ElementType, copiedElement.Id, removeKey.Key);
-                        break;
-                    }
-                    
-                    case OsmChangeKeySuggestedAction changeKey:
-                    {
-                        OsmElement copiedElement = data.GetElementById(changeKey.ElementType, changeKey.Id);
-                        changes[i] = new OsmChangeKeySuggestedAction(copiedElement.ElementType, copiedElement.Id, changeKey.OldKey, changeKey.NewKey, changeKey.Value);
-                        break;
-                    }
-                    
-                    case OsmCreateNodeAction createElement:
-                    {
-                        OsmNode copiedElement = data.GetNodeById(createElement.Id);
-                        changes[i] = new OsmCreateNodeAction(copiedElement.coord);
-                        break;
-                    }
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(change));
-                }
-            }
-            Console.WriteLine("-> -> Remapped suggested actions in " + stopwatch.ElapsedMilliseconds + " ms.");
         }
 
         Stopwatch mainStopwatch = Stopwatch.StartNew();

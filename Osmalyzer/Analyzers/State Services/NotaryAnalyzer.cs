@@ -96,9 +96,7 @@ public class NotaryAnalyzer : Analyzer
             "Tagging issues"
         );
 
-        Validation validation = validator.Validate(
-            report,
-            false, false,
+        List<ValidationRule> rules = [ 
             new ValidateElementHasValue("office", "notary"),
             new ValidateElementValueMatchesDataItemValue<NotaryOfficeData>("name", o => o.Name),
             new ValidateElementHasValue("description", "Zvērināts notārs"),
@@ -108,6 +106,12 @@ public class NotaryAnalyzer : Analyzer
             new ValidateElementTagSuffixesMatchDataItemValues<NotaryOfficeData>("language", "yes", o => o.Languages),
             new ValidateElementValueMatchesDataItemValue<NotaryOfficeData>("website", o => o.Website),
             new ValidateElementValueMatchesDataItemValue<NotaryOfficeData>("court", o => o.Court)
+        ];
+        
+        Validation validation = validator.Validate(
+            report,
+            false, false,
+            rules
         );
 
 #if DEBUG

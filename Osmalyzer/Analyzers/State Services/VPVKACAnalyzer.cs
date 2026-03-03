@@ -158,9 +158,8 @@ public class VPVKACAnalyzer : Analyzer
             "Office tagging issues"
         );
 
-        Validation validation = validator.Validate(
-            report,
-            false, false,
+        List<ValidationRule> rules =
+        [
             new ValidateElementValueMatchesDataItemValue<LocatedVPVKACOffice>(
                 "name",
                 d => string.IsNullOrWhiteSpace(d.Office.DisplayName) ? d.Office.Name : d.Office.DisplayName
@@ -184,6 +183,12 @@ public class VPVKACAnalyzer : Analyzer
                 d => string.IsNullOrWhiteSpace(d.Office.OpeningHours) ? null : d.Office.OpeningHours
             ),
             new ValidateElementFixme()
+        ];
+
+        Validation validation = validator.Validate(
+            report,
+            false, false,
+            rules
         );
 
 #if DEBUG

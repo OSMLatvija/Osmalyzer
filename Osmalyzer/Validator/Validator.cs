@@ -14,7 +14,7 @@ public class Validator<T> where T : IDataItem
     }
 
 
-    public Validation Validate(Report report, bool validateUnmatchedElements, bool validateLoneElements, params ValidationRule[] rules)
+    public Validation Validate(Report report, bool validateUnmatchedElements, bool validateLoneElements, params IEnumerable<ValidationRule> rules)
     {
         // todo: list all the rules that we are applying
         

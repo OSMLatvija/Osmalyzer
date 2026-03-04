@@ -133,6 +133,47 @@ public class NotaryAnalyzer : Analyzer
         SuggestedActionApplicator.ApplyAndProposeXml(osmMasterData, spawn.Additions, this, "additions");
         SuggestedActionApplicator.ExplainForReport(spawn.Additions, report, ExtraReportGroup.ProposedAdditions);
 #endif
+        
+        // Validate matched office addresses
+
+        report.AddGroup(
+            ExtraReportGroup.AddressIssues,
+            "Address issues",
+            "This lists notary offices whose OSM element has address tags that don't match the listed address.",
+            "No address issues found."
+        );
+
+        foreach (MatchedCorrelation<NotaryOfficeData> correlation in correlatorReport.Correlations.OfType<MatchedCorrelation<NotaryOfficeData>>())
+        {
+            OsmElement osmElement = correlation.OsmElement;
+
+            string? osmStreet = osmElement.GetValue("addr:street");
+            string? osmHouseNumber = osmElement.GetValue("addr:housenumber");
+
+            if (osmStreet == null && osmHouseNumber == null)
+                continue; // no address tags on OSM element, nothing to validate
+
+            NotaryOfficeData office = correlation.DataItem;
+
+            if (!FuzzyAddressMatcher.Matches(osmElement, office.Address))
+            {
+                string osmAddressDisplay = osmStreet != null && osmHouseNumber != null
+                    ? "`" + osmStreet + " " + osmHouseNumber + "`"
+                    : osmStreet != null
+                        ? "`addr:street=" + osmStreet + "`"
+                        : "`addr:housenumber=" + osmHouseNumber + "`";
+
+                report.AddEntry(
+                    ExtraReportGroup.AddressIssues,
+                    new IssueReportEntry(
+                        "OSM element address " + osmAddressDisplay + " doesn't match listed address `" + office.Address + "` for " + office.ReportString() + " - " + osmElement.OsmViewUrl,
+                        osmElement.AverageCoord,
+                        MapPointStyle.Problem,
+                        osmElement
+                    )
+                );
+            }
+        }
 
         // List all
 
@@ -158,6 +199,7 @@ public class NotaryAnalyzer : Analyzer
         AllOffices,
         ProposedChanges,
         ProposedAdditions,
+        AddressIssues,
     }
 }
 

@@ -19,16 +19,15 @@ public class CulturalCenterAnalyzer : Analyzer
 
 
     /// <summary>
-    /// Name keywords that strongly indicate an OSM element is a cultural center
+    /// Name keyword groups that strongly indicate an OSM element is a cultural center.
+    /// Each group contains aliases counted together.
     /// </summary>
-    private readonly string[] _culturalCenterNameKeywords =
+    private readonly string[][] _culturalCenterNameKeywords =
     [
-        "kultūras nams",
-        "kultūras centrs",
-        "tautas nams",
-        "saieta nams",
-        "daudzfunkcionālais centrs",
-        "kultūras pils"
+        [ "kultūras nams" ],
+        [ "kultūras centrs" ],
+        [ "tautas nams" ],
+        [ "saieta nams", "saietu nams" ]
     ];
 
 
@@ -52,39 +51,11 @@ public class CulturalCenterAnalyzer : Analyzer
 
         List<CulturalCenterData> listedCenters = culturalCenterData.CulturalCenters;
 
-        // Resolve locations for centers that don't have coordinates
-
-        List<CulturalCenterData> locatedCenters = [];
-        List<CulturalCenterData> unlocatedCenters = [];
-
-        foreach (CulturalCenterData center in listedCenters)
-        {
-            if (center.Coord.lat != 0 && center.Coord.lon != 0)
-            {
-                locatedCenters.Add(center);
-                continue;
-            }
-
-            // Try to resolve address
-            if (string.IsNullOrEmpty(center.Address))
-            {
-                unlocatedCenters.Add(center);
-                continue;
-            }
-
-            OsmCoord? coord = FuzzyAddressFinder.Find(osmMasterData, center.Address);
-
-            if (coord != null)
-                locatedCenters.Add(new CulturalCenterData(center.Name, center.Address, coord.Value));
-            else
-                unlocatedCenters.Add(center);
-        }
-
         // Prepare data comparer/correlator
 
         Correlator<CulturalCenterData> correlator = new Correlator<CulturalCenterData>(
             osmCommunityCentres,
-            locatedCenters,
+            listedCenters,
             new MatchDistanceParamater(150),
             new MatchFarDistanceParamater(500),
             new MatchExtraDistanceParamater(MatchStrength.Strong, 700),
@@ -124,9 +95,10 @@ public class CulturalCenterAnalyzer : Analyzer
 
             string nameLower = name.ToLower();
 
-            foreach (string keyword in _culturalCenterNameKeywords)
-                if (nameLower.Contains(keyword))
-                    return true;
+            foreach (string[] group in _culturalCenterNameKeywords)
+                foreach (string keyword in group)
+                    if (nameLower.Contains(keyword))
+                        return true;
 
             return false;
         }
@@ -158,26 +130,102 @@ public class CulturalCenterAnalyzer : Analyzer
         SuggestedActionApplicator.ExplainForReport(validation.Changes, report, ExtraReportGroup.ProposedChanges);
 #endif
 
-        // Report any centers we couldn't geolocate
+        // Stats - keyword capitalization variations and names without any known keyword
 
-        if (unlocatedCenters.Count > 0)
+        report.AddGroup(ExtraReportGroup.Stats, "Stats");
+
+        foreach (string[] group in _culturalCenterNameKeywords)
         {
-            report.AddGroup(
-                ExtraReportGroup.UnlocatedCenters,
-                "Non-geolocated Cultural Centers",
-                "These listed cultural centers could not be geolocated from their address. " +
-                "Possibly, the data values are incorrect, differently-formatted or otherwise fail to match automatically."
-            );
+            Dictionary<string, int> variations = new Dictionary<string, int>();
 
-            foreach (CulturalCenterData unlocated in unlocatedCenters)
+            foreach (string keyword in group)
             {
+                foreach (CulturalCenterData center in listedCenters)
+                {
+                    int index = center.Name.ToLower().IndexOf(keyword);
+
+                    if (index < 0)
+                        continue;
+
+                    string actual = center.Name.Substring(index, keyword.Length);
+
+                    if (variations.TryGetValue(actual, out int existing))
+                        variations[actual] = existing + 1;
+                    else
+                        variations[actual] = 1;
+                }
+            }
+
+            string groupLabel = string.Join(" / ", group.Select(k => "`" + k + "`"));
+
+            if (variations.Count > 0)
+            {
+                int total = variations.Values.Sum();
+
                 report.AddEntry(
-                    ExtraReportGroup.UnlocatedCenters,
-                    new IssueReportEntry(
-                        "Cultural center `" + unlocated.Name + "` could not be geolocated for `" + unlocated.Address + "`"
+                    ExtraReportGroup.Stats,
+                    new GenericReportEntry(
+                        "Keyword " + groupLabel + " ×" + total + ": " +
+                        string.Join(", ", variations.OrderByDescending(kv => kv.Value).Select(kv => "`" + kv.Key + "` ×" + kv.Value))
                     )
                 );
             }
+            else
+            {
+                report.AddEntry(
+                    ExtraReportGroup.Stats,
+                    new GenericReportEntry(
+                        "Keyword " + groupLabel + " does not appear in any listed center names"
+                    )
+                );
+            }
+        }
+
+        // Centers whose names contain none of the known keywords
+
+        List<CulturalCenterData> unknownCenters = [];
+
+        foreach (CulturalCenterData center in listedCenters)
+        {
+            bool hasKeyword = false;
+
+            foreach (string[] group in _culturalCenterNameKeywords)
+            {
+                foreach (string keyword in group)
+                {
+                    if (center.Name.ToLower().Contains(keyword))
+                    {
+                        hasKeyword = true;
+                        break;
+                    }
+                }
+
+                if (hasKeyword)
+                    break;
+            }
+
+            if (!hasKeyword)
+                unknownCenters.Add(center);
+        }
+
+        if (unknownCenters.Count > 0)
+        {
+            report.AddEntry(
+                ExtraReportGroup.Stats,
+                new GenericReportEntry(
+                    unknownCenters.Count + " centers have no common/known frequent keyword in their name: " +
+                    string.Join(", ", unknownCenters.Select(c => "`" + c.Name + "`"))
+                )
+            );
+        }
+        else
+        {
+            report.AddEntry(
+                ExtraReportGroup.Stats,
+                new GenericReportEntry(
+                    "All listed centers have a known keyword in their name"
+                )
+            );
         }
 
         // List all
@@ -237,9 +285,9 @@ public class CulturalCenterAnalyzer : Analyzer
 
     private enum ExtraReportGroup
     {
-        UnlocatedCenters,
         AllCenters,
-        ProposedChanges
+        ProposedChanges,
+        Stats
     }
 }
 

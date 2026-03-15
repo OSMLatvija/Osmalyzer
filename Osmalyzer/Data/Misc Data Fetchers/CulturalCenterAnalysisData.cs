@@ -83,6 +83,7 @@ public class CulturalCenterAnalysisData : AnalysisData, IUndatedAnalysisData
 
             string name = fields[1].Trim();
             
+            name = name.Replace("  ", " ");
             name = name.Replace('“', '"').Replace('”', '"');
 
             if (string.IsNullOrEmpty(name))
@@ -90,14 +91,12 @@ public class CulturalCenterAnalysisData : AnalysisData, IUndatedAnalysisData
 
             string address = fields[3].Trim();
 
-            OsmCoord coord = new OsmCoord(0, 0);
+            if (!double.TryParse(fields[4], NumberStyles.Float, CultureInfo.InvariantCulture, out double lat) ||
+                !double.TryParse(fields[5], NumberStyles.Float, CultureInfo.InvariantCulture, out double lon) ||
+                lat == 0 || lon == 0)
+                throw new Exception("Cultural center `" + name + "` has no valid coordinates on row " + i + ".");
 
-            if (double.TryParse(fields[4], NumberStyles.Float, CultureInfo.InvariantCulture, out double lat) &&
-                double.TryParse(fields[5], NumberStyles.Float, CultureInfo.InvariantCulture, out double lon) &&
-                lat != 0 && lon != 0)
-            {
-                coord = new OsmCoord(lat, lon);
-            }
+            OsmCoord coord = new OsmCoord(lat, lon);
 
             CulturalCenters.Add(new CulturalCenterData(name, address, coord));
         }

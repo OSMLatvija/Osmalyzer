@@ -100,7 +100,8 @@ public static class Runner
             // new PlaygroundAnalyzer(),
             // new StatePoliceAnalyzer(),
             // new SharpAngleRoadAnalyzer(),
-            new NotaryAnalyzer()
+            //new NotaryAnalyzer(),
+            new RigaEducationAnalyzer()
         ];
 #endif
 

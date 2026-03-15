@@ -6,7 +6,7 @@ public class CulturalCenterAnalyzer : Analyzer
     public override string Name => "Cultural Centers";
 
     public override string Description => "This report checks that cultural centers (kultūras/tautas nami/centri) listed in the open data " +
-                                          "from data.gov.lv are found on the map.";
+                                          "from data.gov.lv are found on the map with the expected tags.";
 
     public override AnalyzerGroup Group => AnalyzerGroup.POIs;
 
@@ -27,6 +27,7 @@ public class CulturalCenterAnalyzer : Analyzer
         "kultūras centrs",
         "tautas nams",
         "saieta nams",
+        "daudzfunkcionālais centrs",
         "kultūras pils"
     ];
 

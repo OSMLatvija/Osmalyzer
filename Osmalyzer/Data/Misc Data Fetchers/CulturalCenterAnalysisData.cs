@@ -82,6 +82,8 @@ public class CulturalCenterAnalysisData : AnalysisData, IUndatedAnalysisData
                 continue;
 
             string name = fields[1].Trim();
+            
+            name = name.Replace('“', '"').Replace('”', '"');
 
             if (string.IsNullOrEmpty(name))
                 continue;

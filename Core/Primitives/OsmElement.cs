@@ -356,6 +356,10 @@ public abstract class OsmElement : IChunkerItem
 
             if (!_tags.Remove(key))
                 return false;
+
+            // Null out empty dict so HasAnyTags stays accurate
+            if (_tags.Count == 0)
+                _tags = null;
         }
 
         State = newState;

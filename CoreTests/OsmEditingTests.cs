@@ -1062,12 +1062,12 @@ public class OsmEditingTests
 
         osmData.Undo();
 
-        // Assert - the tag is gone and KeyCount is 0; note that HasAnyTags may remain True
-        // since the internal tag dictionary is not nulled out after removing the last entry
+        // Assert
 
         Assert.That(node.HasKey("amenity"), Is.False);
         Assert.That(node.KeyCount, Is.EqualTo(0));
         Assert.That(node.GetValue("amenity"), Is.Null);
+        Assert.That(node.HasAnyTags, Is.False);
     }
 
 

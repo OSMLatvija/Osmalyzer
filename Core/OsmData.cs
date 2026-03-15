@@ -879,6 +879,8 @@ public class OsmData
 
     internal void RegisterElement(OsmElement newElement)
     {
+        _chunker = null; // invalidate spatial index
+
         _elements.Add(newElement);
 
         bool hasAnyTags = newElement.HasAnyTags;
@@ -919,6 +921,8 @@ public class OsmData
 
     internal void UnregisterElement(OsmElement oldElement)
     {
+        _chunker = null; // invalidate spatial index
+
         _elements.Remove(oldElement);
 
         bool hasAnyTags = oldElement.HasAnyTags;
@@ -999,4 +1003,44 @@ public class OsmData
         
         return _elements;
     }
+
+
+    /// <summary>
+    /// Updates the <c>*WithTags</c> filter lists when a <see cref="SetTagCommand"/> transitions an element
+    /// between "has at least one tag" and "has no tags".
+    /// Must be called with the element's <paramref name="hadTagsBefore"/> state captured before the tag mutation.
+    /// </summary>
+    internal void UpdateElementTagStatus(OsmElement element, bool hadTagsBefore)
+    {
+        bool hasTagsNow = element.HasAnyTags;
+
+        if (hadTagsBefore == hasTagsNow)
+            return;
+
+        if (hasTagsNow) // element gained its first tag
+        {
+            _elementsWithTags.Add(element);
+
+            switch (element)
+            {
+                case OsmNode node:     _nodesWithTags.Add(node);     break;
+                case OsmWay way:       _waysWithTags.Add(way);       break;
+                case OsmRelation rel:  _relationsWithTags.Add(rel);  break;
+                default: throw new ArgumentOutOfRangeException(nameof(element));
+            }
+        }
+        else // element lost its last tag
+        {
+            _elementsWithTags.Remove(element);
+
+            switch (element)
+            {
+                case OsmNode node:     _nodesWithTags.Remove(node);     break;
+                case OsmWay way:       _waysWithTags.Remove(way);       break;
+                case OsmRelation rel:  _relationsWithTags.Remove(rel);  break;
+                default: throw new ArgumentOutOfRangeException(nameof(element));
+            }
+        }
+    }
 }
+

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Osmalyzer.Commands;
+﻿namespace Osmalyzer.Commands;
 
 internal class SetTagCommand : Command
 {
@@ -27,13 +25,19 @@ internal class SetTagCommand : Command
         OsmElement element = Data.GetElementById(ElementType, ElementId);
         
         // Store values for undo
+        bool hadTagsBefore = element.HasAnyTags;
         string? existingValue = element.GetValue(Key);
         OsmElementState existingState = element.State;
         
         // Actuate
         bool actuated = element.SetValueInternal(Key, Value, State);
+
+        if (!actuated)
+            return null;
+        
+        Data.UpdateElementTagStatus(element, hadTagsBefore);
         
         // Return inverse command, i.e. undo
-        return actuated ? new SetTagCommand(Data, ElementType, ElementId, Key, existingValue ?? null, existingState) : null;
+        return new SetTagCommand(Data, ElementType, ElementId, Key, existingValue, existingState);
     }
 }

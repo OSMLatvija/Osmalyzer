@@ -85,7 +85,7 @@ public static class Runner
             // new VPVKACAnalyzer(),
             // new VillageAnalyzer(),
             // new HamletAnalyzer(),
-            // new MunicipalityAnalyzer(),
+            new MunicipalityAnalyzer(),
             // new ParishAnalyzer(),
             // new CityAnalyzer(),
             // new StatisticalRegionAnalyzer(),
@@ -102,7 +102,7 @@ public static class Runner
             // new SharpAngleRoadAnalyzer(),
             //new NotaryAnalyzer(),
             //new RigaEducationAnalyzer(),
-            new CulturalCenterAnalyzer(),
+            //new CulturalCenterAnalyzer(),
         ];
 #endif
 

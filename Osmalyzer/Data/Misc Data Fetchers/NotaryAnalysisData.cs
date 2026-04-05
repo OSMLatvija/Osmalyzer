@@ -27,7 +27,12 @@ public class NotaryAnalysisData : AnalysisData, IUndatedAnalysisData
         // The site has a clean JSON API that returns all notary data
         WebsiteDownloadHelper.Download(
             "https://www.latvijasnotars.lv/notaries.json",
-            DataFileName
+            DataFileName,
+            new Dictionary<string, string>
+            {
+                { "Cache-Control", "no-cache" },
+                { "Pragma",        "no-cache" },
+            }
         );
     }
 

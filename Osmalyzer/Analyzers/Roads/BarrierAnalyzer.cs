@@ -114,6 +114,13 @@ public class BarrierAnalyzer : Analyzer
                     {
                         isOnWay = true;
                     }
+                    else if (parentWay.HasValue(
+                            "man_made",
+                            "pier"
+                        ))
+                    {
+                        isOnWay = true;
+                    }
                 }
             }
 

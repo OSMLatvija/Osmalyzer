@@ -52,6 +52,7 @@ public class LoneCrossingAnalyzer : Analyzer
         foreach (OsmNode node in osmCrossingNodes.Nodes)
         {
             bool hasRoad = false;
+            bool hasRail = false;
             bool hasFootway = false;
             bool hasCycleway = false;
 
@@ -67,16 +68,19 @@ public class LoneCrossingAnalyzer : Analyzer
                     
                     if (parentWay.HasValue("highway", "cycleway"))
                         hasCycleway = true;
+                    
+                    if (parentWay.HasValue("railway", "tram")) // allow tram crossings mapped as regular crossings (and not railway=tram_crossing)
+                        hasRail = true;
                 }
             }
             
             bool hasPerson = hasFootway || hasCycleway;
 
-            if (hasRoad && !hasPerson)
+            if ((hasRoad || hasRail) && !hasPerson)
             {
                 roadOnlyCrossingNodes.Add(new RoadOnlyCrossingNode(node));
             }
-            else if (!hasRoad && hasPerson)
+            else if (!hasRoad && !hasRail && hasPerson)
             {
                 if (!hasPerson || !hasCycleway) // footway crossing cycleway is a valid crossing 
                     footwayOnlyCrossingNodes.Add(new FootwayOnlyCrossingNode(node));

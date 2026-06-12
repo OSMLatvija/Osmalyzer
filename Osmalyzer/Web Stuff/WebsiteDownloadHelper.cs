@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
@@ -143,6 +144,9 @@ public static class WebsiteDownloadHelper
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri)).Result;
 
+        if (response.StatusCode != HttpStatusCode.OK)
+            throw new HttpRequestException($"HTTP request failed with status code {response.StatusCode}");
+        
         DateTimeOffset? lastModifedOffset = response.Content.Headers.LastModified;
 
         if (lastModifedOffset == null)

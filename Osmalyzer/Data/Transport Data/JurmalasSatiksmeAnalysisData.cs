@@ -1,6 +1,7 @@
 ﻿namespace Osmalyzer;
 
 [UsedImplicitly]
+[DisabledData("Website no longer available")]
 public class JurmalasSatiksmeAnalysisData : GTFSAnalysisData
 {
     public override string Name => "Jurmalas Autobusu Satiksme";

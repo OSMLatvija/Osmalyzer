@@ -5,7 +5,6 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Support.UI;
 using Osmalyzer;
-using SeleniumExtras.WaitHelpers;
 
 public static class WebsiteBrowsingHelper
 {
@@ -53,7 +52,7 @@ public static class WebsiteBrowsingHelper
                     case WaitForElementOfClass waitForElementOfClass:
                     {
                         IWait<IWebDriver> wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                        wait.Until(ExpectedConditions.ElementExists(By.ClassName(waitForElementOfClass.ClassName)));
+                        wait.Until(d => d.FindElements(By.ClassName(waitForElementOfClass.ClassName)).Count > 0);
                         break;
                     }
 
@@ -89,7 +88,18 @@ public static class WebsiteBrowsingHelper
                     case WaitForElementOfClassToBeClickable waitForElementOfClassToBeClickable:
                     {
                         IWait<IWebDriver> wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                        wait.Until(ExpectedConditions.ElementToBeClickable(By.ClassName(waitForElementOfClassToBeClickable.ClassName)));
+                        wait.Until(d =>
+                        {
+                            try
+                            {
+                                IWebElement element = d.FindElement(By.ClassName(waitForElementOfClassToBeClickable.ClassName));
+                                return element.Displayed && element.Enabled;
+                            }
+                            catch (NoSuchElementException)
+                            {
+                                return false;
+                            }
+                        });
                         break;
                     }
                     

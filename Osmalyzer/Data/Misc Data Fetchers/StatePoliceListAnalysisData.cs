@@ -35,11 +35,11 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
 
         // Each branch entry has a link like:
         // <a href="/lv/filiale/rigas-pardaugavas-parvalde" rel="bookmark">
-        //   <h3>Rīgas Pārdaugavas pārvalde</h3>
+        //   <h2>Rīgas Pārdaugavas pārvalde</h2>
         // </a>
         MatchCollection matches = Regex.Matches(
             mainPage,
-            @"<a href=""(/lv/filiale/[^""]+)"" rel=""bookmark"">\s*<h3>[^<]+</h3>",
+            @"<a href=""(/lv/filiale/[^""]+)"" rel=""bookmark"">\s*<h2>[^<]+</h2>",
             RegexOptions.Singleline
         );
 
@@ -101,7 +101,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
                 hqPageUrl,
                 "institution_contacts__institution-address",
                 "institution_contacts__institution-main-new-phone"
-            )
+            ) ?? throw new Exception("Failed to parse headquarters office from HQ page")
         );
 
         // Parse branch pages
@@ -135,16 +135,17 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
             string abbreviatedName = AbbreviateName(name);
             string website = ParseWebsite(content);
 
-            Offices.Add(
-                ParseOffice(
-                    content,
-                    name,
-                    abbreviatedName,
-                    website,
-                    "branch_contacts__branch-address",
-                    "branch_contacts__branch__new-phone"
-                )
+            StatePoliceData? office = ParseOffice(
+                content,
+                name,
+                abbreviatedName,
+                website,
+                "branch_contacts__branch-address",
+                "branch_contacts__branch__new-phone"
             );
+
+            if (office != null)
+                Offices.Add(office);
 
             index++;
         } while (true);
@@ -152,12 +153,21 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
 
 
     [Pure]
-    private static StatePoliceData ParseOffice(string content, string name, string? abbreviatedName, string website, string addressDivClass, string phoneDivClass)
+    private static StatePoliceData? ParseOffice(string content, string name, string? abbreviatedName, string website, string addressDivClass, string phoneDivClass)
     {
         // Extract only the branch/institution-specific article node, so stray nav/footer content is never matched
         string branchContent = ExtractBranchContent(content);
 
-        OsmCoord coord = ParseCoord(branchContent, addressDivClass);
+        OsmCoord? coord = ParseCoord(branchContent, addressDivClass);
+
+        if (coord == null)
+        {
+            if (IsSubBranchPage(content))
+                return null;
+            
+            throw new Exception("Failed to parse coordinates for office \"" + name + "\"");
+        }
+        
         string? address = ParseAddress(branchContent, addressDivClass);
         address = CleanAddress(address);
         string? phone = ParsePhone(branchContent, phoneDivClass);
@@ -167,7 +177,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
         return new StatePoliceData(
             name,
             abbreviatedName,
-            coord,
+            coord.Value,
             website,
             address,
             phone,
@@ -176,16 +186,22 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
         );
     }
 
+    [Pure]
+    private static bool IsSubBranchPage(string content)
+    {
+        // Some pages are not actual offices but rather sub-branch listings ("Nodaļas" section)
+        // These have no contact info (coord parsing fails)
+        return content.Contains("<div class=\"branch-departments\">");
+    }
 
     [Pure]
     private static string ExtractBranchContent(string content)
     {
-        // Branch pages: <div role="article" class="node node--branch"> ... </div><!-- /.node -->
-        // HQ page:      <div role="article" class="node node--institution"> ... </div><!-- /.node -->
+        // Somewhere under <div class="content">
         // This excludes the shared site nav/header/footer that appear on every page
         Match match = Regex.Match(
             content,
-            @"(<div role=""article"" class=""node node--[^""]+"">.*?</div><!-- /\.node -->)",
+            @"(<div class=""content"">.*?</div><!-- /\.content -->)",
             RegexOptions.Singleline
         );
 
@@ -254,24 +270,26 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
     }
 
     [Pure]
-    private static OsmCoord ParseCoord(string content, string addressDivClass)
+    private static OsmCoord? ParseCoord(string content, string addressDivClass)
     {
         // Branch pages:
         // <div class="branch_contacts__branch-address"><a href="..." data-latitude="507311.1725455095" data-longitude="307920.65337404417" ...>Mūkusalas iela 101, Rīga, LV-1004</a></div>
 
         // HQ page:
         // <div class="institution_contacts__institution-address"><a href="/lv" data-latitude="509623" data-longitude="315463" ...>Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026</a></div>
+        // <div class="institution_contacts__institution-address"><a href="https://www.google.com/maps/search/?api=1&amp;query=56.98262528268489,24.158335130402307" data-longitude="509623" data-latitude="315463" class="geo-location-url has-generated-url" target="_blank" aria-label="Adrese: Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026">Čiekurkalna 1.līnija 1, k- 4 , Rīga, LV - 1026</a></div>
 
         // Note that branch pages also always have institution_contacts__institution-address in the footer --
         // so cannot match just "data-latitude", need to target the right div class
         Match coordMatch = Regex.Match(
             content,
-            @"class=""" + Regex.Escape(addressDivClass) + @""">.*?data-latitude=""([^""]+)""\s+data-longitude=""([^""]+)""",
+            @"class=""" + Regex.Escape(addressDivClass) + @""">.*?data-longitude=""([^""]+)""\s+data-latitude=""([^""]+)""",
             RegexOptions.Singleline
         );
 
         if (!coordMatch.Success)
-            throw new Exception("Did not match coordinates on state police page (class=\"" + addressDivClass + "\")");
+            //throw new Exception("Did not match coordinates on state police page (class=\"" + addressDivClass + "\")");
+            return null;
 
         double northing = double.Parse(coordMatch.Groups[1].Value);
         double easting = double.Parse(coordMatch.Groups[2].Value);

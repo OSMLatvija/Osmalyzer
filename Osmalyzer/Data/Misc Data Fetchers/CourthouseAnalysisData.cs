@@ -120,7 +120,8 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             // Grab the portions with phone and email
             
             // Start at "<h4>Kontakti</h4>" (not "<h4 id="footer-contacts">Kontakti</h4>")
-            Match contactTopMatch = Regex.Match(content, @"<h4>\s*Kontakti\s*</h4>", RegexOptions.Singleline);
+            // or "<h2>Kontakti</h2>" (not "<h3 id="footer-contacts">Kontakti</h3>")
+            Match contactTopMatch = Regex.Match(content, @"<h[24]>\s*Kontakti\s*</h[24]>", RegexOptions.Singleline);
             
             if (!contactTopMatch.Success)
                 throw new Exception("Did not find contact section start");

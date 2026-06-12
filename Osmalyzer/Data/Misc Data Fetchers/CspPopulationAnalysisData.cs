@@ -173,6 +173,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
             string? id;
             CspAreaType type;
             string? municipality = null;
+            string? disambiguator = null;
 
             if (areaName == "Nezināma teritoriālā vienība") // known name for unknown area
             {
@@ -205,7 +206,13 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
                     if (areaName.EndsWith(" novads"))
                     {
                         type = CspAreaType.Municipality;
-                        if (qualifier != null) throw new Exception("Unexpected qualifier for municipality: " + areaName);
+                        if (qualifier != null)
+                        {
+                            if (!qualifier.StartsWith("no ")) throw new Exception("Unexpected qualifier for municipality: " + areaName);
+                            disambiguator = qualifier;
+                        }
+                        // e.g. "no 01.07.2025."
+                        // technically disambiguates, but we never encounter "līdz" for municipalities
                     }
                     else if (areaName.EndsWith(" pagasts"))
                     {
@@ -225,7 +232,7 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
                 }
             }
 
-            Entries.Add(new CspPopulationEntry(areaCode, id, areaName, municipality, population.Value, type, _year));
+            Entries.Add(new CspPopulationEntry(areaCode, id, areaName, municipality, population.Value, type, _year, disambiguator));
         }
     }
 
@@ -259,8 +266,34 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
 
             if (matchedEntries.Count == 0)
                 continue;
+
+            if (matchedEntries.Count > 1)
+            {
+                if (itemName == "Madonas novads")
+                {
+                    // Known ambiguity:
+                    // Madonas novads (no 01.07.2025.)	29 466
+                    // Madonas novads	26 692
+                    // The second has no qualifier/disambiguator
+                    // We use the one with, presuming it is newer
+
+                    if (matchedEntries.Count == 2)
+                    {
+                        if (matchedEntries[0].Disambiguator == null && matchedEntries[1].Disambiguator?.StartsWith("no") == true)
+                            matchedEntries.Remove(matchedEntries[0]);
+                        else if (matchedEntries[1].Disambiguator == null && matchedEntries[0].Disambiguator?.StartsWith("no") == true)
+                            matchedEntries.Remove(matchedEntries[1]);
+                        else
+                            throw new Exception("Unexpected disambiguator pattern for Madonas novads -- " + string.Join(", ", matchedEntries.Select(e => e.Disambiguator)));
+                    }
+                }
+                else
+                {
+                    throw new Exception("Multiple matching entries for item: " + item.ReportString() + " -- " + string.Join("; ", matchedEntries.Select(e => e.ToString())));
+                }
+            }
             
-            if (matchedEntries.Count > 1) throw new Exception("Multiple CSP population entries found for item: " + item.ReportString());
+            if (matchedEntries.Count > 1) throw new Exception("Multiple CSP population entries found for item: " + item.ReportString() + " -- " + string.Join("; ", matchedEntries.Select(e => e.ToString())));
             
             item.CspPopulationEntry = matchedEntries[0];
             assigned++;
@@ -349,6 +382,8 @@ public class CspPopulationEntry : IDataItem
     public int Population { get; }
     
     public int Year { get; }
+    
+    public string? Disambiguator { get; }
 
     public OsmCoord Coord => throw new NotImplementedException();
 
@@ -356,7 +391,7 @@ public class CspPopulationEntry : IDataItem
     public string Source => "CSP";
     
 
-    public CspPopulationEntry(string code, string? id, string name, string? municipality, int population, CspAreaType type, int year)
+    public CspPopulationEntry(string code, string? id, string name, string? municipality, int population, CspAreaType type, int year, string? disambiguator)
     {
         Code = code;
         Id = id;
@@ -365,6 +400,7 @@ public class CspPopulationEntry : IDataItem
         Population = population;
         Type = type;
         Year = year;
+        Disambiguator = disambiguator;
     }
 
 

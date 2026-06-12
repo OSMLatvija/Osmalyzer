@@ -2,9 +2,9 @@ namespace Osmalyzer;
 
 public abstract class Reporter
 {
-    protected readonly List<Report> reports = new List<Report>();
+    protected readonly List<Report> reports = [ ];
 
-    protected readonly List<(string report, string reason)> skippedReports = new List<(string report, string reason)>();
+    protected readonly List<(string report, string reason)> skippedReports = [ ];
         
         
     public void AddReport(Report report)

@@ -21,7 +21,7 @@ public class RigasSatiksmeOpenDataAnalysisData : AnalysisData, IDatedAnalysisDat
     public string ExtractionFolder => "RS";
 
 
-    public DateTime RetrieveDataDate()
+    public DateTime? RetrieveDataDate()
     {
         string result = WebsiteBrowsingHelper.Read( // data.gov.lv seems to not like direct download/scraping
             "https://data.gov.lv/dati/lv/dataset/marsrutu-saraksti-rigas-satiksme-sabiedriskajam-transportam", 

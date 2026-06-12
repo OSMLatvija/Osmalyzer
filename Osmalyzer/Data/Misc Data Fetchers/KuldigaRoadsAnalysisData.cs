@@ -22,7 +22,7 @@ public class KuldigaRoadsAnalysisData : AnalysisData, IDatedAnalysisData
     public List<string> RoadNames { get; private set; } = null!; // only null until prepared
 
 
-    public DateTime RetrieveDataDate()
+    public DateTime? RetrieveDataDate()
     {
         string result = WebsiteDownloadHelper.Read("https://www.kuldiga.lv/pasvaldiba/publiskie-dokumenti/autocelu-klases", true);
 

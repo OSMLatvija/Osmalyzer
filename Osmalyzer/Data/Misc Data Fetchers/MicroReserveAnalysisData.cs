@@ -26,7 +26,7 @@ public class MicroReserveAnalysisData : AnalysisData, IDatedAnalysisData
     private string ExtractionFolder => "MR";
 
 
-    public DateTime RetrieveDataDate()
+    public DateTime? RetrieveDataDate()
     {
         string result = WebsiteBrowsingHelper.Read( // data.gov.lv seems to not like direct download/scraping
             "https://data.gov.lv/dati/lv/dataset/mikroliegumi", 

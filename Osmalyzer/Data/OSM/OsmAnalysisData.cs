@@ -23,7 +23,7 @@ public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData
     protected abstract string DownloadUrlFile { get; }
 
 
-    public DateTime RetrieveDataDate()
+    public DateTime? RetrieveDataDate()
     {
         string result = WebsiteDownloadHelper.Read("https://download.geofabrik.de/" + DownloadUrlSubpage, true);
                 

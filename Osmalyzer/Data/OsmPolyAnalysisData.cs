@@ -15,7 +15,7 @@ public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
     protected override string DataFileIdentifier => "osm-latvia-poly";
 
 
-    public DateTime RetrieveDataDate()
+    public DateTime? RetrieveDataDate()
     {
         string result = WebsiteDownloadHelper.Read("https://download.geofabrik.de/europe/latvia.html", true);
                 

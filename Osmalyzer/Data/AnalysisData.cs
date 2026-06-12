@@ -110,29 +110,43 @@ public abstract class AnalysisData
                 if (_dataDate != null)
                 {
                     Console.WriteLine("Getting dated cache date...");
-                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+                    DateTime? newDataDate = cachableAnalysisData.RetrieveDataDate();
 
-                    if (_dataDate < newDataDate)
+                    if (newDataDate == null)
+                    {
+                        Console.WriteLine("Downloading (data date unknown)...");
+                        Download();
+                        ClearDataDate(); // after download in case it fails
+                    }
+                    else if (_dataDate < newDataDate)
                     {
                         Console.WriteLine("Downloading (dated cache out of date)...");
                         Download();
+                        StoreDataDate(newDataDate!.Value); // after download in case it fails
                     }
                     else
                     {
                         Console.WriteLine("Using dated cached files.");
+                        StoreDataDate(newDataDate!.Value); // after download in case it fails
                     }
-
-                    StoreDataDate(newDataDate); // after download in case it fails
                 }
                 else
                 {
                     Console.WriteLine("Getting dated cache date...");
-                    DateTime newDataDate = cachableAnalysisData.RetrieveDataDate();
+                    DateTime? newDataDate = cachableAnalysisData.RetrieveDataDate();
 
-                    Console.WriteLine("Downloading (not yet cached with date)...");
-                    Download();
-
-                    StoreDataDate(newDataDate); // after download in case it fails
+                    if (newDataDate == null)
+                    {
+                        Console.WriteLine("Downloading (data date unknown)...");
+                        Download();
+                        ClearDataDate(); // after download in case it fails
+                    }
+                    else
+                    {
+                        Console.WriteLine("Downloading (not yet cached with date)...");
+                        Download();
+                        StoreDataDate(newDataDate!.Value); // after download in case it fails
+                    }
                 }
 
                 break;
@@ -192,6 +206,13 @@ public abstract class AnalysisData
         _dataDate = newDate;
             
         File.WriteAllText(CachedDateFilePath, _dataDate.Value.Ticks.ToString());
+    }
+
+    private void ClearDataDate()
+    {
+        _dataDate = null;
+            
+        File.Delete(CachedDateFilePath);
     }
 
     private static void PrintExceptionDetails(Exception e, string operationLabel)

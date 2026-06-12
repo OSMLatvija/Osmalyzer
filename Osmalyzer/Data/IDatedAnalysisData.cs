@@ -5,5 +5,5 @@ public interface IDatedAnalysisData : ICachableAnalysisData
     bool DataDateHasDayGranularity { get; }
 
         
-    DateTime RetrieveDataDate();
+    DateTime? RetrieveDataDate();
 }

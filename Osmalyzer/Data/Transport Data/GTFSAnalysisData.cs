@@ -8,7 +8,7 @@ public abstract class GTFSAnalysisData : AnalysisData, IDatedAnalysisData
 
     public override bool NeedsPreparation => true;
 
-    public GTFSNetwork Network { get; set; } = null!; // only null until prepared
+    public GTFSNetwork Network { get; private set; } = null!; // only null until prepared
 
         
     protected abstract string DataURL { get; }
@@ -16,9 +16,9 @@ public abstract class GTFSAnalysisData : AnalysisData, IDatedAnalysisData
     protected abstract string DataFileName { get; }
 
         
-    public DateTime RetrieveDataDate()
+    public DateTime? RetrieveDataDate()
     {
-        return WebsiteDownloadHelper.ReadHeaderDate(DataURL)!.Value;
+        return WebsiteDownloadHelper.ReadHeaderDate(DataURL);
     }
 
     protected override void Download()

@@ -264,7 +264,7 @@ public static class Wikidata
         };
         
         using HttpClient httpClient = new HttpClient(handler);
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Osmalyzer");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "Osmalyzer/1.0 (https://github.com/OSMLatvija/Osmalyzer)");
 
         while (true)
         {
@@ -284,6 +284,8 @@ public static class Wikidata
                 
                 if (retryAfterSeconds > maxRetryWaitSeconds)
                     throw new InvalidOperationException($"Rate limit exceeded. Retry-After header indicates waiting {retryAfterSeconds} seconds, which exceeds maximum wait time of {maxRetryWaitSeconds} seconds.");
+                
+                // Note that 1000 seconds means client was basically blocked
                 
                 Thread.Sleep(TimeSpan.FromSeconds(retryAfterSeconds));
                 continue;

@@ -32,21 +32,21 @@ public class PublicTransportAccessAnalyzer : Analyzer
             
         // Prepare report groups
 
-        report.AddGroup(ReportGroup.BlockingPsv, "Blocking PSV");
+        report.AddGroup(ReportGroup.BlockingBus, "Blocking bus=*");
 
-        report.AddGroup(ReportGroup.RedundantPsv, "Redundant PSV", @"It is pointless to specify default access values, when no other ""higher"" access group restricts it. If the intention is to mark ways somehow meant or designated for public transport, then the value should be `psv=designated`.");
+        report.AddGroup(ReportGroup.RedundantBus, "Redundant bus=*", @"It is pointless to specify default access values, when no other ""higher"" access group restricts it. If the intention is to mark ways somehow meant or designated for public transport, then the value should be `bus=designated`.");
 
-        report.AddGroup(ReportGroup.PsvOverAccessAlreadyPsv, "PSV value redundunt access override");
+        report.AddGroup(ReportGroup.BusOverAccessAlreadyBus, "bus=* value redundant access override");
 
         report.AddGroup(ReportGroup.UnexpectedAccess, "Access value invalid");
             
         report.AddGroup(ReportGroup.UnexpectedOneway, "Oneway value invalid");
 
-        report.AddGroup(ReportGroup.OnewaypsvOnNonOneway, "Bad oneway PSV values on non-oneway");
+        report.AddGroup(ReportGroup.OnewayBusOnNonOneway, "Bad oneway bus=* values on non-oneway");
 
-        report.AddGroup(ReportGroup.BadPsvOnRestrictedAccess, "Bad PSV value on restricted");
+        report.AddGroup(ReportGroup.BadBusOnRestrictedAccess, "Bad bus=* value on restricted");
 
-        report.AddGroup(ReportGroup.BusShouldBePsv, "Bus instead of PSV", @"There are no laws or regulations in Latvia that apply specifically to buses but not other modes of public transport, notably taxis. All laws that mention public transport discuss it in context of public transportation and not specific vehicle types, like trolleybuses, minibuses, coaches, etc. So bus and oneway:bus is likely always wrong or at least imprecise on generic roads and should be psv and oneway:psv. There may be some rare individual cases where a small service section is specifically for buses, like at bus station service areas, but then a public transport route is unlikely to run there.");
+        report.AddGroup(ReportGroup.PsvShouldBeBus, "psv=* instead of bus=*", @"While technically psv=* is a valid higher access group for bus=*, the laws or regulations in Latvia that apply to public transport actually encompass only buses (like trolleybuses, minibuses, coaches, etc.). So psv and oneway:psv is likely always wrong or at least pointlessly generic and should be bus and oneway:bus.");
 
         // Parse
 
@@ -75,34 +75,34 @@ public class PublicTransportAccessAnalyzer : Analyzer
 
             // What about psv by itself?
                 
-            if (psv is null)
+            if (bus is null)
             {
-                // By itself, it's normal to not need to specify psv
+                // By itself, it's normal to not need to specify bus
             }
-            else if (psv is "no")
+            else if (bus is "no")
             {
-                // psv=no
+                // bus=no
 
                 report.AddEntry(
-                    ReportGroup.BlockingPsv,
+                    ReportGroup.BlockingBus,
                     new IssueReportEntry(
-                        "Way has `psv=no` -- " + osmRouteWay.OsmViewUrl,
+                        "Way has `bus=no` -- " + osmRouteWay.OsmViewUrl,
                         osmRouteWay.AverageCoord,
                         MapPointStyle.Problem
                     )
                 );
             }
-            else if (psv is "yes")
+            else if (bus is "yes")
             {
                 if (access is null)
                 {
                     if (vehicle is null)
                     {
-                        // psv=yes
+                        // bus=yes
                         report.AddEntry(
-                            ReportGroup.RedundantPsv,
+                            ReportGroup.RedundantBus,
                             new IssueReportEntry(
-                                "Way has no `access` (or `vehicle`) value, but redundant `psv=yes` -- " + osmRouteWay.OsmViewUrl,
+                                "Way has no `access` (or `vehicle`) value, but redundant `bus=yes` -- " + osmRouteWay.OsmViewUrl,
                                 osmRouteWay.AverageCoord,
                                 MapPointStyle.Problem
                             )
@@ -111,11 +111,11 @@ public class PublicTransportAccessAnalyzer : Analyzer
                 }
                 else if (access is "yes")
                 {
-                    // access=yes + psv=yes
+                    // access=yes + bus=yes
                     report.AddEntry(
-                        ReportGroup.RedundantPsv,
+                        ReportGroup.RedundantBus,
                         new IssueReportEntry(
-                            "Way has `access=yes` value, but redundant `psv=yes` -- " + osmRouteWay.OsmViewUrl,
+                            "Way has `access=yes` value, but redundant `bus=yes` -- " + osmRouteWay.OsmViewUrl,
                             osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
@@ -123,11 +123,11 @@ public class PublicTransportAccessAnalyzer : Analyzer
                 }
                 else if (vehicle is "yes")
                 {
-                    // access=yes + psv=yes
+                    // vehicle=yes + bus=yes
                     report.AddEntry(
-                        ReportGroup.RedundantPsv,
+                        ReportGroup.RedundantBus,
                         new IssueReportEntry(
-                            "Way has `vehicle=yes` value, but redundant `psv=yes` -- " + osmRouteWay.OsmViewUrl,
+                            "Way has `vehicle=yes` value, but redundant `bus=yes` -- " + osmRouteWay.OsmViewUrl,
                             osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
@@ -143,34 +143,34 @@ public class PublicTransportAccessAnalyzer : Analyzer
             }
             else if (access is "no" or "private" or "destination")
             {
-                if (psv is null)
+                if (bus is null)
                 {
-                    if (bus is null) // we would report bus should be psv then
+                    if (psv is null) // we would report psv should be bus then
                     {
                         // access=no
                         report.AddEntry(
-                            ReportGroup.BadPsvOnRestrictedAccess,
+                            ReportGroup.BadBusOnRestrictedAccess,
                             new IssueReportEntry(
-                                "Way has `access=" + access + "`, but no `psv` value -- " + osmRouteWay.OsmViewUrl,
+                                "Way has `access=" + access + "`, but no `bus` value -- " + osmRouteWay.OsmViewUrl,
                                 osmRouteWay.AverageCoord,
                                 MapPointStyle.Problem
                             )
                         );
                     }
                 }
-                else if (psv is "yes")
+                else if (bus is "yes")
                 {
                     // todo: every other access tag is missing - should just be access=psv
                 }
-                else if (psv is not "yes" and not "designated")
+                else if (bus is not "yes" and not "designated")
                 {
-                    if (bus is null) // we would report bus should be psv then
+                    if (psv is null) // we would report psv should be bus then
                     {
-                        // access=no + psv=hello
+                        // access=no + bus=hello
                         report.AddEntry(
-                            ReportGroup.BadPsvOnRestrictedAccess,
+                            ReportGroup.BadBusOnRestrictedAccess,
                             new IssueReportEntry(
-                                "Way has `access=no`, but unexpected `psv=" + psv + "` value -- " + osmRouteWay.OsmViewUrl,
+                                "Way has `access=no`, but unexpected `bus=" + bus + "` value -- " + osmRouteWay.OsmViewUrl,
                                 osmRouteWay.AverageCoord,
                                 MapPointStyle.Problem
                             )
@@ -178,15 +178,15 @@ public class PublicTransportAccessAnalyzer : Analyzer
                     }
                 }
             }
-            else if (access is "psv") 
+            else if (access is "bus") 
             {
-                if (psv is not null)
+                if (bus is not null)
                 {
-                    // access=psv + psv=hi
+                    // access=bus + bus=hi
                     report.AddEntry(
-                        ReportGroup.PsvOverAccessAlreadyPsv,
+                        ReportGroup.BusOverAccessAlreadyBus,
                         new IssueReportEntry(
-                            "Way already has `access=psv`, but also specifies `psv=" + psv + "` -- " + osmRouteWay.OsmViewUrl,
+                            "Way already has `access=bus`, but also specifies `bus=" + bus + "` -- " + osmRouteWay.OsmViewUrl,
                             osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
@@ -214,13 +214,13 @@ public class PublicTransportAccessAnalyzer : Analyzer
             }
             else if (oneway is "no")
             {
-                if (oneway_psv is not null)
+                if (oneway_bus is not null)
                 {
-                    // oneway=no + oneway:psv=yes
+                    // oneway=no + oneway:bus=yes
                     report.AddEntry(
-                        ReportGroup.OnewaypsvOnNonOneway,
+                        ReportGroup.OnewayBusOnNonOneway,
                         new IssueReportEntry(
-                            "Way is `oneway=no`, but has `oneway:psv=" + oneway_psv + "` -- " + osmRouteWay.OsmViewUrl,
+                            "Way is `oneway=no`, but has `oneway:bus=" + oneway_bus + "` -- " + osmRouteWay.OsmViewUrl,
                             osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
@@ -240,21 +240,21 @@ public class PublicTransportAccessAnalyzer : Analyzer
                 );
             }
 
-            // What about bus?
+            // What about psv?
                 
-            if (bus is not null)
+            if (psv is not null)
             {
-                if (bus is "no")
+                if (psv is "no")
                 {
                     // oneway:bus=no
                     report.AddEntry(
-                        ReportGroup.BusShouldBePsv,
+                        ReportGroup.PsvShouldBeBus,
                         new IssueReportEntry(
-                            "`bus=no` instead of `psv=no`" + 
-                            (psv is not null 
-                                ? psv is "no" 
+                            "`psv=no` instead of `bus=no`" + 
+                            (bus is not null 
+                                ? bus is "no" 
                                     ? " (already set)" 
-                                    : " (set, but value is `" + psv + "`)" 
+                                    : " (set, but value is `" + bus + "`)" 
                                 : ""
                             ) + 
                             " on " + osmRouteWay.OsmViewUrl,
@@ -267,9 +267,9 @@ public class PublicTransportAccessAnalyzer : Analyzer
                 {
                     // oneway:bus=hello
                     report.AddEntry(
-                        ReportGroup.BusShouldBePsv,
+                        ReportGroup.PsvShouldBeBus,
                         new IssueReportEntry(
-                            "Unexpected `bus=" + bus + "` value, instead of `psv` if applicable -- " + osmRouteWay.OsmViewUrl,
+                            "Unexpected `psv=" + psv + "` value, instead of `bus` if applicable -- " + osmRouteWay.OsmViewUrl,
                             osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
@@ -277,19 +277,19 @@ public class PublicTransportAccessAnalyzer : Analyzer
                 }
             }
 
-            if (oneway_bus is not null)
+            if (oneway_psv is not null)
             {
-                if (oneway_bus is "no")
+                if (oneway_psv is "no")
                 {
-                    // oneway:bus=no
+                    // oneway:psv=no
                     report.AddEntry(
-                        ReportGroup.BusShouldBePsv,
+                        ReportGroup.PsvShouldBeBus,
                         new IssueReportEntry(
-                            "`oneway:bus=no` instead of `oneway:psv=no`" + 
-                            (oneway_psv is not null 
-                                ? oneway_psv is "no" 
+                            "`oneway:psv=no` instead of `oneway:bus=no`" + 
+                            (oneway_bus is not null 
+                                ? oneway_bus is "no" 
                                     ? " (already set)" 
-                                    : " (set, but value is `" + oneway_psv + "`)" 
+                                    : " (set, but value is `" + oneway_bus + "`)" 
                                 : ""
                             ) + 
                             " on " + osmRouteWay.OsmViewUrl,
@@ -300,11 +300,11 @@ public class PublicTransportAccessAnalyzer : Analyzer
                 }
                 else
                 {
-                    // oneway:bus=hello
+                    // oneway:psv=hello
                     report.AddEntry(
-                        ReportGroup.BusShouldBePsv,
+                        ReportGroup.PsvShouldBeBus,
                         new IssueReportEntry(
-                            "Unexpected `oneway:bus=" + oneway_bus + "` value, should be `oneway:psv` if applicable -- " + osmRouteWay.OsmViewUrl,
+                            "Unexpected `oneway:psv=" + oneway_psv + "` value, should be `oneway:bus` if applicable -- " + osmRouteWay.OsmViewUrl,
                             osmRouteWay.AverageCoord,
                             MapPointStyle.Problem
                         )
@@ -320,13 +320,13 @@ public class PublicTransportAccessAnalyzer : Analyzer
 
     private enum ReportGroup
     {
-        BusShouldBePsv,
-        OnewaypsvOnNonOneway,
+        PsvShouldBeBus,
+        OnewayBusOnNonOneway,
         UnexpectedOneway,
         UnexpectedAccess,
-        BadPsvOnRestrictedAccess,
-        RedundantPsv,
-        BlockingPsv,
-        PsvOverAccessAlreadyPsv
+        BadBusOnRestrictedAccess,
+        RedundantBus,
+        BlockingBus,
+        BusOverAccessAlreadyBus
     }
 }

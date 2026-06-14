@@ -23,7 +23,7 @@ public static class Runner
             // new RigasSatiksmeAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
-            new JurmalasSatiksmeAnalyzer(),
+            /// new JurmalasSatiksmeAnalyzer(),
             // new AutotransportaDirekcijaAnalyzer(),
             // new JelgavasAutobusuParksAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
@@ -31,7 +31,7 @@ public static class Runner
             // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why
             // new StreetNameAnalyzer(),
             // new RigaDrinkingWaterAnalyzer(),
-            // new PublicTransportAccessAnalyzer(),
+            new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
             // new GlikaOaksAnalyzer(),
             // new CityMeadowsAnalyzer(),

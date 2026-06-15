@@ -31,7 +31,7 @@ public static class Runner
             // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why
             // new StreetNameAnalyzer(),
             // new RigaDrinkingWaterAnalyzer(),
-            new PublicTransportAccessAnalyzer(),
+            // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
             // new GlikaOaksAnalyzer(),
             // new CityMeadowsAnalyzer(),
@@ -51,7 +51,7 @@ public static class Runner
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
-            // new CourthouseAnalyzer(),
+            new CourthouseAnalyzer(),
             // new NonDefiningTaggingAnalyzer(),
             // new BridgeAndWaterConnectionAnalyzer(),
             // new TerminatingWaysAnalyzer(),

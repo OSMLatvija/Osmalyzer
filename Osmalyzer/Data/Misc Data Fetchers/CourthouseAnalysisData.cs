@@ -245,7 +245,7 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
                 static string CleanHours(string hours)
                 {
                     // "8.30–17.00" -> "08:30-17:00"
-                    Match hoursMatch = Regex.Match(hours, @"^(\d{1,2})[.](\d{2})[–-](\d{1,2})[.](\d{2})$");
+                    Match hoursMatch = Regex.Match(hours, @"^(\d{1,2})[.](\d{2})\s*[–-]\s*(\d{1,2})[.](\d{2})$");
                     
                     if (!hoursMatch.Success)
                         throw new Exception("Did not match hours: " + hours);

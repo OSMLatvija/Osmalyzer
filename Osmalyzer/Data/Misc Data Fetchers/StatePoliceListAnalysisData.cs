@@ -450,7 +450,7 @@ public class StatePoliceListAnalysisData : AnalysisData, IUndatedAnalysisData
 
         List<string> mergedDayHours = OsmOpeningHoursHelper.MergeSequentialWeekdaysWithSameTimes(dayHours);
 
-        return string.Join("; ", mergedDayHours);
+        return string.Join("; ", mergedDayHours) + "; PH off";
 
 
         [Pure]

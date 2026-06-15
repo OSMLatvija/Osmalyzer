@@ -255,7 +255,7 @@ Piektdiena: 8:30 - 14:00</td>
                 string[] winterParts = rawParts[2..summerIndex].ToArray();
                 string[] summerParts = rawParts[(summerIndex + 2)..].ToArray();
 
-                return "Jun 1-Sep 30 " + Clean(summerParts) + "; Oct 1-May 31 " + Clean(winterParts);
+                return "Jun 1-Sep 30 " + Clean(summerParts) + "; Oct 1-May 31 " + Clean(winterParts) + "; PH off";
             }
             else if (rawParts[1].Contains("30.aprīlis")) {
                 // Ziemas darba laiks<br />
@@ -282,13 +282,13 @@ Piektdiena: 8:30 - 14:00</td>
                 string[] winterParts = rawParts[2..summerIndex].ToArray();
                 string[] summerParts = rawParts[(summerIndex + 2)..].ToArray();
 
-                return "May 1-Sep 30 " + Clean(summerParts) + "; Oct 1-Apr 30 " + Clean(winterParts);
+                return "May 1-Sep 30 " + Clean(summerParts) + "; Oct 1-Apr 30 " + Clean(winterParts) + "; PH off";
             }
             else throw new Exception();
         }
         else
         {
-            return Clean(rawParts);
+            return Clean(rawParts) + "; PH off";
         }
 
         

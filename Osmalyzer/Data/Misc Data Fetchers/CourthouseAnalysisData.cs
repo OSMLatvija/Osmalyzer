@@ -265,7 +265,7 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
             // Merge sequential days with same times into day ranges instead
             List<string> mergedDayHours = OsmOpeningHoursHelper.MergeSequentialWeekdaysWithSameTimes(dayHours);
             
-            string openingHours = string.Join("; ", mergedDayHours);
+            string openingHours = string.Join("; ", mergedDayHours) + "; PH off";
 
             // Done parsing what we can
 

@@ -68,7 +68,7 @@ public static class Runner
             // new UnknownParcelLockerAnalyzer(),
             // new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
-            new LatviaPostOfficeAnalyzer(),
+            // new LatviaPostOfficeAnalyzer(),
             // new PostCodeAnalyzer(),
             // new ImproperTranslationAnalyzer(),
             // new LidlShopAnalyzer(),
@@ -100,7 +100,7 @@ public static class Runner
             // new PlaygroundAnalyzer(),
             // new StatePoliceAnalyzer(),
             // new SharpAngleRoadAnalyzer(),
-            // new NotaryAnalyzer(),
+            new NotaryAnalyzer(),
             // new RigaEducationAnalyzer(),
             // new CulturalCenterAnalyzer(),
         ];

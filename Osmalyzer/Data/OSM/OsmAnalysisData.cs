@@ -28,6 +28,9 @@ public abstract class OsmAnalysisData : AnalysisData, IDatedAnalysisData
         string result = WebsiteDownloadHelper.Read("https://download.geofabrik.de/" + DownloadUrlSubpage, true);
                 
         Match match = Regex.Match(result, @"contains all OSM data up to ([^\.]+)\.");
+        if (!match.Success)
+            throw new Exception("Could not find data date in Geofabrik download page for " + DownloadUrlSubpage);
+        
         string newestDateString = match.Groups[1].ToString(); // will be something like "2023-06-12T20:21:53Z"
             
         return DateTime.Parse(newestDateString);

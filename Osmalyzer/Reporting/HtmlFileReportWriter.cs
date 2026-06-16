@@ -142,6 +142,19 @@ public class HtmlFileReportWriter : ReportWriter
             str.AppendLine("<li>" + DataInfoLine(data) + "</li>");
         str.AppendLine("</ul>");
         
+        // Add links to packaged raw data files if available
+        if (report.PackagedDataFiles.Count > 0)
+        {
+            str.AppendLine("<h4>Raw data files</h4>");
+            str.AppendLine("<ul>");
+            foreach ((string dataName, string filePath) in report.PackagedDataFiles)
+            {
+                string relativePath = filePath.Replace("\\", "/");
+                str.AppendLine($"<li><a href=\"{HttpUtility.HtmlAttributeEncode(relativePath)}\">{HttpUtility.HtmlEncode(dataName)}</a></li>");
+            }
+            str.AppendLine("</ul>");
+        }
+        
         str.AppendLine("Provided as is; mistakes possible.");
 
         return str.ToString();

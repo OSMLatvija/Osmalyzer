@@ -13,9 +13,11 @@ public class Report
         
     public bool NeedMap => _groups.Any(g => g.NeedMap);
 
+    /// <summary> List of packaged data files with their data source name and file path </summary>
+    public List<(string dataName, string filePath)> PackagedDataFiles { get; set; } = [ ];
 
-    private readonly List<ReportGroup> _groups = new List<ReportGroup>();
 
+    private readonly List<ReportGroup> _groups = [ ];
 
     public Report(Analyzer analyzer, IEnumerable<AnalysisData> datas)
     {

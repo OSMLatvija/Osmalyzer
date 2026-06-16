@@ -33,7 +33,7 @@ public static class Runner
             // new RigaDrinkingWaterAnalyzer(),
             // new PublicTransportAccessAnalyzer(),
             // new HighwaySpeedLimitAnalyzer(),
-            // new GlikaOaksAnalyzer(),
+            new GlikaOaksAnalyzer(),
             // new CityMeadowsAnalyzer(),
             // new ElviShopAnalyzer(),
             // new LatsShopAnalyzer(),
@@ -51,7 +51,7 @@ public static class Runner
             // new SEBLocationAnalyzer(),
             // new CitadeleLocationAnalyzer(),
             // new LuminorLocationAnalyzer(),
-            // new CourthouseAnalyzer(),
+            new CourthouseAnalyzer(),
             // new NonDefiningTaggingAnalyzer(),
             // new BridgeAndWaterConnectionAnalyzer(),
             // new TerminatingWaysAnalyzer(),
@@ -82,7 +82,7 @@ public static class Runner
             // new CaffeineRestaurantAnalyzer(),
             // new HesburgerRestaurantAnalyzer(),
             // new LVCRoadAnalyzer(),
-            // new VPVKACAnalyzer(),
+            new VPVKACAnalyzer(),
             // new VillageAnalyzer(),
             // new HamletAnalyzer(),
             // new MunicipalityAnalyzer(),
@@ -250,6 +250,14 @@ public static class Runner
 
 
         Stopwatch reportStopwatch = Stopwatch.StartNew();
+
+        Console.WriteLine("Packaging data files...");
+
+        // Package all data files once - this creates a mapping from each data to its packaged files
+        Dictionary<AnalysisData, List<string>> packagedDataFiles = 
+            DataFilePackager.PackageAllDataFiles(requestedDatas, ReportWriter.OutputPath);
+        
+        reporter.SetPackagedDataFiles(packagedDataFiles);
 
         Console.WriteLine("Writing reports...");
 

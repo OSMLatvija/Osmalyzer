@@ -59,6 +59,13 @@ public class HtmlFileReporter : Reporter
 
                     Stopwatch saveStopwatch = Stopwatch.StartNew();
 
+                    // Assign packaged data files for this report based on its data sources
+                    report.PackagedDataFiles = [ ];
+                    foreach (AnalysisData data in report.Datas)
+                        if (packagedDataFilesMapping.TryGetValue(data, out List<string>? files))
+                            foreach (string file in files)
+                                report.PackagedDataFiles.Add((data.Name, file));
+
                     reportWriter.Save(report);
 
                     Console.WriteLine(" (" + saveStopwatch.ElapsedMilliseconds + " ms)");

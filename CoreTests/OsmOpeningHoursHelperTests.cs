@@ -37,6 +37,8 @@ public class OsmOpeningHoursHelperTests
     [TestCase(new[] { "Xx 08:00-12:00", "We 08:00-12:00" }, new[] { "Xx 08:00-12:00", "We 08:00-12:00" })]
     // Second weekday invalid
     [TestCase(new[] { "Tu 08:00-12:00", "Xx 08:00-12:00" }, new[] { "Tu 08:00-12:00", "Xx 08:00-12:00" })]
+    // Off
+    [TestCase(new[] { "Sa Off", "Su Off" }, new[] { "Sa-Su Off" })]
     public void MergeSequentialWeekdaysWithSameTimes_MergesCorrectly(string[] input, string[] expected)
     {
         List<string> result = OsmOpeningHoursHelper.MergeSequentialWeekdaysWithSameTimes(input);

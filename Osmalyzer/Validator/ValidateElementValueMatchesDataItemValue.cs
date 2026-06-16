@@ -2,6 +2,8 @@
 
 public class ValidateElementValueMatchesDataItemValue<T> : ValidationRule where T : IDataItem
 {
+    // todo: allow reporting issue if the value is not provided, i.e. we expect value but we don't know what it should be based on data
+    
     public Func<OsmElement, bool>? ShouldCheckElement { get; }
     
     public Func<OsmElement, OsmElement>? ElementSelector { get; }

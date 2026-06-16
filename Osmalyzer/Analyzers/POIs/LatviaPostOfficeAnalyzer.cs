@@ -100,6 +100,7 @@ public class LatviaPostOfficeAnalyzer : Analyzer
             report,
             false, false, // there are non-LP post offices, so we don't check against them
             new ValidateElementValueMatchesDataItemValue<LatviaPostItem>("name", di => di.Name),
+            new ValidateElementValueMatchesDataItemValue<LatviaPostItem>("opening_hours", h => h.OpeningHours),
             new ValidateElementHasValue("operator", Operator),
             new ValidateElementHasValue("operator:wikidata", "Q1807088"),
             new ValidateElementFixme()

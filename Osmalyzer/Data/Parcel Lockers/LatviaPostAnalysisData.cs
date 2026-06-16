@@ -78,6 +78,8 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
         // }
         dynamic content;
         
+        // todo: figure out if post code can be included as ref or something
+        
         try
         {
             content = JsonConvert.DeserializeObject(source)!;
@@ -99,9 +101,8 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
             bool unisend = label.Contains("Unisend", StringComparison.InvariantCultureIgnoreCase);
             // e.g. "Rīga Biķernieku iela Rimi" vs "Unisend 8009 Rimi"
 
-            bool clientCenter = label.Contains("Klientu centrs", StringComparison.InvariantCultureIgnoreCase);
-            // e.g e.g. "Juglas pasta nodaļa" vs Klientu centrs Kauguri"
-
+            string? openingHours = ParseOpeningHours(item.workingHours);
+            
             LatviaPostItems.Add(
                 new LatviaPostItem(
                     EntryTypeToItemType((int)item.type),
@@ -110,13 +111,83 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
                     (string)item.locationPostCode,
                     new OsmCoord((double)item.latitude, (double)item.longitude),
                     unisend,
-                    clientCenter
+                    openingHours
                 )
             );
         }
     }
 
     
+    [Pure]
+    private static string? ParseOpeningHours(dynamic workingHours)
+    {
+        if (workingHours == null)
+            return null; // hours not provided
+            
+        //   "workingHours": {
+        //     "@type": "WorkingHours",
+        //     "monday": "09:00-18:00",
+        //     "tuesday": "09:00-18:00",
+        //     "wednesday": "09:00-18:00",
+        //     "thursday": "09:00-18:00",
+        //     "friday": "09:00-18:00",
+        //     "saturday": "-",
+        //     "sunday": "-"
+        //   },
+        
+        List<string> days = [ ];
+        
+        string monday = ParseTimes(workingHours.monday);
+        if (monday != null) days.Add("Mo " + monday);
+        
+        string tuesday = ParseTimes(workingHours.tuesday);
+        if (tuesday != null) days.Add("Tu " + tuesday);
+        
+        string wednesday = ParseTimes(workingHours.wednesday);
+        if (wednesday != null) days.Add("We " + wednesday);
+        
+        string thursday = ParseTimes(workingHours.thursday);
+        if (thursday != null) days.Add("Th " + thursday);
+        
+        string friday = ParseTimes(workingHours.friday);
+        if (friday != null) days.Add("Fr " + friday);
+        
+        string saturday = ParseTimes(workingHours.saturday);
+        if (saturday != null) days.Add("Sa " + saturday);
+        
+        string sunday = ParseTimes(workingHours.sunday);
+        if (sunday != null) days.Add("Su " + sunday);
+        
+        if (days.Count == 0)
+            return null; // no hours provided (e.g. all days are "-")
+        
+        List<string> merged = OsmOpeningHoursHelper.MergeSequentialWeekdaysWithSameTimes(days);
+
+        return string.Join("; ", merged);
+        
+        // Note that "PH off" is not implicit - some work on some public holidays with possible shortened times 
+
+        
+        static string? ParseTimes(dynamic? times)
+        {
+            if (times == null)
+                return null; // hours not provided
+            
+            if (times == "-")
+                return "Off"; // explicitly closed
+            
+            // 09:00-18:00
+            // 8:00-11:00
+            // " 08:00-22:00" - space
+            Match match = Regex.Match(times.ToString().Trim(), @"^(\d{1,2})[:\.](\d{2})-(\d{1,2})[:\.](\d{2})$");
+            if (!match.Success)
+                throw new Exception("Unexpected time format: " + times);
+            
+            return match.Groups[1].Value.PadLeft(2, '0') + ":" + match.Groups[2].Value + "-" +
+                   match.Groups[3].Value.PadLeft(2, '0') + ":" + match.Groups[4].Value;
+        }
+    }
+
     [Pure]
     private static LatviaPostItemType EntryTypeToItemType(int type)
     {

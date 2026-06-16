@@ -14,13 +14,10 @@ public class LatviaPostItem : IDataItem
 
     public bool Unisend { get; } // todo: make a parcel locked class so this isn't shared
 
-    /// <summary>
-    /// As opposed to full post office.
-    /// </summary>
-    public bool ClientCenter { get; } // todo: make a post office class so this isn't shared
+    public string? OpeningHours { get; } // todo: make a post office class so this isn't shared
 
 
-    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, OsmCoord coord, bool unisend, bool clientCenter)
+    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, OsmCoord coord, bool unisend, string? openingHours)
     {
         ItemType = itemType;
         Name = name;
@@ -28,7 +25,7 @@ public class LatviaPostItem : IDataItem
         Code = code;
         Coord = coord;
         Unisend = unisend;
-        ClientCenter = clientCenter;
+        OpeningHours = openingHours;
     }
 
 
@@ -49,19 +46,19 @@ public class LatviaPostItem : IDataItem
     public string ReportString()
     {
         return
-            TypeToLabel(ItemType, Unisend, ClientCenter) +
+            TypeToLabel(ItemType, Unisend) +
             (Name != null ? " `" + Name + "`" : "") +
             (Code != null ? " (`" + Code + "`)" : "") +
             (Address != null ? " at `" + Address + "`" : "");
 
         
         [Pure]
-        static string TypeToLabel(LatviaPostItemType itemType, bool unisend, bool clientCenter)
+        static string TypeToLabel(LatviaPostItemType itemType, bool unisend)
         {
             return itemType switch
             {
                 LatviaPostItemType.PostBox          => "Post box",
-                LatviaPostItemType.Office           => clientCenter ? "Client center" : "Post office",
+                LatviaPostItemType.Office           => "Post office",
                 LatviaPostItemType.ParcelLocker     => unisend ? "Unisend locker" : "Parcel locker",
 
                 _ => throw new NotImplementedException()

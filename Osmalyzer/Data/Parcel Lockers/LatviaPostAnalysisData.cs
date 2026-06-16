@@ -19,7 +19,8 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
     public List<LatviaPostItem> LatviaPostItems { get; private set; } = null!; // only null until prepared
 
     public IEnumerable<ParcelLocker> ParcelLockers => LatviaPostItems
-                                                      .Where(i => i.ItemType == LatviaPostItemType.ParcelLocker)
+                                                      .Where(i => i.ItemType == LatviaPostItemType.ParcelLocker &&
+                                                                  !i.Unisend) // don't want unisends, they double-map with Unisend data and also aren't tagged on OSM as LP lockers
                                                       .Select(i => i.AsParcelLocker());
 
     IEnumerable<ParcelPickupPoint>? IParcelLockerListProvider.PickupPoints => null;
@@ -28,6 +29,7 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
 
     string? IParcelLockerListProvider.PickupPointLocationName => null;
 
+    
     protected override void Download()
     {
         WebsiteDownloadHelper.Download(

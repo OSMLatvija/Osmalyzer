@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using System.Globalization;
+
+namespace Osmalyzer;
 
 [UsedImplicitly]
 public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
@@ -22,7 +24,7 @@ public class OsmPolyAnalysisData : AnalysisData, IDatedAnalysisData
         Match match = Regex.Match(result, @"contains all OSM data up to ([^\.]+)\.");
         string newestDateString = match.Groups[1].ToString(); // will be something like "2023-06-12T20:21:53Z"
                 
-        return DateTime.Parse(newestDateString);
+        return DateTime.Parse(newestDateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
     }
 
     protected override void Download()

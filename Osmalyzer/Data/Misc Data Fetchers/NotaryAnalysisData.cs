@@ -215,16 +215,17 @@ public class NotaryAnalysisData : AnalysisData, IUndatedAnalysisData
                 continue;
 
             // Times are like "2000-01-01T09:00:00.000+02:00"
-            DateTime from = DateTime.Parse(timeFrom, CultureInfo.InvariantCulture);
-            DateTime until = DateTime.Parse(timeUntil, CultureInfo.InvariantCulture);
+            DateTimeOffset from = DateTimeOffset.Parse(timeFrom, CultureInfo.InvariantCulture);
+            DateTimeOffset until = DateTimeOffset.Parse(timeUntil, CultureInfo.InvariantCulture);
+            // Using DateTimeOffset (not DateTime) to preserve the original wall-clock time (i.e. local time)
 
             string? pauseFrom = (string?)wt.pause_from;
             string? pauseUntil = (string?)wt.pause_until;
 
             if (pauseFrom != null && pauseUntil != null)
             {
-                DateTime pFrom = DateTime.Parse(pauseFrom, CultureInfo.InvariantCulture);
-                DateTime pUntil = DateTime.Parse(pauseUntil, CultureInfo.InvariantCulture);
+                DateTimeOffset pFrom = DateTimeOffset.Parse(pauseFrom, CultureInfo.InvariantCulture);
+                DateTimeOffset pUntil = DateTimeOffset.Parse(pauseUntil, CultureInfo.InvariantCulture);
 
                 string hoursWithPause =
                     $"{from:HH:mm}-{pFrom:HH:mm},{pUntil:HH:mm}-{until:HH:mm}";

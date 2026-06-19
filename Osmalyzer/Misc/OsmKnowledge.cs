@@ -300,7 +300,8 @@ public static class OsmKnowledge
             if (leisure 
                 is "pitch" 
                 or "park" 
-                or "playground")
+                or "playground"
+                or "marina")
                 return ("leisure", leisure);
         }
         

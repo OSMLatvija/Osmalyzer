@@ -87,7 +87,8 @@ public class OmnivaParcelLockerAnalysisData : ParcelLockerAnalysisData
                         null,
                         name,
                         address,
-                        new OsmCoord(lat, lon)
+                        new OsmCoord(lat, lon),
+                        null
                     )
                 );
             }

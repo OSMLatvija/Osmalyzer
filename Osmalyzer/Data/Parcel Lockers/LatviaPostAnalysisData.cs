@@ -103,6 +103,8 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
 
             string? openingHours = ParseOpeningHours(item.workingHours);
             
+            bool indoors = !(bool)item.outside;
+            
             LatviaPostItems.Add(
                 new LatviaPostItem(
                     EntryTypeToItemType((int)item.type),
@@ -111,7 +113,8 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
                     (string)item.locationPostCode,
                     new OsmCoord((double)item.latitude, (double)item.longitude),
                     unisend,
-                    openingHours
+                    openingHours,
+                    indoors
                 )
             );
         }

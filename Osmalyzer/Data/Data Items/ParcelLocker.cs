@@ -14,15 +14,18 @@ public class ParcelLocker : IDataItem
     public string? Address { get; }
     
     public OsmCoord Coord { get; }
+    
+    public bool? Indoors { get; }
 
 
-    public ParcelLocker(string operatorCompany, string? id, string? name, string? address, OsmCoord coord)
+    public ParcelLocker(string operatorCompany, string? id, string? name, string? address, OsmCoord coord, bool? indoors)
     {
         Id = id;
         Name = name;
         Address = address;
         Coord = coord;
         Operator = operatorCompany;
+        Indoors = indoors;
     }
     
     
@@ -30,6 +33,12 @@ public class ParcelLocker : IDataItem
     {
         return
             Operator + " parcel locker" +
+            Indoors switch
+            {
+                true  => " (indoor)",
+                false => " (outdoor)",
+                _     => ""
+            } +
             (Name != null ? " `" + Name + "`" : "") +
             (Id != null ? " (`" + Id + "`)" : "") +
             (Address != null ? " at `" + Address + "`" : "");

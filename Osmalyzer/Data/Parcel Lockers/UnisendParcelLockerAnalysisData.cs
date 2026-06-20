@@ -95,7 +95,8 @@ public class UnisendParcelLockerAnalysisData : ParcelLockerAnalysisData
                         id,
                         name,
                         address,
-                        new OsmCoord(lat, lon)
+                        new OsmCoord(lat, lon),
+                        null
                     )
                 );
             }

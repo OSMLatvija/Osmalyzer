@@ -12,9 +12,10 @@ public class LatviaPostLockerAnalyzer : ParcelLockerAnalyzer<LatviaPostAnalysisD
     protected override List<ValidationRule> LockerValidationRules =>
     [
         new ValidateElementHasValue("brand", Operator),
-        new ValidateElementHasValue("brand:wikidata", operatorWikidata)
+        new ValidateElementHasValue("brand:wikidata", operatorWikidata),
         // new ValidateElementHasValue("parcel_pickup", "yes"),
         // new ValidateElementHasValue("parcel_mail_in", "yes"),
+        new ValidateElementValueMatchesDataItemValue<ParcelLocker>("indoor", pl => pl.Indoors == true ? "yes" : pl.Indoors == false ? "no" : null)
     ];
 
     protected override List<ValidationRule> PickupPointValidationRules =>

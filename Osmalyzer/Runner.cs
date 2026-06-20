@@ -66,7 +66,7 @@ public static class Runner
             // new SmartPostiParcelLockerAnalyzer(),
             // new DPDParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
-            // new LatviaPostLockerAnalyzer(),
+            new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
             // new LatviaPostOfficeAnalyzer(),
             // new PostCodeAnalyzer(),
@@ -100,7 +100,7 @@ public static class Runner
             // new PlaygroundAnalyzer(),
             // new StatePoliceAnalyzer(),
             // new SharpAngleRoadAnalyzer(),
-            new NotaryAnalyzer(),
+            // new NotaryAnalyzer(),
             // new RigaEducationAnalyzer(),
             // new CulturalCenterAnalyzer(),
         ];

@@ -171,7 +171,8 @@ public class DPDParcelLockerAnalysisData : ParcelLockerAnalysisData
                     id,
                     shop,
                     address,
-                    new OsmCoord(lat, lon)
+                    new OsmCoord(lat, lon),
+                    null
                 )
             );
         }

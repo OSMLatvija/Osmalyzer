@@ -15,9 +15,11 @@ public class LatviaPostItem : IDataItem
     public bool Unisend { get; } // todo: make a parcel locked class so this isn't shared
 
     public string? OpeningHours { get; } // todo: make a post office class so this isn't shared
+    
+    public bool? Indoors { get; }
 
 
-    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, OsmCoord coord, bool unisend, string? openingHours)
+    public LatviaPostItem(LatviaPostItemType itemType, string? name, string? address, string? code, OsmCoord coord, bool unisend, string? openingHours, bool? indoors)
     {
         ItemType = itemType;
         Name = name;
@@ -26,6 +28,7 @@ public class LatviaPostItem : IDataItem
         Coord = coord;
         Unisend = unisend;
         OpeningHours = openingHours;
+        Indoors = indoors;
     }
 
 
@@ -39,7 +42,8 @@ public class LatviaPostItem : IDataItem
             Code,
             Name,
             Address,
-            Coord
+            Coord,
+            Indoors
         );
     }
 

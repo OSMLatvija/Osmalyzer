@@ -18,12 +18,21 @@
                 var red = false;
                 var green = false;
                 var orange = false;
+                var purple = false;
                 cluster.getAllChildMarkers().forEach(function (marker) {
                     if (marker.group == 'green') green = true;
                     if (marker.group == 'red') red = true;
                     if (marker.group == 'orange') orange = true;
+                    if (marker.group == 'purple') purple = true;
                 });
-                if (red && orange && green) icon = 'redOrangeGreenCircle';
+                if (red && orange && green && purple) icon = 'redOrangeGreenPurpleCircle';
+                else if (red && orange && purple) icon = 'redOrangePurpleCircle';
+                else if (red && green && purple) icon = 'redPurpleGreenCircle';
+                else if (orange && green && purple) icon = 'purpleOrangeGreenCircle';
+                else if (red && purple) icon = 'redPurpleCircle';
+                else if (green && purple) icon = 'greenPurpleCircle';
+                else if (orange && purple) icon = 'orangePurpleCircle';
+                else if (red && orange && green) icon = 'redOrangeGreenCircle';
                 else if (red && orange) icon = 'redOrangeCircle';
                 else if (orange && green) icon = 'orangeGreenCircle';
                 else if (red && green) icon = 'redGreenCircle';

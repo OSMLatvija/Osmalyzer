@@ -250,6 +250,7 @@ public class HtmlFileReportWriter : ReportWriter
                         ColorGroup.Green  => "green",
                         ColorGroup.Orange => "orange",
                         ColorGroup.Red    => "red",
+                        ColorGroup.Purple => "purple",
                         ColorGroup.Other  => "none",
 
                         _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)

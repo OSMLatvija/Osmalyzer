@@ -34,6 +34,18 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="Reporting\HTML report resources\greenPurpleCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\orangeGreenCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\orangePurpleCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\purpleOrangeGreenCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\purpleQuestion.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redGreenCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redOrangeCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redOrangeGreenCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redOrangeGreenPurpleCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redOrangePurpleCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redPurpleCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\redPurpleGreenCircle.png" />
       <EmbeddedResource Include="Reporting\Report templates\marker.js" />
       <None Remove="Reporting\Report templates\report map template.html" />
       <EmbeddedResource Include="Reporting\Report templates\map.html" />
@@ -56,17 +68,13 @@
       <None Remove="Reporting\HTML report resources\redCross.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\redCross.png" />
       <None Remove="Reporting\HTML report resources\redGreenCircle.png" />
-      <EmbeddedResource Include="Reporting\HTML report resources\redGreenCircle.png" />
       <None Remove="Reporting\HTML report resources\redQuestion.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\redQuestion.png" />
       <None Remove="Reporting\HTML report resources\redExclamation.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\redExclamation.png" />
       <None Remove="Reporting\HTML report resources\redOrangeGreenCircle.png" />
-      <EmbeddedResource Include="Reporting\HTML report resources\redOrangeGreenCircle.png" />
       <None Remove="Reporting\HTML report resources\redOrangeCircle.png" />
-      <EmbeddedResource Include="Reporting\HTML report resources\redOrangeCircle.png" />
       <None Remove="Reporting\HTML report resources\orangeGreenCircle.png" />
-      <EmbeddedResource Include="Reporting\HTML report resources\orangeGreenCircle.png" />
       <None Remove="Reporting\HTML report resources\orangeCircle.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\orangeCircle.png" />
       <None Remove="Reporting\Report templates\index.html" />

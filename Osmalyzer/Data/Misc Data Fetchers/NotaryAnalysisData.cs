@@ -42,7 +42,13 @@ public class NotaryAnalysisData : AnalysisData, IUndatedAnalysisData
 
         string source = File.ReadAllText(DataFileName);
 
-        dynamic notaries = JsonConvert.DeserializeObject(source)!;
+        dynamic notaries = JsonConvert.DeserializeObject(
+            source, 
+            new JsonSerializerSettings
+            {
+                DateParseHandling = DateParseHandling.None // preserve times as given, don't convert to local time
+            }
+        )!;
 
         foreach (dynamic notary in notaries)
         {

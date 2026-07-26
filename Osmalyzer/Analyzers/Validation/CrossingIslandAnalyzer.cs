@@ -21,112 +21,176 @@ public class CrossingIslandAnalyzer : Analyzer
 
         OsmData osmMasterData = osmData.MasterData;
 
-        // Get all footways/paths
-        OsmData allFootwayWays = osmMasterData.Filter(
+        OsmData footwayWays = osmMasterData.Filter(
             new IsWay(),
             new OrMatch(
-                new HasValue("highway", "path"),
+                new HasValue("highway", "path"), // todo: or not?
                 new HasValue("highway", "footway")
             )
-        );
-        
-        // Out of those, get all crossing ways
-        OsmData crossingWays = allFootwayWays.Filter(
-            new HasValue("footway", "crossing")
         );
 
         // Prepare groups
 
-        report.AddGroup(ReportGroup.MismatchedBad, "Untagged connecting island way");
+        report.AddGroup(ReportGroup.MismatchedBad, "Island ways between crossing ways");
 
         report.AddEntry(
             ReportGroup.MismatchedBad,
             new DescriptionReportEntry(
                 "When crossings with traffic islands are mapped as separate ways for each road segment, " +
-                "the connecting island way between them should be tagged with footway=traffic_island" +
-                " (if it is indeed in the road median or along traffic islands)."
+                "the island way between them should be tagged with `footway=traffic_island`. " +
+                "Due to many weird layouts, this will have false positives. " +
+                "It is also impossible to detect what is a traffic island and what is just a short footway between independent crossings."
             )
         );
         
-        // Build a lookup of ways by terminal nodes for quick access
-        Dictionary<OsmNode, List<OsmWay>> waysAtNode = new Dictionary<OsmNode, List<OsmWay>>();
-        foreach (OsmWay way in allFootwayWays.Ways)
-        {
-            OsmNode? firstNode = way.Nodes.FirstOrDefault();
-            OsmNode? lastNode = way.Nodes.LastOrDefault();
-            
-            if (firstNode != null)
-            {
-                if (!waysAtNode.ContainsKey(firstNode))
-                    waysAtNode[firstNode] = new List<OsmWay>();
-                waysAtNode[firstNode].Add(way);
-            }
-            
-            if (lastNode != null && lastNode != firstNode)
-            {
-                if (!waysAtNode.ContainsKey(lastNode))
-                    waysAtNode[lastNode] = new List<OsmWay>();
-                waysAtNode[lastNode].Add(way);
-            }
-        }
+        // Build helper structures
+        
+        ConnectingWayLookup connectingWayLookup = new ConnectingWayLookup(footwayWays);
 
-        HashSet<long> crossingWayIds = new HashSet<long>(crossingWays.Ways.Select(w => w.Id));
-        List<ProblematicIslandWay> problematicWays = new List<ProblematicIslandWay>();
+        // Process
+        
+        List<ProblematicWay> untaggedIslandsBetweenCrossings = [ ];
+        List<ProblematicWay> islandsWithNonCrossingNeighbours = [ ];
 
-        // For each non-crossing way, check if it connects crossing ways on both ends
-        foreach (OsmWay way in allFootwayWays.Ways)
+        foreach (OsmWay way in footwayWays.Ways)
         {
-            // Skip if this is already marked as crossing or traffic island
-            if (crossingWayIds.Contains(way.Id))
-                continue;
-            
-            if (way.GetValue("footway") == "traffic_island")
+            // Make sure we are not a crossing
+            if (LooksLikeCrossing(way))
                 continue;
 
+            bool looksLikeTrafficIsland = LooksLikeTrafficIsland(way);
+            
             OsmNode firstNode = way.Nodes[0];
             OsmNode lastNode = way.Nodes[^1];
 
-            // Check if both ends connect to crossing ways
-            bool firstConnectsToSomething = false;
-            bool lastConnectsToSomething = false;
+            List<OsmWay> startNeighbours = connectingWayLookup.GetConnectingWays(firstNode, way).ToList();
+            List<OsmWay> endNeighbours = connectingWayLookup.GetConnectingWays(lastNode, way).ToList();
+            
+            // If we are between other ways
+            if (startNeighbours.Count == 0 || endNeighbours.Count == 0)
+                continue; // todo: report unconnected islands
+            
+            // Skip multiple connections, this is too complex and needs better micromapping before we can process it
+            if (startNeighbours.Count > 1 || endNeighbours.Count > 1)
+                continue; // todo: report these as warnings for fixing may be?
+            
+            OsmWay startNeighbour = startNeighbours[0];
+            OsmWay endNeighbour = endNeighbours[0];
 
-            if (waysAtNode.TryGetValue(firstNode, out List<OsmWay>? waysAtFirst))
+            double distance = OsmGeoTools.DistanceBetween(firstNode.coord, lastNode.coord);
+            
+            if (looksLikeTrafficIsland)
             {
-                firstConnectsToSomething = waysAtFirst.Any(w => w.Id != way.Id && crossingWayIds.Contains(w.Id));
+                // If we are a traffic island, make sure we are between crossings
+                if (!LooksLikeCrossing(startNeighbour) || !LooksLikeCrossing(endNeighbour))
+                    islandsWithNonCrossingNeighbours.Add(new ProblematicWay(way, startNeighbour, endNeighbour));
+                
+                // todo: report when very long?
             }
-
-            if (waysAtNode.TryGetValue(lastNode, out List<OsmWay>? waysAtLast))
-            {
-                lastConnectsToSomething = waysAtLast.Any(w => w.Id != way.Id && crossingWayIds.Contains(w.Id));
-            }
-
-            if (firstConnectsToSomething && lastConnectsToSomething)
-            {
-                // This way connects crossing ways on both ends - it's a candidate for traffic island tagging
-                OsmNode reportCoord = firstNode; // Use first node as the report coordinate
-                problematicWays.Add(new ProblematicIslandWay(way, reportCoord));
+            else
+            { 
+                // We cannot distinguish split crossings from just ways between independent crossings,
+                // so apply a threshold to avoid reporting ways that are more than likely not part of the same crossing "group" 
+                if (distance > 15) // meters
+                    continue;
+                
+                // If we are not a traffic island, make sure we are not between (two) crossings
+                if (LooksLikeCrossing(startNeighbour) && LooksLikeCrossing(endNeighbour))
+                    untaggedIslandsBetweenCrossings.Add(new ProblematicWay(way, startNeighbour, endNeighbour));
             }
         }
 
-        // Report findings
-        if (problematicWays.Count > 0)
+        // Report found issues
+        
+        if (untaggedIslandsBetweenCrossings.Count > 0)
         {
-            foreach (ProblematicIslandWay problem in problematicWays)
+            foreach (ProblematicWay problem in untaggedIslandsBetweenCrossings)
             {
                 report.AddEntry(
                     ReportGroup.MismatchedBad,
                     new IssueReportEntry(
-                        "Way " + problem.Way.OsmViewUrl + " connects crossing ways on both ends and should be tagged as `footway=traffic_island`.",
-                        problem.Coordinate.coord,
-                        MapPointStyle.Problem
+                        "Way " + problem.Way.OsmViewUrl + 
+                        " connects between crossing ways " +
+                        problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl +
+                        " but is not tagged as `footway=traffic_island`.",
+                        problem.Way.AverageCoord,
+                        MapPointStyle.Problem,
+                        problem.Way
+                    )
+                );
+            }
+            
+            foreach (ProblematicWay problem in islandsWithNonCrossingNeighbours)
+            {
+                report.AddEntry(
+                    ReportGroup.MismatchedBad,
+                    new IssueReportEntry(
+                        "Way " + problem.Way.OsmViewUrl + 
+                        " is tagged as `footway=traffic_island` but connects between non-crossing ways " +
+                        problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl + ".",
+                        problem.Way.AverageCoord,
+                        MapPointStyle.Problem,
+                        problem.Way
                     )
                 );
             }
         }
     }
-   
+
+
+    [Pure]
+    private static bool LooksLikeTrafficIsland(OsmWay way)
+    {
+        return way.GetValue("footway") == "traffic_island";
+    }
+
+    [Pure]
+    private static bool LooksLikeCrossing(OsmWay way)
+    {
+        return way.GetValue("footway") == "crossing";
+    }
+
+
+    private class ConnectingWayLookup
+    {
+        private readonly Dictionary<long, List<OsmWay>> _waysAtNode;
         
-    private record ProblematicIslandWay(OsmWay Way, OsmNode Coordinate);
+        
+        public ConnectingWayLookup(OsmData ways)
+        {
+            _waysAtNode = [ ];
+
+            foreach (OsmWay way in ways.Ways)
+            {
+                OsmNode firstNode = way.Nodes[0];
+                OsmNode lastNode = way.Nodes[^1];
+
+                if (!_waysAtNode.ContainsKey(firstNode.Id))
+                    _waysAtNode[firstNode.Id] = [ ];
+                
+                _waysAtNode[firstNode.Id].Add(way);
+
+                
+                if (!_waysAtNode.ContainsKey(lastNode.Id))
+                    _waysAtNode[lastNode.Id] = [ ];
+                
+                _waysAtNode[lastNode.Id].Add(way);
+            }
+        }
+
+        
+        [Pure]
+        public IEnumerable<OsmWay> GetConnectingWays(OsmNode node, OsmWay except)
+        {
+            if (!_waysAtNode.TryGetValue(node.Id, out List<OsmWay>? waysAtNode))
+                return [ ];
+
+            return waysAtNode.Except(except);
+        }
+    }
+    
+        
+    private record ProblematicWay(OsmWay Way, OsmWay StartNeighbour, OsmWay EndNeighbour);
 
     private enum ReportGroup
     {

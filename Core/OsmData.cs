@@ -800,6 +800,15 @@ public class OsmData
             _                                  => throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported OSM element type: {type}"),
         };
     }
+    
+    [Pure]
+    public bool ContainsNodeWithId(long id) => nodesById.ContainsKey(id);
+    
+    [Pure]
+    public bool ContainsWayWithId(long id) => waysById.ContainsKey(id);
+    
+    [Pure]
+    public bool ContainsRelationWithId(long id) => relationsById.ContainsKey(id);
 
 
     internal OsmElement Create(OsmGeo element)

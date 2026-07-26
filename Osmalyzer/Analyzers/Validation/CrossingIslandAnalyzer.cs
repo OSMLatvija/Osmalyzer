@@ -38,6 +38,8 @@ public class CrossingIslandAnalyzer : Analyzer
 
         // Prepare groups
 
+        const double trafficWayDistanceThreshold = 15;
+        
         report.AddGroup(ReportGroup.IslandsBetweenCrossings, "Island ways between crossing ways");
 
         report.AddEntry(
@@ -99,7 +101,7 @@ public class CrossingIslandAnalyzer : Analyzer
                 {
                     // If we are a traffic island, make sure we are between crossings
                     if (!LooksLikeCrossing(startNeighbour) || !LooksLikeCrossing(endNeighbour))
-                        islandsWithNonCrossingNeighbours.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag));
+                        islandsWithNonCrossingNeighbours.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag, distance));
 
                     // todo: report when very long?
                 }
@@ -107,12 +109,12 @@ public class CrossingIslandAnalyzer : Analyzer
                 {
                     // We cannot distinguish split crossings from just ways between independent crossings,
                     // so apply a threshold to avoid reporting ways that are more than likely not part of the same crossing "group" 
-                    if (distance > 15) // meters
+                    if (distance > trafficWayDistanceThreshold) // meters
                         continue;
 
                     // If we are not a traffic island, make sure we are not between (two) crossings
                     if (LooksLikeCrossing(startNeighbour) && LooksLikeCrossing(endNeighbour))
-                        untaggedIslandsBetweenCrossings.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag));
+                        untaggedIslandsBetweenCrossings.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag, distance));
                 }
             }
         }
@@ -127,7 +129,7 @@ public class CrossingIslandAnalyzer : Analyzer
                     ReportGroup.IslandsBetweenCrossings,
                     new IssueReportEntry(
                         "Way " + problem.Way.OsmViewUrl +
-                        " connects between crossing ways " +
+                        " connects at " + problem.Distance.ToString("F0") + "m between crossing ways " +
                         problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl +
                         " but is not tagged as `" + problem.PrimaryTag + "=traffic_island`.",
                         problem.Way.AverageCoord,
@@ -143,7 +145,8 @@ public class CrossingIslandAnalyzer : Analyzer
                     ReportGroup.IslandsBetweenCrossings,
                     new IssueReportEntry(
                         "Way " + problem.Way.OsmViewUrl +
-                        " is tagged as `" + problem.PrimaryTag + "=traffic_island` but connects between non-crossing ways " +
+                        " is tagged as `" + problem.PrimaryTag + "=traffic_island` " +
+                        "but connects at " + problem.Distance.ToString("F0") + "m between non-crossing ways " +
                         problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl + ".",
                         problem.Way.AverageCoord,
                         MapPointStyle.Problem,
@@ -211,7 +214,7 @@ public class CrossingIslandAnalyzer : Analyzer
     }
     
         
-    private record ProblematicWay(OsmWay Way, OsmWay StartNeighbour, OsmWay EndNeighbour, string PrimaryTag);
+    private record ProblematicWay(OsmWay Way, OsmWay StartNeighbour, OsmWay EndNeighbour, string PrimaryTag, double Distance);
 
     private enum ReportGroup
     {

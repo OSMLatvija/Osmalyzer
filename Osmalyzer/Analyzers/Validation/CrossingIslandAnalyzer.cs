@@ -40,6 +40,15 @@ public class CrossingIslandAnalyzer : Analyzer
 
         const double trafficWayDistanceThreshold = 15;
         
+        report.AddGroup(ReportGroup.CorrectTrafficIslands, "Correct traffic islands");
+
+        report.AddEntry(
+            ReportGroup.CorrectTrafficIslands,
+            new DescriptionReportEntry(
+                "Traffic island ways that appear to be properly mapped."
+            )
+        );
+
         report.AddGroup(ReportGroup.IslandsBetweenCrossings, "Island ways between crossing ways");
 
         report.AddEntry(
@@ -54,6 +63,7 @@ public class CrossingIslandAnalyzer : Analyzer
 
         // Prepare to collect issues
         
+        List<ProblematicWay> correctTrafficIslands = [ ];
         List<ProblematicWay> untaggedIslandsBetweenCrossings = [ ];
         List<ProblematicWay> islandsWithNonCrossingNeighbours = [ ];
 
@@ -102,6 +112,8 @@ public class CrossingIslandAnalyzer : Analyzer
                     // If we are a traffic island, make sure we are between crossings
                     if (!LooksLikeCrossing(startNeighbour) || !LooksLikeCrossing(endNeighbour))
                         islandsWithNonCrossingNeighbours.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag, distance));
+                    else
+                        correctTrafficIslands.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag, distance));
 
                     // todo: report when very long?
                 }
@@ -120,6 +132,25 @@ public class CrossingIslandAnalyzer : Analyzer
         }
 
         // Report found issues
+        
+        if (correctTrafficIslands.Count > 0)
+        {
+            foreach (ProblematicWay problem in correctTrafficIslands)
+            {
+                report.AddEntry(
+                    ReportGroup.CorrectTrafficIslands,
+                    new IssueReportEntry(
+                        "Way " + problem.Way.OsmViewUrl +
+                        " connects at " + problem.Distance.ToString("F0") + "m between crossing ways " +
+                        problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl +
+                        " and is tagged as expected with `" + problem.PrimaryTag + "=traffic_island`.",
+                        problem.Way.AverageCoord,
+                        MapPointStyle.Okay,
+                        problem.Way
+                    )
+                );
+            }
+        }
         
         if (untaggedIslandsBetweenCrossings.Count > 0)
         {
@@ -218,6 +249,7 @@ public class CrossingIslandAnalyzer : Analyzer
 
     private enum ReportGroup
     {
+        CorrectTrafficIslands,
         IslandsBetweenCrossings
     }
 }

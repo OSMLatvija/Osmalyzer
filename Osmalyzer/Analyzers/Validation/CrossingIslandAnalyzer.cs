@@ -21,13 +21,18 @@ public class CrossingIslandAnalyzer : Analyzer
 
         OsmData osmMasterData = osmData.MasterData;
 
-        OsmData ways = osmMasterData.Filter(
+        // Get all footways/paths
+        OsmData allFootwayWays = osmMasterData.Filter(
             new IsWay(),
             new OrMatch(
                 new HasValue("highway", "path"),
                 new HasValue("highway", "footway")
-            ),
-            new HasValue("footway", "crossing") // todo: later - what if it doesn't, but still have a crossing node?
+            )
+        );
+        
+        // Out of those, get all crossing ways
+        OsmData crossingWays = allFootwayWays.Filter(
+            new HasValue("footway", "crossing")
         );
 
         // Prepare groups
@@ -43,15 +48,86 @@ public class CrossingIslandAnalyzer : Analyzer
             )
         );
         
-        // todo: later - crossing:island = yes between very close ways - likely meant no
-        // todo: later - crossing way with multiple nodes - should split
-        
-        // Parse
-        
-        // TODO
+        // Build a lookup of ways by terminal nodes for quick access
+        Dictionary<OsmNode, List<OsmWay>> waysAtNode = new Dictionary<OsmNode, List<OsmWay>>();
+        foreach (OsmWay way in allFootwayWays.Ways)
+        {
+            OsmNode? firstNode = way.Nodes.FirstOrDefault();
+            OsmNode? lastNode = way.Nodes.LastOrDefault();
+            
+            if (firstNode != null)
+            {
+                if (!waysAtNode.ContainsKey(firstNode))
+                    waysAtNode[firstNode] = new List<OsmWay>();
+                waysAtNode[firstNode].Add(way);
+            }
+            
+            if (lastNode != null && lastNode != firstNode)
+            {
+                if (!waysAtNode.ContainsKey(lastNode))
+                    waysAtNode[lastNode] = new List<OsmWay>();
+                waysAtNode[lastNode].Add(way);
+            }
+        }
+
+        HashSet<long> crossingWayIds = new HashSet<long>(crossingWays.Ways.Select(w => w.Id));
+        List<ProblematicIslandWay> problematicWays = new List<ProblematicIslandWay>();
+
+        // For each non-crossing way, check if it connects crossing ways on both ends
+        foreach (OsmWay way in allFootwayWays.Ways)
+        {
+            // Skip if this is already marked as crossing or traffic island
+            if (crossingWayIds.Contains(way.Id))
+                continue;
+            
+            if (way.GetValue("footway") == "traffic_island")
+                continue;
+
+            OsmNode firstNode = way.Nodes[0];
+            OsmNode lastNode = way.Nodes[^1];
+
+            // Check if both ends connect to crossing ways
+            bool firstConnectsToSomething = false;
+            bool lastConnectsToSomething = false;
+
+            if (waysAtNode.TryGetValue(firstNode, out List<OsmWay>? waysAtFirst))
+            {
+                firstConnectsToSomething = waysAtFirst.Any(w => w.Id != way.Id && crossingWayIds.Contains(w.Id));
+            }
+
+            if (waysAtNode.TryGetValue(lastNode, out List<OsmWay>? waysAtLast))
+            {
+                lastConnectsToSomething = waysAtLast.Any(w => w.Id != way.Id && crossingWayIds.Contains(w.Id));
+            }
+
+            if (firstConnectsToSomething && lastConnectsToSomething)
+            {
+                // This way connects crossing ways on both ends - it's a candidate for traffic island tagging
+                OsmNode reportCoord = firstNode; // Use first node as the report coordinate
+                problematicWays.Add(new ProblematicIslandWay(way, reportCoord));
+            }
+        }
+
+        // Report findings
+        if (problematicWays.Count > 0)
+        {
+            foreach (ProblematicIslandWay problem in problematicWays)
+            {
+                report.AddEntry(
+                    ReportGroup.MismatchedBad,
+                    new IssueReportEntry(
+                        "Way " + problem.Way.OsmViewUrl + " connects crossing ways on both ends and should be tagged as `footway=traffic_island`.",
+                        problem.Coordinate.coord,
+                        MapPointStyle.Problem
+                    )
+                );
+            }
+        }
     }
    
         
+    private record ProblematicIslandWay(OsmWay Way, OsmNode Coordinate);
+
     private enum ReportGroup
     {
         MismatchedBad

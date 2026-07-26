@@ -57,6 +57,7 @@ public static class Runner
             // new TerminatingWaysAnalyzer(),
             // new DoubleMappedFeaturesAnalyzer(),
             // new CrossingConsistencyAnalyzer(),
+            new CrossingIslandAnalyzer(),
             // new StreetTaggingContinuityAnalyzer(),
             // new WikidataSynchronicityAnalyzer(), -- disabled
             // new BarrierConnectionAnalyzer(),
@@ -66,7 +67,7 @@ public static class Runner
             // new SmartPostiParcelLockerAnalyzer(),
             // new DPDParcelLockerAnalyzer(),
             // new UnknownParcelLockerAnalyzer(),
-            new LatviaPostLockerAnalyzer(),
+            // new LatviaPostLockerAnalyzer(),
             // new LatviaPostMailBoxAnalyzer(),
             // new LatviaPostOfficeAnalyzer(),
             // new PostCodeAnalyzer(),

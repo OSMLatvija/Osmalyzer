@@ -61,11 +61,23 @@ public class CrossingIslandAnalyzer : Analyzer
             )
         );
 
+        report.AddGroup(ReportGroup.CrossingIslandTagging, "Crossing island tagging on crossings");
+
+        report.AddEntry(
+            ReportGroup.CrossingIslandTagging,
+            new DescriptionReportEntry(
+                "When crossings with traffic islands are mapped as separate ways for each road segment, " +
+                "the crossing ways and crossing nodes should be tagged with `crossing:island=yes`."
+            )
+        );
+
         // Prepare to collect issues
         
-        List<ProblematicWay> correctTrafficIslands = [ ];
-        List<ProblematicWay> untaggedIslandsBetweenCrossings = [ ];
-        List<ProblematicWay> islandsWithNonCrossingNeighbours = [ ];
+        List<ProblematicIslandWay> correctTrafficIslands = [ ];
+        List<ProblematicIslandWay> untaggedIslandsBetweenCrossings = [ ];
+        List<ProblematicIslandWay> islandsWithNonCrossingNeighbours = [ ];
+        List<ProblematicCrossingNode> crossingNodesWithoutIslandTag = [ ];
+        List<ProblematicCrossingWay> crossingWaysWithoutIslandTag = [ ];
 
         // Process
 
@@ -83,10 +95,10 @@ public class CrossingIslandAnalyzer : Analyzer
             foreach (OsmWay way in ways)
             {
                 // Make sure we are not a crossing
-                if (LooksLikeCrossing(way))
+                if (TaggedAsCrossing(way))
                     continue;
 
-                bool looksLikeTrafficIsland = LooksLikeTrafficIsland(way);
+                bool taggedAsTrafficIsland = TaggedAsTrafficIsland(way);
 
                 OsmNode firstNode = way.Nodes[0];
                 OsmNode lastNode = way.Nodes[^1];
@@ -104,16 +116,20 @@ public class CrossingIslandAnalyzer : Analyzer
 
                 OsmWay startNeighbour = startNeighbours[0];
                 OsmWay endNeighbour = endNeighbours[0];
+                
+                // todo: extent along all ways to detect islands, like a triangle traffic island but it has 3 ways mapped - all should be islands
 
                 double distance = OsmGeoTools.DistanceBetween(firstNode.coord, lastNode.coord);
-
-                if (looksLikeTrafficIsland)
+                bool withinDistance = distance <= trafficWayDistanceThreshold;
+                bool bothNeighboursTaggedAsCrossings = TaggedAsCrossing(startNeighbour) && TaggedAsCrossing(endNeighbour);
+                
+                if (taggedAsTrafficIsland)
                 {
                     // If we are a traffic island, make sure we are between crossings
-                    if (!LooksLikeCrossing(startNeighbour) || !LooksLikeCrossing(endNeighbour))
-                        islandsWithNonCrossingNeighbours.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag, distance));
+                    if (!TaggedAsCrossing(startNeighbour) || !TaggedAsCrossing(endNeighbour))
+                        islandsWithNonCrossingNeighbours.Add(new ProblematicIslandWay(way, startNeighbour, endNeighbour, primaryTag, distance));
                     else
-                        correctTrafficIslands.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag, distance));
+                        correctTrafficIslands.Add(new ProblematicIslandWay(way, startNeighbour, endNeighbour, primaryTag, distance));
 
                     // todo: report when very long?
                 }
@@ -121,21 +137,68 @@ public class CrossingIslandAnalyzer : Analyzer
                 {
                     // We cannot distinguish split crossings from just ways between independent crossings,
                     // so apply a threshold to avoid reporting ways that are more than likely not part of the same crossing "group" 
-                    if (distance > trafficWayDistanceThreshold) // meters
-                        continue;
+                    if (withinDistance) // meters
+                    {
+                        // If we are not a traffic island, make sure we are not between (two) crossings
+                        if (bothNeighboursTaggedAsCrossings)
+                            untaggedIslandsBetweenCrossings.Add(new ProblematicIslandWay(way, startNeighbour, endNeighbour, primaryTag, distance));
+                    }
+                }
 
-                    // If we are not a traffic island, make sure we are not between (two) crossings
-                    if (LooksLikeCrossing(startNeighbour) && LooksLikeCrossing(endNeighbour))
-                        untaggedIslandsBetweenCrossings.Add(new ProblematicWay(way, startNeighbour, endNeighbour, primaryTag, distance));
+                // todo: refuge island way itself tagged with crossing:island=yes (or other crossing tags)
+                
+                if (withinDistance && bothNeighboursTaggedAsCrossings) // even if not tagged (yet) as traffic island
+                {
+                    OsmNode? startCrossingNode = GetCrossingNode(startNeighbour);
+                    OsmNode? endCrossingNode = GetCrossingNode(endNeighbour);
+
+                    // todo: report if node is terminal
+                        
+                    // todo: report if no nodes are available
+
+                    CheckTrafficIslandTaggingOnWay(startNeighbour);
+                    CheckTrafficIslandTaggingOnWay(endNeighbour);
+                    if (startCrossingNode != null) CheckTrafficIslandTaggingOnNode(startCrossingNode, startNeighbour);
+                    if (endCrossingNode != null) CheckTrafficIslandTaggingOnNode(endCrossingNode, endNeighbour);
+                        
+                    void CheckTrafficIslandTaggingOnNode(OsmNode crossingNode, OsmWay nodeWay)
+                    {
+                        string? islandValue = crossingNode.GetValue("crossing:island");
+
+                        if (islandValue != "no")
+                        {
+                            // Skip already-reported nodes, which can happen with multiple-island crossings
+                            if (crossingNodesWithoutIslandTag.Any(n => n.Node == crossingNode))
+                                return;
+                                
+                            crossingNodesWithoutIslandTag.Add(new ProblematicCrossingNode(crossingNode, nodeWay, islandValue));
+                        }
+                    }
+
+                    void CheckTrafficIslandTaggingOnWay(OsmWay crossingWay)
+                    {
+                        string? islandValue = crossingWay.GetValue("crossing:island");
+
+                        if (islandValue != "no")
+                        {
+                            // Skip already-reported ways, which can happen with multiple-island crossings
+                            if (crossingWaysWithoutIslandTag.Any(w => w.Way == crossingWay))
+                                return;
+
+                            crossingWaysWithoutIslandTag.Add(new ProblematicCrossingWay(crossingWay, islandValue));
+                        }
+                    }
+                    
+                    // todo: merge into single entry for both node and way
                 }
             }
         }
-
+        
         // Report found issues
         
         if (correctTrafficIslands.Count > 0)
         {
-            foreach (ProblematicWay problem in correctTrafficIslands)
+            foreach (ProblematicIslandWay problem in correctTrafficIslands)
             {
                 report.AddEntry(
                     ReportGroup.CorrectTrafficIslands,
@@ -152,45 +215,75 @@ public class CrossingIslandAnalyzer : Analyzer
             }
         }
         
-        if (untaggedIslandsBetweenCrossings.Count > 0)
+        foreach (ProblematicIslandWay problem in untaggedIslandsBetweenCrossings)
         {
-            foreach (ProblematicWay problem in untaggedIslandsBetweenCrossings)
-            {
-                report.AddEntry(
-                    ReportGroup.IslandsBetweenCrossings,
-                    new IssueReportEntry(
-                        "Way " + problem.Way.OsmViewUrl +
-                        " connects at " + problem.Distance.ToString("F0") + "m between crossing ways " +
-                        problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl +
-                        " but is not tagged as `" + problem.PrimaryTag + "=traffic_island`.",
-                        problem.Way.AverageCoord,
-                        MapPointStyle.Problem,
-                        problem.Way
-                    )
-                );
-            }
-            
-            foreach (ProblematicWay problem in islandsWithNonCrossingNeighbours)
-            {
-                report.AddEntry(
-                    ReportGroup.IslandsBetweenCrossings,
-                    new IssueReportEntry(
-                        "Way " + problem.Way.OsmViewUrl +
-                        " is tagged as `" + problem.PrimaryTag + "=traffic_island` " +
-                        "but connects at " + problem.Distance.ToString("F0") + "m between non-crossing ways " +
-                        problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl + ".",
-                        problem.Way.AverageCoord,
-                        MapPointStyle.Problem,
-                        problem.Way
-                    )
-                );
-            }
+            report.AddEntry(
+                ReportGroup.IslandsBetweenCrossings,
+                new IssueReportEntry(
+                    "Way " + problem.Way.OsmViewUrl +
+                    " connects at " + problem.Distance.ToString("F0") + "m between crossing ways " +
+                    problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl +
+                    " but is not tagged as `" + problem.PrimaryTag + "=traffic_island`.",
+                    problem.Way.AverageCoord,
+                    MapPointStyle.Problem,
+                    problem.Way
+                )
+            );
+        }
+        
+        foreach (ProblematicIslandWay problem in islandsWithNonCrossingNeighbours)
+        {
+            report.AddEntry(
+                ReportGroup.IslandsBetweenCrossings,
+                new IssueReportEntry(
+                    "Way " + problem.Way.OsmViewUrl +
+                    " is tagged as `" + problem.PrimaryTag + "=traffic_island` " +
+                    "but connects at " + problem.Distance.ToString("F0") + "m between non-crossing ways " +
+                    problem.StartNeighbour.OsmViewUrl + " and " + problem.EndNeighbour.OsmViewUrl + ".",
+                    problem.Way.AverageCoord,
+                    MapPointStyle.Problem,
+                    problem.Way
+                )
+            );
+        }
+
+        foreach (ProblematicCrossingNode problem in crossingNodesWithoutIslandTag)
+        {
+            report.AddEntry(
+                ReportGroup.CrossingIslandTagging,
+                new IssueReportEntry(
+                    "Crossing node " + problem.Node.OsmViewUrl + " " +
+                    "on a crossing way " + problem.NodeWay.OsmViewUrl +
+                    " appears to be part of separately-mapped crossings with a traffic island " +
+                    " but is not tagged as `crossing:island=no`, " +
+                    "instead " + (problem.IslandValue != null ? "`" + problem.IslandValue + "`" : "no value") + ".",
+                    problem.Node.coord,
+                    problem.IslandValue != null ? MapPointStyle.Problem : MapPointStyle.Dubious, // value is technically not required
+                    problem.Node
+                )
+            );
+        }
+        
+        foreach (ProblematicCrossingWay problem in crossingWaysWithoutIslandTag)
+        {
+            report.AddEntry(
+                ReportGroup.CrossingIslandTagging,
+                new IssueReportEntry(
+                    "Crossing way " + problem.Way.OsmViewUrl + " " +
+                    "appears to be part of separately-mapped crossings with a traffic island " +
+                    " but is not tagged as `crossing:island=no`, " +
+                    "instead " + (problem.IslandValue != null ? "`" + problem.IslandValue + "`" : "no value") + ".",
+                    problem.Way.AverageCoord,
+                    problem.IslandValue != null ? MapPointStyle.Problem : MapPointStyle.Dubious, // value is technically not required
+                    problem.Way
+                )
+            );
         }
     }
 
 
     [Pure]
-    private static bool LooksLikeTrafficIsland(OsmWay way)
+    private static bool TaggedAsTrafficIsland(OsmWay way)
     {
         return 
             way.GetValue("footway") == "traffic_island" || 
@@ -198,11 +291,21 @@ public class CrossingIslandAnalyzer : Analyzer
     }
 
     [Pure]
-    private static bool LooksLikeCrossing(OsmWay way)
+    private static bool TaggedAsCrossing(OsmWay way)
     {
         return
             way.GetValue("footway") == "crossing" ||
             way.GetValue("cycleway") == "crossing";
+    }
+
+    [Pure]
+    private static OsmNode? GetCrossingNode(OsmWay way)
+    {
+        foreach (OsmNode node in way.Nodes)
+            if (node.GetValue("highway") == "crossing")
+                return node;
+        
+        return null;
     }
 
 
@@ -245,11 +348,17 @@ public class CrossingIslandAnalyzer : Analyzer
     }
     
         
-    private record ProblematicWay(OsmWay Way, OsmWay StartNeighbour, OsmWay EndNeighbour, string PrimaryTag, double Distance);
+    private record ProblematicIslandWay(OsmWay Way, OsmWay StartNeighbour, OsmWay EndNeighbour, string PrimaryTag, double Distance);
+    
+    private record ProblematicCrossingNode(OsmNode Node, OsmWay NodeWay, string? IslandValue);
+    
+    private record ProblematicCrossingWay(OsmWay Way, string? IslandValue);
 
+    
     private enum ReportGroup
     {
         CorrectTrafficIslands,
-        IslandsBetweenCrossings
+        IslandsBetweenCrossings,
+        CrossingIslandTagging
     }
 }

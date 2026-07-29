@@ -44,7 +44,15 @@ public class GTFSPoints
             if (stop == null) 
                 continue; // broken data?
 
-            GTFSPoint newPoint = new GTFSPoint(trip, stop);
+            int? pickupType = null;
+            if (segments.Count > 5)
+                pickupType = int.Parse(segments[5]);
+            
+            int? dropOffType = null;
+            if (segments.Count > 6)
+                dropOffType = int.Parse(segments[6]);
+            
+            GTFSPoint newPoint = new GTFSPoint(trip, stop, pickupType, dropOffType);
 
             _points.Add(newPoint);
 

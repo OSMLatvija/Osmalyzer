@@ -5,11 +5,17 @@ public class GTFSPoint
     public GTFSTrip? Trip { get; }
         
     public GTFSStop Stop { get; }
+    
+    public int? PickupType { get; }
+    
+    public int? DropOffType { get; }
 
 
-    public GTFSPoint(GTFSTrip? trip, GTFSStop stop)
+    public GTFSPoint(GTFSTrip? trip, GTFSStop stop, int? pickupType, int? dropOffType)
     {
         Trip = trip;
         Stop = stop;
+        PickupType = pickupType;
+        DropOffType = dropOffType;
     }
 }

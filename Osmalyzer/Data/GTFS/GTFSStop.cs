@@ -13,6 +13,12 @@ public class GTFSStop
     public bool Trolleybus { get; set; }
         
     public bool Tram { get; set; }
+    
+    
+    public IEnumerable<GTFSPoint> Points => _points.AsReadOnly();
+
+
+    private readonly List<GTFSPoint> _points = [ ];
 
 
     public GTFSStop(string id, string name, OsmCoord coord)
@@ -26,5 +32,10 @@ public class GTFSStop
     public void CleanName(Func<string, string> callback)
     {
         Name = callback(Name);
+    }
+
+    public void AddPoint(GTFSPoint point)
+    {
+        _points.Add(point);
     }
 }

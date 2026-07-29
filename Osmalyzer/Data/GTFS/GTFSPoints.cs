@@ -56,8 +56,9 @@ public class GTFSPoints
 
             _points.Add(newPoint);
 
-            if (trip != null)
-                trip.AddPoint(newPoint);
+            trip?.AddPoint(newPoint);
+
+            stop.AddPoint(newPoint);
         }
     }
 }

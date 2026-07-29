@@ -7,8 +7,10 @@ public class RezeknesSatiksmeAnalyzer : PublicTransportAnalyzer<RezeknesSatiksme
 
         
     protected override string Label => "RS";
-    
-    
+
+    protected override bool CheckStopBoardingTypes => false;
+
+
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
     {
         gtfsNetwork.CleanStopNames(CleanRouteStopName);

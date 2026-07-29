@@ -7,6 +7,8 @@ public class AutotransportaDirekcijaAnalyzer : PublicTransportAnalyzer<Autotrans
 
         
     protected override string Label => "ATD";
+
+    protected override bool CheckStopBoardingTypes => false;
     
     
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)

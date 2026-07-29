@@ -7,6 +7,8 @@ public class LiepajasTransportsAnalyzer : PublicTransportAnalyzer<LiepajasTransp
 
 
     protected override string Label => "LST";
+
+    protected override bool CheckStopBoardingTypes => false;
     
     
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)

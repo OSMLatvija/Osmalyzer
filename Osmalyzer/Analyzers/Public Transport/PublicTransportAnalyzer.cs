@@ -18,7 +18,12 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
 
     /// <summary> Very short label for report texts </summary>
-    protected abstract string Label { get; }
+    protected abstract string Label { get; } // todo: not used, wire
+    
+    protected abstract bool CheckStopBoardingTypes { get; }
+
+    protected virtual int StopBoardingDefaultValue { get; } = 0;
+    protected virtual int StopBoardingOnRequestValue { get; } = 3;
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -261,24 +266,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             // todo: names
             // todo: to / via / from
             // todo: stop transport mode match
-                
-
-            [Pure]
-            static string RouteStopMapPointLabel(GTFSStop routeStop)
-            {
-                return "`" + routeStop.Name + "` [`" + routeStop.Id + "`]";
-            }
-                
-            [Pure]
-            static string OsmStopMapPointLabel(OsmElement osmStop)
-            {
-                string? osmStopName = osmStop.GetValue("name");
-                string? osmStopRef = osmStop.GetValue("ref");
-
-                return
-                    (osmStopName != null ? " `" + osmStopName + "`" : "Unnamed") +
-                    (osmStopRef != null ? " [`" + osmStopRef + "`]" : "");
-            }
+            
         }
 
         // List skipped variants
@@ -292,6 +280,65 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             foreach (RouteVariant variant in skippedVariants)
             {
                 report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("The route " + variant.Route.TypeLabel + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name + " has " + variant.TripCount + " trips with the sequence of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name))));
+            }
+        }
+        
+        // Check boarding types
+
+        if (CheckStopBoardingTypes)
+        {
+            report.AddGroup(
+                GroupDesignation.BoardingTypes,
+                "Stop boarding types"
+            );
+            
+            int boardingDefaultValue = StopBoardingDefaultValue;
+            int boardingOnRequestValue = StopBoardingOnRequestValue;
+
+            foreach (GTFSStop stop in gtfsNetwork.Stops.Stops)
+            {
+                // todo: only doing pickup for now
+
+                // TODO: WE HAVEN'T ACTUALLY MATCHED OSM STOPS GLOBALLY
+                
+                if (stop.CommonPickupType != null)
+                {
+                    if (stop.CommonPickupType == boardingDefaultValue || stop.CommonPickupType == boardingOnRequestValue)
+                    {
+                        report.AddEntry(
+                            GroupDesignation.BoardingTypes,
+                            new IssueReportEntry(
+                                "Stop " + RouteStopMapPointLabel(stop) + " has a pickup type `" + stop.CommonPickupType + "` in GTFS data.",
+                                stop.Coord,
+                                stop.CommonPickupType == boardingDefaultValue ?
+                                    MapPointStyle.BusStopMatchedWell : // green
+                                    MapPointStyle.BusStopOsmUnmatched // purple
+                            )
+                        );
+                    }
+                    else
+                    {
+                        report.AddEntry(
+                            GroupDesignation.BoardingTypes,
+                            new IssueReportEntry(
+                                "Stop " + RouteStopMapPointLabel(stop) + " has an unexpected pickup type `" + stop.CommonPickupType + "` in GTFS data.",
+                                stop.Coord,
+                                MapPointStyle.Dubious
+                            )
+                        );
+                    }
+                }
+                else
+                {
+                    report.AddEntry(
+                        GroupDesignation.BoardingTypes,
+                        new IssueReportEntry(
+                            "Stop " + RouteStopMapPointLabel(stop) + " doesn't have a pickup type in GTFS data.",
+                            stop.Coord,
+                            MapPointStyle.Problem
+                        )
+                    );
+                }
             }
         }
     }
@@ -866,8 +913,27 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     }
     
     
+    [Pure]
+    private static string RouteStopMapPointLabel(GTFSStop routeStop)
+    {
+        return "`" + routeStop.Name + "` [`" + routeStop.Id + "`]";
+    }
+                
+    [Pure]
+    private static string OsmStopMapPointLabel(OsmElement osmStop)
+    {
+        string? osmStopName = osmStop.GetValue("name");
+        string? osmStopRef = osmStop.GetValue("ref");
+
+        return
+            (osmStopName != null ? " `" + osmStopName + "`" : "Unnamed") +
+            (osmStopRef != null ? " [`" + osmStopRef + "`]" : "");
+    }
+    
+    
     private enum GroupDesignation
     {
-        SkippedVariants
+        SkippedVariants,
+        BoardingTypes
     }
 }

@@ -8,7 +8,9 @@ public class RigasSatiksmeAnalyzer : PublicTransportAnalyzer<RigasSatiksmeAnalys
         
     protected override string Label => "RS";
     
-    
+    protected override bool CheckStopBoardingTypes => true;
+
+
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
     {
         // We don't have any known global issues

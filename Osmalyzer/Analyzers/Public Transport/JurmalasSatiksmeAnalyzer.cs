@@ -7,6 +7,8 @@ public class JurmalasSatiksmeAnalyzer : PublicTransportAnalyzer<JurmalasSatiksme
 
         
     protected override string Label => "JS";
+
+    protected override bool CheckStopBoardingTypes => false;
     
     
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)

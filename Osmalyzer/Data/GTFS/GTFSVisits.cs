@@ -3,17 +3,17 @@
 /// <summary>
 /// "Times that a vehicle arrives at and departs from stops for each trip."
 /// </summary>
-public class GTFSPoints
+public class GTFSVisits
 {
-    public IEnumerable<GTFSPoint> Points => _points.AsReadOnly();
+    public IEnumerable<GTFSVisit> Visits => _visits.AsReadOnly();
 
         
-    private readonly List<GTFSPoint> _points;
+    private readonly List<GTFSVisit> _visits;
 
         
-    public GTFSPoints(string dataFileName, GTFSStops stops, GTFSTrips trips)
+    public GTFSVisits(string dataFileName, GTFSStops stops, GTFSTrips trips)
     {
-        _points = [ ];
+        _visits = [ ];
             
         string[] lines = File.ReadAllLines(dataFileName);
 
@@ -52,13 +52,13 @@ public class GTFSPoints
             if (segments.Count > 6)
                 dropOffType = int.Parse(segments[6]);
             
-            GTFSPoint newPoint = new GTFSPoint(trip, stop, pickupType, dropOffType);
+            GTFSVisit newVisit = new GTFSVisit(trip, stop, pickupType, dropOffType);
 
-            _points.Add(newPoint);
+            _visits.Add(newVisit);
 
-            trip?.AddPoint(newPoint);
+            trip?.AddPoint(newVisit);
 
-            stop.AddPoint(newPoint);
+            stop.AddPoint(newVisit);
         }
     }
 }

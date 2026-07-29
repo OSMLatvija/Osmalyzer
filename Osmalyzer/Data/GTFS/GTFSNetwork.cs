@@ -16,7 +16,7 @@ public class GTFSNetwork
         
     public GTFSTrips Trips { get; }
         
-    public GTFSPoints Points { get; }
+    public GTFSVisits Visits { get; }
 
 
     public GTFSNetwork(string dataPath)
@@ -29,7 +29,7 @@ public class GTFSNetwork
             
         Trips = new GTFSTrips(Path.Combine(dataPath, "trips.txt"), Routes, Services);
             
-        Points = new GTFSPoints(Path.Combine(dataPath, "stop_times.txt"), Stops, Trips);
+        Visits = new GTFSVisits(Path.Combine(dataPath, "stop_times.txt"), Stops, Trips);
 
         // Post-process
 

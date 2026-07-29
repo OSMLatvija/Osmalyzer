@@ -15,10 +15,10 @@ public class GTFSStop
     public bool Tram { get; set; }
     
     
-    public IEnumerable<GTFSPoint> Points => _points.AsReadOnly();
+    public IEnumerable<GTFSVisit> Visits => _visits.AsReadOnly();
 
 
-    private readonly List<GTFSPoint> _points = [ ];
+    private readonly List<GTFSVisit> _visits = [ ];
 
 
     public GTFSStop(string id, string name, OsmCoord coord)
@@ -34,8 +34,8 @@ public class GTFSStop
         Name = callback(Name);
     }
 
-    public void AddPoint(GTFSPoint point)
+    public void AddPoint(GTFSVisit visit)
     {
-        _points.Add(point);
+        _visits.Add(visit);
     }
 }

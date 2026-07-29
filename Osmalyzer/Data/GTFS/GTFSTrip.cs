@@ -8,12 +8,12 @@ public class GTFSTrip
     
     public GTFSService? Service { get; }
 
-    public IEnumerable<GTFSPoint> Points => _points.AsReadOnly();
+    public IEnumerable<GTFSVisit> Visits => _visits.AsReadOnly();
         
-    public IEnumerable<GTFSStop> Stops => _points.Select(p => p.Stop);
+    public IEnumerable<GTFSStop> Stops => _visits.Select(p => p.Stop);
 
 
-    private readonly List<GTFSPoint> _points = [ ];
+    private readonly List<GTFSVisit> _visits = [ ];
 
 
     public GTFSTrip(string id, GTFSRoute route, GTFSService? service)
@@ -24,9 +24,9 @@ public class GTFSTrip
     }
 
         
-    public void AddPoint(GTFSPoint point)
+    public void AddPoint(GTFSVisit visit)
     {
-        _points.Add(point);
+        _visits.Add(visit);
     }
 
 

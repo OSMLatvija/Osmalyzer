@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public class GTFSPoint
+public class GTFSVisit
 {
     public GTFSTrip? Trip { get; }
         
@@ -11,7 +11,7 @@ public class GTFSPoint
     public int? DropOffType { get; }
 
 
-    public GTFSPoint(GTFSTrip? trip, GTFSStop stop, int? pickupType, int? dropOffType)
+    public GTFSVisit(GTFSTrip? trip, GTFSStop stop, int? pickupType, int? dropOffType)
     {
         Trip = trip;
         Stop = stop;

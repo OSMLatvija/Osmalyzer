@@ -289,7 +289,11 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         {
             report.AddGroup(
                 GroupDesignation.BoardingTypes,
-                "Stop boarding types"
+                "Stop boarding types",
+                null,
+                null,
+                false,
+                false // don't cluster stops for clarity for now
             );
             
             int boardingDefaultValue = StopBoardingDefaultValue;

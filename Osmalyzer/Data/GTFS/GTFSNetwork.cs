@@ -33,6 +33,20 @@ public class GTFSNetwork
 
         // Post-process
 
+        AssignVehicleTypeToStops();
+
+        DetermineStopPickupDropOffTypes();
+    }
+
+
+    public void CleanStopNames(Func<string, string> callback)
+    {
+        Stops.CleanNames(callback);
+    }
+
+
+    private void AssignVehicleTypeToStops()
+    {
         foreach (GTFSRoute route in Routes.Routes)
         {
             foreach (GTFSService service in route.Services)
@@ -65,9 +79,49 @@ public class GTFSNetwork
             }
         }
     }
-
-    public void CleanStopNames(Func<string, string> callback)
+    
+    private void DetermineStopPickupDropOffTypes()
     {
-        Stops.CleanNames(callback);
+        foreach (GTFSStop stop in Stops.Stops)
+        {
+            int? pickupType = null;
+            
+            foreach (GTFSVisit visit in stop.Visits)
+            {
+                if (visit.PickupType != null)
+                {
+                    if (pickupType == null)
+                    {
+                        pickupType = visit.PickupType;
+                    }
+                    else if (pickupType != visit.PickupType)
+                    {
+                        pickupType = null;
+                        break; // multiple/conflicting values
+                    }
+                }
+            }
+            
+            int? dropOffType = null;
+            
+            foreach (GTFSVisit visit in stop.Visits)
+            {
+                if (visit.DropOffType != null)
+                {
+                    if (dropOffType == null)
+                    {
+                        dropOffType = visit.DropOffType;
+                    }
+                    else if (dropOffType != visit.DropOffType)
+                    {
+                        dropOffType = null;
+                        break; // multiple/conflicting values
+                    }
+                }
+            }
+            
+            stop.CommonPickupType = pickupType;
+            stop.CommonDropOffType = dropOffType;
+        }
     }
 }

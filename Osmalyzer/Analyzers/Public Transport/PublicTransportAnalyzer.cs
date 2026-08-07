@@ -102,6 +102,11 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             // Use existing name matching logic
             if (IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmStopName))
                 return MatchStrength.Strong;
+            
+            string? osmAltName = osmElement.GetValue("alt_name");
+            if (osmAltName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmAltName))
+                return MatchStrength.Good; // signs and data may occasionally differ
+            // TODO: REPORT THESE - THEY MIGHT GET FIXED OVER TIME
 
             return MatchStrength.Unmatched;
         }

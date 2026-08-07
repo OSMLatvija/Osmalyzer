@@ -91,6 +91,10 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         // Create correlator with appropriate parameters
         MatchStrength IsGoodStopMatch(GTFSStopDataItem gtfsStop, OsmElement osmElement)
         {
+            string? stopRef = osmElement.GetValue("ref");
+            if (stopRef != null && stopRef == gtfsStop.Stop.Id)
+                return MatchStrength.Strong;
+            
             // Check if the OSM element is actually a stop
             if (!osmElement.HasKey("name"))
                 return MatchStrength.Unmatched;
@@ -101,11 +105,11 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
             // Use existing name matching logic
             if (IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmStopName))
-                return MatchStrength.Strong;
+                return MatchStrength.Good;
             
             string? osmAltName = osmElement.GetValue("alt_name");
             if (osmAltName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmAltName))
-                return MatchStrength.Good; // signs and data may occasionally differ
+                return MatchStrength.Regular; // signs and data may occasionally differ
             // TODO: REPORT THESE - THEY MIGHT GET FIXED OVER TIME
 
             return MatchStrength.Unmatched;

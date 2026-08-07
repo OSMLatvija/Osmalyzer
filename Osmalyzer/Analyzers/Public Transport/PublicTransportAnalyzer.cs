@@ -63,6 +63,68 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             
         OsmData osmStops = routeData[0];
         OsmData osmRoutes = routeData[1];
+        
+        // Correlate OSM stops to data stops
+        
+        report.AddGroup(
+            GroupDesignation.StopMatching,
+            "Stop matching"
+        );
+
+        // Convert GTFS stops to data items for correlation
+        List<GTFSStopDataItem> stopDataItems = gtfsNetwork.Stops.Stops
+                                                          .Select(stop => new GTFSStopDataItem(stop))
+                                                          .ToList();
+
+        Correlator<GTFSStopDataItem> correlator = new Correlator<GTFSStopDataItem>(
+            osmStops,
+            stopDataItems,
+            new MatchDistanceParamater(50),
+            new MatchFarDistanceParamater(150),
+            new MatchCallbackParameter<GTFSStopDataItem>(IsGoodStopMatch),
+            new LoneElementAllowanceParameter(DoesStopLookLikeOperatorsStop),
+            new DataItemLabelsParamater("stop", "stops"),
+            new OsmElementPreviewValue("name", false),
+            new OsmElementPreviewValue("ref", false)
+        );
+
+        // Create correlator with appropriate parameters
+        MatchStrength IsGoodStopMatch(GTFSStopDataItem gtfsStop, OsmElement osmElement)
+        {
+            // Check if the OSM element is actually a stop
+            if (!osmElement.HasKey("name"))
+                return MatchStrength.Unmatched;
+
+            string? osmStopName = osmElement.GetValue("name");
+            if (osmStopName == null)
+                return MatchStrength.Unmatched;
+
+            // Use existing name matching logic
+            if (IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmStopName))
+                return MatchStrength.Strong;
+
+            return MatchStrength.Unmatched;
+        }
+
+        // Run the correlation
+        CorrelatorReport correlatorReport = correlator.Parse(
+            report,
+            GroupDesignation.StopMatching,
+            new MatchedPairBatch(),
+            new MatchedFarPairBatch(),
+            new UnmatchedItemBatch(),
+            new MatchedLoneOsmBatch(true)
+        );
+        
+        bool DoesStopLookLikeOperatorsStop(OsmElement osmStop)
+        {
+            // TODO:
+            
+            // Has operator's tags
+            // Has operator's route
+            
+            return false;
+        }
 
         // Parse routes into variants
 
@@ -933,10 +995,12 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             (osmStopName != null ? " `" + osmStopName + "`" : "Unnamed") +
             (osmStopRef != null ? " [`" + osmStopRef + "`]" : "");
     }
-    
-    
+
+
     private enum GroupDesignation
+
     {
+        StopMatching,
         SkippedVariants,
         BoardingTypes
     }

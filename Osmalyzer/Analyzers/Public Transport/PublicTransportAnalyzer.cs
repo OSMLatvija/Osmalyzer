@@ -134,6 +134,42 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             
             return false;
         }
+        
+        // Validate stops and propose changes
+        
+        if (CheckStopBoardingTypes)
+        {
+            Validator<GTFSStopDataItem> stopValidator = new Validator<GTFSStopDataItem>(
+                correlatorReport,
+                "Stop tagging issues"
+            );
+
+            int boardingDefaultValue = StopBoardingDefaultValue;
+            int boardingOnRequestValue = StopBoardingOnRequestValue;
+
+            Validation validation = stopValidator.Validate(
+                report,
+                false, // don't validate unmatched elements (we only care about matched stops)
+                false, // don't validate lone OSM elements
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue)
+            );
+
+            string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
+            {
+                // Determine expected request_stop value based on GTFS pickup type
+                if (gtfsStopItem.Stop.CommonPickupType == boardingOnRequestValue)
+                    return "yes";
+                else if (gtfsStopItem.Stop.CommonPickupType == boardingDefaultValue)
+                    return "no"; // Regular stops shouldn't have the tag
+                else
+                    return null; // Unknown types: no validation
+            }
+
+#if DEBUG
+            SuggestedActionApplicator.ApplyAndProposeXml(osmStops, validation.Changes, this);
+            SuggestedActionApplicator.ExplainForReport(validation.Changes, report, GroupDesignation.ProposedChanges);
+#endif
+        }
 
         // Parse routes into variants
 
@@ -1011,6 +1047,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     {
         StopMatching,
         SkippedVariants,
-        BoardingTypes
+        BoardingTypes,
+        ProposedChanges
     }
 }

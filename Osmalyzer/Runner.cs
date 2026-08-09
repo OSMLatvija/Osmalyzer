@@ -20,7 +20,7 @@ public static class Runner
 #else
         List<Analyzer> analyzers =
         [
-            new RigasSatiksmeAnalyzer(),
+            // new RigasSatiksmeAnalyzer(),
             // new LiepajasTransportsAnalyzer(),
             // new RezeknesSatiksmeAnalyzer(),
             // new JurmalasSatiksmeAnalyzer(),
@@ -75,7 +75,7 @@ public static class Runner
             // new LidlShopAnalyzer(),
             // new UnisendParcelLockerAnalyzer(),
             // new SpellingAnalyzer(),
-            // new DuplicatePlatformsAnalyzer(),
+            new DuplicatePlatformsAnalyzer(),
             // new LoneCrossingAnalyzer(),
             // new BarrierAnalyzer(),
             // new InfoboardAnalyzer(),

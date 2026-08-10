@@ -10,6 +10,11 @@ public class RezeknesSatiksmeAnalyzer : PublicTransportAnalyzer<RezeknesSatiksme
 
     protected override bool CheckStopBoardingTypes => false;
 
+    protected override string OsmTaggingValueForOperator => "Rēzeknes satiksme";
+    protected override string? OsmTaggingValueForOperatorWikidata => null;
+    protected override OsmCoord? StopMatchingCenter => null;
+    protected override double? StopMatchingDistance => null;
+
 
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
     {

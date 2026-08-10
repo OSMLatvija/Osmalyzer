@@ -15,7 +15,7 @@ public class ValidateElementHasValue : ValidationRule
     /// <summary>
     /// A value set means that specific value is expected.
     /// Empty means value is expected to NOT be set.
-    /// Null means we don't know what value if any is expected.
+    /// Null means we don't know what value if any is expected, so it won't be checked.
     /// </summary>
     public string? Value { get; }
 

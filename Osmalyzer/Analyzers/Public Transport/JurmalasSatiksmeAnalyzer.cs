@@ -9,6 +9,11 @@ public class JurmalasSatiksmeAnalyzer : PublicTransportAnalyzer<JurmalasSatiksme
     protected override string Label => "JS";
 
     protected override bool CheckStopBoardingTypes => false;
+
+    protected override string OsmTaggingValueForOperator => "Jūrmalas Autobusu Satiksme";
+    protected override string? OsmTaggingValueForOperatorWikidata => null;
+    protected override OsmCoord? StopMatchingCenter => null;
+    protected override double? StopMatchingDistance => null;
     
     
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)

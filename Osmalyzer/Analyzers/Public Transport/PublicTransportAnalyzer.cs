@@ -24,6 +24,11 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
 
     protected virtual int StopBoardingDefaultValue { get; } = 0;
     protected virtual int StopBoardingOnRequestValue { get; } = 3;
+    
+    protected abstract string OsmTaggingValueForOperator { get; }
+    protected abstract string? OsmTaggingValueForOperatorWikidata { get; }
+    protected abstract OsmCoord? StopMatchingCenter { get; }
+    protected abstract double? StopMatchingDistance { get; }
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -91,8 +96,17 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         // Create correlator with appropriate parameters
         MatchStrength IsGoodStopMatch(GTFSStopDataItem gtfsStop, OsmElement osmElement)
         {
-            string? stopRef = osmElement.GetValue("ref");
-            if (stopRef != null && stopRef == gtfsStop.Stop.Id)
+            // Explicit `gtfs:stop_id`
+            string? gtfsStopIdTag = osmElement.GetValue("gtfs:stop_id");
+            if (gtfsStopIdTag != null && gtfsStopIdTag == gtfsStop.Stop.Id)
+                return MatchStrength.Strong;
+            
+            string? refTag = osmElement.GetValue("ref"); // weaker than `gtfs:stop_id` but still a strong match
+            if (refTag != null && refTag == gtfsStop.Stop.Id)
+                return MatchStrength.Strong;
+            
+            string? unsignedRefTag = osmElement.GetValue("unsigned_ref"); 
+            if (unsignedRefTag != null && unsignedRefTag == gtfsStop.Stop.Id)
                 return MatchStrength.Strong;
             
             string? osmStopName = osmElement.GetValue("name");
@@ -123,11 +137,68 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         
         bool DoesStopLookLikeOperatorsStop(OsmElement osmStop)
         {
-            // TODO:
+            // Has operator's tags?
+
+            string? operatorTag = osmStop.GetValue("operator");
+            if (operatorTag != null && operatorTag.ToLower() == OsmTaggingValueForOperator.ToLower())
+                return true;
+
+            string? operatorWikidataTag = osmStop.GetValue("operator:wikidata");
+            if (OsmTaggingValueForOperatorWikidata != null)
+            {
+                if (operatorWikidataTag != null && operatorWikidataTag.ToLower() == OsmTaggingValueForOperatorWikidata.ToLower())
+                    return true;
+            }
+
+            // Has operator's route?
+
+            if (osmStop.Relations != null)
+            {
+                foreach (OsmRelationMember member in osmStop.Relations)
+                {
+                    // todo: not using actual routes we find
+
+                    if (member.Type == OsmElement.OsmElementType.Relation)
+                    {
+                        if (member.Element!.HasValue("type", "route") &&
+                            member.Element!.HasValue("route", "tram", "bus", "trolleybus"))
+                        {
+                            string? routeOperatorTag = member.Element.GetValue("operator");
+                            if (routeOperatorTag != null && routeOperatorTag.ToLower() == OsmTaggingValueForOperator.ToLower())
+                                return true;
+
+                            string? routeOperatorWikidataTag = member.Element.GetValue("operator:wikidata");
+                            if (routeOperatorWikidataTag != null && routeOperatorWikidataTag.ToLower() == OsmTaggingValueForOperatorWikidata.ToLower())
+                                return true;
+                        }
+                    }
+                }
+            }
             
-            // Has operator's tags
-            // Has operator's route
+            // Is explicitly regional?
             
+            // `network=LV:regional` ?
+            string? networkTag = osmStop.GetValue("network");
+            if (networkTag != null && networkTag.ToLower().Contains("regional"))
+                return false;
+
+            // `service=regional` ?
+            string? serviceTag = osmStop.GetValue("service");
+            if (serviceTag != null && serviceTag.ToLower() == "regional")
+                return false;
+            
+            // Within distance of expected?
+            
+            if (StopMatchingCenter != null && StopMatchingDistance != null)
+            {
+                double distance = OsmGeoTools.DistanceBetween(StopMatchingCenter!.Value, osmStop.AverageCoord);
+                if (distance <= StopMatchingDistance)
+                {
+                    if (operatorTag == null && operatorWikidataTag == null) // no other operator specified
+                        return true; // we assume stops within our influence might be ours since they aren't tagged as not ours 
+                }
+            }
+
             return false;
         }
         
@@ -149,6 +220,8 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                 false, // don't validate lone OSM elements
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("gtfs:stop_id", gtfsStopItem => gtfsStopItem.Stop.Id),
+                new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
+                new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue)
             );
 

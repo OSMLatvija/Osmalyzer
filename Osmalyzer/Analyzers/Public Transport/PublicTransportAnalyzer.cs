@@ -95,10 +95,6 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             if (stopRef != null && stopRef == gtfsStop.Stop.Id)
                 return MatchStrength.Strong;
             
-            // Check if the OSM element is actually a stop
-            if (!osmElement.HasKey("name"))
-                return MatchStrength.Unmatched;
-
             string? osmStopName = osmElement.GetValue("name");
             if (osmStopName == null)
                 return MatchStrength.Unmatched;

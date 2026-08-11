@@ -29,6 +29,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     protected abstract string? OsmTaggingValueForOperatorWikidata { get; }
     protected abstract OsmCoord? StopMatchingCenter { get; }
     protected abstract double? StopMatchingDistance { get; }
+    protected abstract string? GtfsDisambiguatorId { get; }
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -97,6 +98,13 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
         MatchStrength IsGoodStopMatch(GTFSStopDataItem gtfsStop, OsmElement osmElement)
         {
             // Explicit `gtfs:stop_id`
+            if (GtfsDisambiguatorId != null)
+            {
+                string? gtfsStopDabIdTag = osmElement.GetValue("gtfs:stop_id-" + GtfsDisambiguatorId);
+                if (gtfsStopDabIdTag != null && gtfsStopDabIdTag == gtfsStop.Stop.Id)
+                    return MatchStrength.Strong;
+            }
+
             string? gtfsStopIdTag = osmElement.GetValue("gtfs:stop_id");
             if (gtfsStopIdTag != null && gtfsStopIdTag == gtfsStop.Stop.Id)
                 return MatchStrength.Strong;

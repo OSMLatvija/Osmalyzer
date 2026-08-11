@@ -14,6 +14,7 @@ public class JelgavasAutobusuParksAnalyzer : PublicTransportAnalyzer<JelgavasAut
     protected override string? OsmTaggingValueForOperatorWikidata => null;
     protected override OsmCoord? StopMatchingCenter => null;
     protected override double? StopMatchingDistance => null;
+    protected override string? GtfsDisambiguatorId => null;
     
     
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)

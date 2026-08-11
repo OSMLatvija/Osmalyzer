@@ -14,6 +14,7 @@ public class RigasSatiksmeAnalyzer : PublicTransportAnalyzer<RigasSatiksmeAnalys
     protected override string OsmTaggingValueForOperatorWikidata => "Q2280274";
     protected override OsmCoord? StopMatchingCenter => new OsmCoord(56.9496, 24.1052); // Riga center
     protected override double? StopMatchingDistance => 15500; // some stops are ~15km away like Jaunmārupe, Vecāķi, Dārziņi
+    protected override string GtfsDisambiguatorId => "LV-RS";
 
 
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)

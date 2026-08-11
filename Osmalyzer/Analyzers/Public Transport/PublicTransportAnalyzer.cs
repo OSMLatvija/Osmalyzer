@@ -100,7 +100,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
             // Explicit `gtfs:stop_id`
             if (GtfsDisambiguatorId != null)
             {
-                string? gtfsStopDabIdTag = osmElement.GetValue("gtfs:stop_id-" + GtfsDisambiguatorId);
+                string? gtfsStopDabIdTag = osmElement.GetValue("gtfs:stop_id:" + GtfsDisambiguatorId);
                 if (gtfsStopDabIdTag != null && gtfsStopDabIdTag == gtfsStop.Stop.Id)
                     return MatchStrength.Strong;
             }
@@ -227,12 +227,23 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                 false, // don't validate unmatched elements (we only care about matched stops)
                 false, // don't validate lone OSM elements
                 //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("gtfs:stop_id", gtfsStopItem => gtfsStopItem.Stop.Id),
+
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
+                    e => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
+                    "gtfs:stop_id",
+                    gtfsStopItem => gtfsStopItem.Stop.Id
+                ),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
+                    e => GtfsDisambiguatorId != null && ShouldDisambiguateGtfsStopId(e), // for multiple ids - need to disambiguate
+                    "gtfs:stop_id:" + GtfsDisambiguatorId,
+                    gtfsStopItem => gtfsStopItem.Stop.Id
+                ),
+
                 new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
                 new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue)
             );
-
+            
             string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
             {
                 // Determine expected request_stop value based on GTFS pickup type
@@ -242,6 +253,15 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                     return "no"; // Regular stops shouldn't have the tag
                 else
                     return null; // Unknown types: no validation
+            }
+            
+            bool ShouldDisambiguateGtfsStopId(OsmElement stop)
+            {
+                foreach (string key in stop.AllKeys!) // implied not null if we are matches as stop
+                    if (key.StartsWith("gtfs:stop_id:"))
+                        return true; // Any existing disambiguation means we should disambiguate
+
+                return false;
             }
 
 #if DEBUG

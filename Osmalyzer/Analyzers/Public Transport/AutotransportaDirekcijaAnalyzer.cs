@@ -15,6 +15,7 @@ public class AutotransportaDirekcijaAnalyzer : PublicTransportAnalyzer<Autotrans
     protected override OsmCoord? StopMatchingCenter => null;
     protected override double? StopMatchingDistance => null;
     protected override string? GtfsDisambiguatorId => "LV-ATD";
+    protected override bool RegionalService => true;
 
 
     protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)

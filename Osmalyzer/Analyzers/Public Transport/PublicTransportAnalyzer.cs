@@ -30,6 +30,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     protected abstract OsmCoord? StopMatchingCenter { get; }
     protected abstract double? StopMatchingDistance { get; }
     protected abstract string? GtfsDisambiguatorId { get; }
+    protected abstract bool RegionalService { get; }
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -118,13 +119,18 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                 return MatchStrength.Strong;
             
             string? osmStopName = osmElement.GetValue("name");
-            if (osmStopName == null)
-                return MatchStrength.Unmatched;
 
             // Use existing name matching logic
-            if (IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmStopName))
+            if (osmStopName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmStopName))
                 return MatchStrength.Good;
-            
+
+            if (RegionalService)
+            {
+                string? osmRegionalStopName = osmElement.GetValue("reg_name");
+                if (osmRegionalStopName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmRegionalStopName))
+                    return MatchStrength.Good;
+            }
+
             string? osmAltName = osmElement.GetValue("alt_name");
             if (osmAltName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmAltName))
                 return MatchStrength.Regular; // signs and data may occasionally differ
@@ -226,6 +232,9 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                 report,
                 false, // don't validate unmatched elements (we only care about matched stops)
                 false, // don't validate lone OSM elements
+                
+                // todo: name? regional name?
+                
                 //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
 
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
@@ -1130,14 +1139,29 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
     }
                 
     [Pure]
-    private static string OsmStopMapPointLabel(OsmElement osmStop)
+    private string OsmStopMapPointLabel(OsmElement osmStop)
     {
         string? osmStopName = osmStop.GetValue("name");
+        string? osmStopRegionalName = osmStop.GetValue("reg_name");
         string? osmStopRef = osmStop.GetValue("ref");
+        string? osmGtfsId = osmStop.GetValue("gtfs:stop_id");
+        string? osmGtfsDabId = osmStop.GetValue("gtfs:stop_id:" + GtfsDisambiguatorId);
+
+        string? refs = null;
+        
+        if (osmStopRef != null)
+            refs = "`" + osmStopRef + "`";
+        
+        if (osmGtfsId != null && osmGtfsId != osmStopRef)
+            refs += (refs != null ? ", " : "") + "`" + osmGtfsId + "`";
+        
+        if (osmGtfsDabId != null && osmGtfsDabId != osmStopRef && osmGtfsDabId != osmGtfsId)
+            refs += (refs != null ? ", " : "") + "`" + osmGtfsDabId + "`";
 
         return
             (osmStopName != null ? " `" + osmStopName + "`" : "Unnamed") +
-            (osmStopRef != null ? " [`" + osmStopRef + "`]" : "");
+            (osmStopRegionalName != null ? " (regional `" + osmStopRegionalName + "`)" : "") +
+            (refs != null ? " [" + refs + "]" : "");
     }
 
 

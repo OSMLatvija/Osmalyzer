@@ -218,7 +218,7 @@ public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
                 report,
                 false, // don't validate unmatched elements (we only care about matched stops)
                 false, // don't validate lone OSM elements
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
+                //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("gtfs:stop_id", gtfsStopItem => gtfsStopItem.Stop.Id),
                 new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
                 new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),

@@ -6,12 +6,12 @@ public class GTFSVisit
         
     public GTFSStop Stop { get; }
     
-    public int? PickupType { get; }
+    public GTFSPickupType PickupType { get; }
     
-    public int? DropOffType { get; }
+    public GTFSDropoffType DropOffType { get; }
 
 
-    public GTFSVisit(GTFSTrip? trip, GTFSStop stop, int? pickupType, int? dropOffType)
+    public GTFSVisit(GTFSTrip? trip, GTFSStop stop, GTFSPickupType pickupType, GTFSDropoffType dropOffType)
     {
         Trip = trip;
         Stop = stop;

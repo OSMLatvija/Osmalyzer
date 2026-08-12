@@ -22,6 +22,8 @@ public class GTFSVisits
             if (i == 0) // header row
                 continue;
 
+            // https://gtfs.org/documentation/schedule/reference/#stopstxt
+            
             string line = lines[i];
             // trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
             // 3853,06:44:00,06:44:00,1336,7,0,3,3
@@ -45,13 +47,13 @@ public class GTFSVisits
             if (stop == null) 
                 continue; // broken data?
 
-            int? pickupType = null;
+            GTFSPickupType pickupType = GTFSPickupType.Unknown;
             if (segments.Count > 6)
-                pickupType = int.Parse(segments[6]);
+                pickupType = GetPickupTypeFromValue(segments[6]);
             
-            int? dropOffType = null;
+            GTFSDropoffType dropOffType = GTFSDropoffType.Unknown;
             if (segments.Count > 7)
-                dropOffType = int.Parse(segments[7]);
+                dropOffType = GetDropoffTypeFromValue(segments[7]);
             
             GTFSVisit newVisit = new GTFSVisit(trip, stop, pickupType, dropOffType);
 
@@ -62,4 +64,54 @@ public class GTFSVisits
             stop.AddPoint(newVisit);
         }
     }
+
+    
+    [Pure]
+    private static GTFSPickupType GetPickupTypeFromValue(string value)
+    {
+        return value switch
+        {
+            "0" => GTFSPickupType.RegularlyScheduledPickup,
+            "1" => GTFSPickupType.NoPickupAvailable,
+            "2" => GTFSPickupType.MustPhoneAgencyToArrangePickup,
+            "3" => GTFSPickupType.MustCoordinateWithDriverToArrangePickup,
+            _   => GTFSPickupType.Invalid
+        };
+    }
+    
+    [Pure]
+    private static GTFSDropoffType GetDropoffTypeFromValue(string value)
+    {
+        return value switch
+        {
+            "0" => GTFSDropoffType.RegularlyScheduledPickup,
+            "1" => GTFSDropoffType.NoPickupAvailable,
+            "2" => GTFSDropoffType.MustPhoneAgencyToArrangePickup,
+            "3" => GTFSDropoffType.MustCoordinateWithDriverToArrangePickup,
+            _   => GTFSDropoffType.Invalid
+        };
+    }
+}
+
+
+public enum GTFSPickupType
+{
+    Invalid,
+    Unknown,
+    Mixed,
+    RegularlyScheduledPickup,
+    NoPickupAvailable,
+    MustPhoneAgencyToArrangePickup,
+    MustCoordinateWithDriverToArrangePickup
+}
+
+public enum GTFSDropoffType
+{
+    Invalid,
+    Unknown,
+    Mixed,
+    RegularlyScheduledPickup,
+    NoPickupAvailable,
+    MustPhoneAgencyToArrangePickup,
+    MustCoordinateWithDriverToArrangePickup
 }

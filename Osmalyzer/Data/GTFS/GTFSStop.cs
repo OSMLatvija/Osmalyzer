@@ -14,9 +14,9 @@ public class GTFSStop
         
     public bool Tram { get; set; }
     
-    public int? CommonPickupType { get; set; }
+    public GTFSPickupType CommonPickupType { get; set; }
     
-    public int? CommonDropOffType { get; set; }
+    public GTFSDropoffType CommonDropOffType { get; set; }
     
     
     public IEnumerable<GTFSVisit> Visits => _visits.AsReadOnly();

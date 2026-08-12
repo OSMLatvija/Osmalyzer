@@ -15,8 +15,6 @@ public abstract class PublicTransportStopAnalyzer<T> : PublicTransportStopAnalyz
     protected abstract string Label { get; } // todo: not used, wire
     
     protected abstract bool CheckStopBoardingTypes { get; }
-    protected virtual int StopBoardingDefaultValue { get; } = 0;
-    protected virtual int StopBoardingOnRequestValue { get; } = 3;
     
     protected abstract string OsmTaggingValueForOperator { get; }
     protected abstract string? OsmTaggingValueForOperatorWikidata { get; }
@@ -218,9 +216,6 @@ public abstract class PublicTransportStopAnalyzer<T> : PublicTransportStopAnalyz
                 "Stop tagging issues"
             );
 
-            int boardingDefaultValue = StopBoardingDefaultValue;
-            int boardingOnRequestValue = StopBoardingOnRequestValue;
-
             Validation validation = stopValidator.Validate(
                 report,
                 false, // don't validate unmatched elements (we only care about matched stops)
@@ -249,12 +244,12 @@ public abstract class PublicTransportStopAnalyzer<T> : PublicTransportStopAnalyz
             string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
             {
                 // Determine expected request_stop value based on GTFS pickup type
-                if (gtfsStopItem.Stop.CommonPickupType == boardingOnRequestValue)
+                if (gtfsStopItem.Stop.CommonPickupType == GTFSPickupType.MustCoordinateWithDriverToArrangePickup)
                     return "yes";
-                else if (gtfsStopItem.Stop.CommonPickupType == boardingDefaultValue)
+                else if (gtfsStopItem.Stop.CommonPickupType == GTFSPickupType.RegularlyScheduledPickup)
                     return "no"; // Regular stops shouldn't have the tag
                 else
-                    return null; // Unknown types: no validation
+                    return null; // Unknown/mixed/other values - don't know what to tag
             }
             
             bool ShouldDisambiguateGtfsStopId(OsmElement stop)

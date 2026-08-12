@@ -84,37 +84,37 @@ public class GTFSNetwork
     {
         foreach (GTFSStop stop in Stops.Stops)
         {
-            int? pickupType = null;
+            GTFSPickupType pickupType = GTFSPickupType.Unknown;
             
             foreach (GTFSVisit visit in stop.Visits)
             {
-                if (visit.PickupType != null)
+                if (visit.PickupType != GTFSPickupType.Unknown)
                 {
-                    if (pickupType == null)
+                    if (pickupType == GTFSPickupType.Unknown)
                     {
                         pickupType = visit.PickupType;
                     }
                     else if (pickupType != visit.PickupType)
                     {
-                        pickupType = null;
+                        pickupType = GTFSPickupType.Mixed;
                         break; // multiple/conflicting values
                     }
                 }
             }
             
-            int? dropOffType = null;
+            GTFSDropoffType dropOffType = GTFSDropoffType.Unknown;
             
             foreach (GTFSVisit visit in stop.Visits)
             {
-                if (visit.DropOffType != null)
+                if (visit.DropOffType != GTFSDropoffType.Unknown)
                 {
-                    if (dropOffType == null)
+                    if (dropOffType == GTFSDropoffType.Unknown)
                     {
                         dropOffType = visit.DropOffType;
                     }
                     else if (dropOffType != visit.DropOffType)
                     {
-                        dropOffType = null;
+                        dropOffType = GTFSDropoffType.Mixed;
                         break; // multiple/conflicting values
                     }
                 }

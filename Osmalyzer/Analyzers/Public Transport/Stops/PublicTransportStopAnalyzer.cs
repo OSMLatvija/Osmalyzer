@@ -3,12 +3,14 @@
 public abstract class PublicTransportStopAnalyzer<T> : PublicTransportStopAnalyzerBase
     where T : GTFSAnalysisData, new()
 {
-    public override string Description => 
+    public sealed override string Name => Label + " Stops";
+    
+    public sealed override string Description => 
         "This checks public transport stops for " + Name + " operator.";
 
-    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransportStops;
+    public sealed override AnalyzerGroup Group => AnalyzerGroup.PublicTransportStops;
     
-    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(T) ];
+    public sealed override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(T) ];
 
 
     /// <summary> Very short label for report texts </summary>

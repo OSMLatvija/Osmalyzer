@@ -3,10 +3,7 @@
 [UsedImplicitly]
 public class JelgavasAutobusuParksStopAnalyzer : PublicTransportStopAnalyzer<JelgavasAutobusuParksAnalysisData>
 {
-    public override string Name => "Jelgavas Autobusu Parks";
-
-        
-    protected override string Label => "JAP";
+    protected override string Label => "Jelgavas Autobusu Parks";
 
     protected override bool CheckStopBoardingTypes => false;
 

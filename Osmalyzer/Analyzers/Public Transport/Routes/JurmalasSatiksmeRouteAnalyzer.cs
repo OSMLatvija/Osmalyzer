@@ -3,10 +3,7 @@
 [UsedImplicitly]
 public class JurmalasSatiksmeRouteAnalyzer : PublicTransportRouteAnalyzer<JurmalasSatiksmeAnalysisData>
 {
-    public override string Name => "Jurmalas Autobusu Satiksme";
-
-        
-    protected override string Label => "JS";
+    protected override string Label => "Jurmalas Autobusu Satiksme";
 
     protected override string? GtfsDisambiguatorId => null;
     protected override bool RegionalService => false;

@@ -3,10 +3,7 @@ namespace Osmalyzer;
 [UsedImplicitly]
 public class RigasSatiksmeRouteAnalyzer : PublicTransportRouteAnalyzer<RigasSatiksmeAnalysisData>
 {
-    public override string Name => "Rigas Satiksme";
-
-        
-    protected override string Label => "RS";
+    protected override string Label => "Rigas Satiksme";
 
     protected override string GtfsDisambiguatorId => "LV-RS";
     protected override bool RegionalService => false;

@@ -3,7 +3,9 @@
 public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnalyzerBase
     where T : GTFSAnalysisData, new()
 {
-    public override string Description => 
+    public sealed override string Name => Label + " Routes";
+    
+    public sealed override string Description => 
         "This checks public transport routes for " + Name + " operator. " +
         "Each operator's GTFS route is matched against OSM routes based on the expected stops. " +
         "Note that this might result in poor and incorrect matches if OSM doesn't have a matching route mapped " +
@@ -12,9 +14,9 @@ public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnal
         "Note that GTFS stores routes differently than OSM and not necessarily all should be mapped. " +
         "Technically, GTFS doesn't have route \"variants\" - the ones below are collected from repeating unique stop sequences.";
 
-    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransportRoutes;
+    public sealed override AnalyzerGroup Group => AnalyzerGroup.PublicTransportRoutes;
     
-    public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(T) ];
+    public sealed override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(T) ];
 
 
     /// <summary> Very short label for report texts </summary>

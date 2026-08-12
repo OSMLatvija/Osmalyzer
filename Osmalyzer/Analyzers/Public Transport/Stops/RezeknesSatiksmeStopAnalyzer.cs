@@ -3,10 +3,7 @@
 [UsedImplicitly]
 public class RezeknesSatiksmeStopAnalyzer : PublicTransportStopAnalyzer<RezeknesSatiksmeAnalysisData>
 {
-    public override string Name => "Rezeknes Satiksme";
-
-        
-    protected override string Label => "RS";
+    protected override string Label => "Rezeknes Satiksme";
 
     protected override bool CheckStopBoardingTypes => false;
 

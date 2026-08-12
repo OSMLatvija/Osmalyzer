@@ -3,10 +3,7 @@
 [UsedImplicitly]
 public class AutotransportaDirekcijaRouteAnalyzer : PublicTransportRouteAnalyzer<AutotransportaDirekcijaAnalysisData>
 {
-    public override string Name => "Autotransporta Direkcija";
-
-        
-    protected override string Label => "ATD";
+    protected override string Label => "Autotransporta Direkcija";
 
     protected override string? GtfsDisambiguatorId => "LV-ATD";
     protected override bool RegionalService => true;

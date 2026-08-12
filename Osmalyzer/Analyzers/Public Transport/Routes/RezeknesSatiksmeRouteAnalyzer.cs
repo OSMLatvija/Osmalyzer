@@ -3,10 +3,7 @@
 [UsedImplicitly]
 public class RezeknesSatiksmeRouteAnalyzer : PublicTransportRouteAnalyzer<RezeknesSatiksmeAnalysisData>
 {
-    public override string Name => "Rezeknes Satiksme";
-
-        
-    protected override string Label => "RS";
+    protected override string Label => "Rezeknes Satiksme";
 
     protected override string? GtfsDisambiguatorId => null;
     protected override bool RegionalService => false;

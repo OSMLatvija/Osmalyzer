@@ -1,7 +1,7 @@
 namespace Osmalyzer;
 
 [UsedImplicitly]
-public class RigasSatiksmeAnalyzer : PublicTransportAnalyzer<RigasSatiksmeAnalysisData>
+public class RigasSatiksmeRouteAnalyzer : PublicTransportRouteAnalyzer<RigasSatiksmeAnalysisData>
 {
     public override string Name => "Rigas Satiksme";
 

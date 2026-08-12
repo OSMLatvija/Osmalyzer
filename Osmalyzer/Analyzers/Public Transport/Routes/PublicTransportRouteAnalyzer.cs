@@ -1,6 +1,6 @@
 ﻿namespace Osmalyzer;
 
-public abstract class PublicTransportAnalyzer<T> : PublicTransportAnalyzerBase
+public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnalyzerBase
     where T : GTFSAnalysisData, new()
 {
     public override string Description => 

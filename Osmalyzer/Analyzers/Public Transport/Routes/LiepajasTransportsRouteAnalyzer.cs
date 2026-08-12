@@ -1,7 +1,7 @@
 ﻿namespace Osmalyzer;
 
 [UsedImplicitly]
-public class LiepajasTransportsAnalyzer : PublicTransportAnalyzer<LiepajasTransportsAnalysisData>
+public class LiepajasTransportsRouteAnalyzer : PublicTransportRouteAnalyzer<LiepajasTransportsAnalysisData>
 {
     public override string Name => "Liepajas Sabiedriskais Transports";
 

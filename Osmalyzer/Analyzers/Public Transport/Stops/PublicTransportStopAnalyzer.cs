@@ -236,14 +236,17 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue),
                 
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,_) => ShouldCheckField(e, "bus"), "bus", i => i.Stop.Bus ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,_) => ShouldCheckField(e, "tram"), "tram", i => i.Stop.Tram ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,_) => ShouldCheckField(e, "trolleybus"), "trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "bus", d.Stop.Bus), "bus", i => i.Stop.Bus ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "tram", d.Stop.Tram), "tram", i => i.Stop.Tram ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "trolleybus", d.Stop.Trolleybus), "trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
             );
 
-            bool ShouldCheckField(OsmElement element, string tag)
+            bool ShouldCheckField(OsmElement element, string tag, bool expected)
             {
-                // TODO: need the data item...
+                if (!expected)
+                    if (element.GetValue(tag) == "no")
+                        return false; // explicitly tagged as `no`, so we can assume it's already correct, although not expected to be set by default 
+                
                 return true;
             }
 

@@ -16,6 +16,17 @@ public class Validator<T> where T : IDataItem
 
     public Validation Validate(Report report, bool validateUnmatchedElements, bool validateLoneElements, params IEnumerable<ValidationRule> rules)
     {
+        return Validate(
+            report,
+            validateUnmatchedElements,
+            validateLoneElements,
+            false,
+            rules
+        );
+    }
+    
+    public Validation Validate(Report report, bool validateUnmatchedElements, bool validateLoneElements, bool reportValidElements, params IEnumerable<ValidationRule> rules)
+    {
         // todo: list all the rules that we are applying
         
         report.AddGroup(
@@ -66,6 +77,8 @@ public class Validator<T> where T : IDataItem
 
             // We may not have a data item matches, so only print label if there is one
             string itemLabel = dataItem != null ? " for " + dataItem.ReportString() : "";
+
+            bool issueFound = false;
             
             
             List<SuggestedAction>? suggestedChangesForElement = null;
@@ -75,7 +88,8 @@ public class Validator<T> where T : IDataItem
                 switch (rule)
                 {
                     case ValidateElementFixme:
-                        CheckElementFixme();
+                        if (CheckElementFixme())
+                            issueFound = true;
                         break;
 
                     case ValidateElementHasValue elementHasValue:
@@ -83,6 +97,7 @@ public class Validator<T> where T : IDataItem
                         List<SuggestedAction>? suggestedChangesForRule = CheckElementHasValue(elementHasValue);
                         if (suggestedChangesForRule != null)
                         {
+                            issueFound = true;
                             suggestedChangesForElement ??= [ ];
                             suggestedChangesForElement.AddRange(suggestedChangesForRule);
                         }
@@ -94,6 +109,7 @@ public class Validator<T> where T : IDataItem
                         List<SuggestedAction>? suggestedChangesForRule = CheckElementHasAnyValue(elementHasAnyValue);
                         if (suggestedChangesForRule != null)
                         {
+                            issueFound = true;
                             suggestedChangesForElement ??= [ ];
                             suggestedChangesForElement.AddRange(suggestedChangesForRule);
                         }
@@ -101,15 +117,18 @@ public class Validator<T> where T : IDataItem
                     }
 
                     case ValidateElementHasKey elementHasKey:
-                        CheckElementHasKey(elementHasKey);
+                        if (CheckElementHasKey(elementHasKey))
+                            issueFound = true;
                         break;
                     
                     case ValidateElementDoesntHaveTag elementDoesntHaveValue:
-                        CheckElementDoesntHaveValue(elementDoesntHaveValue);
+                        if (CheckElementDoesntHaveValue(elementDoesntHaveValue))
+                            issueFound = true;
                         break;
                     
                     case ValidateElementHasAcceptableValue elementHasAcceptableValue:
-                        CheckElementHasAcceptableValue(elementHasAcceptableValue);
+                        if (CheckElementHasAcceptableValue(elementHasAcceptableValue))
+                            issueFound = true;
                         break;
 
                     case ValidateElementValueMatchesDataItemValue<T> elementValueMatchesDataItemValue:
@@ -117,6 +136,7 @@ public class Validator<T> where T : IDataItem
                         List<SuggestedAction>? suggestedChangesForRule = CheckElementValueMatchesDataItemValue(elementValueMatchesDataItemValue);
                         if (suggestedChangesForRule != null)
                         {
+                            issueFound = true;
                             suggestedChangesForElement ??= [ ];
                             suggestedChangesForElement.AddRange(suggestedChangesForRule);
                         }
@@ -128,6 +148,7 @@ public class Validator<T> where T : IDataItem
                         List<SuggestedAction>? suggestedChangesForRule = CheckElementTagSuffixesMatchDataItemValues(elementTagSuffixesMatchDataItemValues);
                         if (suggestedChangesForRule != null)
                         {
+                            issueFound = true;
                             suggestedChangesForElement ??= [ ];
                             suggestedChangesForElement.AddRange(suggestedChangesForRule);
                         }
@@ -170,10 +191,23 @@ public class Validator<T> where T : IDataItem
                 suggestedChanges.AddRange(suggestedChangesForElement);
             }
 
+            if (reportValidElements && !issueFound)
+            {
+                report.AddEntry(
+                    ReportGroup.ValidationResults,
+                    new MapPointReportEntry(
+                        osmElement.AverageCoord,
+                        ElementLabel(osmElement) + " has no known issues" + itemLabel + " - " + osmElement.OsmViewUrl,
+                        osmElement,
+                        MapPointStyle.Okay
+                    )
+                );
+            }
+
             continue;
 
 
-            void CheckElementFixme()
+            bool CheckElementFixme()
             {
                 string? fixmeValue = osmElement.GetValue("fixme");
             
@@ -189,7 +223,11 @@ public class Validator<T> where T : IDataItem
                             osmElement
                         )
                     );
+
+                    return true;
                 }
+                
+                return false;
             }
 
             List<SuggestedAction>? CheckElementHasValue(ValidateElementHasValue rule)
@@ -331,7 +369,7 @@ public class Validator<T> where T : IDataItem
                 return suggestedChangesForRule;
             }
 
-            void CheckElementHasKey(ValidateElementHasKey rule)
+            bool CheckElementHasKey(ValidateElementHasKey rule)
             {
                 string? value = osmElement.GetValue(rule.Tag);
 
@@ -347,14 +385,18 @@ public class Validator<T> where T : IDataItem
                             osmElement
                         )
                     );
+
+                    return true;
                 }
+                
+                return false;
             }
 
-            void CheckElementDoesntHaveValue(ValidateElementDoesntHaveTag rule)
+            bool CheckElementDoesntHaveValue(ValidateElementDoesntHaveTag rule)
             {
                 if (rule.ShouldCheckElement != null)
                     if (!rule.ShouldCheckElement(osmElement))
-                        return; // don't need to check this element
+                        return false; // don't need to check this element
                 
                 string? value = osmElement.GetValue(rule.Tag);
 
@@ -370,10 +412,14 @@ public class Validator<T> where T : IDataItem
                             osmElement
                         )
                     );
+
+                    return true;
                 }
+
+                return false;
             }
 
-            void CheckElementHasAcceptableValue(ValidateElementHasAcceptableValue rule)
+            bool CheckElementHasAcceptableValue(ValidateElementHasAcceptableValue rule)
             {
                 string? value = osmElement.GetValue(rule.Tag);
 
@@ -391,8 +437,12 @@ public class Validator<T> where T : IDataItem
                                 osmElement
                             )
                         );
+
+                        return true;
                     }
                 }
+                
+                return false;
             }
 
             List<SuggestedAction>? CheckElementValueMatchesDataItemValue(ValidateElementValueMatchesDataItemValue<T> rule)

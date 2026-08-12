@@ -10,6 +10,9 @@ public class ValidateElementValueMatchesDataItemValue<T> : ValidationRule where 
 
     public string Tag { get; }
 
+    /// <summary>
+    /// Expected value, if given. If empty, expecting no value. If null, don't know what is expected.
+    /// </summary>
     public Func<T, string?> DataItemValueLookup { get; }
     
     public string[]? IncorrectTags { get; }

@@ -219,7 +219,8 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 
                 // todo: name? regional name?
                 
-                //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
+                new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
+                new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
 
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
                     e => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
@@ -231,10 +232,13 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                     "gtfs:stop_id:" + GtfsDisambiguatorId,
                     gtfsStopItem => gtfsStopItem.Stop.Id
                 ),
-
-                new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
-                new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue)
+                //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
+                
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue),
+                
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("bus", i => i.Stop.Bus ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("tram", i => i.Stop.Tram ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
             );
             
             string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)

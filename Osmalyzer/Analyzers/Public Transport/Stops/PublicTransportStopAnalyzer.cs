@@ -133,6 +133,12 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
         // Run the correlation
         CorrelatorReport correlatorReport = correlator.Parse(
             report,
+            "This matches `highway=bus_stop` and `railway=tram_stop` elements, but not `public_transport=platform` itself. " +
+            // todo: explain more about proper tagging
+            "This reports unmatched and lone stops, but these are not necessarily errors and could mean different operator stops, disused stops, planned stops, etc. " +
+            (StopMatchingCenter != null && StopMatchingDistance != null ? "All stops are matched within " + StopMatchingDistance + " m of assumed operator's area of influence, but this of course does not actually mean that they are the operator's stops." : "") +
+            "The operator may also change stops and routes temporarily, which affects this matching, so verify any inconsistencies against the operator's info. " +
+            "OSM stop tagging is also particularly complicated, so everything has to be double-check against intended and actual data.",
             new MatchedPairBatch(),
             new MatchedFarPairBatch(),
             new UnmatchedItemBatch(),

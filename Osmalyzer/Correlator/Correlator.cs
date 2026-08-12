@@ -29,10 +29,15 @@ public class Correlator<T> where T : IDataItem
 
     public CorrelatorReport Parse(Report report, params CorrelatorBatch[] entries)
     {
-        return Parse(report, ReportGroup.CorrelationResults, entries);
+        return Parse(report, ReportGroup.CorrelationResults, null, entries);
     }
 
-    public CorrelatorReport Parse(Report report, object group, params CorrelatorBatch[] entries)
+    public CorrelatorReport Parse(Report report, string extraDescription, params CorrelatorBatch[] entries)
+    {
+        return Parse(report, ReportGroup.CorrelationResults, extraDescription, entries);
+    }
+
+    public CorrelatorReport Parse(Report report, object group, string? extraDescription, params CorrelatorBatch[] entries)
     {
         if (report == null) throw new ArgumentNullException(nameof(report));
         if (entries == null) throw new ArgumentNullException(nameof(entries));
@@ -305,9 +310,11 @@ public class Correlator<T> where T : IDataItem
         report.AddGroup(
             group,
             "Matching " + dataItemLabelPlural,
-            "This lists the results of matching " + dataItemLabelPlural + " (data items) and OSM elements to each other.",
-            null,
-            false // don't need totals - we only print summary info, all entries are on the map, the number won't mean anything to user
+            "This lists the results of matching " + dataItemLabelPlural + " (data items) and OSM elements to each other. " +
+            "Be aware that this matching is heuristic and may not be accurate." +
+            (extraDescription != null ? " " + extraDescription : ""),
+             null,
+             false // don't need totals - we only print summary info, all entries are on the map, the number won't mean anything to user
         );
         
         // Report results

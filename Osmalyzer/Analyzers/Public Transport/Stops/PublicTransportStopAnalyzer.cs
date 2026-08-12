@@ -223,12 +223,12 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
 
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
-                    e => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
+                    (e,_) => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
                     "gtfs:stop_id",
                     gtfsStopItem => gtfsStopItem.Stop.Id
                 ),
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
-                    e => GtfsDisambiguatorId != null && ShouldDisambiguateGtfsStopId(e), // for multiple ids - need to disambiguate
+                    (e,_) => GtfsDisambiguatorId != null && ShouldDisambiguateGtfsStopId(e), // for multiple ids - need to disambiguate
                     "gtfs:stop_id:" + GtfsDisambiguatorId,
                     gtfsStopItem => gtfsStopItem.Stop.Id
                 ),
@@ -236,9 +236,9 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue),
                 
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(e => ShouldCheckField(e, "bus"), "bus", i => i.Stop.Bus ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(e => ShouldCheckField(e, "tram"), "tram", i => i.Stop.Tram ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(e => ShouldCheckField(e, "trolleybus"), "trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,_) => ShouldCheckField(e, "bus"), "bus", i => i.Stop.Bus ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,_) => ShouldCheckField(e, "tram"), "tram", i => i.Stop.Tram ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,_) => ShouldCheckField(e, "trolleybus"), "trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
             );
 
             bool ShouldCheckField(OsmElement element, string tag)

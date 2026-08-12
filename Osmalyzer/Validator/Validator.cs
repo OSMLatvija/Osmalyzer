@@ -452,7 +452,7 @@ public class Validator<T> where T : IDataItem
                     return null;
                 
                 if (rule.ShouldCheckElement != null)
-                    if (!rule.ShouldCheckElement(osmElement))
+                    if (!rule.ShouldCheckElement(osmElement, dataItem))
                         return null; // don't need to check this element
 
                 OsmElement targetElement = osmElement;

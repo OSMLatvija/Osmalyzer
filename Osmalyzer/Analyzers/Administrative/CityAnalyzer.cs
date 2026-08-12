@@ -273,24 +273,24 @@ public class CityAnalyzer : AdminAnalyzerBase<City>
             new ValidateElementValueMatchesDataItemValue<City>("ref:lau", c => c.IsLAUDivision == true ? c.AtvkEntry?.Code ?? "" : null, [ "ref:nuts" ]),
             new ValidateElementValueMatchesDataItemValue<City>("ref:LV:addr", c => c.AddressID, [ "ref" ]),
             // Always on admin center node if given
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "name", c => c.Name),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "name", c => c.Name),
             // If no admin center given, check tags directly on relation
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "place", GetPlaceType),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData == null, "place", GetPlaceType),
             new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : "novada pilsēta"),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString()),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Year.ToString()),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData == null, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : "novada pilsēta"),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData == null, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString()),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData == null, "population", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData == null, "source:population", c => c.CspPopulationEntry?.Source),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData == null, "population:date", c => c.CspPopulationEntry?.Year.ToString()),
             // If admin center given, check tags on the admin center node
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", GetPlaceType),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : "novada pilsēta"),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString()),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "population", c => c.CspPopulationEntry?.Population.ToString()),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "source:population", c => c.CspPopulationEntry?.Source),
-            new ValidateElementValueMatchesDataItemValue<City>(e => e.UserData != null, e => (OsmElement)e.UserData!, "population:date", c => c.CspPopulationEntry?.Year.ToString())
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "place", GetPlaceType),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "designation", c => c.Status == CityStatus.StateCity ? "valstspilsēta" : "novada pilsēta"),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "ref:LV:VDB", c => c.VdbEntry?.ID.ToString()),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "population", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "source:population", c => c.CspPopulationEntry?.Source),
+            new ValidateElementValueMatchesDataItemValue<City>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "population:date", c => c.CspPopulationEntry?.Year.ToString())
         );
 
         string GetPlaceType(City c) => c.Status == CityStatus.StateCity ? "city" : "town"; // apparently, regional cities are place=town in Latvia atm

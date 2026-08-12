@@ -142,13 +142,13 @@ public class StatisticalRegionAnalyzer : AdminAnalyzerBase<AtvkEntry>
             new ValidateElementValueMatchesDataItemValue<AtvkEntry>("source:population", c => c.CspPopulationEntry?.Source),
             new ValidateElementValueMatchesDataItemValue<AtvkEntry>("population:date", c => c.CspPopulationEntry?.Year.ToString()),
             // Stat region-specific values
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.HasValue("boundary", "statistical"), "name", c => c.Name), // i.e. "Latgale"
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.HasValue("boundary", "statistical"), "alt_name", c => c.CspPopulationEntry?.Name), // i.e. "Latgales statistiskais reģions"
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>((e,_) => e.HasValue("boundary", "statistical"), "name", c => c.Name), // i.e. "Latgale"
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>((e,_) => e.HasValue("boundary", "statistical"), "alt_name", c => c.CspPopulationEntry?.Name), // i.e. "Latgales statistiskais reģions"
             new ValidateElementHasValue(e => e.HasValue("boundary", "statistical"), "designation", "statistiskais reģions"),
             // Also a copy on node, if present (basically, Latvia)
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData != null, e => (OsmElement)e.UserData!, "population", c => c.CspPopulationEntry?.Population.ToString()),
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData != null, e => (OsmElement)e.UserData!, "source:population", c => c.CspPopulationEntry?.Source),
-            new ValidateElementValueMatchesDataItemValue<AtvkEntry>(e => e.UserData != null, e => (OsmElement)e.UserData!, "population:date", c => c.CspPopulationEntry?.Year.ToString())
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "population", c => c.CspPopulationEntry?.Population.ToString()),
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "source:population", c => c.CspPopulationEntry?.Source),
+            new ValidateElementValueMatchesDataItemValue<AtvkEntry>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "population:date", c => c.CspPopulationEntry?.Year.ToString())
         );
 
 #if DEBUG

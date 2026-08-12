@@ -296,17 +296,17 @@ public class VillageAnalyzer : AdminAnalyzerBase<Village>
             new ValidateElementHasValue("border_type", "village"),
             new ValidateElementValueMatchesDataItemValue<Village>("ref:LV:addr", v => v.AddressID, [ "ref" ]),
             // Always on admin center node if given
-            new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData != null, e => (OsmElement)e.UserData!, "name", v => v.Name),
+            new ValidateElementValueMatchesDataItemValue<Village>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "name", v => v.Name),
             // If no admin center given, check tags directly on relation
             new ValidateElementHasValue(e => e.UserData == null, "place", "village"),
             //todo:? new ValidateElementHasValue(e => e.UserData == null, "designation", "ciems"),
             //new ValidateElementDoesntHaveTag(e => e.UserData != null, "place"), -- these were imported for a LOT of them and are not really that wrong, so avoid removing them en masse
-            new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
+            new ValidateElementValueMatchesDataItemValue<Village>((e,_) => e.UserData == null, "wikidata", c => c.WikidataItem?.QID),
             //new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData == null, "ref:LV:VDB", v => v.VdbEntry?.ID.ToString()),
             // If admin center given, check tags on the admin center node
             new ValidateElementHasValue(e => e.UserData != null, e => (OsmElement)e.UserData!, "place", "village"),
             //todo:? new ValidateElementHasValue(e => e.UserData != null, e => (OsmElement)e.UserData!, "designation", "ciems"),
-            new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID)
+            new ValidateElementValueMatchesDataItemValue<Village>((e,_) => e.UserData != null, e => (OsmElement)e.UserData!, "wikidata", c => c.WikidataItem?.QID)
             //new ValidateElementValueMatchesDataItemValue<Village>(e => e.UserData != null, e => (OsmElement)e.UserData!, "ref:LV:VDB", v => v.VdbEntry?.ID.ToString())
         );
         

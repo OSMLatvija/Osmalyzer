@@ -12,23 +12,14 @@ public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnal
         "Note that GTFS stores routes differently than OSM and not necessarily all should be mapped. " +
         "Technically, GTFS doesn't have route \"variants\" - the ones below are collected from repeating unique stop sequences.";
 
-    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransport;
+    public override AnalyzerGroup Group => AnalyzerGroup.PublicTransportRoutes;
     
     public override List<Type> GetRequiredDataTypes() => [ typeof(LatviaOsmAnalysisData), typeof(T) ];
 
 
     /// <summary> Very short label for report texts </summary>
     protected abstract string Label { get; } // todo: not used, wire
-    
-    protected abstract bool CheckStopBoardingTypes { get; }
 
-    protected virtual int StopBoardingDefaultValue { get; } = 0;
-    protected virtual int StopBoardingOnRequestValue { get; } = 3;
-    
-    protected abstract string OsmTaggingValueForOperator { get; }
-    protected abstract string? OsmTaggingValueForOperatorWikidata { get; }
-    protected abstract OsmCoord? StopMatchingCenter { get; }
-    protected abstract double? StopMatchingDistance { get; }
     protected abstract string? GtfsDisambiguatorId { get; }
     protected abstract bool RegionalService { get; }
 
@@ -47,238 +38,15 @@ public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnal
 
         OsmData masterData = osmData.MasterData;
 
-        List<OsmData> routeData = masterData.Filter(
-            [
-                [
-                    new IsNode(),
-                    new OrMatch(
-                        new HasValue("highway", "bus_stop"),
-                        new HasValue("railway", "tram_stop"),
-                        new HasValue("disused:railway", "tram_stop") // still valid, if not in active use - Rigas Satiksme data seems to have these too
-                    )
-                ],
-                [
-                    new IsRelation(),
-                    new HasValue("type", "route"),
-                    new OrMatch(
-                        new HasAnyValue("route", "tram", "bus", "trolleybus"),
-                        new HasAnyValue("disused:route", "tram", "bus", "trolleybus")
-                    )
-                ]
-            ]
-        );
-            
-        OsmData osmStops = routeData[0];
-        OsmData osmRoutes = routeData[1];
-        
-        // Correlate OSM stops to data stops
-        
-        report.AddGroup(
-            GroupDesignation.StopMatching,
-            "Stop matching"
-        );
-
-        // Convert GTFS stops to data items for correlation
-        List<GTFSStopDataItem> stopDataItems = gtfsNetwork.Stops.Stops
-                                                          .Select(stop => new GTFSStopDataItem(stop))
-                                                          .ToList();
-
-        Correlator<GTFSStopDataItem> correlator = new Correlator<GTFSStopDataItem>(
-            osmStops,
-            stopDataItems,
-            new MatchDistanceParamater(50),
-            new MatchFarDistanceParamater(150),
-            new MatchCallbackParameter<GTFSStopDataItem>(IsGoodStopMatch),
-            new LoneElementAllowanceParameter(DoesStopLookLikeOperatorsStop),
-            new DataItemLabelsParamater("stop", "stops"),
-            new OsmElementPreviewValue("name", false),
-            new OsmElementPreviewValue("ref", false)
-        );
-
-        // Create correlator with appropriate parameters
-        MatchStrength IsGoodStopMatch(GTFSStopDataItem gtfsStop, OsmElement osmElement)
-        {
-            // Explicit `gtfs:stop_id`
-            if (GtfsDisambiguatorId != null)
-            {
-                string? gtfsStopDabIdTag = osmElement.GetValue("gtfs:stop_id:" + GtfsDisambiguatorId);
-                if (gtfsStopDabIdTag != null && gtfsStopDabIdTag == gtfsStop.Stop.Id)
-                    return MatchStrength.Strong;
-            }
-
-            string? gtfsStopIdTag = osmElement.GetValue("gtfs:stop_id");
-            if (gtfsStopIdTag != null && gtfsStopIdTag == gtfsStop.Stop.Id)
-                return MatchStrength.Strong;
-            
-            string? refTag = osmElement.GetValue("ref"); // weaker than `gtfs:stop_id` but still a strong match
-            if (refTag != null && refTag == gtfsStop.Stop.Id)
-                return MatchStrength.Strong;
-            
-            string? unsignedRefTag = osmElement.GetValue("unsigned_ref"); 
-            if (unsignedRefTag != null && unsignedRefTag == gtfsStop.Stop.Id)
-                return MatchStrength.Strong;
-            
-            string? osmStopName = osmElement.GetValue("name");
-
-            // Use existing name matching logic
-            if (osmStopName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmStopName))
-                return MatchStrength.Good;
-
-            if (RegionalService)
-            {
-                string? osmRegionalStopName = osmElement.GetValue("reg_name");
-                if (osmRegionalStopName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmRegionalStopName))
-                    return MatchStrength.Good;
-            }
-
-            string? osmAltName = osmElement.GetValue("alt_name");
-            if (osmAltName != null && IsStopNameMatchGoodEnough(gtfsStop.Stop.Name, osmAltName))
-                return MatchStrength.Regular; // signs and data may occasionally differ
-            // TODO: REPORT THESE - THEY MIGHT GET FIXED OVER TIME
-
-            return MatchStrength.Unmatched;
-        }
-
-        // Run the correlation
-        CorrelatorReport correlatorReport = correlator.Parse(
-            report,
-            GroupDesignation.StopMatching,
-            new MatchedPairBatch(),
-            new MatchedFarPairBatch(),
-            new UnmatchedItemBatch(),
-            new MatchedLoneOsmBatch(true)
+        OsmData osmRoutes = masterData.Filter(
+            new IsRelation(),
+            new HasValue("type", "route"),
+            new OrMatch(
+                new HasAnyValue("route", "tram", "bus", "trolleybus"),
+                new HasAnyValue("disused:route", "tram", "bus", "trolleybus")
+            )
         );
         
-        bool DoesStopLookLikeOperatorsStop(OsmElement osmStop)
-        {
-            // Has operator's tags?
-
-            string? operatorTag = osmStop.GetValue("operator");
-            if (operatorTag != null && operatorTag.ToLower() == OsmTaggingValueForOperator.ToLower())
-                return true;
-
-            string? operatorWikidataTag = osmStop.GetValue("operator:wikidata");
-            if (OsmTaggingValueForOperatorWikidata != null)
-            {
-                if (operatorWikidataTag != null && operatorWikidataTag.ToLower() == OsmTaggingValueForOperatorWikidata.ToLower())
-                    return true;
-            }
-
-            // Has operator's route?
-
-            if (osmStop.Relations != null)
-            {
-                foreach (OsmRelationMember member in osmStop.Relations)
-                {
-                    // todo: not using actual routes we find
-
-                    if (member.Type == OsmElement.OsmElementType.Relation)
-                    {
-                        if (member.Element!.HasValue("type", "route") &&
-                            member.Element!.HasValue("route", "tram", "bus", "trolleybus"))
-                        {
-                            string? routeOperatorTag = member.Element.GetValue("operator");
-                            if (routeOperatorTag != null && routeOperatorTag.ToLower() == OsmTaggingValueForOperator.ToLower())
-                                return true;
-
-                            string? routeOperatorWikidataTag = member.Element.GetValue("operator:wikidata");
-                            if (routeOperatorWikidataTag != null && routeOperatorWikidataTag.ToLower() == OsmTaggingValueForOperatorWikidata.ToLower())
-                                return true;
-                        }
-                    }
-                }
-            }
-            
-            // Is explicitly regional?
-            
-            // `network=LV:regional` ?
-            string? networkTag = osmStop.GetValue("network");
-            if (networkTag != null && networkTag.ToLower().Contains("regional"))
-                return false;
-
-            // `service=regional` ?
-            string? serviceTag = osmStop.GetValue("service");
-            if (serviceTag != null && serviceTag.ToLower() == "regional")
-                return false;
-            
-            // Within distance of expected?
-            
-            if (StopMatchingCenter != null && StopMatchingDistance != null)
-            {
-                double distance = OsmGeoTools.DistanceBetween(StopMatchingCenter!.Value, osmStop.AverageCoord);
-                if (distance <= StopMatchingDistance)
-                {
-                    if (operatorTag == null && operatorWikidataTag == null) // no other operator specified
-                        return true; // we assume stops within our influence might be ours since they aren't tagged as not ours 
-                }
-            }
-
-            return false;
-        }
-        
-        // Validate stops and propose changes
-        
-        if (CheckStopBoardingTypes)
-        {
-            Validator<GTFSStopDataItem> stopValidator = new Validator<GTFSStopDataItem>(
-                correlatorReport,
-                "Stop tagging issues"
-            );
-
-            int boardingDefaultValue = StopBoardingDefaultValue;
-            int boardingOnRequestValue = StopBoardingOnRequestValue;
-
-            Validation validation = stopValidator.Validate(
-                report,
-                false, // don't validate unmatched elements (we only care about matched stops)
-                false, // don't validate lone OSM elements
-                
-                // todo: name? regional name?
-                
-                //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
-
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
-                    e => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
-                    "gtfs:stop_id",
-                    gtfsStopItem => gtfsStopItem.Stop.Id
-                ),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
-                    e => GtfsDisambiguatorId != null && ShouldDisambiguateGtfsStopId(e), // for multiple ids - need to disambiguate
-                    "gtfs:stop_id:" + GtfsDisambiguatorId,
-                    gtfsStopItem => gtfsStopItem.Stop.Id
-                ),
-
-                new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
-                new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue)
-            );
-            
-            string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
-            {
-                // Determine expected request_stop value based on GTFS pickup type
-                if (gtfsStopItem.Stop.CommonPickupType == boardingOnRequestValue)
-                    return "yes";
-                else if (gtfsStopItem.Stop.CommonPickupType == boardingDefaultValue)
-                    return "no"; // Regular stops shouldn't have the tag
-                else
-                    return null; // Unknown types: no validation
-            }
-            
-            bool ShouldDisambiguateGtfsStopId(OsmElement stop)
-            {
-                foreach (string key in stop.AllKeys!) // implied not null if we are matches as stop
-                    if (key.StartsWith("gtfs:stop_id:"))
-                        return true; // Any existing disambiguation means we should disambiguate
-
-                return false;
-            }
-
-#if DEBUG
-            SuggestedActionApplicator.ApplyAndProposeXml(osmStops, validation.Changes, this);
-            SuggestedActionApplicator.ExplainForReport(validation.Changes, report, GroupDesignation.ProposedChanges);
-#endif
-        }
-
         // Parse routes into variants
 
         // GTFS is grouped by route and service, but these don't actually represent a "route" the way a user might expect.
@@ -495,69 +263,6 @@ public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnal
             foreach (RouteVariant variant in skippedVariants)
             {
                 report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("The route " + variant.Route.TypeLabel + " #" + variant.Route.Number + ": " + variant.FirstStop.Name + " => " + variant.LastStop.Name + " has " + variant.TripCount + " trips with the sequence of " + variant.StopCount + " stops: " + string.Join(", ", variant.Stops.Select(s => s.Name))));
-            }
-        }
-        
-        // Check boarding types
-
-        if (CheckStopBoardingTypes)
-        {
-            report.AddGroup(
-                GroupDesignation.BoardingTypes,
-                "Stop boarding types",
-                null,
-                null,
-                false,
-                false // don't cluster stops for clarity for now
-            );
-            
-            int boardingDefaultValue = StopBoardingDefaultValue;
-            int boardingOnRequestValue = StopBoardingOnRequestValue;
-
-            foreach (GTFSStop stop in gtfsNetwork.Stops.Stops)
-            {
-                // todo: only doing pickup for now
-
-                // TODO: WE HAVEN'T ACTUALLY MATCHED OSM STOPS GLOBALLY
-                
-                if (stop.CommonPickupType != null)
-                {
-                    if (stop.CommonPickupType == boardingDefaultValue || stop.CommonPickupType == boardingOnRequestValue)
-                    {
-                        report.AddEntry(
-                            GroupDesignation.BoardingTypes,
-                            new IssueReportEntry(
-                                "Stop " + RouteStopMapPointLabel(stop) + " has a pickup type `" + stop.CommonPickupType + "` in GTFS data.",
-                                stop.Coord,
-                                stop.CommonPickupType == boardingDefaultValue ?
-                                    MapPointStyle.BusStopMatchedWell : // green
-                                    MapPointStyle.BusStopOsmUnmatched // purple
-                            )
-                        );
-                    }
-                    else
-                    {
-                        report.AddEntry(
-                            GroupDesignation.BoardingTypes,
-                            new IssueReportEntry(
-                                "Stop " + RouteStopMapPointLabel(stop) + " has an unexpected pickup type `" + stop.CommonPickupType + "` in GTFS data.",
-                                stop.Coord,
-                                MapPointStyle.Dubious
-                            )
-                        );
-                    }
-                }
-                else
-                {
-                    report.AddEntry(
-                        GroupDesignation.BoardingTypes,
-                        new IssueReportEntry(
-                            "Stop " + RouteStopMapPointLabel(stop) + " doesn't have a pickup type in GTFS data.",
-                            stop.Coord,
-                            MapPointStyle.Problem
-                        )
-                    );
-                }
             }
         }
     }
@@ -974,51 +679,7 @@ public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnal
     private record RoutePair(OsmRelation OsmRoute, RouteVariant RouteVariant, List<StopPair> Stops, float Score);
     
     private record StopPair(GTFSStop RouteStop, OsmElement OsmStop);
-    
-    
-    //
-    // [Pure]
-    // private static StopNameMatching DoStopsMatch(OsmNode osmStop, GTFSStop ptStop)
-    // {
-    //     string? stopName = osmStop.GetValue("name");
-    //
-    //     if (stopName == null)
-    //         return StopNameMatching.Mismatch;
-    //
-    //     bool tramStop =
-    //         osmStop.HasValue("railway", "tram_stop") ||
-    //         osmStop.HasValue("disused:railway", "tram_stop") ||
-    //         osmStop.HasValue("tram", "yes");
-    //
-    //     bool trolleybusStop =
-    //         osmStop.HasValue("highway", "bus_stop") ||
-    //         osmStop.HasValue("trolleybus", "yes");
-    //
-    //     bool busStop =
-    //         osmStop.HasValue("highway", "bus_stop") &&
-    //         !osmStop.HasValue("trolleybus", "yes");
-    //
-    //     bool typeMatch = 
-    //         tramStop && ptStop.Tram ||
-    //         trolleybusStop && ptStop.Trolleybus ||
-    //         busStop && ptStop.Bus;
-    //         
-    //     if (IsStopNameMatchGoodEnough(ptStop.Name, stopName))
-    //         return typeMatch ? StopNameMatching.Match : StopNameMatching.WeakMatch;
-    //         
-    //     // Stops in real-life can have a different name to GTFS
-    //     // For example OSM "Ulbrokas ciems" is signed so in real-life vs RS "Ulbroka"
-    //     // After verifying these, one can keep `name=Ulbrokas ciems` but `alt_name=Ulbroka`, so we can match these
-    //         
-    //     string? stopAltName = osmStop.GetValue("alt_name");
-    //
-    //     if (stopAltName != null)
-    //         if (IsStopNameMatchGoodEnough(ptStop.Name, stopAltName))
-    //             return typeMatch ? StopNameMatching.Match : StopNameMatching.WeakMatch;
-    //         
-    //     return StopNameMatching.Mismatch;
-    // }
-    //
+   
 
     [Pure]
     private static bool IsStopNameMatchGoodEnough(string ptStopName, string osmStopName)
@@ -1166,11 +827,7 @@ public abstract class PublicTransportRouteAnalyzer<T> : PublicTransportRouteAnal
 
 
     private enum GroupDesignation
-
     {
-        StopMatching,
-        SkippedVariants,
-        BoardingTypes,
-        ProposedChanges
+        SkippedVariants
     }
 }

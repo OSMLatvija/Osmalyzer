@@ -21,11 +21,17 @@ public static class Runner
         List<Analyzer> analyzers =
         [
             new RigasSatiksmeRouteAnalyzer(),
-            // new LiepajasTransportsAnalyzer(),
-            // new RezeknesSatiksmeAnalyzer(),
-            // new JurmalasSatiksmeAnalyzer(),
-            // new AutotransportaDirekcijaAnalyzer(),
-            // new JelgavasAutobusuParksAnalyzer(),
+            // new LiepajasTransportsRouteAnalyzer(),
+            // new RezeknesSatiksmeRouteAnalyzer(),
+            // new JurmalasSatiksmeRouteAnalyzer(),
+            // new AutotransportaDirekcijaRouteAnalyzer(),
+            // new JelgavasAutobusuParksRouteAnalyzer(),
+            new RigasSatiksmeStopAnalyzer(),
+            // new LiepajasTransportsStopAnalyzer(),
+            // new RezeknesSatiksmeStopAnalyzer(),
+            // new JurmalasSatiksmeStopAnalyzer(),
+            // new AutotransportaDirekcijaStopAnalyzer(),
+            // new JelgavasAutobusuParksStopAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why

@@ -6,6 +6,8 @@ public class AnalyzerGroup
     public static AnalyzerGroup Banks { get; } = new AnalyzerGroup("Banks");
     public static AnalyzerGroup Roads { get; } = new AnalyzerGroup("Roads");
     public static AnalyzerGroup PublicTransport { get; } = new AnalyzerGroup("Public Transport");
+    public static AnalyzerGroup PublicTransportRoutes { get; } = new AnalyzerGroup("Public Transport Routes");
+    public static AnalyzerGroup PublicTransportStops { get; } = new AnalyzerGroup("Public Transport Stops");
     public static AnalyzerGroup ParcelLockers { get; } = new AnalyzerGroup("Parcel Lockers");
     public static AnalyzerGroup Restaurants { get; } = new AnalyzerGroup("Restaurants");
     public static AnalyzerGroup Validation { get; } = new AnalyzerGroup("Validation");

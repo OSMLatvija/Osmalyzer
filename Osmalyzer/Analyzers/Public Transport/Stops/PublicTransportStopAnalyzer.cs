@@ -65,11 +65,6 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
         OsmData osmRoutes = routeData[1];
         
         // Correlate OSM stops to data stops
-        
-        report.AddGroup(
-            GroupDesignation.StopMatching,
-            "Stop matching"
-        );
 
         // Convert GTFS stops to data items for correlation
         List<GTFSStopDataItem> stopDataItems = gtfsNetwork.Stops.Stops
@@ -135,7 +130,6 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
         // Run the correlation
         CorrelatorReport correlatorReport = correlator.Parse(
             report,
-            GroupDesignation.StopMatching,
             new MatchedPairBatch(),
             new MatchedFarPairBatch(),
             new UnmatchedItemBatch(),
@@ -273,7 +267,6 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
     
     private enum GroupDesignation
     {
-        StopMatching,
         ProposedChanges
     }
 }

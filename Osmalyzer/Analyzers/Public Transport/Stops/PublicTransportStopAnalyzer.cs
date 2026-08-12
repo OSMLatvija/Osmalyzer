@@ -216,7 +216,6 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 report,
                 false, // don't validate unmatched elements (we only care about matched stops)
                 false, // don't validate lone OSM elements
-                true, // show valid points as map, so we can better see the layout
                 
                 // todo: name? regional name?
                 

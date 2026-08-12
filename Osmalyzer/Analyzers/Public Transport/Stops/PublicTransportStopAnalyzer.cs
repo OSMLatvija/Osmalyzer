@@ -236,11 +236,17 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue),
                 
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("bus", i => i.Stop.Bus ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("tram", i => i.Stop.Tram ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(e => ShouldCheckField(e, "bus"), "bus", i => i.Stop.Bus ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(e => ShouldCheckField(e, "tram"), "tram", i => i.Stop.Tram ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(e => ShouldCheckField(e, "trolleybus"), "trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
             );
-            
+
+            bool ShouldCheckField(OsmElement element, string tag)
+            {
+                // TODO: need the data item...
+                return true;
+            }
+
             string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
             {
                 // Determine expected request_stop value based on GTFS pickup type

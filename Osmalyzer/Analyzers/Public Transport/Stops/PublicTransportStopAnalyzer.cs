@@ -63,13 +63,15 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
             
         OsmData osmStops = routeData[0];
         OsmData osmRoutes = routeData[1];
-        
-        // Correlate OSM stops to data stops
 
         // Convert GTFS stops to data items for correlation
+        
         List<GTFSStopDataItem> stopDataItems = gtfsNetwork.Stops.Stops
                                                           .Select(stop => new GTFSStopDataItem(stop))
                                                           .ToList();
+        
+        
+        // Correlate OSM stops to data stops
 
         Correlator<GTFSStopDataItem> correlator = new Correlator<GTFSStopDataItem>(
             osmStops,
@@ -203,6 +205,32 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
             return false;
         }
         
+        // Additional osm-data stop stuff
+
+        foreach (MatchedCorrelation<GTFSStopDataItem> match in correlatorReport.Correlations.OfType<MatchedCorrelation<GTFSStopDataItem>>())
+        {
+            if (match.OsmElement.Relations != null)
+            {
+                foreach (OsmRelationMember relationMember in match.OsmElement.Relations)
+                {
+                    // new HasValue("type", "route"),
+                    // new OrMatch(
+                    //     new HasAnyValue("route", "tram", "bus", "trolleybus"),
+                    //     new HasAnyValue("disused:route", "tram", "bus", "trolleybus")
+                    // )
+
+                    OsmRelation relation = relationMember.Owner;
+                    if (relation.HasValue("type", "route"))
+                    {
+                        if (relation.HasValue(["route", "disused:route"], "bus")) match.DataItem.ImpliedBus = true;
+                        if (relation.HasValue(["route", "disused:route"], "tram")) match.DataItem.ImpliedTram = true;
+                        if (relation.HasValue(["route", "disused:route"], "trolleybus")) match.DataItem.ImpliedTrolleybus = true;
+                        // We are assuming that disused is temporary, such as due to roadworks or seasonal or something
+                    }
+                }
+            }
+        }
+        
         // Validate stops and propose changes
         
         if (CheckStopBoardingTypes)
@@ -236,9 +264,9 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 
                 new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue),
                 
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "bus", d.Stop.Bus), "bus", i => i.Stop.Bus ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "tram", d.Stop.Tram), "tram", i => i.Stop.Tram ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "trolleybus", d.Stop.Trolleybus), "trolleybus", i => i.Stop.Trolleybus ? "yes" : "")
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "bus", d.Bus), "bus", i => i.Bus ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "tram", d.Tram), "tram", i => i.Tram ? "yes" : ""),
+                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "trolleybus", d.Trolleybus), "trolleybus", i => i.Trolleybus ? "yes" : "")
             );
 
             bool ShouldCheckField(OsmElement element, string tag, bool expected)

@@ -3,7 +3,7 @@
 [UsedImplicitly]
 public class JelgavasAutobusuParksRouteAnalyzer : PublicTransportRouteAnalyzer<JelgavasAutobusuParksAnalysisData>
 {
-    protected override string Label => "Jelgavas Autobusu Parks";
+    protected override string Label => "Jelgavas autobusu parks";
 
     protected override string? GtfsDisambiguatorId => null;
     protected override bool RegionalService => false;

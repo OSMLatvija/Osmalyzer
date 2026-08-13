@@ -3,7 +3,7 @@
 [UsedImplicitly]
 public class JelgavasAutobusuParksAnalysisData : GTFSAnalysisData
 {
-    public override string Name => "Jelgavas Autobusu Parks";
+    public override string Name => "Jelgavas autobusu parks";
 
     public override string ReportWebLink => @"https://www.jap.lv/?page_id=11";
 

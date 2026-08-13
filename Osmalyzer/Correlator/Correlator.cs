@@ -412,7 +412,7 @@ public class Correlator<T> where T : IDataItem
                             OsmElementReportText(match.Element) +
                             " at " + match.Distance.ToString("F0") + " m",
                             match.Element,
-                            MapPointStyle.CorrelatorPairMatched
+                            match.MatchStrength == MatchStrength.Strong ? MapPointStyle.CorrelatorPairMatched : MapPointStyle.CorrelatorPairMatchedWeak
                         )
                     );
 

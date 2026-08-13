@@ -52,6 +52,7 @@ public enum MapPointStyle
     Suggestion,
 
     CorrelatorPairMatched,
+    CorrelatorPairMatchedWeak,
     CorrelatorPairMatchedOffsetOrigin,
     CorrelatorPairMatchedFar,
     CorrelatorPairMatchedFarOrigin,

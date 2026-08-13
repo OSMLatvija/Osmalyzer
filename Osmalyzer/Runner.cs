@@ -30,7 +30,7 @@ public static class Runner
             // new LiepajasTransportsStopAnalyzer(),
             // new RezeknesSatiksmeStopAnalyzer(),
             // new JurmalasSatiksmeStopAnalyzer(),
-            new AutotransportaDirekcijaStopAnalyzer(),
+            // new AutotransportaDirekcijaStopAnalyzer(),
             // new JelgavasAutobusuParksStopAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new TrolleybusWireAnalyzer(),

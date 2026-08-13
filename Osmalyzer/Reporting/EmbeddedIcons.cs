@@ -14,6 +14,14 @@ public static class EmbeddedIcons
         ),
 
         new LeafletIcon(
+            "limeCheckmark.png",
+            16,
+            LeafletIcon.IconGroup.Main,
+            ColorGroup.Green,
+            MapPointStyle.CorrelatorPairMatchedWeak
+        ),
+
+        new LeafletIcon(
             "orangeCheckmark.png",
             16,
             LeafletIcon.IconGroup.Main,

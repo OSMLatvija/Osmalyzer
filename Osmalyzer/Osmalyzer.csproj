@@ -35,6 +35,7 @@
 
     <ItemGroup>
       <EmbeddedResource Include="Reporting\HTML report resources\greenPurpleCircle.png" />
+      <EmbeddedResource Include="Reporting\HTML report resources\limeCheckmark.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\orangeGreenCircle.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\orangePurpleCircle.png" />
       <EmbeddedResource Include="Reporting\HTML report resources\purpleOrangeGreenCircle.png" />

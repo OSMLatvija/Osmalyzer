@@ -44,8 +44,16 @@ public class GTFSStops
                 continue; // broken data
             if (!double.TryParse(segments[5], out double lon)) 
                 continue; // broken data
-
-            GTFSStop stop = new GTFSStop(id, name, new OsmCoord(lat, lon));
+            
+            GTFSStopLocationType locationType = GTFSStopLocationType.Unknown;
+            if (segments.Count > 7)
+                locationType = GetLocationTypeFromValue(segments[7]);
+            // For example JAP lists both stops and stop areas as "stations"
+            // JAP:StopArea:835383405,,Rosība,,56.63849,23.76673,,,1,,,0,
+            // JAP:ScheduledStopPoint:214,,Rosība,,56.63844,23.76668,,,0,JAP:StopArea:835383405,,0,
+            // JAP:ScheduledStopPoint:215,,Rosība,,56.63854,23.76679,,,0,JAP:StopArea:835383405,,0,
+            
+            GTFSStop stop = new GTFSStop(id, name, new OsmCoord(lat, lon), locationType);
 
             _stops.TryAdd(stop.Id, stop);
             // Latvijas Autobuss has duplicates, e.g.
@@ -69,6 +77,23 @@ public class GTFSStops
                 return segment.Substring(1, segment.Length - 2).Replace("\"\"", "\"");
             
             return segment;
+        }
+
+        [Pure]
+        static GTFSStopLocationType GetLocationTypeFromValue(string value)
+        {
+            return value.Trim() switch
+            {
+                "" => GTFSStopLocationType.Unknown,
+                
+                "0" => GTFSStopLocationType.Stop,
+                "1" => GTFSStopLocationType.Station,
+                "2" => GTFSStopLocationType.EntranceExit,
+                "3" => GTFSStopLocationType.GenericNode,
+                "4" => GTFSStopLocationType.BoardingArea,
+                
+                _   => GTFSStopLocationType.Invalid
+            };
         }
     }
 

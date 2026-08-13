@@ -7,7 +7,10 @@ public class GTFSStop
     public string Name { get; private set; }
         
     public OsmCoord Coord { get; }
-        
+    
+    public GTFSStopLocationType LocationType { get; }
+
+    
     public bool Bus { get; set; }
         
     public bool Trolleybus { get; set; }
@@ -25,11 +28,12 @@ public class GTFSStop
     private readonly List<GTFSVisit> _visits = [ ];
 
 
-    public GTFSStop(string id, string name, OsmCoord coord)
+    public GTFSStop(string id, string name, OsmCoord coord, GTFSStopLocationType locationType)
     {
         Id = id;
         Name = name;
         Coord = coord;
+        LocationType = locationType;
     }
 
     
@@ -42,4 +46,19 @@ public class GTFSStop
     {
         _visits.Add(visit);
     }
+}
+
+
+public enum GTFSStopLocationType
+{
+    Invalid,
+    
+    /// <summary> Can generally be assumed to be a <see cref="Stop"/> </summary>
+    Unknown,
+    
+    Stop,
+    Station,
+    EntranceExit,
+    GenericNode,
+    BoardingArea
 }

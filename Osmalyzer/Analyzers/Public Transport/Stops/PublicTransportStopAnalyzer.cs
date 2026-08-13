@@ -79,6 +79,7 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
             stopDataItems,
             new MatchDistanceParamater(50),
             new MatchFarDistanceParamater(150),
+            new MatchExtraDistanceParamater(MatchStrength.Strong, 2500), // exact id matches are allowed for data errors 
             new MatchCallbackParameter<GTFSStopDataItem>(IsGoodStopMatch),
             new LoneElementAllowanceParameter(DoesStopLookLikeOperatorsStop),
             new DataItemLabelsParamater("stop", "stops"),
@@ -108,6 +109,8 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
             string? unsignedRefTag = osmElement.GetValue("unsigned_ref"); 
             if (unsignedRefTag != null && unsignedRefTag == gtfsStop.Stop.Id)
                 return MatchStrength.Strong;
+            
+            // Note that only IDs should strongly-match, which we take as a definite stop match
             
             string? osmStopName = osmElement.GetValue("name");
 

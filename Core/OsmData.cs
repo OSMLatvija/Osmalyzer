@@ -265,22 +265,7 @@ public class OsmData
     [Pure]
     public List<OsmData> Filter(List<OsmFilter[]> filters)
     {
-        List<OsmData> extracts = new List<OsmData>(filters.Count);
-
-        for (int i = 0; i < filters.Count; i++)
-        {
-            IEnumerable<OsmElement> collection = ChooseCollectionForFiltering(filters[i]);
-
-            List<OsmElement> filteredElements = [ ];
-                
-            foreach (OsmElement element in collection)
-                if (OsmElementMatchesFilters(element, filters[i]))
-                    filteredElements.Add(element);
-                
-            extracts.Add(new OsmData(FullData!, filteredElements));
-        }
-
-        return extracts;
+        return filters.Select(Filter).ToList();
     }
 
     /// <summary>

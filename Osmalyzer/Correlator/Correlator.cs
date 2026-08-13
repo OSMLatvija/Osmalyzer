@@ -125,7 +125,7 @@ public class Correlator<T> where T : IDataItem
             // Process all yet-unmatched this loop (first loop would process all)
             List<T> currentlyMatching = itemsToBeMatched.ToList();
             
-            // But keep track of items we have to re-match next loop
+            // But keep track of items we have to re-match next loop (if we swapped some matches to better ones)
             itemsToBeMatched.Clear();
 
             foreach (T dataItem in currentlyMatching)
@@ -192,14 +192,21 @@ public class Correlator<T> where T : IDataItem
                     {
                         bool matched = false;
 
-                        foreach ((OsmElement closeElement, MatchStrength strength, double distance) in matchableOsmElements) // this is sorted closest first
+                        IOrderedEnumerable<(OsmElement element, MatchStrength strength, double distance)> orderedMatchableOsmElements = 
+                            matchableOsmElements
+                                .OrderByDescending(p => p.strength) // weaker matches can be closer, but we prefer stronger matches to distance
+                                .ThenBy(p => p.distance);
+                        
+                        foreach ((OsmElement closeElement, MatchStrength strength, double distance) in orderedMatchableOsmElements)
                         {
                             bool far = distance > matchDistance;
                             // Even with extra distance, it's still far, so reporting it that way
 
                             if (allMatchedElements.TryGetValue(closeElement, out Match? previous))
                             {
-                                if (strength > previous.MatchStrength || // stronger match always better, if if it's further away
+                                // We have already matched this element before, but possibly this is a better match?
+                                
+                                if (strength > previous.MatchStrength || // stronger match always better, even if it's further away
                                     (strength == previous.MatchStrength && distance < previous.Distance)) // same-strength match only better if it's closer
                                 {
                                     // We are closer than previous match, so replace us as the best match and requeue the other item
@@ -209,6 +216,11 @@ public class Correlator<T> where T : IDataItem
                                     itemsToBeMatched.Add(previous.Item); // requeue other
                                     matched = true;
                                     break;
+                                }
+                                else
+                                {
+                                    // else, it's not a better match than before, so don't replace anything and try the next best match for ourselves
+                                    continue;
                                 }
                             }
                             else

@@ -19,4 +19,10 @@ public class AutotransportaDirekcijaAnalysisData : GTFSAnalysisData
     protected override string DataFileName => Path.Combine(CacheBasePath, DataFileIdentifier + @".zip");
 
     protected override string DataURL => @"https://www.atd.lv/sites/default/files/GTFS/gtfs-latvia-lv.zip";
+    
+    
+    protected override void CleanUpGtfsData()
+    {
+        // We don't have any known global issues
+    }
 }

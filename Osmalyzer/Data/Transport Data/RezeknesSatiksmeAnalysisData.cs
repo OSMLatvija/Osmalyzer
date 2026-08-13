@@ -19,4 +19,21 @@ public class RezeknesSatiksmeAnalysisData : GTFSAnalysisData
         
     protected override string DataURL => @"http://www.marsruti.lv/rezekne/rezekne/gtfs.zip";
     // todo: where could I get a direct link from them? 
+    
+    
+    protected override void CleanUpGtfsData()
+    {
+        Network.CleanStopNames(CleanRouteStopName);
+
+        [Pure]
+        static string CleanRouteStopName(string ptStopName)
+        {
+            // Rezeknes almost all stops have "uc" and "nc" like suffixes like "Brīvības iela nc" and "Brīvības iela uc" - probably route direction "no centra"/"uz centru"?
+            ptStopName = Regex.Replace(ptStopName, @" (uc|nc|mv)$", @"");
+
+            // todo: move more here from IsStopNameMatchGoodEnough
+        
+            return ptStopName;
+        }
+    }
 }

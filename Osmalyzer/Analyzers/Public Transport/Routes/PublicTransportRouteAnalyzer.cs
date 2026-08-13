@@ -65,10 +65,6 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
             foreach (RouteVariant variant in ExtractVariantsFromRoute(gtfsRoute).OrderByDescending(mt => mt.TripCount))
                 routeVariants.Add(variant);
         
-        // Clean up GTFS data
-
-        CleanUpGtfsData(gtfsNetwork);
-        
         // Add "supergroups" for routes since there are so many
 
         foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
@@ -270,13 +266,6 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
     }
 
     
-    /// <summary>
-    /// Ask inheritor to apply their specific known fixes to GTFS that are unique to the operator.
-    /// Basically, GTFS data is messy and each provider has their own quirks.
-    /// This gets called before data is used for matching.
-    /// </summary>
-    protected abstract void CleanUpGtfsData(GTFSNetwork gtfsNetwork);
-
 
     [Pure]
     private static (RoutePair? routePair, List<StopMatch> stopMatches) GetStopMatches(List<RoutePair> routePairs, RouteVariant variant)

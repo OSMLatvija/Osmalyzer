@@ -7,10 +7,4 @@ public class RigasSatiksmeRouteAnalyzer : PublicTransportRouteAnalyzer<RigasSati
 
     protected override string GtfsDisambiguatorId => "LV-RS";
     protected override bool RegionalService => false;
-
-
-    protected override void CleanUpGtfsData(GTFSNetwork gtfsNetwork)
-    {
-        // We don't have any known global issues
-    }
 }

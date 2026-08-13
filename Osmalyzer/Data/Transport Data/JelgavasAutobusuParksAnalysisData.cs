@@ -19,4 +19,21 @@ public class JelgavasAutobusuParksAnalysisData : GTFSAnalysisData
         
     protected override string DataURL => @"https://data.lvnap.lv/jap/gtfs-lv-jap.zip";
     // todo: where could I get a direct link from them? 
+    
+    
+    protected override void CleanUpGtfsData()
+    {
+        Network.CleanStopNames(CleanRouteStopName);
+
+        [Pure]
+        static string CleanRouteStopName(string ptStopName)
+        {
+            // Jelgavas AP has depot/terminal stops with "GP" suffix like "Tušķi GP"
+            ptStopName = Regex.Replace(ptStopName, @" GP$", @"");
+
+            // todo: move more here from IsStopNameMatchGoodEnough
+        
+            return ptStopName;
+        }
+    }
 }

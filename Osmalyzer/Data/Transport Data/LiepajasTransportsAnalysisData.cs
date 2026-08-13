@@ -19,4 +19,10 @@ public class LiepajasTransportsAnalysisData : GTFSAnalysisData
         
     protected override string DataURL => @"http://www.marsruti.lv/liepaja/liepaja/gtfs.zip";
     // todo: where could I get a direct link from them? 
+    
+    
+    protected override void CleanUpGtfsData()
+    {
+        // We don't have any known global issues
+    }
 }

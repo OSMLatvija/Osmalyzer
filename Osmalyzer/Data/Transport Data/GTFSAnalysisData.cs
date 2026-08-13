@@ -39,5 +39,14 @@ public abstract class GTFSAnalysisData : AnalysisData, IDatedAnalysisData
         );
         
         Network = new GTFSNetwork(Path.GetFullPath(ExtractionFolder));
+        
+        // Clean up GTFS data issues specific to this operator
+        CleanUpGtfsData();
     }
+
+    
+    /// <summary>
+    /// Apply operator-specific cleanup to the GTFS data.
+    /// </summary>
+    protected abstract void CleanUpGtfsData();
 }

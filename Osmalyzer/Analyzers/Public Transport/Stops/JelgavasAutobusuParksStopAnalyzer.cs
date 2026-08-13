@@ -11,4 +11,5 @@ public class JelgavasAutobusuParksStopAnalyzer : PublicTransportStopAnalyzer<Jel
     protected override double? StopMatchingDistance => 14000;
     protected override string GtfsDisambiguatorId => "LV-JAP";
     protected override bool RegionalService => false;
+    protected override bool ValidateOsmPickupDropoffValues => false;
 }

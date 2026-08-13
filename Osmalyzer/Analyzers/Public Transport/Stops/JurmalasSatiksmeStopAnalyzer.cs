@@ -11,4 +11,5 @@ public class JurmalasSatiksmeStopAnalyzer : PublicTransportStopAnalyzer<Jurmalas
     protected override double? StopMatchingDistance => null;
     protected override string? GtfsDisambiguatorId => null;
     protected override bool RegionalService => false;
+    protected override bool ValidateOsmPickupDropoffValues => false;
 }

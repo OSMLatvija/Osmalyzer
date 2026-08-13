@@ -22,6 +22,7 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
     protected abstract double? StopMatchingDistance { get; }
     protected abstract string? GtfsDisambiguatorId { get; }
     protected abstract bool RegionalService { get; }
+    protected abstract bool ValidateOsmPickupDropoffValues { get; }
 
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -284,6 +285,9 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
 
         string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
         {
+            if (!ValidateOsmPickupDropoffValues)
+                return null; // Don't validate if not enabled
+            
             // Determine expected request_stop value based on GTFS pickup type
             if (gtfsStopItem.Stop.CommonPickupType == GTFSPickupType.MustCoordinateWithDriverToArrangePickup)
                 return "yes";

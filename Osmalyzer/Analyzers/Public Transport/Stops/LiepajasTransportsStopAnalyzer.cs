@@ -11,4 +11,5 @@ public class LiepajasTransportsStopAnalyzer : PublicTransportStopAnalyzer<Liepaj
     protected override double? StopMatchingDistance => 11000;
     protected override string GtfsDisambiguatorId => "LST";
     protected override bool RegionalService => false;
+    protected override bool ValidateOsmPickupDropoffValues => false;
 }

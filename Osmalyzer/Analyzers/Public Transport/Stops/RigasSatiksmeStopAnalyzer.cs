@@ -11,4 +11,5 @@ public class RigasSatiksmeStopAnalyzer : PublicTransportStopAnalyzer<RigasSatiks
     protected override double? StopMatchingDistance => 15500; // some stops are ~15km away like Jaunmārupe, Vecāķi, Dārziņi
     protected override string GtfsDisambiguatorId => "LV-RS";
     protected override bool RegionalService => false;
+    protected override bool ValidateOsmPickupDropoffValues => true; // RS has well-delineated stops that are by request versus always 
 }

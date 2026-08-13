@@ -11,4 +11,5 @@ public class RezeknesSatiksmeStopAnalyzer : PublicTransportStopAnalyzer<Rezeknes
     protected override double? StopMatchingDistance => 12000;
     protected override string GtfsDisambiguatorId => "RZS"; // TODO: I made this up, because RS ir Rīgas Satiksme
     protected override bool RegionalService => false;
+    protected override bool ValidateOsmPickupDropoffValues => false;
 }

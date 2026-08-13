@@ -4,8 +4,6 @@ namespace Osmalyzer;
 public class RigasSatiksmeStopAnalyzer : PublicTransportStopAnalyzer<RigasSatiksmeAnalysisData>
 {
     protected override string Label => "Rigas Satiksme";
-    
-    protected override bool CheckStopBoardingTypes => true;
 
     protected override string OsmTaggingValueForOperator => "Rīgas satiksme";
     protected override string OsmTaggingValueForOperatorWikidata => "Q2280274";

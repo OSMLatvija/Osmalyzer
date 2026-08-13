@@ -5,8 +5,6 @@ public class JurmalasSatiksmeStopAnalyzer : PublicTransportStopAnalyzer<Jurmalas
 {
     protected override string Label => "Jurmalas Autobusu Satiksme";
 
-    protected override bool CheckStopBoardingTypes => false;
-
     protected override string OsmTaggingValueForOperator => "Jūrmalas Autobusu Satiksme";
     protected override string? OsmTaggingValueForOperatorWikidata => null;
     protected override OsmCoord? StopMatchingCenter => null;

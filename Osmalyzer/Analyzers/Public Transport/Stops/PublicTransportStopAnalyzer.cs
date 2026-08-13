@@ -15,9 +15,7 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
 
     /// <summary> Very short label for report texts </summary>
     protected abstract string Label { get; } // todo: not used, wire
-    
-    protected abstract bool CheckStopBoardingTypes { get; }
-    
+
     protected abstract string OsmTaggingValueForOperator { get; }
     protected abstract string? OsmTaggingValueForOperatorWikidata { get; }
     protected abstract OsmCoord? StopMatchingCenter { get; }
@@ -240,76 +238,73 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
         
         // Validate stops and propose changes
         
-        if (CheckStopBoardingTypes)
+        Validator<GTFSStopDataItem> stopValidator = new Validator<GTFSStopDataItem>(
+            correlatorReport,
+            "Stop tagging issues"
+        );
+
+        Validation validation = stopValidator.Validate(
+            report,
+            false, // don't validate unmatched elements (we only care about matched stops)
+            false, // don't validate lone OSM elements
+                
+            // todo: name? regional name?
+                
+            new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
+            new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
+
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
+                (e,_) => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
+                "gtfs:stop_id",
+                gtfsStopItem => gtfsStopItem.Stop.Id
+            ),
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
+                (e,_) => GtfsDisambiguatorId != null && ShouldDisambiguateGtfsStopId(e), // for multiple ids - need to disambiguate
+                "gtfs:stop_id:" + GtfsDisambiguatorId,
+                gtfsStopItem => gtfsStopItem.Stop.Id
+            ),
+            //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
+                
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue),
+                
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "bus", d.Bus), "bus", i => i.Bus ? "yes" : ""),
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "tram", d.Tram), "tram", i => i.Tram ? "yes" : ""),
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "trolleybus", d.Trolleybus), "trolleybus", i => i.Trolleybus ? "yes" : "")
+        );
+
+        bool ShouldCheckField(OsmElement element, string tag, bool expected)
         {
-            Validator<GTFSStopDataItem> stopValidator = new Validator<GTFSStopDataItem>(
-                correlatorReport,
-                "Stop tagging issues"
-            );
+            if (!expected)
+                if (element.GetValue(tag) == "no")
+                    return false; // explicitly tagged as `no`, so we can assume it's already correct, although not expected to be set by default 
+                
+            return true;
+        }
 
-            Validation validation = stopValidator.Validate(
-                report,
-                false, // don't validate unmatched elements (we only care about matched stops)
-                false, // don't validate lone OSM elements
-                
-                // todo: name? regional name?
-                
-                new ValidateElementHasValue("operator", OsmTaggingValueForOperator),
-                new ValidateElementHasValue("operator:wikidata", OsmTaggingValueForOperatorWikidata),
-
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
-                    (e,_) => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
-                    "gtfs:stop_id",
-                    gtfsStopItem => gtfsStopItem.Stop.Id
-                ),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
-                    (e,_) => GtfsDisambiguatorId != null && ShouldDisambiguateGtfsStopId(e), // for multiple ids - need to disambiguate
-                    "gtfs:stop_id:" + GtfsDisambiguatorId,
-                    gtfsStopItem => gtfsStopItem.Stop.Id
-                ),
-                //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
-                
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("request_stop", GetExpectedRequestStopValue),
-                
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "bus", d.Bus), "bus", i => i.Bus ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "tram", d.Tram), "tram", i => i.Tram ? "yes" : ""),
-                new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "trolleybus", d.Trolleybus), "trolleybus", i => i.Trolleybus ? "yes" : "")
-            );
-
-            bool ShouldCheckField(OsmElement element, string tag, bool expected)
-            {
-                if (!expected)
-                    if (element.GetValue(tag) == "no")
-                        return false; // explicitly tagged as `no`, so we can assume it's already correct, although not expected to be set by default 
-                
-                return true;
-            }
-
-            string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
-            {
-                // Determine expected request_stop value based on GTFS pickup type
-                if (gtfsStopItem.Stop.CommonPickupType == GTFSPickupType.MustCoordinateWithDriverToArrangePickup)
-                    return "yes";
-                else if (gtfsStopItem.Stop.CommonPickupType == GTFSPickupType.RegularlyScheduledPickup)
-                    return "no"; // Regular stops shouldn't have the tag
-                else
-                    return null; // Unknown/mixed/other values - don't know what to tag
-            }
+        string? GetExpectedRequestStopValue(GTFSStopDataItem gtfsStopItem)
+        {
+            // Determine expected request_stop value based on GTFS pickup type
+            if (gtfsStopItem.Stop.CommonPickupType == GTFSPickupType.MustCoordinateWithDriverToArrangePickup)
+                return "yes";
+            else if (gtfsStopItem.Stop.CommonPickupType == GTFSPickupType.RegularlyScheduledPickup)
+                return "no"; // Regular stops shouldn't have the tag
+            else
+                return null; // Unknown/mixed/other values - don't know what to tag
+        }
             
-            bool ShouldDisambiguateGtfsStopId(OsmElement stop)
-            {
-                foreach (string key in stop.AllKeys!) // implied not null if we are matches as stop
-                    if (key.StartsWith("gtfs:stop_id:"))
-                        return true; // Any existing disambiguation means we should disambiguate
+        bool ShouldDisambiguateGtfsStopId(OsmElement stop)
+        {
+            foreach (string key in stop.AllKeys!) // implied not null if we are matches as stop
+                if (key.StartsWith("gtfs:stop_id:"))
+                    return true; // Any existing disambiguation means we should disambiguate
 
-                return false;
-            }
+            return false;
+        }
 
 #if DEBUG
-            SuggestedActionApplicator.ApplyAndProposeXml(osmStops, validation.Changes, this);
-            SuggestedActionApplicator.ExplainForReport(validation.Changes, report, GroupDesignation.ProposedChanges);
+        SuggestedActionApplicator.ApplyAndProposeXml(osmStops, validation.Changes, this);
+        SuggestedActionApplicator.ExplainForReport(validation.Changes, report, GroupDesignation.ProposedChanges);
 #endif
-        }
     }
    
     

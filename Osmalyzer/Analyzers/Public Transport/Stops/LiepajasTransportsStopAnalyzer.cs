@@ -5,12 +5,10 @@ public class LiepajasTransportsStopAnalyzer : PublicTransportStopAnalyzer<Liepaj
 {
     protected override string Label => "Liepajas Sabiedriskais Transports";
 
-    protected override bool CheckStopBoardingTypes => false;
-
     protected override string OsmTaggingValueForOperator => "Liepājas sabiedriskais transports";
     protected override string? OsmTaggingValueForOperatorWikidata => null;
-    protected override OsmCoord? StopMatchingCenter => null;
-    protected override double? StopMatchingDistance => null;
-    protected override string? GtfsDisambiguatorId => null;
+    protected override OsmCoord? StopMatchingCenter => new OsmCoord(56.5373, 21.0252); // a little north from Liepāja center, routes go far N-S
+    protected override double? StopMatchingDistance => 11000;
+    protected override string GtfsDisambiguatorId => "LST";
     protected override bool RegionalService => false;
 }

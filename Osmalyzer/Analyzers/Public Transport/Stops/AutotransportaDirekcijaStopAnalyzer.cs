@@ -5,8 +5,6 @@ public class AutotransportaDirekcijaStopAnalyzer : PublicTransportStopAnalyzer<A
 {
     protected override string Label => "Autotransporta Direkcija";
 
-    protected override bool CheckStopBoardingTypes => false;
-
     protected override string OsmTaggingValueForOperator => "Autotransporta Direkcija";
     protected override string? OsmTaggingValueForOperatorWikidata => null;
     protected override OsmCoord? StopMatchingCenter => null;

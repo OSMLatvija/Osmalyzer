@@ -66,6 +66,7 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
         // Convert GTFS stops to data items for correlation
         
         List<GTFSStopDataItem> stopDataItems = gtfsNetwork.Stops.Stops
+                                                          .Where(s => s.LocationType is GTFSStopLocationType.Stop or GTFSStopLocationType.Unknown)
                                                           .Select(stop => new GTFSStopDataItem(stop))
                                                           .ToList();
         

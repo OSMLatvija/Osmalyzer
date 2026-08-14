@@ -39,30 +39,15 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
 
         OsmData masterData = osmData.MasterData;
 
-        List<OsmData> routeData = masterData.Filter(
-            [
-                [
-                    new IsNode(),
-                    new OrMatch(
-                        new HasValue("highway", "bus_stop"), // (can share with tram too) 
-                        new HasValue("railway", "tram_stop"), // not railway=platform which can be separate node/way
-                        // not public_transport=platform which can be by itself
-                        new HasValue("disused:railway", "tram_stop") // still valid, if not in active use - Rigas Satiksme data seems to have these too
-                    )
-                ],
-                [
-                    new IsRelation(),
-                    new HasValue("type", "route"),
-                    new OrMatch(
-                        new HasAnyValue("route", "tram", "bus", "trolleybus"),
-                        new HasAnyValue("disused:route", "tram", "bus", "trolleybus")
-                    )
-                ]
-            ]
+        OsmData osmStops = masterData.Filter(
+            new IsNode(), 
+            new OrMatch(
+                new HasValue("highway", "bus_stop"), // (can share with tram too) 
+                new HasValue("railway", "tram_stop"), // not railway=platform which can be separate node/way
+                // not public_transport=platform which can be by itself
+                new HasValue("disused:railway", "tram_stop") // still valid, if not in active use - Rigas Satiksme data seems to have these too
+            )
         );
-            
-        OsmData osmStops = routeData[0];
-        OsmData osmRoutes = routeData[1];
 
         // Convert GTFS stops to data items for correlation
         

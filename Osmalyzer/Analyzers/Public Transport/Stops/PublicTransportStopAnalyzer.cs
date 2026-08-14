@@ -269,12 +269,14 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
             new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
                 (e,_) => !ShouldDisambiguateGtfsStopId(e), // for single or no id - can use directly (without disambiguating)
                 "gtfs:stop_id",
-                gtfsStopItem => gtfsStopItem.Stop.Id
+                gtfsStopItem => gtfsStopItem.Stop.Id,
+                true
             ),
             new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>(
                 (e,_) => GtfsDisambiguatorId != null && ShouldDisambiguateGtfsStopId(e), // for multiple ids - need to disambiguate
                 "gtfs:stop_id:" + GtfsDisambiguatorId,
-                gtfsStopItem => gtfsStopItem.Stop.Id
+                gtfsStopItem => gtfsStopItem.Stop.Id,
+                true
             ),
             //new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>("ref", gtfsStopItem => gtfsStopItem.Stop.Id),
                 

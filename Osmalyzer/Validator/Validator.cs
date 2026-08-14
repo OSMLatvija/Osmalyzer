@@ -510,7 +510,7 @@ public class Validator<T> where T : IDataItem
                         suggestedChangesForRule ??= [ ];
                         suggestedChangesForRule.Add(new OsmSetValueSuggestedAction(targetElement, rule.Tag, dataValue));
                     }
-                    else if (elementValue != dataValue)
+                    else if (!DoesElementValueMatch(elementValue, dataValue, rule.AllowAsMultiValue))
                     {
                         report.AddEntry(
                             ReportGroup.ValidationResults,
@@ -701,7 +701,7 @@ public class Validator<T> where T : IDataItem
         
         return "`" +  tag + "=" + value + "`";
     }
-    
+
     [Pure]
     private static string GetTagValueDisplayString(string tag, string[] values)
     {
@@ -732,6 +732,27 @@ public class Validator<T> where T : IDataItem
         
         // todo: smarter?
         // todo: based on analyzer's custom rule?
+    }
+
+    [Pure]
+    private static bool DoesElementValueMatch(string elementValue, string dataValue, bool allowAsMultiValue)
+    {
+        if (elementValue == dataValue)
+            return true;
+
+        if (allowAsMultiValue)
+        {
+            if (elementValue.Contains(';'))
+            {
+                string[] elementValues = elementValue.Split(';', StringSplitOptions.TrimEntries);
+
+                foreach (string value in elementValues)
+                    if (value == dataValue)
+                        return true;
+            }
+        }
+
+        return false;
     }
 
 

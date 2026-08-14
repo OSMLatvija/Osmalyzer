@@ -14,15 +14,18 @@ public class ValidateElementValueMatchesDataItemValue<T> : ValidationRule where 
     /// Expected value, if given. If empty, expecting no value. If null, don't know what is expected.
     /// </summary>
     public Func<T, string?> DataItemValueLookup { get; }
-    
+
+    public bool AllowAsMultiValue { get; }
+
     public string[]? IncorrectTags { get; }
 
 
-    public ValidateElementValueMatchesDataItemValue(Func<OsmElement, T, bool> shouldCheckElement, string tag, Func<T, string?> dataItemValueLookup)
+    public ValidateElementValueMatchesDataItemValue(Func<OsmElement, T, bool> shouldCheckElement, string tag, Func<T, string?> dataItemValueLookup, bool allowAsMultiValue = false)
     {
         ShouldCheckElement = shouldCheckElement;
         Tag = tag;
         DataItemValueLookup = dataItemValueLookup;
+        AllowAsMultiValue = allowAsMultiValue;
     }
 
     public ValidateElementValueMatchesDataItemValue(Func<OsmElement, T, bool> shouldCheckElement, Func<OsmElement, OsmElement> elementSelector, string tag, Func<T, string?> dataItemValueLookup)

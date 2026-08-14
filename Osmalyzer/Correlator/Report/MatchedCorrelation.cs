@@ -9,13 +9,16 @@ public class MatchedCorrelation<T> : Correlation where T : IDataItem
     public double Distance { get; }
     
     public bool Far { get; }
+    
+    public bool Repeated { get; }
 
 
-    public MatchedCorrelation(OsmElement osmElement, T dataItem, double distance, bool far)
+    public MatchedCorrelation(OsmElement osmElement, T dataItem, double distance, bool far, bool repeated)
     {
         OsmElement = osmElement;
         DataItem = dataItem;
         Distance = distance;
         Far = far;
+        Repeated = repeated;
     }
 }

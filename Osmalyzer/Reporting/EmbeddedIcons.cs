@@ -10,7 +10,7 @@ public static class EmbeddedIcons
             LeafletIcon.IconGroup.Main,
             ColorGroup.Green,
             MapPointStyle.Okay,
-            MapPointStyle.CorrelatorPairMatched, MapPointStyle.CorrelatorLoneOsmMatched
+            MapPointStyle.CorrelatorPairMatchedStong, MapPointStyle.CorrelatorLoneOsmMatched
         ),
 
         new LeafletIcon(
@@ -18,7 +18,7 @@ public static class EmbeddedIcons
             16,
             LeafletIcon.IconGroup.Main,
             ColorGroup.Green,
-            MapPointStyle.CorrelatorPairMatchedWeak
+            MapPointStyle.CorrelatorPairMatchedGood
         ),
 
         new LeafletIcon(
@@ -27,7 +27,7 @@ public static class EmbeddedIcons
             LeafletIcon.IconGroup.Main,
             ColorGroup.Orange,
             MapPointStyle.Dubious,
-            MapPointStyle.CorrelatorPairMatchedFar
+            MapPointStyle.CorrelatorPairMatchedWeak
         ),
 
         new LeafletIcon(

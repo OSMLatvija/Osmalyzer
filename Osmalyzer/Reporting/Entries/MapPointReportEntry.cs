@@ -51,10 +51,10 @@ public enum MapPointStyle
     Dubious,
     Suggestion,
 
-    CorrelatorPairMatched,
-    CorrelatorPairMatchedWeak,
+    CorrelatorPairMatchedStong,
+    CorrelatorPairMatchedGood,
     CorrelatorPairMatchedOffsetOrigin,
-    CorrelatorPairMatchedFar,
+    CorrelatorPairMatchedWeak,
     CorrelatorPairMatchedFarOrigin,
     CorrelatorItemUnmatched,
     CorrelatorOsmUnmatched,

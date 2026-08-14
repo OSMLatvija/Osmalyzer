@@ -67,34 +67,42 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
             new MatchExtraDistanceParamater(MatchStrength.Strong, 2500), // exact id matches are allowed for data errors 
             new MatchCallbackParameter<GTFSStopDataItem>(IsGoodStopMatch),
             new LoneElementAllowanceParameter(DoesStopLookLikeOperatorsStop),
+            new MatchRepeatedParameter(CanStopMatchMultiple), // some stops on OSM combine multiple GTFS data items
             new DataItemLabelsParamater("stop", "stops"),
             new OsmElementPreviewValue("name", false),
             new OsmElementPreviewValue("ref", false)
         );
 
-        // Create correlator with appropriate parameters
         MatchStrength IsGoodStopMatch(GTFSStopDataItem gtfsStop, OsmElement osmElement)
         {
-            // Explicit `gtfs:stop_id`
-            if (GtfsDisambiguatorId != null)
+            if (
+                (GtfsDisambiguatorId != null && RefHasValue("gtfs:stop_id:" + GtfsDisambiguatorId)) ||
+                RefHasValue("gtfs:stop_id") ||
+                RefHasValue("ref") || // weaker than `gtfs:stop_id` but still a strong match
+                RefHasValue("unsigned_ref")
+            )
+                return MatchStrength.Strong;
+
+            bool RefHasValue(string tag)
             {
-                string? gtfsStopDabIdTag = osmElement.GetValue("gtfs:stop_id:" + GtfsDisambiguatorId);
-                if (gtfsStopDabIdTag != null && gtfsStopDabIdTag == gtfsStop.Stop.Id)
-                    return MatchStrength.Strong;
+                string? value = osmElement.GetValue(tag);
+                if (value == null)
+                    return false;
+                
+                if (value == gtfsStop.Stop.Id)
+                    return true;
+
+                if (value.Contains(';')) // multiple values?
+                {
+                    string[] values = value.Split(';', StringSplitOptions.TrimEntries);
+                    foreach (string v in values)
+                        if (v == gtfsStop.Stop.Id)
+                            return true;
+                }
+                
+                return false;
             }
 
-            string? gtfsStopIdTag = osmElement.GetValue("gtfs:stop_id");
-            if (gtfsStopIdTag != null && gtfsStopIdTag == gtfsStop.Stop.Id)
-                return MatchStrength.Strong;
-            
-            string? refTag = osmElement.GetValue("ref"); // weaker than `gtfs:stop_id` but still a strong match
-            if (refTag != null && refTag == gtfsStop.Stop.Id)
-                return MatchStrength.Strong;
-            
-            string? unsignedRefTag = osmElement.GetValue("unsigned_ref"); 
-            if (unsignedRefTag != null && unsignedRefTag == gtfsStop.Stop.Id)
-                return MatchStrength.Strong;
-            
             // Note that only IDs should strongly-match, which we take as a definite stop match
             
             string? osmStopName = osmElement.GetValue("name");
@@ -118,7 +126,19 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
             return MatchStrength.Unmatched;
         }
 
-        // Run the correlation
+        bool CanStopMatchMultiple(OsmElement element)
+        {
+            // If we have manually set multiple refs/ids, then we are could potentially match more than one data stop by the ref
+            
+            return
+                (GtfsDisambiguatorId != null && RefHasMultiValue("gtfs:stop_id:" + GtfsDisambiguatorId)) ||
+                RefHasMultiValue("gtfs:stop_id") ||
+                RefHasMultiValue("ref") ||
+                RefHasMultiValue("unsigned_ref");
+
+            bool RefHasMultiValue(string tag) => element.GetValue(tag)?.Contains(';') ?? false;
+        }
+
         CorrelatorReport correlatorReport = correlator.Parse(
             report,
             "This matches `highway=bus_stop` and `railway=tram_stop` elements, but not `public_transport=platform` itself. " +
@@ -165,9 +185,12 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                             if (routeOperatorTag != null && routeOperatorTag.ToLower() == OsmTaggingValueForOperator.ToLower())
                                 return true;
 
-                            string? routeOperatorWikidataTag = member.Element.GetValue("operator:wikidata");
-                            if (routeOperatorWikidataTag != null && routeOperatorWikidataTag.ToLower() == OsmTaggingValueForOperatorWikidata.ToLower())
-                                return true;
+                            if (OsmTaggingValueForOperatorWikidata != null)
+                            {
+                                string? routeOperatorWikidataTag = member.Element.GetValue("operator:wikidata");
+                                if (routeOperatorWikidataTag != null && routeOperatorWikidataTag.ToLower() == OsmTaggingValueForOperatorWikidata.ToLower())
+                                    return true;
+                            }
                         }
                     }
                 }

@@ -70,6 +70,10 @@ public class Correlator<T> where T : IDataItem
         OsmPolygon? polygon = polygonParamater?.Polygon ?? null;
         bool? reportOutsidePolygon = polygonParamater?.Report ?? null;
         MatchLoneElementsOnStrongMatchParamater? loneStrongMatchParamater = _paramaters.OfType<MatchLoneElementsOnStrongMatchParamater>().FirstOrDefault();
+        MatchRepeatedParameter? matchRepeatedParameter = _paramaters.OfType<MatchRepeatedParameter>().FirstOrDefault();
+        
+        if (matchRepeatedParameter != null && loneElementAllowanceCallback == null) throw new InvalidOperationException("Cannot use " + nameof(MatchRepeatedParameter) + " without " + nameof(LoneElementAllowanceParameter));
+        if (matchRepeatedParameter != null && matchCallback == null) throw new InvalidOperationException("Cannot use " + nameof(MatchRepeatedParameter) + " without " + nameof(MatchCallbackParameter<T>));
 
         double seekDistance = unmatchDistance;
         seekDistance = Math.Max(unmatchDistance + mediocreMatchExtraDistance, seekDistance);
@@ -180,7 +184,7 @@ public class Correlator<T> where T : IDataItem
                         (OsmElement element, MatchStrength strength, double distance) element = matchableOsmElements[0];
                         // If there's more than one, we have no way to disambiguate, so just take the first one
 
-                        allMatchedElements.Add(element.element, new Match(dataItem, element.element, element.distance, element.strength, false));
+                        allMatchedElements.Add(element.element, new Match(dataItem, element.element, element.distance, element.strength, false, false));
                         
                         for (int i = 1; i < matchableOsmElements.Count; i++)
                         {
@@ -212,7 +216,7 @@ public class Correlator<T> where T : IDataItem
                                     // We are closer than previous match, so replace us as the best match and requeue the other item
 
                                     allMatchedElements.Remove(closeElement);
-                                    allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far));
+                                    allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far, false));
                                     itemsToBeMatched.Add(previous.Item); // requeue other
                                     matched = true;
                                     break;
@@ -227,7 +231,7 @@ public class Correlator<T> where T : IDataItem
                             {
                                 // This element wasn't yet matched, so claim it as our best match 
 
-                                allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far));
+                                allMatchedElements.Add(closeElement, new Match(dataItem, closeElement, distance, strength, far, false));
                                 matched = true;
                                 break;
                             }
@@ -297,7 +301,7 @@ public class Correlator<T> where T : IDataItem
                         if (!Equals(bestItem, default(T)))
                         {
                             bool far = bestDistance > matchDistance;
-                            allMatchedElements.Add(osmElement, new Match(bestItem!, osmElement, bestDistance, bestStrength, far));
+                            allMatchedElements.Add(osmElement, new Match(bestItem!, osmElement, bestDistance, bestStrength, far, false));
                             unmatchableItems.Remove(bestItem!);
                             upgradedToPair = true;
                         }
@@ -314,6 +318,48 @@ public class Correlator<T> where T : IDataItem
             else
             {
                 unmatchableElements.Add(osmElement);
+            }
+        }
+        
+        // Undictionary matches as we are now potentially adding repeats
+        List<Match> allMatches = allMatchedElements.Values.ToList();
+        // ReSharper disable once RedundantAssignment
+        allMatchedElements = null!; // catch any further use as exceptions
+        
+        // Match repeats - multiple items to one OSM element
+
+        if (matchRepeatedParameter != null)
+        {
+            List<Match> matchesCopy = allMatches.ToList(); // because we modify it
+
+            foreach (Match match in matchesCopy)
+            {
+                OsmElement element = match.Element;
+                
+                if (matchRepeatedParameter.CanOsmElementMatchMultipleCallback(element))
+                {
+                    for (int i = 0; i < unmatchableItems.Count; i++)
+                    {
+                        T unmatchedItem = unmatchableItems[i];
+                        
+                        MatchStrength matchStrength = matchCallback!(unmatchedItem, element);
+
+                        if ((int)matchStrength >= (int)matchRepeatedParameter.MinMatchStrength)
+                        {
+                            double distance = OsmGeoTools.DistanceBetween(unmatchedItem.Coord, element.AverageCoord);
+                            
+                            if (distance > seekDistance)
+                                continue; // too far away
+                            
+                            bool far = distance > matchDistance;
+                            
+                            allMatches.Add(new Match(unmatchedItem, element, distance, matchStrength, far, true));
+                            
+                            unmatchableItems.RemoveAt(i);
+                            i--; // because we removed an item from the list
+                        }
+                    }
+                }
             }
         }
         
@@ -394,9 +440,8 @@ public class Correlator<T> where T : IDataItem
         
         if (shouldReportMatchedItem)
         {
-            List<Match> closeMatchedElements = allMatchedElements
-                                               .Where(p => !p.Value.Far)
-                                               .Select(p => p.Value)
+            List<Match> closeMatchedElements = allMatches
+                                               .Where(p => !p.Far)
                                                .ToList();
 
             if (closeMatchedElements.Count > 0)
@@ -408,11 +453,15 @@ public class Correlator<T> where T : IDataItem
                         new MapPointReportEntry(
                             match.Element.AverageCoord,
                             match.Item.ReportString() + " " + 
-                            MatchStrengthLabel(match.MatchStrength) + " OSM element " +
+                            MatchStrengthLabel(match.MatchStrength, match.Repeated) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " at " + match.Distance.ToString("F0") + " m",
                             match.Element,
-                            match.MatchStrength == MatchStrength.Strong ? MapPointStyle.CorrelatorPairMatched : MapPointStyle.CorrelatorPairMatchedWeak
+                            match.Repeated ? 
+                                MapPointStyle.CorrelatorPairMatchedWeak :
+                                match.MatchStrength == MatchStrength.Strong ? 
+                                    MapPointStyle.CorrelatorPairMatchedStong : 
+                                    MapPointStyle.CorrelatorPairMatchedGood
                         )
                     );
 
@@ -446,9 +495,8 @@ public class Correlator<T> where T : IDataItem
         
         if (shouldReportMatchedItemFar)
         {
-            List<Match> farMatchedElements = allMatchedElements
-                                             .Where(p => p.Value.Far)
-                                             .Select(p => p.Value)
+            List<Match> farMatchedElements = allMatches
+                                             .Where(p => p.Far)
                                              .ToList();
 
             if (farMatchedElements.Count > 0)
@@ -460,11 +508,11 @@ public class Correlator<T> where T : IDataItem
                         new MapPointReportEntry(
                             match.Element.AverageCoord,
                             match.Item.ReportString() + " " + 
-                            MatchStrengthLabel(match.MatchStrength) + " OSM element " +
+                            MatchStrengthLabel(match.MatchStrength, match.Repeated) + " OSM element " +
                             OsmElementReportText(match.Element) +
                             " but it's far away at " + match.Distance.ToString("F0") + " m",
                             match.Element,
-                            MapPointStyle.CorrelatorPairMatchedFar
+                            MapPointStyle.CorrelatorPairMatchedWeak
                         )
                     );
 
@@ -547,7 +595,21 @@ public class Correlator<T> where T : IDataItem
                 );
             }
         }
+
+        List<Match> repeats = allMatches
+                              .Where(p => p.Repeated)
+                              .ToList();
         
+        if (repeats.Count > 0)
+        {
+            report.AddEntry(
+                group,
+                new GenericReportEntry(
+                    "Matched multiple data items to the same OSM element " + repeats.Count + " times for " + repeats.Select(p => p.Element).Distinct().Count() + " different elements."
+                )
+            );
+        }
+
         foreach (T dataItem in outOfBoundsItems)
         {
             report.AddEntry(
@@ -560,9 +622,9 @@ public class Correlator<T> where T : IDataItem
             );
         }
 
-        string MatchStrengthLabel(MatchStrength strength)
+        string MatchStrengthLabel(MatchStrength strength, bool repeat)
         {
-            return strength switch
+            string s = strength switch
             {
                 MatchStrength.Regular => "matched",
                 MatchStrength.Good    => "well-matched",
@@ -570,6 +632,11 @@ public class Correlator<T> where T : IDataItem
 
                 _ => throw new ArgumentOutOfRangeException(nameof(strength), strength, null)
             };
+
+            if (repeat)
+                s = "repeatedly " + s;
+            
+            return s;
         }
         
         // todo: legend
@@ -578,8 +645,8 @@ public class Correlator<T> where T : IDataItem
         
         List<Correlation> correlations = [ ];
 
-        foreach (Match match in allMatchedElements.Values)
-            correlations.Add(new MatchedCorrelation<T>(match.Element, match.Item, match.Distance, match.Far));
+        foreach (Match match in allMatches)
+            correlations.Add(new MatchedCorrelation<T>(match.Element, match.Item, match.Distance, match.Far, match.Repeated));
 
         foreach (OsmElement unmatched in unmatchableElements)
             correlations.Add(new UnmatchedOsmCorrelation(unmatched));
@@ -658,15 +725,18 @@ public class Correlator<T> where T : IDataItem
         public MatchStrength MatchStrength { get; }
 
         public bool Far { get; }
-
         
-        public Match(T item, OsmElement element, double distance, MatchStrength matchStrength, bool far)
+        public bool Repeated { get; }
+
+
+        public Match(T item, OsmElement element, double distance, MatchStrength matchStrength, bool far, bool repeated)
         {
             Item = item;
             Element = element;
             Distance = distance;
             MatchStrength = matchStrength;
             Far = far;
+            Repeated = repeated;
         }
     }
 

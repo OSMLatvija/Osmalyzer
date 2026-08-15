@@ -46,7 +46,7 @@ public static class PublicTransportHelpers
             // Rezekne "18.Novembra iela" vs OSM "18. novembra iela"
             name = name.ToLower();
 
-            // Remove errornous spaces
+            // Remove erroneous spaces
             // e.g. ATD "DS  Salūts"
             name = Regex.Replace(name, @"\s{2,}", @" ");
             
@@ -70,6 +70,12 @@ public static class PublicTransportHelpers
             name = Regex.Replace(name, @"(?<! )([\./-])", @" $1");
             name = Regex.Replace(name, @"([\./-])(?! )", @"$1 ");
 
+            // Abbreviated street designation "14.novembra bulv." in LST
+            name = name.Replace("bulv.", "bulvāris");
+            
+            // "Pagr.uz slimnīcu" abbreviated from "Pagrieziens uz slimnīcu" in LST
+            name = name.Replace("Pagr.uz", "Pagrieziens uz");
+            
             return name;
         }
         

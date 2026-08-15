@@ -6,7 +6,7 @@ public class LiepajasTransportsStopAnalyzer : PublicTransportStopAnalyzer<Liepaj
     protected override string Label => "Liepajas Sabiedriskais Transports";
 
     protected override string OsmTaggingValueForOperator => "Liepājas sabiedriskais transports";
-    protected override string? OsmTaggingValueForOperatorWikidata => null;
+    protected override string OsmTaggingValueForOperatorWikidata => "Q141088184";
     protected override OsmCoord? StopMatchingCenter => new OsmCoord(56.5373, 21.0252); // a little north from Liepāja center, routes go far N-S
     protected override double? StopMatchingDistance => 11000;
     protected override string GtfsDisambiguatorId => "LST";

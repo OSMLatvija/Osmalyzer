@@ -3,7 +3,7 @@
 [UsedImplicitly]
 public class LiepajasTransportsAnalysisData : GTFSAnalysisData
 {
-    public override string Name => "Liepajas Sabiedriskais Transports";
+    public override string Name => "Liepajas sabiedriskais transports";
 
     public override string ReportWebLink => @"https://www.marsruti.lv/liepaja/";
 

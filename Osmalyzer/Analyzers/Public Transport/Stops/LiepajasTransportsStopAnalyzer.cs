@@ -3,7 +3,7 @@
 [UsedImplicitly]
 public class LiepajasTransportsStopAnalyzer : PublicTransportStopAnalyzer<LiepajasTransportsAnalysisData>
 {
-    protected override string Label => "Liepajas Sabiedriskais Transports";
+    protected override string Label => "Liepajas sabiedriskais transports";
 
     protected override string OsmTaggingValueForOperator => "Liepājas sabiedriskais transports";
     protected override string OsmTaggingValueForOperatorWikidata => "Q141088184";

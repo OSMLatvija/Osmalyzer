@@ -69,8 +69,7 @@
 
     lineList_GI_.forEach(function (data) {
         L.polyline(data[0], { color: data[1] })
-            .addTo(lineGroup_GI_)
-            .bindPopup(data[2], { maxWidth : 560 });
+            .addTo(lineGroup_GI_);
     });
     
     mg_GI_.addTo(map_GI_);

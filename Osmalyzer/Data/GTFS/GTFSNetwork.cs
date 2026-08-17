@@ -14,6 +14,8 @@ public class GTFSNetwork
         
     public GTFSServices Services { get; }
         
+    public GTFSShapes? Shapes { get; }
+        
     public GTFSTrips Trips { get; }
         
     public GTFSVisits Visits { get; }
@@ -26,8 +28,12 @@ public class GTFSNetwork
         Routes = new GTFSRoutes(Path.Combine(dataPath, "routes.txt"));
             
         Services = new GTFSServices(Path.Combine(dataPath, "calendar.txt"));
+
+        string shapesDataFileName = Path.Combine(dataPath, "shapes.txt");
+        if (File.Exists(shapesDataFileName))
+            Shapes = new GTFSShapes(shapesDataFileName);
             
-        Trips = new GTFSTrips(Path.Combine(dataPath, "trips.txt"), Routes, Services);
+        Trips = new GTFSTrips(Path.Combine(dataPath, "trips.txt"), Routes, Services, Shapes);
             
         Visits = new GTFSVisits(Path.Combine(dataPath, "stop_times.txt"), Stops, Trips);
 

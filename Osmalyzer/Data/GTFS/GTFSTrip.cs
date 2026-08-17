@@ -8,6 +8,9 @@ public class GTFSTrip
     
     public GTFSService? Service { get; }
 
+    public GTFSShape? Shape { get; }
+
+    
     public IEnumerable<GTFSVisit> Visits => _visits.AsReadOnly();
         
     public IEnumerable<GTFSStop> Stops => _visits.Select(p => p.Stop);
@@ -16,11 +19,12 @@ public class GTFSTrip
     private readonly List<GTFSVisit> _visits = [ ];
 
 
-    public GTFSTrip(string id, GTFSRoute route, GTFSService? service)
+    public GTFSTrip(string id, GTFSRoute route, GTFSService? service, GTFSShape? shape = null)
     {
         Id = id;
         Route = route;
         Service = service;
+        Shape = shape;
     }
 
         

@@ -20,14 +20,14 @@ public static class Runner
 #else
         List<Analyzer> analyzers =
         [
-            // new RigasSatiksmeRouteAnalyzer(),
+            //new RigasSatiksmeRouteAnalyzer(),
             new LiepajasTransportsRouteAnalyzer(),
             // new RezeknesSatiksmeRouteAnalyzer(),
             // new JurmalasSatiksmeRouteAnalyzer(),
             // new AutotransportaDirekcijaRouteAnalyzer(),
             // new JelgavasAutobusuParksRouteAnalyzer(),
             //new RigasSatiksmeStopAnalyzer(),
-            new LiepajasTransportsStopAnalyzer(),
+            //new LiepajasTransportsStopAnalyzer(),
             //new RezeknesSatiksmeStopAnalyzer(),
             //new JurmalasSatiksmeStopAnalyzer(),
             //new AutotransportaDirekcijaStopAnalyzer(),

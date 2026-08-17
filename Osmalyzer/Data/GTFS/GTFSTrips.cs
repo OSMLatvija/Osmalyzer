@@ -11,41 +11,51 @@ public class GTFSTrips
     private readonly Dictionary<string, GTFSTrip> _trips;
 
         
-    public GTFSTrips(string dataFileName, GTFSRoutes routes, GTFSServices services)
+    public GTFSTrips(string dataFileName, GTFSRoutes routes, GTFSServices services, GTFSShapes? shapes)
     {
         _trips = new Dictionary<string, GTFSTrip>(StringComparer.OrdinalIgnoreCase);
 
         string[] lines = File.ReadAllLines(dataFileName);
 
-        for (int i = 0; i < lines.Length; i++)
+        if (lines.Length < 2)
+            return;
+
+        string header = lines[0];
+        string[] headers = header.Split(',').Select(s => s.Trim()).ToArray();
+
+        int routeIdIndex = headers.IndexOf("route_id");
+        int serviceIdIndex = headers.IndexOf("service_id");
+        int tripIdIndex = headers.IndexOf("trip_id");
+        int shapeIdIndex = headers.IndexOf("shape_id");
+
+        if (routeIdIndex == -1) throw new Exception($"Missing required column 'route_id' in {dataFileName}");
+        if (serviceIdIndex == -1) throw new Exception($"Missing required column 'service_id' in {dataFileName}");
+        if (tripIdIndex == -1) throw new Exception($"Missing required column 'trip_id' in {dataFileName}");
+
+        for (int i = 1; i < lines.Length; i++)
         {
-            if (i == 0) // header row
+            string line = lines[i];
+            List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
+
+            if (segments.Count <= routeIdIndex || segments.Count <= serviceIdIndex || segments.Count <= tripIdIndex)
                 continue;
 
-            string line = lines[i];
             // route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id,wheelchair_accessible
             // riga_bus_9,23274,1279,"Abrenes iela",1,169766,riga_bus_9_b-a,
 
-            List<string> segments = line.Split(',').Select(s => s.Trim()).ToList();
-
-            // route_id - riga_bus_9
-            // service_id - 23274
-            // trip_id - 1279
-            // trip_headsign - "Abrenes iela"
-            // direction_id - 1
-            // block_id - 169766
-            // shape_id - riga_bus_9_b-a
-            // wheelchair_accessible -
-
-            string tripId = segments[2];
-            string routeId = segments[0];
-            string serviceId = segments[1];
+            string tripId = segments[tripIdIndex];
+            string routeId = segments[routeIdIndex];
+            string serviceId = segments[serviceIdIndex];
 
             GTFSRoute route = routes.GetRoute(routeId);
 
             GTFSService? service = services.GetService(serviceId);
 
-            GTFSTrip trip = new GTFSTrip(tripId, route, service);
+            GTFSShape? shape = null;
+            if (shapeIdIndex != -1 && shapeIdIndex < segments.Count)
+                shape = shapes?.GetShape(segments[shapeIdIndex]);
+
+            GTFSTrip trip = new GTFSTrip(tripId, route, service, shape);
             _trips.TryAdd(trip.Id, trip);
             
             route.AddTrip(trip);
@@ -64,6 +74,9 @@ public class GTFSTrips
                 if (service.Routes.All(r => r != route))
                     service.AddRoute(route);
             }
+
+            if (shape != null)
+                shape.AddTrip(trip);
         }
     }
 

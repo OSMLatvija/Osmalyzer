@@ -251,6 +251,10 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
                         throw new ArgumentOutOfRangeException(nameof(stopMatch));
                 }
             }
+
+            // GTFS shape
+            
+            // TODO:
             
             // Stop order
             

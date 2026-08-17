@@ -5,9 +5,9 @@ public class GTFSShape
     public string Id { get; }
 
     
-    public IEnumerable<GTFSShapePoint> Points => _points.AsReadOnly();
+    public IReadOnlyList<GTFSShapePoint> Points => _points.AsReadOnly();
 
-    public IEnumerable<GTFSTrip> Trips => _trips.AsReadOnly();
+    public IReadOnlyList<GTFSTrip> Trips => _trips.AsReadOnly();
 
     
     private readonly List<GTFSShapePoint> _points = [];

@@ -1,4 +1,6 @@
-﻿namespace Osmalyzer;
+﻿using System.Drawing;
+
+namespace Osmalyzer;
 
 public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
     where T : GTFSAnalysisData, new()
@@ -253,8 +255,25 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
             }
 
             // GTFS shape
-            
-            // TODO:
+
+            if (variant.Shape != null)
+            {
+                for (int i = 0; i < variant.Shape.Points.Count - 1; i++)
+                {
+                    GTFSShapePoint current = variant.Shape.Points[i];
+                    GTFSShapePoint next = variant.Shape.Points[i + 1];
+                    
+                    report.AddEntry(
+                        variant,
+                        new MapLineReportEntry(
+                            [ current.Coord, next.Coord ],
+                            ToHex(Color.MediumVioletRed)
+                        )
+                    );
+                }
+
+                static string ToHex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+            }
             
             // Stop order
             
@@ -483,6 +502,8 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
         public int StopCount => _stops.Count;
         
         public int TripCount => _trips.Count;
+
+        public GTFSShape? Shape => _trips[0].Shape; // any will do (presumably all the same and if not... oh well)
 
         public OsmCoord AverageCoord { get; }
 

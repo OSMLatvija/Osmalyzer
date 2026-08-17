@@ -10,8 +10,8 @@ public class MapLineReportEntry : ReportEntry
     public string Color { get; }
 
 
-    public MapLineReportEntry(IEnumerable<OsmCoord> coords, string text, string color, ReportEntryContext? context = null)
-        : base(text, context)
+    public MapLineReportEntry(IEnumerable<OsmCoord> coords, string color, ReportEntryContext? context = null)
+        : base("", context)
     {
         if (coords == null) throw new ArgumentNullException(nameof(coords));
 
@@ -22,12 +22,6 @@ public class MapLineReportEntry : ReportEntry
 
         Color = color ?? throw new ArgumentNullException(nameof(color));
     }
-
-    public MapLineReportEntry(IEnumerable<OsmCoord> coords, string text, List<OsmElement> elements, string color, ReportEntryContext? context = null)
-        : this(coords, AddElementTagsToText(text, elements), color, context) { }
-
-    public MapLineReportEntry(IEnumerable<OsmCoord> coords, string text, OsmElement element, string color, ReportEntryContext? context = null)
-        : this(coords, AddElementTagsToText(text, [ element ]), color, context) { }
 
 
     [Pure]

@@ -275,7 +275,7 @@ public class HtmlFileReportWriter : ReportWriter
             string MakeLineEntryContent(MapLineReportEntry mapLineEntry)
             {
                 StringBuilder lineEntryStr = new StringBuilder();
-                lineEntryStr.Append("[[");
+                lineEntryStr.Append("        [[");
                 
                 for (int i = 0; i < mapLineEntry.Coords.Count; i++)
                 {
@@ -286,7 +286,7 @@ public class HtmlFileReportWriter : ReportWriter
                         lineEntryStr.Append(", ");
                 }
                 
-                lineEntryStr.Append("], ");
+                lineEntryStr.AppendLine("],");
                 lineEntryStr.Append("\"" + HttpUtility.JavaScriptStringEncode(mapLineEntry.Color) + "\"");
                 
                 lineEntryStr.Append("],");

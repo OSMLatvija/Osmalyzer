@@ -253,9 +253,9 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
                         throw new ArgumentOutOfRangeException(nameof(stopMatch));
                 }
             }
-
+            
             // GTFS shape
-
+            
             if (variant.Shape != null)
             {
                 for (int i = 0; i < variant.Shape.Points.Count - 1; i++)
@@ -274,7 +274,33 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
 
                 static string ToHex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
             }
-            
+
+            if (routePair != null)
+            {
+                // OSM shape
+
+                if (variant.Shape != null)
+                {
+                    foreach (OsmWay way in routePair.OsmRoute.Members
+                                                        .Where(m => m.Type == OsmElement.OsmElementType.Way && m.Role == "")
+                                                        .Select(m => m.Element!)
+                                                        .Cast<OsmWay>())
+                    {
+                        OsmCoord[] coords = way.Nodes.Select(n => n.coord).ToArray();
+
+                        report.AddEntry(
+                            variant,
+                            new MapLineReportEntry(
+                                coords,
+                                ToHex(Color.DeepSkyBlue)
+                            )
+                        );
+                    }
+
+                    static string ToHex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+                }
+            }
+
             // Stop order
             
             // TODO: ...

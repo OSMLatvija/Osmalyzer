@@ -10,8 +10,8 @@ public class MapLineReportEntry : ReportEntry
     public string Color { get; }
 
 
-    public MapLineReportEntry(IEnumerable<OsmCoord> coords, string color, ReportEntryContext? context = null)
-        : base("", context)
+    public MapLineReportEntry(IEnumerable<OsmCoord> coords, string text, string color, ReportEntryContext? context = null)
+        : base(text, context)
     {
         if (coords == null) throw new ArgumentNullException(nameof(coords));
 
@@ -23,23 +23,7 @@ public class MapLineReportEntry : ReportEntry
         Color = color ?? throw new ArgumentNullException(nameof(color));
     }
 
-
-    [Pure]
-    private static string AddElementTagsToText(string text, List<OsmElement> elements)
-    {
-        foreach (OsmElement element in elements)
-            text += OsmElementTagsBlock(element);
-
-        return text;
-
-
-        [Pure]
-        static string? OsmElementTagsBlock(OsmElement osmElement)
-        {
-            string? tags = osmElement.GetAllTagsAsString();
-
-            return tags != null ? Environment.NewLine + "```" + osmElement.ElementType + " #" + osmElement.Id + Environment.NewLine + tags + "```" : null;
-        }
-    }
+    public MapLineReportEntry(IEnumerable<OsmCoord> coords, string color, ReportEntryContext? context = null)
+        : this(coords, "", color, context) { }
 }
 

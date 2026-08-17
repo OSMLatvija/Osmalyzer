@@ -13,8 +13,15 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
         "Note that this might result in poor and incorrect matches if OSM doesn't have a matching route mapped " +
         "or some other route matches it instead (because of similar stops). " +
         "Each route is shown in its own section so it can be compared with the matched OSM route, if any. " +
+        "If stops don't fully match between OSM and GTFS, then points will also be shown for missing or extra stops. " +
         "Note that GTFS stores routes differently than OSM and not necessarily all should be mapped. " +
-        "Technically, GTFS doesn't have route \"variants\" - the ones below are collected from repeating unique stop sequences.";
+        "Technically, GTFS doesn't have route \"variants\" - the ones below are collected from repeating unique stop sequences. " +
+        "Most routes have their \"primary\" variants corresponding to many GTFS trips, such as typical daytime operation. " +
+        "These should likely all be mapped on OSM. " +
+        "Then some routes have additional variants, such as shortened evening route or returning to depot. " +
+        "Whether to map these depends on many factors and differs greatly by operator. " +
+        "GTFS route geometry is visualized in magenta and OSM ways used by routes in blue on top. " +
+        "Note that GTFS geometry/shapes after very often imprecise or even wrong at high zoom levels.";
 
     public sealed override AnalyzerGroup Group => AnalyzerGroup.PublicTransportRoutes;
     

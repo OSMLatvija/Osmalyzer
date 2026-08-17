@@ -23,6 +23,30 @@ public class LiepajasTransportsAnalysisData : GTFSAnalysisData
     
     protected override void CleanUpGtfsData()
     {
-        // We don't have any known global issues
+        // LST routes with numbers larger than 20 are minibuses, not regular buses (22, 23, 25, 25A at this time while largest bus number is 10)
+        foreach (GTFSRoute route in Network.Routes.Routes)
+            if (TryParseRouteNumber(route.Number, out int? routeNumber))
+                if (routeNumber > 20)
+                    route.Type = GTFSRouteVehicleType.Minibus;
+    }
+
+    /// <summary>
+    /// Extract the numeric part from a route number (e.g., "20A" -> 20, "123" -> 123).
+    /// </summary>
+    [Pure]
+    private static bool TryParseRouteNumber(string routeNumber, out int? number)
+    {
+        number = null;
+        
+        Match match = Regex.Match(routeNumber, @"^(\d+)");
+        
+        if (!match.Success)
+            return false;
+
+        if (!int.TryParse(match.Groups[1].Value, out int parsed))
+            return false;
+
+        number = parsed;
+        return true;
     }
 }

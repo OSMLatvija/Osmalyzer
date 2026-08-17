@@ -8,7 +8,7 @@ public class GTFSRoute
         
     public string Number { get; }
 
-    public GTFSRouteVehicleType Type { get; }
+    public GTFSRouteVehicleType Type { get; set; }
 
     public string TypeLabel { get; }
 

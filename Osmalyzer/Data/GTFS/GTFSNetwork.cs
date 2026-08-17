@@ -59,8 +59,12 @@ public class GTFSNetwork
                         {
                             case GTFSRouteVehicleType.Bus:
                             case GTFSRouteVehicleType.NightBus:
+                                stop.Bus = true;
+                                break;
+                                
                             case GTFSRouteVehicleType.Minibus:
                                 stop.Bus = true;
+                                stop.Minibus = true;
                                 break;
                                 
                             case GTFSRouteVehicleType.Trolleybus:

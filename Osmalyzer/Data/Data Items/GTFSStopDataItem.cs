@@ -11,6 +11,9 @@ public class GTFSStopDataItem : IDataItem
     public bool ImpliedBus { get; set; }
     
     /// <summary> GTFS doesn't specify, but an existing route or something else implies </summary>
+    public bool ImpliedMinibus { get; set; }
+    
+    /// <summary> GTFS doesn't specify, but an existing route or something else implies </summary>
     public bool ImpliedTrolleybus { get; set; }
     
     /// <summary> GTFS doesn't specify, but an existing route or something else implies </summary>
@@ -22,6 +25,7 @@ public class GTFSStopDataItem : IDataItem
     public string Name => Stop.Name;
 
     public bool Bus => Stop.Bus || ImpliedBus;
+    public bool Minibus => Stop.Minibus || ImpliedMinibus;
     public bool Trolleybus => Stop.Trolleybus || ImpliedTrolleybus;
     public bool Tram => Stop.Tram || ImpliedTram;
 

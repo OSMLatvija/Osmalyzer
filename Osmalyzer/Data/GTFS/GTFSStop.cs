@@ -12,6 +12,8 @@ public class GTFSStop
 
     
     public bool Bus { get; set; }
+    
+    public bool Minibus { get; set; }
         
     public bool Trolleybus { get; set; }
         

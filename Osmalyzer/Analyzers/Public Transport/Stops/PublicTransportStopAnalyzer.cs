@@ -240,9 +240,20 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                     OsmRelation relation = relationMember.Owner;
                     if (relation.HasValue("type", "route"))
                     {
-                        if (relation.HasValue(["route", "disused:route"], "bus")) match.DataItem.ImpliedBus = true;
-                        if (relation.HasValue(["route", "disused:route"], "tram")) match.DataItem.ImpliedTram = true;
-                        if (relation.HasValue(["route", "disused:route"], "trolleybus")) match.DataItem.ImpliedTrolleybus = true;
+                        if (relation.HasValue([ "route", "disused:route" ], "bus"))
+                        {
+                            match.DataItem.ImpliedBus = true;
+                            
+                            if (relation.HasValue("bus", "minibus"))
+                                match.DataItem.ImpliedMinibus = true;
+                        }
+
+                        if (relation.HasValue(["route", "disused:route"], "tram")) 
+                            match.DataItem.ImpliedTram = true;
+                        
+                        if (relation.HasValue(["route", "disused:route"], "trolleybus")) 
+                            match.DataItem.ImpliedTrolleybus = true;
+                        
                         // We are assuming that disused is temporary, such as due to roadworks or seasonal or something
                     }
                 }
@@ -284,7 +295,8 @@ public abstract class PublicTransportStopAnalyzer<T> : Analyzer
                 
             new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "bus", d.Bus), "bus", i => i.Bus ? "yes" : ""),
             new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "tram", d.Tram), "tram", i => i.Tram ? "yes" : ""),
-            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "trolleybus", d.Trolleybus), "trolleybus", i => i.Trolleybus ? "yes" : "")
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "trolleybus", d.Trolleybus), "trolleybus", i => i.Trolleybus ? "yes" : ""),
+            new ValidateElementValueMatchesDataItemValue<GTFSStopDataItem>((e,d) => ShouldCheckField(e, "bus", d.Bus), "minibus", i => i.Minibus ? "yes" : "")
         );
 
         bool ShouldCheckField(OsmElement element, string tag, bool expected)

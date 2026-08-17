@@ -29,11 +29,16 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
 
 
     /// <summary> Very short label for report texts </summary>
-    protected abstract string Label { get; } // todo: not used, wire
+    protected abstract string Label { get; }
 
     protected abstract string? GtfsDisambiguatorId { get; }
     protected abstract bool RegionalService { get; }
 
+    /// <summary> Agency as defined by `agency_name` in GTFS </summary>
+    protected abstract string? Agency { get; }
+    /// <summary> Agency brief readable page name/label </summary>
+    protected abstract string? AgencyLabel { get; }
+    
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
     {

@@ -44,6 +44,13 @@ public class TextFileReportWriter : ReportWriter
                 reportFile.WriteLine();
             }
                 
+            if (group.MapLineEntries.Count > 0)
+            {
+                foreach (MapLineReportEntry entry in group.MapLineEntries)
+                    reportFile.WriteLine("* " + string.Join(" -> ", entry.Coords.Select(coord => coord.ToString())) + ": " + entry.Text);
+                reportFile.WriteLine();
+            }
+
             reportFile.WriteLine();
         }
             

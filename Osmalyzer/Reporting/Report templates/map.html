@@ -50,6 +50,8 @@
     var sg_GI_ = L.featureGroup().addTo(map_GI_);
     map_GI_.removeLayer(sg_GI_);
 
+    var lineGroup_GI_ = L.featureGroup().addTo(map_GI_);
+
     const markerList_GI_ = [
 <!--MARKERS-->
     ];
@@ -60,11 +62,34 @@
             .bindPopup(data[5], { maxWidth : 560 })
             .group=data[4];
     });
+
+    const lineList_GI_ = [
+<!--LINES-->
+    ];
+
+    lineList_GI_.forEach(function (data) {
+        L.polyline(data[0], { color: data[1] })
+            .addTo(lineGroup_GI_)
+            .bindPopup(data[2], { maxWidth : 560 });
+    });
     
     mg_GI_.addTo(map_GI_);
     map_GI_.on('zoomend', function() {
         if (map_GI_.getZoom() < 14) map_GI_.removeLayer(sg_GI_);
         else map_GI_.addLayer(sg_GI_);
     });
-    map_GI_.fitBounds(mg_GI_.getBounds(), { maxZoom: 12, animate: false });
+
+    var fitBounds_GI_ = null;
+    if (mg_GI_.getLayers().length > 0)
+        fitBounds_GI_ = mg_GI_.getBounds();
+    if (lineGroup_GI_.getLayers().length > 0) {
+        var lineBounds_GI_ = lineGroup_GI_.getBounds();
+        if (fitBounds_GI_ === null)
+            fitBounds_GI_ = lineBounds_GI_;
+        else
+            fitBounds_GI_ = fitBounds_GI_.extend(lineBounds_GI_);
+    }
+
+    if (fitBounds_GI_ !== null)
+        map_GI_.fitBounds(fitBounds_GI_, { maxZoom: 12, animate: false });
 </script>

@@ -115,8 +115,8 @@ public class HtmlFileReportWriter : ReportWriter
                 if (group.PlaceholderEntry != null)
                     str.AppendLine("<p>" + PolishLine(group.PlaceholderEntry.Text) + "</p>");
 
-            if (group.MapPointEntries.Count > 0)
-                str.AppendLine(MakeMapContent(group.MapPointEntries, g, group.ShouldClusterMapPointEntries));
+            if (group.MapPointEntries.Count > 0 || group.MapLineEntries.Count > 0)
+                str.AppendLine(MakeMapContent(group.MapPointEntries, group.MapLineEntries, g, group.ShouldClusterMapPointEntries));
 
             if (group.IssueEntryCount > 0)
             {
@@ -161,7 +161,7 @@ public class HtmlFileReportWriter : ReportWriter
 
         
         [Pure]
-        string MakeMapContent(IList<MapPointReportEntry> entries, int index, bool clustered)
+        string MakeMapContent(IList<MapPointReportEntry> pointEntries, IList<MapLineReportEntry> lineEntries, int index, bool clustered)
         {
             string mapContent = GetMapTemplate();
 
@@ -176,9 +176,11 @@ public class HtmlFileReportWriter : ReportWriter
                 mapContent = StripLocators(mapContent, "UNCLUSTERED");
             }
 
-            string markerContent = MakeMarkersContent(entries);
+            string markerContent = MakeMarkersContent(pointEntries);
+            string lineContent = MakeLineContent(lineEntries);
             
             mapContent = ReplaceLocatorBlock(mapContent, "MARKERS", markerContent);
+            mapContent = ReplaceLocatorBlock(mapContent, "LINES", lineContent);
             
             mapContent = mapContent.Replace("_GI_", index.ToString());
 
@@ -256,6 +258,43 @@ public class HtmlFileReportWriter : ReportWriter
                         _ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
                     };
                 }
+            }
+        }
+        
+        [Pure]
+        string MakeLineContent(IEnumerable<MapLineReportEntry> entries)
+        {
+            StringBuilder lineStr = new StringBuilder();
+            
+            foreach (MapLineReportEntry mapLineEntry in entries)
+                lineStr.Append(MakeLineEntryContent(mapLineEntry));
+
+            return lineStr.ToString();
+            
+            
+            string MakeLineEntryContent(MapLineReportEntry mapLineEntry)
+            {
+                StringBuilder lineEntryStr = new StringBuilder();
+                lineEntryStr.Append("[");
+                
+                for (int i = 0; i < mapLineEntry.Coords.Count; i++)
+                {
+                    OsmCoord coord = mapLineEntry.Coords[i];
+                    lineEntryStr.Append($"[{coord.lat.ToString("F6")}, {coord.lon.ToString("F6")}]");
+                    
+                    if (i < mapLineEntry.Coords.Count - 1)
+                        lineEntryStr.Append(", ");
+                }
+                
+                lineEntryStr.Append(", ");
+                lineEntryStr.Append("\"" + HttpUtility.JavaScriptStringEncode(mapLineEntry.Color) + "\", ");
+                
+                string text = PolishLine(mapLineEntry.Text);
+                lineEntryStr.Append("\"" + HttpUtility.JavaScriptStringEncode(text) + "\"");
+                
+                lineEntryStr.Append("],");
+                
+                return lineEntryStr.ToString();
             }
         }
     }

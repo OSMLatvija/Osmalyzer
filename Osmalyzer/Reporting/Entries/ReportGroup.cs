@@ -29,11 +29,14 @@ public class ReportGroup
             
     public ReadOnlyCollection<MapPointReportEntry> MapPointEntries => _mapPointEntries.AsReadOnly();
 
+    public ReadOnlyCollection<MapLineReportEntry> MapLineEntries => _mapLineEntries.AsReadOnly();
+
         
     public int TotalEntryCount =>
         _genericEntries.Count + 
         _issuesEntries.Count + 
         _mapPointEntries.Count +
+        _mapLineEntries.Count +
         (DescriptionEntry != null ? 1 : 0) +
         (PlaceholderEntry != null ? 1 : 0);
 
@@ -51,17 +54,20 @@ public class ReportGroup
     public bool HaveAnyContentEntries => 
         _genericEntries.Count > 0 || 
         _issuesEntries.Count > 0 || 
-        _mapPointEntries.Count > 0; // this counts too right? would there ever be only map points? report that is just map?
+        _mapPointEntries.Count > 0 ||
+        _mapLineEntries.Count > 0;
 
-    public bool NeedMap => _mapPointEntries.Count > 0;
+    public bool NeedMap => _mapPointEntries.Count > 0 || _mapLineEntries.Count > 0;
 
 
-    private readonly List<GenericReportEntry> _genericEntries = [ ];
+    private readonly List<GenericReportEntry> _genericEntries = [ ]; 
             
     private readonly List<IssueReportEntry> _issuesEntries = [ ];
     // todo: should I merge issue with generic? add some sort of "issue rating"?
             
     private readonly List<MapPointReportEntry> _mapPointEntries = [ ];
+
+    private readonly List<MapLineReportEntry> _mapLineEntries = [ ];
 
 
     public ReportGroup(object id, object? parentGroupId, string title, bool showImportantEntryCount, bool shouldClusterMapPointEntries)
@@ -94,6 +100,10 @@ public class ReportGroup
                 // Map Leaflet clustering will handle/spiderfy multiple nodes at the same location
                 break;
 
+            case MapLineReportEntry mle:
+                _mapLineEntries.Add(mle);
+                break;
+
             case PlaceholderReportEntry pe:
                 if (PlaceholderEntry != null) throw new InvalidOperationException("Placeholder entry already set!");
                 PlaceholderEntry = pe;
@@ -117,6 +127,7 @@ public class ReportGroup
         _issuesEntries.RemoveAll(e => e.Context == context);
         _genericEntries.RemoveAll(e => e.Context == context);
         _mapPointEntries.RemoveAll(e => e.Context == context);
+        _mapLineEntries.RemoveAll(e => e.Context == context);
 
         if (PlaceholderEntry != null && PlaceholderEntry.Context == context) PlaceholderEntry = null;
         if (DescriptionEntry != null && DescriptionEntry.Context == context) DescriptionEntry = null;

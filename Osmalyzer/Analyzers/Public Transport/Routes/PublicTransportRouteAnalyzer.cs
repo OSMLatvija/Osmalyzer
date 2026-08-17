@@ -84,6 +84,25 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
 
         List<RoutePair> routePairs = MatchOsmRoutesToRouteVariants(osmRoutes, routeVariants);
         
+        // Determine which routes have at least one variant meeting the threshold
+        // For routes with no variants meeting the threshold, mark the most-used variant to show anyway
+        
+        HashSet<RouteVariant> forcedToShowVariants = [ ];
+        
+        foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
+        {
+            List<RouteVariant> variantsForRoute = routeVariants.Where(rv => rv.Route == gtfsRoute).ToList();
+            
+            bool hasVariantMeetingThreshold = variantsForRoute.Any(rv => rv.TripCount >= minTripCountToInclude);
+            
+            if (!hasVariantMeetingThreshold && variantsForRoute.Count > 0)
+            {
+                // No variants meet the threshold, so force the most-used one to be shown
+                RouteVariant mostUsedVariant = variantsForRoute.MaxBy(rv => rv.TripCount)!;
+                forcedToShowVariants.Add(mostUsedVariant);
+            }
+        }
+        
         // Show results for each route variant
 
         foreach (RouteVariant variant in routeVariants)
@@ -93,7 +112,8 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
             // Skip route if we don't have a match and it's not frequent enough
             
             if (routePair == null && // no OSM route matched, so we might not want to even show if it's infrequent
-                variant.TripCount < minTripCountToInclude) // todo: optional, e.g. JAP lists them but RS doesn't
+                variant.TripCount < minTripCountToInclude && // todo: optional, e.g. JAP lists them but RS doesn't
+                !forcedToShowVariants.Contains(variant)) // unless this is the most-used variant for a route with no frequent variants
             {
                 // Not enough to report as a "full" route, presumably first/final depo routes 
                 skippedVariants.Add(variant);

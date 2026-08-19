@@ -8,6 +8,8 @@
 /// </summary>
 public class GTFSNetwork
 {
+    public GTFSAgencies Agencies { get; }
+
     public GTFSStops Stops { get; }
         
     public GTFSRoutes Routes { get; }
@@ -23,9 +25,11 @@ public class GTFSNetwork
 
     public GTFSNetwork(string dataPath)
     {
+        Agencies = new GTFSAgencies(Path.Combine(dataPath, "agency.txt"));
+
         Stops = new GTFSStops(Path.Combine(dataPath, "stops.txt"));
             
-        Routes = new GTFSRoutes(Path.Combine(dataPath, "routes.txt"));
+        Routes = new GTFSRoutes(Path.Combine(dataPath, "routes.txt"), Agencies);
             
         Services = new GTFSServices(Path.Combine(dataPath, "calendar.txt"));
 

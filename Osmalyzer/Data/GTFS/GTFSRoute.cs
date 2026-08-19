@@ -10,6 +10,8 @@ public class GTFSRoute
 
     public GTFSRouteVehicleType Type { get; set; }
 
+    public GTFSAgency? Agency { get; }
+
     public string TypeLabel { get; }
 
     public IEnumerable<GTFSService> Services => _services.AsReadOnly();
@@ -24,13 +26,14 @@ public class GTFSRoute
 
     private readonly List<GTFSTrip> _trips = [ ];
 
-        
-    public GTFSRoute(string id, string name, string number, GTFSRouteVehicleType type)
+    
+    public GTFSRoute(string id, string name, string number, GTFSRouteVehicleType type, GTFSAgency? agency)
     {
         Id = id;
         Name = name;
         Number = number;
         Type = type;
+        Agency = agency;
         TypeLabel = TypeToCleanType(type);
     }
 

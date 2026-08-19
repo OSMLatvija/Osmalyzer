@@ -10,4 +10,6 @@ public class JelgavasAutobusuParksRouteAnalyzer : PublicTransportRouteAnalyzer<J
     
     protected override string? Agency => null; // we report all as one
     protected override string? AgencyLabel => null; // we report all as one
+    
+    protected override bool IncludeAllVariants => false;
 }

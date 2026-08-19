@@ -19,6 +19,7 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
         "Most routes have their \"primary\" variants corresponding to many GTFS trips, such as typical daytime operation. " +
         "These should likely all be mapped on OSM. " +
         "Then some routes have additional variants, such as shortened evening route or returning to depot. " +
+        "Many routes have variants that skip or add stop(s) for some trips. " +
         "Whether to map these depends on many factors and differs greatly by operator. " +
         "GTFS route geometry is visualized in magenta and OSM ways used by routes in blue on top. " +
         "Note that GTFS geometry/shapes after very often imprecise or even wrong at high zoom levels.";
@@ -38,6 +39,9 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
     protected abstract string? Agency { get; }
     /// <summary> Agency brief readable page name/label </summary>
     protected abstract string? AgencyLabel { get; }
+    
+    /// <summary> Whether all route variants should be included regardless of frequency </summary>
+    protected abstract bool IncludeAllVariants { get; }
     
 
     public override void Run(IReadOnlyList<AnalysisData> datas, Report report)
@@ -107,21 +111,24 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
         // For routes with no variants meeting the threshold, mark the most-used variant to show anyway
         
         HashSet<RouteVariant> forcedToShowVariants = [ ];
-        
-        foreach (GTFSRoute gtfsRoute in routes)
+
+        if (!IncludeAllVariants)
         {
-            List<RouteVariant> variantsForRoute = routeVariants.Where(rv => rv.Route == gtfsRoute).ToList();
-            
-            bool hasVariantMeetingThreshold = variantsForRoute.Any(rv => rv.TripCount >= minTripCountToInclude);
-            
-            if (!hasVariantMeetingThreshold && variantsForRoute.Count > 0)
+            foreach (GTFSRoute gtfsRoute in routes)
             {
-                // No variants meet the threshold, so force the most-used one to be shown
-                RouteVariant mostUsedVariant = variantsForRoute.MaxBy(rv => rv.TripCount)!;
-                forcedToShowVariants.Add(mostUsedVariant);
+                List<RouteVariant> variantsForRoute = routeVariants.Where(rv => rv.Route == gtfsRoute).ToList();
+
+                bool hasVariantMeetingThreshold = variantsForRoute.Any(rv => rv.TripCount >= minTripCountToInclude);
+
+                if (!hasVariantMeetingThreshold && variantsForRoute.Count > 0)
+                {
+                    // No variants meet the threshold, so force the most-used one to be shown
+                    RouteVariant mostUsedVariant = variantsForRoute.MaxBy(rv => rv.TripCount)!;
+                    forcedToShowVariants.Add(mostUsedVariant);
+                }
             }
         }
-        
+
         // Show results for each route variant
 
         foreach (RouteVariant variant in routeVariants)
@@ -131,7 +138,8 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
             // Skip route if we don't have a match and it's not frequent enough
             
             if (routePair == null && // no OSM route matched, so we might not want to even show if it's infrequent
-                variant.TripCount < minTripCountToInclude && // todo: optional, e.g. JAP lists them but RS doesn't
+                !IncludeAllVariants && // unless we force-show all variants regardless
+                variant.TripCount < minTripCountToInclude && // todo: optional?, e.g. JAP lists them but RS doesn't
                 !forcedToShowVariants.Contains(variant)) // unless this is the most-used variant for a route with no frequent variants
             {
                 // Not enough to report as a "full" route, presumably first/final depo routes 

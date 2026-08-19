@@ -29,7 +29,6 @@ public static class Runner
             new GalssBussATDRouteAnalyzer(),
             new DaugavpilsAPATDRouteAnalyzer(),
             new LiepajasAPATDRouteAnalyzer(),
-            new ViviATDRouteAnalyzer(),
             new TalsuATATDRouteAnalyzer(),
             new LSAATDRouteAnalyzer(),
             new VentspilsReissATDRouteAnalyzer(),
@@ -42,7 +41,6 @@ public static class Runner
             new LuxExpressATDRouteAnalyzer(),
             new BussiliinidATDRouteAnalyzer(),
             new HansabussATDRouteAnalyzer(),
-            new GulbenesAluksnesBanitisATDRouteAnalyzer(),
 
             //new RigasSatiksmeStopAnalyzer(),
             //new LiepajasTransportsStopAnalyzer(),

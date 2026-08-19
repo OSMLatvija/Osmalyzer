@@ -28,12 +28,6 @@ public class LiepajasAPATDRouteAnalyzer : AutotransportaDirekcijaRouteAnalyzer
     protected override string AgencyLabel => "Liepajas AP";
 }
 
-public class ViviATDRouteAnalyzer : AutotransportaDirekcijaRouteAnalyzer
-{
-    protected override string Agency => "Pasažieru vilciens AS";
-    protected override string AgencyLabel => "Vivi";
-}
-
 public class TalsuATATDRouteAnalyzer : AutotransportaDirekcijaRouteAnalyzer
 {
     protected override string Agency => "AS Talsu autotransports";
@@ -106,8 +100,18 @@ public class HansabussATDRouteAnalyzer : AutotransportaDirekcijaRouteAnalyzer
     protected override string AgencyLabel => "Hansabuss";
 }
 
-public class GulbenesAluksnesBanitisATDRouteAnalyzer : AutotransportaDirekcijaRouteAnalyzer
-{
-    protected override string Agency => "Gulbenes-Alūksnes bānītis";
-    protected override string AgencyLabel => "Gulbenes Aluksnes banitis";
-}
+// Not doing train routes yet
+// There are no routes for this atm
+// public class ViviATDRouteAnalyzer : AutotransportaDirekcijaRouteAnalyzer
+// {
+//     protected override string Agency => "Pasažieru vilciens AS";
+//     protected override string AgencyLabel => "Vivi";
+// }
+
+// Not doing train routes yet
+// There is one route
+// public class GulbenesAluksnesBanitisATDRouteAnalyzer : AutotransportaDirekcijaRouteAnalyzer
+// {
+//     protected override string Agency => "Gulbenes-Alūksnes bānītis";
+//     protected override string AgencyLabel => "Gulbenes Aluksnes banitis";
+// }

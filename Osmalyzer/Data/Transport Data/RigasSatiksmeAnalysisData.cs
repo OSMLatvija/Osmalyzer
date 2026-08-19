@@ -21,6 +21,7 @@ public class RigasSatiksmeAnalysisData : GTFSAnalysisData
     public override string ExtractionFolder => "GTFS-RigSat";
         
     protected override string DataURL => @"https://saraksti.rigassatiksme.lv/riga/gtfs.zip";
+    // also https://saraksti.rigassatiksme.lv/gtfs.zip new version or something?
     
     
     protected override void CleanUpGtfsData()

@@ -75,13 +75,18 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
 
         const int minTripCountToInclude = 5;
 
-        foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
+        IEnumerable<GTFSRoute> routes = gtfsNetwork.Routes.Routes.ToList();
+        
+        if (Agency != null)
+            routes = routes.Where(r => r.Agency?.Name == Agency).ToList();
+        
+        foreach (GTFSRoute gtfsRoute in routes)
             foreach (RouteVariant variant in ExtractVariantsFromRoute(gtfsRoute).OrderByDescending(mt => mt.TripCount))
                 routeVariants.Add(variant);
         
         // Add "supergroups" for routes since there are so many
 
-        foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
+        foreach (GTFSRoute gtfsRoute in routes)
         {
             string header = gtfsRoute.TypeLabel + " #" + gtfsRoute.Number + " \"" + gtfsRoute.Name + "\"";
 
@@ -103,7 +108,7 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
         
         HashSet<RouteVariant> forcedToShowVariants = [ ];
         
-        foreach (GTFSRoute gtfsRoute in gtfsNetwork.Routes.Routes)
+        foreach (GTFSRoute gtfsRoute in routes)
         {
             List<RouteVariant> variantsForRoute = routeVariants.Where(rv => rv.Route == gtfsRoute).ToList();
             
@@ -337,7 +342,13 @@ public abstract class PublicTransportRouteAnalyzer<T> : Analyzer
         {
             report.AddGroup(GroupDesignation.SkippedVariants, "Skipped route variants");
 
-            report.AddEntry(GroupDesignation.SkippedVariants, new GenericReportEntry("These routes aren't matched to any OSM route have less than " + minTripCountToInclude + " trips with their unique sequence/pattern of stops, so they are skipped from full analysis."));
+            report.AddEntry(
+                GroupDesignation.SkippedVariants,
+                new GenericReportEntry(
+                    "These routes aren't matched to any OSM route have less than " + minTripCountToInclude + " trips with their unique sequence/pattern of stops, so they are skipped from full analysis. " +
+                    "This does not necessarily mean that they shouldn't be mapped on OSM, and are skipped primarily to avoid \"useless\" route variants."
+                )
+            );
 
             foreach (RouteVariant variant in skippedVariants)
             {

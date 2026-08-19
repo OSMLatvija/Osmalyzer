@@ -17,7 +17,9 @@ public class DaugavpilsSatiksmeAnalysisData : GTFSAnalysisData
 
     protected override string DataURL => @"https://satiksme.daugavpils.lv/saraksti/GTFS.zip";
 
-    
+    protected override bool NeedsBrowserDownload => true; // Needs TSL 1.3
+
+
     protected override void CleanUpGtfsData()
     {
         // We don't have any known global issues.

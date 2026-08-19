@@ -15,18 +15,33 @@ public abstract class GTFSAnalysisData : AnalysisData, IDatedAnalysisData
 
     protected abstract string DataFileName { get; }
 
-        
+    protected virtual bool NeedsBrowserDownload => false;
+
+
     public DateTime? RetrieveDataDate()
     {
+        if (NeedsBrowserDownload)
+            return null; // TODO: implement this? I am not sure browser header reading is a "thing"
+            
         return WebsiteDownloadHelper.ReadHeaderDate(DataURL);
     }
 
     protected override void Download()
     {
-        WebsiteDownloadHelper.Download(
-            DataURL, 
-            DataFileName
-        );
+        if (NeedsBrowserDownload)
+        {
+            WebsiteBrowsingHelper.DownloadPage(
+                DataURL,
+                DataFileName
+            );
+        }
+        else
+        {
+            WebsiteDownloadHelper.Download(
+                DataURL,
+                DataFileName
+            );
+        }
     }
 
     protected override void DoPrepare()

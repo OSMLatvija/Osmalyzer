@@ -8,6 +8,9 @@ namespace Osmalyzer;
 public static class WebsiteDownloadHelper
 {
     public static bool BrowsingEnabled { get; set; }
+    
+    
+    private static HttpClient? _httpClientInstance;
 
     
     [MustUseReturnValue]
@@ -20,7 +23,7 @@ public static class WebsiteDownloadHelper
             if (WebsiteCache.IsCached(url))
                 return WebsiteCache.GetCached(url);
             
-        using HttpClient client = new HttpClient();
+        HttpClient client = GetHttpClientInstance();
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.GetAsync(uri).Result;
         using HttpContent content = response.Content;
@@ -37,18 +40,8 @@ public static class WebsiteDownloadHelper
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        using HttpClientHandler handler = new HttpClientHandler { AllowAutoRedirect = false };
-        using HttpClient client = new HttpClient(handler);
-
-        // If headers are provided, add them to the client
-        if (headers != null)
-        {
-            foreach (var header in headers)
-            {
-                client.DefaultRequestHeaders.Add(header.Key, header.Value);
-            }
-        }
-        
+        HttpClient client = GetHttpClientInstance(headers);
+       
         HttpResponseMessage response = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult();
         // Follow one redirect, i.e. Geobarik https://blog.geofabrik.de/index.php/2025/07/24/download-geofabrik-de-to-use-http-redirects-for-latest-files/
         if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)
@@ -70,7 +63,7 @@ public static class WebsiteDownloadHelper
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        using HttpClient client = new HttpClient();
+        HttpClient client = GetHttpClientInstance();
         
         client.DefaultRequestHeaders.Add("Accept", "application/json"); // todo: dehardcode
 
@@ -95,7 +88,7 @@ public static class WebsiteDownloadHelper
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        using HttpClient client = new HttpClient();
+        HttpClient client = GetHttpClientInstance();
         
         StringContent content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
@@ -118,7 +111,7 @@ public static class WebsiteDownloadHelper
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        using HttpClient client = new HttpClient();
+        HttpClient client = GetHttpClientInstance();
         
         client.DefaultRequestHeaders.Add("Accept", "application/json"); // todo: dehardcode
 
@@ -140,7 +133,7 @@ public static class WebsiteDownloadHelper
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        using HttpClient client = new HttpClient();
+        HttpClient client = GetHttpClientInstance();
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri)).Result;
 
@@ -160,13 +153,35 @@ public static class WebsiteDownloadHelper
         if (!BrowsingEnabled)
             throw new Exception("Web browsing should only be performed in Download()");
 
-        HttpClientHandler handler = new HttpClientHandler()
-        {
-            AllowAutoRedirect = false
-        };
-        using HttpClient client = new HttpClient(handler);
+        HttpClient client = GetHttpClientInstance();
         Uri uri = new Uri(url, UriKind.Absolute);
         using HttpResponseMessage response = client.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri)).Result;
         return response.Headers.Location?.AbsolutePath ?? null;
+    }
+    
+    
+    [MustUseReturnValue]
+    private static HttpClient GetHttpClientInstance(Dictionary<string, string>? headers = null)
+    {
+        if (_httpClientInstance != null)
+            return _httpClientInstance;
+        
+        HttpClientHandler handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = false
+        };
+        
+        _httpClientInstance = new HttpClient(handler);
+
+        _httpClientInstance.DefaultRequestHeaders.Clear();
+
+        // Always add a fake a user agent
+        _httpClientInstance.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        
+        if (headers != null)
+            foreach ((string key, string value) in headers)
+                _httpClientInstance.DefaultRequestHeaders.Add(key, value);
+
+        return _httpClientInstance;
     }
 }

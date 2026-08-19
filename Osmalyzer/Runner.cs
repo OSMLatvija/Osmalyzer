@@ -20,11 +20,12 @@ public static class Runner
 #else
         List<Analyzer> analyzers =
         [
-            new RigasSatiksmeRouteAnalyzer(),
+            //new RigasSatiksmeRouteAnalyzer(),
             //new LiepajasTransportsRouteAnalyzer(),
             //new RezeknesSatiksmeRouteAnalyzer(),
             //new JurmalasSatiksmeRouteAnalyzer(),
             //new JelgavasAutobusuParksRouteAnalyzer(),
+            new DaugavpilsSatiksmeRouteAnalyzer(),
             // new GalssBussATDRouteAnalyzer(),
             // new DaugavpilsAPATDRouteAnalyzer(),
             // new LiepajasAPATDRouteAnalyzer(),
@@ -40,12 +41,13 @@ public static class Runner
             // new LuxExpressATDRouteAnalyzer(),
             // new BussiliinidATDRouteAnalyzer(),
             // new HansabussATDRouteAnalyzer(),
-            new RigasSatiksmeStopAnalyzer(),
+            // new RigasSatiksmeStopAnalyzer(),
             // new LiepajasTransportsStopAnalyzer(),
             // new RezeknesSatiksmeStopAnalyzer(),
             // new JurmalasSatiksmeStopAnalyzer(),
             // new AutotransportaDirekcijaStopAnalyzer(),
             // new JelgavasAutobusuParksStopAnalyzer(),
+            new DaugavpilsSatiksmeStopAnalyzer(),
             // new RigasSatiksmeTicketVendingAnalyzer(),
             // new TrolleybusWireAnalyzer(),
             // new MicroReservesAnalyzer(), // -- it fails from localhost and github runner, no idea why

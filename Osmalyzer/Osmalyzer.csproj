@@ -24,10 +24,10 @@
     <ItemGroup>
       <PackageReference Include="CsvHelper" Version="33.1.0" />
       <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
-      <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
+      <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
       <PackageReference Include="NetTopologySuite.IO.ShapeFile" Version="2.1.0" />
       <PackageReference Include="ProjNET" Version="2.1.0" />
-      <PackageReference Include="Selenium.WebDriver" Version="4.44.0" />
+      <PackageReference Include="Selenium.WebDriver" Version="4.47.0" />
       <PackageReference Include="SharpKml.Core" Version="6.1.0" />
       <PackageReference Include="SharpZipLib" Version="1.4.2" />
       <PackageReference Include="WeCantSpell.Hunspell" Version="7.0.1" />

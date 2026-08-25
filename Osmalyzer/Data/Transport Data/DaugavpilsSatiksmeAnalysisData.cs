@@ -1,6 +1,7 @@
 namespace Osmalyzer;
 
 [UsedImplicitly]
+[DisabledData]
 public class DaugavpilsSatiksmeAnalysisData : GTFSAnalysisData
 {
     public override string Name => "Daugavpils satiksme";

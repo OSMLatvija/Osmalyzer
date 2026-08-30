@@ -175,8 +175,7 @@ public static class WebsiteDownloadHelper
 
         _httpClientInstance.DefaultRequestHeaders.Clear();
 
-        // Always add a fake a user agent
-        _httpClientInstance.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        _httpClientInstance.DefaultRequestHeaders.Add("User-Agent", "Osmalyzer/1.0 (+https://github.com/OSMLatvija/Osmalyzer)");
         
         if (headers != null)
             foreach ((string key, string value) in headers)

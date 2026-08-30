@@ -244,8 +244,33 @@ public class CourthouseAnalysisData : AnalysisData, IUndatedAnalysisData
                 [Pure]
                 static string CleanHours(string hours)
                 {
+                    string timeRangePattern = @"(\d{1,2})[.](\d{2})\s*[–-]\s*(\d{1,2})[.](\d{2})";
+
+                    // "8.30 – 12.30, 13.00 - 18:00" -> "08:30-12:30,13:00-18:00"
+                    
+                    Match twoRangesMatch = Regex.Match(hours, @"^" + timeRangePattern + @"\s*,\s*" + timeRangePattern + @"$");
+                    
+                    if (twoRangesMatch.Success)
+                    {
+                        int openHour1 = int.Parse(twoRangesMatch.Groups[1].ToString());
+                        int openMinute1 = int.Parse(twoRangesMatch.Groups[2].ToString());
+                        int closeHour1 = int.Parse(twoRangesMatch.Groups[3].ToString());
+                        int closeMinute1 = int.Parse(twoRangesMatch.Groups[4].ToString());
+                        
+                        int openHour2 = int.Parse(twoRangesMatch.Groups[5].ToString());
+                        int openMinute2 = int.Parse(twoRangesMatch.Groups[6].ToString());
+                        int closeHour2 = int.Parse(twoRangesMatch.Groups[7].ToString());
+                        int closeMinute2 = int.Parse(twoRangesMatch.Groups[8].ToString());
+                        
+                        string range1 = $"{openHour1:D2}:{openMinute1:D2}-{closeHour1:D2}:{closeMinute1:D2}";
+                        string range2 = $"{openHour2:D2}:{openMinute2:D2}-{closeHour2:D2}:{closeMinute2:D2}";
+                        
+                        return range1 + "," + range2;
+                    }
+                    
                     // "8.30–17.00" -> "08:30-17:00"
-                    Match hoursMatch = Regex.Match(hours, @"^(\d{1,2})[.](\d{2})\s*[–-]\s*(\d{1,2})[.](\d{2})$");
+                    
+                    Match hoursMatch = Regex.Match(hours, @"^" + timeRangePattern + @"$");
                     
                     if (!hoursMatch.Success)
                         throw new Exception("Did not match hours: " + hours);

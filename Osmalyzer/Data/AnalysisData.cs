@@ -215,6 +215,7 @@ public abstract class AnalysisData
         File.Delete(CachedDateFilePath);
     }
 
+#if REMOTE_EXECUTION
     private static void PrintExceptionDetails(Exception e, string operationLabel)
     {
         Console.WriteLine("Failed to " + operationLabel + " with exception!");
@@ -248,6 +249,7 @@ public abstract class AnalysisData
             }
         }
     }
+#endif
 }
     
     

@@ -91,7 +91,7 @@ public class LatviaPostAnalysisData : AnalysisData, IParcelLockerListProvider, I
             throw;
         }
         
-        foreach (dynamic item in content)
+        foreach (dynamic item in content["hydra:member"])
         {
             if ((string)item.countryCode != "LV")
                 continue; // just in case - since not supplying type[] params actually returns LT and EE for some reason

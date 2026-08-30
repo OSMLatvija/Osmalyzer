@@ -17,7 +17,7 @@ public class RezeknesSatiksmeAnalysisData : GTFSAnalysisData
 
     public override string ExtractionFolder => "GTFS-RezSat";
         
-    protected override string DataURL => @"http://www.marsruti.lv/rezekne/rezekne/gtfs.zip";
+    protected override string DataURL => @"https://marsruti.lv/rezekne/rezekne/gtfs.zip";
     // todo: where could I get a direct link from them? 
     
     

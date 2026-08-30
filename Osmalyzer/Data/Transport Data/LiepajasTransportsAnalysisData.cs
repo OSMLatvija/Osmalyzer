@@ -17,7 +17,7 @@ public class LiepajasTransportsAnalysisData : GTFSAnalysisData
 
     public override string ExtractionFolder => "GTFS-LiepTra";
         
-    protected override string DataURL => @"http://www.marsruti.lv/liepaja/liepaja/gtfs.zip";
+    protected override string DataURL => @"https://marsruti.lv/liepaja/liepaja/gtfs.zip";
     // todo: where could I get a direct link from them? 
     
     

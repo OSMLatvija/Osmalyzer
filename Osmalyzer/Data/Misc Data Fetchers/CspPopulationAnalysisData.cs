@@ -200,6 +200,11 @@ public class CspPopulationAnalysisData : AnalysisData, IUndatedAnalysisData
                     // Qualifier?
                     Match qualifierRegex = Regex.Match(areaName, @"\((.*?)\)$");
                     string? qualifier = qualifierRegex.Success ? qualifierRegex.Groups[1].Value : null;
+
+                    if (qualifier != null && qualifier.StartsWith("līdz "))
+                        continue;
+                    // Don't know why but data suddenly includes these "until" entries, which we gotta skip.
+                    
                     if (qualifier != null)
                         areaName = areaName[..(areaName.Length - qualifier.Length - 2)].TrimEnd();
 
